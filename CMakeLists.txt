@@ -5,12 +5,11 @@ project(ltools)
 include(CTest)
 enable_testing()
 
-#add_subdirectory(deps)
+add_subdirectory(deps/ldeps)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/deps/bs/cmake)
 include(bs)
 
-bs_project(1 1)
+bs_project()
 
 # define all package libraries to use
 set(PACKAGE_NAMES
@@ -32,7 +31,7 @@ set(PACKAGE_NAMES
 )
 
 
-bs_setup("deps/ltools" "${PACKAGE_NAMES}")
+bs_setup("packages" "${PACKAGE_NAMES}")
 
 add_subdirectory(apps)
 
