@@ -9,7 +9,7 @@ add_subdirectory(deps/ldeps)
 
 include(bs)
 
-bs_project()
+bs_init()
 
 # define all package libraries to use
 set(PACKAGE_NAMES
@@ -31,8 +31,4 @@ set(PACKAGE_NAMES
 )
 
 
-bs_setup("packages" "${PACKAGE_NAMES}")
-
-add_subdirectory(apps)
-
-
+bs_configure_packages("packages" "${PACKAGE_NAMES}")
