@@ -219,7 +219,7 @@ namespace rendering {
         bool useUVs = true
     );
 
-    std::unique_ptr<ufbx_scene> LoadUFBXMesh(std::string_view filename);
+    std::unique_ptr<ufbx_scene, void(*)(ufbx_scene*)> LoadUFBXMesh(std::string_view filename);
 
     template<class T>
     void SaveGeometryData(std::string filename, std::string namepostfix, std::vector<T> data, size_t stride) {
