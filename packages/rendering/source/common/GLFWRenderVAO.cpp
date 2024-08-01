@@ -31,7 +31,7 @@ namespace l {
             return bytes;
         }
 
-        std::unique_ptr<ufbx_scene> LoadUFBXMesh(std::string_view filename) {
+        std::unique_ptr<ufbx_scene, void(*)(ufbx_scene*)> LoadUFBXMesh(std::string_view filename) {
             l::filesystem::File f(filename);
             f.modeRead().modeBinary();
             if (f.open()) {
@@ -44,14 +44,14 @@ namespace l {
 
                 ufbx_load_opts flags{ 0 };
                 ufbx_error error;
-                auto mesh = std::unique_ptr<ufbx_scene>(ufbx_load_memory(buffer, count, &flags, &error));
+                auto mesh = std::unique_ptr<ufbx_scene, void(*)(ufbx_scene*)>(ufbx_load_memory(buffer, count, &flags, &error), ufbx_free_scene);
                 //oldTruckScene2 = std::unique_ptr<ofbx::IScene>(ofbx::load(buffer, static_cast<int>(count), 0));
 
                 delete[] buffer;
 
                 return mesh;
             }
-            return nullptr;
+            return {nullptr, ufbx_free_scene };
         }
 
         std::unique_ptr<RenderVAO> CreateRenderVAO() {
