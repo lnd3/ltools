@@ -1,0 +1,38 @@
+[submodule "deps/curl"]
+	path = deps/curl
+	url = git@github.com:curl/curl.git
+[submodule "deps/glfw"]
+	path = deps/glfw
+	url = git@github.com:lnd3/glfw
+[submodule "deps/mongoose/mongoose"]
+	path = deps/mongoose/mongoose
+	url = git@github.com:cesanta/mongoose.git
+[submodule "deps/imgui/imgui"]
+	path = deps/imgui/imgui
+	url = git@github.com:lnd3/imgui
+[submodule "deps/pugixml/pugixml"]
+	path = deps/pugixml/pugixml
+	url = git@github.com:lnd3/pugixml.git
+[submodule "deps/assimp"]
+	path = deps/assimp
+	url = git@github.com:assimp/assimp.git
+[submodule "deps/openfbx/openfbx"]
+	path = deps/openfbx/openfbx
+	url = git@github.com:lnd3/OpenFBX.git
+[submodule "deps/bs"]
+	path = deps/bs
+	url = git@github.com:lnd3/bs.git
+[submodule "deps/ufbx/ufbx"]
+	path = deps/ufbx/ufbx
+	url = git@github.com:lnd3/ufbx.git
+[submodule "deps/bc7enc/bc7enc"]
+	path = deps/bc7enc/bc7enc
+	url = git@github.com:lnd3/bc7enc.git
+[submodule "deps/implot/implot"]
+	path = deps/implot/implot
+	url = git@github.com:lnd3/implot.git
+[submodule "deps/implot/implot/"]
+	url = git@github.com:lnd3/implot.git
+[submodule "deps/jsonxx/jsonxx"]
+	path = deps/jsonxx/jsonxx
+	url = git@github.com:hjiang/jsonxx.git

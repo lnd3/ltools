@@ -1,0 +1,35 @@
+# Blender 3.6.2 MTL File: 'old_truck_2.blend'
+# www.blender.org
+
+newmtl Material.001
+Ns 701.121460
+Ka 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd Truck_mat2_D.png
+map_Ks Truck_mat2_S.png
+map_Bump -bm 0.600000 Truck_mat2_N.png
+
+newmtl Material.002
+Ns 436.960724
+Ka 0.644291 0.644291 0.644291
+Ke 0.000000 0.000000 0.000000
+Ni 0.000000
+d 1.000000
+illum 3
+map_Kd C:/Truck_mat1_D.png
+map_Ks Truck_mat1_S.png
+map_Bump -bm 1.000000 Truck_mat1_N.png
+
+newmtl Material.003
+Ns 1000.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.279377 0.279377 0.279377
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 0.035971
+illum 9
+map_Kd Truck_glass_D.png
+map_Bump -bm 0.900000 Truck_glass_N.png
