@@ -105,14 +105,15 @@ namespace l::concurrency {
 	public:
 
 		std::atomic_bool gDebugLogging = false;
+		static const int32_t gInfinite = 0;
 
-		ExecutorService(std::string name = "", int numThreads = 10, int maxQueuedJobs = 2000) : 
+		ExecutorService(std::string name = "", int32_t numThreads = 10, int32_t maxQueuedJobs = gInfinite) :
 			mName(name), 
 			mNumTotalRequests(0), 
 			mNumCompletedJobs(0),
 			mMaxQueuedJobs(maxQueuedJobs),
 			mRunState() {
-			for (int i = 0; i < numThreads; i++) {
+			for (int32_t i = 0; i < numThreads; i++) {
 				mPoolThreads.push_back(std::thread(std::bind(&ExecutorService::workScheduler, this, i)));
 			}
 		}

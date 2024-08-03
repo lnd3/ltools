@@ -144,7 +144,7 @@ namespace l::concurrency {
 			}
 
 			std::lock_guard<std::mutex> lock(mRunnablesMutex);
-			if (mRunnables.size() > mMaxQueuedJobs) {
+			if (mMaxQueuedJobs > 0 && mRunnables.size() > mMaxQueuedJobs) {
 				LOG(LogWarning) << "Too many jobs!";
 				return false;
 			}
@@ -188,7 +188,7 @@ namespace l::concurrency {
 				}
 				else {
 					auto time = l::string::get_unix_timestamp_ms();
-					for (int i = 0; i < mRunnables.size(); i++) {
+					for (int32_t i = 0; i < mRunnables.size(); i++) {
 						if (mRunnables.at(i)->CanRun(time)) {
 							runnable = std::move(mRunnables.at(i));
 							mRunnables.erase(mRunnables.begin() + i);
