@@ -37,8 +37,15 @@ namespace logging {
 #endif
 		newtime.tm_year += 1900;
 		auto micro = static_cast<int>(micros.count() % 1000000);
-		auto count = std::snprintf(buffer, maxSize, "%.2d-%.2d-%.2d %.2d:%.2d:%.2d.%.6d", newtime.tm_year, newtime.tm_mon, newtime.tm_mday, newtime.tm_hour, newtime.tm_min, newtime.tm_sec, micro);
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
+#endif
+		auto count = std::snprintf(buffer, maxSize, "%.2d-%.2d-%.2d %.2d:%.2d:%.2d.%.6d", newtime.tm_year, newtime.tm_mon, newtime.tm_mday, newtime.tm_hour, newtime.tm_min, newtime.tm_sec, micro);
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 		return static_cast<size_t>(count);
 	}
 
