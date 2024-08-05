@@ -1,5 +1,3 @@
-#pragma once
-
 #include "logging/Log.h"
 
 #include <memory>
@@ -8,9 +6,10 @@
 #include <mutex>
 #include <chrono>
 #include <iomanip>
-#include <ctime>   // localtime
 #include <string>
 #include <vector>
+#include <time.h>
+#include <atomic>
 
 #include "logging/String.h"
 
@@ -29,10 +28,13 @@ namespace logging {
 		auto minutes = std::chrono::duration_cast<std::chrono::hours>(tp);
 		auto hours = std::chrono::duration_cast<std::chrono::hours>(tp);
 
-		time_t now = system_clock::to_time_t(n);
+		const time_t now = system_clock::to_time_t(n);
 		struct tm newtime;
+#ifdef WIN32
 		localtime_s(&newtime, &now);
-
+#else
+		localtime_r(&now, &newtime);
+#endif
 		newtime.tm_year += 1900;
 		auto micro = static_cast<int>(micros.count() % 1000000);
 		auto count = std::snprintf(buffer, maxSize, "%.2d-%.2d-%.2d %.2d:%.2d:%.2d.%.6d", newtime.tm_year, newtime.tm_mon, newtime.tm_mday, newtime.tm_hour, newtime.tm_min, newtime.tm_sec, micro);
@@ -63,7 +65,7 @@ namespace logging {
 		};
 
 		std::mutex gStreamMutex;
-		std::atomic_bool mLogLevelOn[8] = {true, true, true, true, true, true, true, true};
+		std::atomic<bool> mLogLevelOn[8] = { true, true, true, true, true, true, true, true };
 
 		std::function<void(const std::string&)> LocalLogHandler = [](std::string_view msg) {
 			std::cout << msg << std::endl;
@@ -147,8 +149,8 @@ namespace logging {
 		LocalLogHandler = f;
 	}
 
-	Logger LogMessage(const char *file, int line, LogLevel level, bool condition) {
-		return l::logging::Logger::Logger(file, line, level, condition);
+	Logger LogMessage(const char *file, int line, l::logging::LogLevel level, bool condition) {
+		return l::logging::Logger(file, line, level, condition);
 	}
 
 }

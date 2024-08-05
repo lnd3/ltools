@@ -2,11 +2,11 @@
 
 #include <locale>
 #include <codecvt>
-#include <string>
+#include <string.h>
 #include <vector>
 #include <string_view>
 
-#include "Log.h"
+#include "logging/Log.h"
 
 namespace l {
 namespace string {
@@ -17,7 +17,7 @@ namespace string {
 	int32_t get_unix_time(int32_t* fullDateAndTime);
 
 	size_t get_time_string(char* buf, size_t maxSize);
-	std::string get_time_string(int64_t unixtime, std::string_view format = "%Y-%m-%d %X");
+	std::string get_time_string(const int64_t unixtime, std::string_view format = "%Y-%m-%d %X");
 		
 	int32_t get_unix_timestamp();
 	int64_t get_unix_timestamp_ms();

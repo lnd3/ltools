@@ -23,10 +23,13 @@ namespace l {
 namespace string {
 
 	tm get_time_info(int32_t unixtime, bool adjustYearAndMonth) {
-		struct tm timeinfo { 0 };
-		time_t time {0};
-		time = static_cast<time_t>(unixtime);
+		struct tm timeinfo;
+		const time_t time = static_cast<time_t>(unixtime);
+#ifdef WIN32
 		auto res = localtime_s(&timeinfo, &time);
+#else
+		auto res = localtime_r(&time, &timeinfo);
+#endif
 		ASSERT(res == 0);
 		if (adjustYearAndMonth) {
 			timeinfo.tm_year += 1900;
@@ -77,9 +80,15 @@ namespace string {
 		auto minutes = std::chrono::duration_cast<std::chrono::hours>(tp);
 		auto hours = std::chrono::duration_cast<std::chrono::hours>(tp);
 
-		time_t now = system_clock::to_time_t(n);
+		const time_t now = system_clock::to_time_t(n);
 		struct tm newtime;
+#ifdef WIN32
 		localtime_s(&newtime, &now);
+#else
+		localtime_r(&now, &newtime);
+#endif
+
+
 
 		newtime.tm_year += 1900;
 		auto micro = static_cast<int>(micros.count() % 1000000);
@@ -88,9 +97,14 @@ namespace string {
 		return static_cast<size_t>(count);
 	}
 
-	std::string get_time_string(int64_t unixtime, std::string_view format) {
+	std::string get_time_string(const int64_t unixtime, std::string_view format) {
 		struct std::tm tminfo {};
+#ifdef WIN32
 		localtime_s(&tminfo, &unixtime);
+#else
+		localtime_r(&unixtime, &tminfo);
+#endif
+
 		std::ostringstream out;
 		out << std::put_time(&tminfo, format.data());
 		return out.str();
@@ -105,65 +119,93 @@ namespace string {
 	}
 
 	int32_t to_unix_time(std::string_view utc_date) {
-		struct tm timeinfo { 0 };
+		struct tm timeinfo;
 
 		int ret = 0;
 
 		if (utc_date.size() > 10) {
 			ASSERT(utc_date.size() == 19);
+#ifdef WIN32
 			ret = sscanf_s(utc_date.data(), "%4d-%2d-%2d %2d:%2d:%2d",
 				&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec);
+#else
+			ret = sscanf(utc_date.data(), "%4d-%2d-%2d %2d:%2d:%2d",
+				&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec);
+#endif
 		}
 		else {
 			ASSERT(utc_date.size() == 10);
+#ifdef WIN32
 			ret = sscanf_s(utc_date.data(), "%4d-%2d-%2d",
 				&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday);
+#else
+			ret = sscanf(utc_date.data(), "%4d-%2d-%2d",
+				&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday);
+#endif
 			timeinfo.tm_hour = 0;
 			timeinfo.tm_min = 0;
 			timeinfo.tm_sec = 0;
 		}
 
-		ASSERT(ret = 6);
+		ASSERT(ret == 6);
 
 		timeinfo.tm_year -= 1900;
 		timeinfo.tm_mon -= 1;
 
 		// use _mkgmtime for gmt/utc time, use it when local time zone is unknown, for example in storage
 		// use mktime for local time zone presentation
+#ifdef WIN32
 		auto unix_time = _mkgmtime(&timeinfo);
+#else
+		auto unix_time = mktime(&timeinfo);
+#endif
 
 		return static_cast<int32_t>(unix_time);
 	}
 
 	int32_t to_unix_time2(std::string_view utc_date) {
-		struct tm timeinfo { 0 };
+		struct tm timeinfo;
 
 		int ret = 0;
 		int microsec;
 
 		ASSERT(utc_date.size() == 28);
+#ifdef WIN32
 		ret = sscanf_s(utc_date.data(), "%4d-%2d-%2dT%2d:%2d:%2d.%7dZ",
 			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec, &microsec);
+#else
+		ret = sscanf(utc_date.data(), "%4d-%2d-%2dT%2d:%2d:%2d.%7dZ",
+			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec, &microsec);
+#endif
 
-		ASSERT(ret = 6);
+		ASSERT(ret == 6);
 
 		timeinfo.tm_year -= 1900;
 		timeinfo.tm_mon -= 1;
 
 		// use _mkgmtime for gmt/utc time, use it when local time zone is unknown, for example in storage
 		// use mktime for local time zone presentation
+#ifdef WIN32
 		auto unix_time = _mkgmtime(&timeinfo);
+#else
+		auto unix_time = mktime(&timeinfo);
+#endif
 
 		return static_cast<int32_t>(unix_time);
 	}
 
 	int32_t to_local_unix_time(std::string_view utc_date) {
-		struct tm timeinfo { 0 };
+		struct tm timeinfo;
 
+#ifdef WIN32
 		int ret = sscanf_s(utc_date.data(), "%4d-%2d-%2d %2d:%2d:%2d",
 			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec);
+#else
+		int ret = sscanf(utc_date.data(), "%4d-%2d-%2d %2d:%2d:%2d",
+			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec);
+#endif
 
-		ASSERT(ret = 6);
+		ASSERT(ret == 6);
 
 		timeinfo.tm_year -= 1900;
 		timeinfo.tm_mon -= 1;
@@ -176,13 +218,18 @@ namespace string {
 	}
 
 	int32_t to_local_unix_time2(std::string_view utc_date) {
-		struct tm timeinfo { 0 };
+		struct tm timeinfo;
 		int microsec;
 		ASSERT(utc_date.size() == 28);
+#ifdef WIN32
 		int ret = sscanf_s(utc_date.data(), "%4d-%2d-%2dT%2d:%2d:%2d.%7dZ",
 			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec, &microsec);
+#else
+		int ret = sscanf(utc_date.data(), "%4d-%2d-%2dT%2d:%2d:%2d.%7dZ",
+			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec, &microsec);
+#endif
 
-		ASSERT(ret = 6);
+		ASSERT(ret == 6);
 
 		timeinfo.tm_year -= 1900;
 		timeinfo.tm_mon -= 1;
@@ -195,7 +242,7 @@ namespace string {
 	}
 
 	int32_t to_unix_time(int year, int month, int day, int hour, int min, int sec) {
-		struct tm timeinfo {0};
+		struct tm timeinfo;
 
 		timeinfo.tm_year = year - 1900;
 		timeinfo.tm_mon = month - 1;    //months since January - [0,11]
@@ -206,7 +253,11 @@ namespace string {
 
 		// use gmtime for gmt/utc time, use it when local time zone is unknown, for example in storage
 		// use mktime for local time zone presentation
+#ifdef WIN32
 		auto date = _mkgmtime(&timeinfo);
+#else
+		auto date = mktime(&timeinfo);
+#endif
 
 		return static_cast<int32_t>(date);
 	}
@@ -216,12 +267,12 @@ namespace string {
 	}
 
 	bool partial_equality(const char* a, const char* b, size_t a_offset, size_t b_offset) {
-		for (int i = 0; i < a_offset; i++) { // check for missed null terminators before a_offset
+		for (size_t i = 0; i < a_offset; i++) { // check for missed null terminators before a_offset
 			if (a[i] == 0) {
 				return false;
 			}
 		}
-		for (int i = 0; i < b_offset; i++) { // check for missed null terminators before b_offset
+		for (size_t i = 0; i < b_offset; i++) { // check for missed null terminators before b_offset
 			if (b[i] == 0) {
 				return false;
 			}
@@ -242,7 +293,7 @@ namespace string {
 	}
 
 	bool partial_equality(std::string_view a, std::string_view b, size_t a_offset, size_t b_offset) {
-		int i = 0;
+		size_t i = 0;
 		for (i = 0; (i < a.size() - a_offset) && (i < b.size() - b_offset); i++) {
 			if (a.data()[i + a_offset] != b.data()[i + b_offset]) {
 				return false;

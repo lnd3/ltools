@@ -110,4 +110,4 @@ namespace testing {
 
 #define TEST_RUN(app) \
 	if (!l::testing::run_tests(app)) { LOG(LogTest) << "Test run failed"; return 1;} \
-	if (!l::testing::run_perfs(app)) { LOG(LogTest) << "Perf run failed"; return 1;} \
+	if (!l::testing::run_perfs(app)) { LOG(LogTest) << "Perf run failed"; return 1;}

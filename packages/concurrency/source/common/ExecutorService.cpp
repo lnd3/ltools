@@ -1,6 +1,10 @@
-#pragma once
-
 #include "concurrency/ExecutorService.h"
+
+#include <math.h>
+#include <cmath>
+#include <stdlib.h>
+
+#include "logging/String.h"
 
 namespace l::concurrency {
 
@@ -24,7 +28,6 @@ namespace l::concurrency {
 		return mDestructing && mNumRunningJobs == 0 && mNumRunningJobThreads == 0;
 	}
 
-
 	std::string Runnable::Name() const {
 		return mName;
 	};
@@ -44,8 +47,6 @@ namespace l::concurrency {
 		mNextTry = time + static_cast<int64_t>(round(powf(static_cast<float>(mTries), 2.5f))); // 1 sec, 3 sec, 5 sec, 8 sec, 11 sec etc
 	}
 
-
-
 	bool Runnable::Failed() {
 		return mTries >= mMaxTries;
 	}
@@ -62,8 +63,6 @@ namespace l::concurrency {
 	RunnableResult Worker::run(const RunState& state) {
 		return mWork(state);
 	}
-
-
 
 	int32_t ExecutorService::numJobs() {
 		std::lock_guard<std::mutex> lock(mRunnablesMutex);
@@ -188,7 +187,7 @@ namespace l::concurrency {
 				}
 				else {
 					auto time = l::string::get_unix_timestamp_ms();
-					for (int32_t i = 0; i < mRunnables.size(); i++) {
+					for (uint32_t i = 0; i < mRunnables.size(); i++) {
 						if (mRunnables.at(i)->CanRun(time)) {
 							runnable = std::move(mRunnables.at(i));
 							mRunnables.erase(mRunnables.begin() + i);

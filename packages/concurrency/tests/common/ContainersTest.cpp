@@ -1,16 +1,18 @@
 ﻿#include "testing/Test.h"
 #include "logging/Log.h"
-#include "logging/String.h"
 
 #include "concurrency/Containers.h"
 #include "meta/Reflection.h"
+
+#include <atomic>
+#include <thread>
 
 using namespace l;
 
 TEST(Containers, ConcurrentVector) {
 	size_t max_threads = 19;
 	size_t max_count = 100000;
-	std::atomic<size_t> counter = 0;
+	std::atomic<size_t> counter(0ull);
 	container::ConcurrentVector<size_t> vec;
 
 	int64_t total_sum = 0;
