@@ -69,9 +69,9 @@ namespace string {
 		std::array<char, 32> charBuffer{0};
 		auto srcPtr = const_cast<char*>(src);
 
-		for (int i = 0; i < count; i += bufferSize) {
+		for (size_t i = 0; i < count; i += bufferSize) {
 			auto currentBatchSize = count - i > bufferSize ? bufferSize : count - i;
-			for (int j = 0; j < currentBatchSize; j++) {
+			for (size_t j = 0; j < currentBatchSize; j++) {
 				size_t k = 0;
 				while (*srcPtr != separator) {
 					charBuffer[k++] = *srcPtr++;

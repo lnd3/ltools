@@ -75,10 +75,11 @@ namespace l::ecs {
 	};
 
 	template<class ...Types>
+	using viewType = std::function<void(Entity*, ComponentHandle<Types>...)>;
+
+	template<class ...Types>
 	class ComponentViewCache : public BaseComponentViewCache {
 	public:
-		template<class ...Types>
-		using viewType = std::function<void(Entity*, ComponentHandle<Types>...)>;
 
 		ComponentViewCache() {}
 		virtual ~ComponentViewCache() {
@@ -291,7 +292,7 @@ namespace l::ecs {
 		auto getFirst() {
 			auto components = getComponentCache<T>();
 			auto entity = components->getFirst();
-			return entity->get<T>();
+			return entity->get();
 		}
 
 		template<typename... Types>

@@ -18,7 +18,7 @@ bool BoxSweep::IsOverlapping(uint32_t axis, const Box& a, const Box& b) {
 		// If not, we may miss potential overlaps resulting in popping when overlaps 
 		// are rediscovered (false positives would be excluded in narrow phase)
 		// Must check both end bounds on all axis
-		if (k != axis && b.minBoundaryIndex[k] > a.maxBoundaryIndex[k] || b.maxBoundaryIndex[k] < a.minBoundaryIndex[k]) {
+		if ((k != axis && b.minBoundaryIndex[k] > a.maxBoundaryIndex[k]) || b.maxBoundaryIndex[k] < a.minBoundaryIndex[k]) {
 			return false;
 		}
 	}

@@ -7,6 +7,7 @@
 #include <string>
 #include <algorithm>
 #include <set>
+#include <cmath>
 
 namespace l {
 namespace algorithm {
@@ -36,7 +37,7 @@ namespace algorithm {
 		uint32_t R = static_cast<uint32_t>((maxIndex < elements.size() ? maxIndex : elements.size()) - 1);
 
 		while (L <= R) {
-			uint32_t m = static_cast<uint32_t>(std::floor((L + R) / 2));
+			uint32_t m = static_cast<uint32_t>(floor((L + R) / 2));
 			auto& e = elements.at(static_cast<size_t>(m));
 			if (e < data) {
 				L = m + 1;
@@ -99,7 +100,7 @@ namespace algorithm {
 	}
 
 	template <class T>
-	void gaues_seidel(std::vector<std::vector<T>> A, std::vector<T> b, std::vector<T>& out, int iterations) {
+	void gauss_seidel(std::vector<std::vector<T>> A, std::vector<T> b, std::vector<T>& out, int iterations) {
 
 		do {
 			int n = A.size();
@@ -107,10 +108,10 @@ namespace algorithm {
 				T lambda = 0;
 				for (int j = 0; j < n; j++) {
 					if (j != i) {
-						lambda = lambda + A[i, j] * out[j];
+						lambda = lambda + A[i][j] * out[j];
 					}
 				}
-				out[i] = (b[i] - lambda) / A[i, i];
+				out[i] = (b[i] - lambda) / A[i][i];
 			}
 
 			// Check if convergence is reached

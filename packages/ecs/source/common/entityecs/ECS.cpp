@@ -15,7 +15,17 @@ namespace l::ecs
 	}
 
 
+	Entity* World::create()
+	{
+		++lastEntityId;
+		Entity* ent = std::allocator_traits<EntityAllocator>::allocate(entAlloc, 1);
+		std::allocator_traits<EntityAllocator>::construct(entAlloc, ent, this, lastEntityId);
+		entities.push_back(ent);
 
+		emit<Events::OnEntityCreated>({ ent });
+
+		return ent;
+	}
 
 }
 

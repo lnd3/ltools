@@ -26,7 +26,7 @@ namespace platform {
 
 	std::wstring Cmd::GetCommandLineArgument(size_t index) {
 		std::lock_guard<std::mutex> lock(global::argument_mutex);
-		if (index < 0 || index >= global::argument.size()) {
+		if (index >= global::argument.size()) {
 			return L"";
 		}
 		return global::argument.at(index);

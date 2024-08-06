@@ -7,6 +7,7 @@
 #include <string>
 #include <string_view>
 #include <sstream>
+#include <cmath>
 
 namespace l {
 namespace vec {
@@ -157,11 +158,11 @@ namespace vec {
 		Data2 fract(T gridSize = 1) const override {
 			auto x1scaled = x1 / gridSize;
 			auto x2scaled = x2 / gridSize;
-			return Data2(x1scaled - std::floor(x1scaled), x2scaled - std::floor(x2scaled));
+			return Data2(x1scaled - ::floor(x1scaled), x2scaled - ::floor(x2scaled));
 		}
 
 		Data2 floor(T gridSize = 1) const override {
-			return Data2(std::floor(x1 / gridSize), std::floor(x2 / gridSize));
+			return Data2(::floor(x1 / gridSize), ::floor(x2 / gridSize));
 		}
 
 		std::string to_string() const override {
@@ -312,12 +313,11 @@ namespace vec {
 		}
 
 		Data4 cross(const Data4& v) const override {
-			Data4 r;
-			r.x1 = x2 * v.x3 - x3 * v.x2;
-			r.x2 = x3 * v.x1 - x1 * v.x3;
-			r.x3 = x1 * v.x2 - x2 * v.x1;
-			r.x4 = 0.0f;
-			return r;
+			return Data4(
+				x2 * v.x3 - x3 * v.x2, 
+				x3 * v.x1 - x1 * v.x3, 
+				x1 * v.x2 - x2 * v.x1, 
+				0.0);
 		}
 
 		T dot(const Data4& v) const override {
@@ -333,15 +333,15 @@ namespace vec {
 		}
 
 		Data4 fract(T gridSize) const override {
-			auto x1scaled = x1 / gridSize;
-			auto x2scaled = x2 / gridSize;
-			auto x3scaled = x3 / gridSize;
-			auto x4scaled = x4 / gridSize;
-			return Data4(x1scaled - std::floor(x1scaled), x2scaled - std::floor(x2scaled), x3scaled - std::floor(x3scaled), x4scaled - std::floor(x4scaled));
+			T x1scaled = x1 / gridSize;
+			T x2scaled = x2 / gridSize;
+			T x3scaled = x3 / gridSize;
+			T x4scaled = x4 / gridSize;
+			return Data4(x1scaled - ::floor(x1scaled), x2scaled - ::floor(x2scaled), x3scaled - ::floor(x3scaled), x4scaled - ::floor(x4scaled));
 		}
 
 		Data4 floor(T gridSize) const override {
-			return Data4(std::floor(x1 / gridSize), std::floor(x2 / gridSize), std::floor(x3 / gridSize), std::floor(x4 / gridSize));
+			return Data4(::floor(x1 / gridSize), ::floor(x2 / gridSize), ::floor(x3 / gridSize), ::floor(x4 / gridSize));
 		}
 
 		std::string to_string() const override {

@@ -13,8 +13,8 @@ namespace string
 
 	SString CreateString(char* src, int len);
 	SString CreateString(const char* src);
-	__forceinline void EndString(SString& dst);
-	__forceinline void Append(SString& dst, const char src);
+	void EndString(SString& dst);
+	void Append(SString& dst, const char src);
 
 	void Append(SString& dst, const char* src);
 	void Append(SString& dst, int value);

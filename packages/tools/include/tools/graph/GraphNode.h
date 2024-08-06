@@ -10,6 +10,8 @@
 
 namespace l::graph {
 
+    bool IsValidInOutNum(int8_t inoutNum, size_t inoutSize);
+
     struct GraphNodeOutput {
         float mOutput = 0.0f;
     };

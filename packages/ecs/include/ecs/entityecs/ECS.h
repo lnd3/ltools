@@ -347,7 +347,7 @@ namespace l::ecs
 		// Called when a new entity is created.
 		struct OnEntityCreated
 		{
-			ECS_DECLARE_TYPE;
+			ECS_DECLARE_TYPE
 
 			Entity* entity;
 		};
@@ -355,7 +355,7 @@ namespace l::ecs
 		// Called when an entity is about to be destroyed.
 		struct OnEntityDestroyed
 		{
-			ECS_DECLARE_TYPE;
+			ECS_DECLARE_TYPE
 
 			Entity* entity;
 		};
@@ -364,7 +364,7 @@ namespace l::ecs
 		template<typename T>
 		struct OnComponentAssigned
 		{
-			ECS_DECLARE_TYPE;
+			ECS_DECLARE_TYPE
 
 			Entity* entity;
 			ComponentHandle<T> component;
@@ -374,7 +374,7 @@ namespace l::ecs
 		template<typename T>
 		struct OnComponentRemoved
 		{
-			ECS_DECLARE_TYPE;
+			ECS_DECLARE_TYPE
 
 			Entity* entity;
 			ComponentHandle<T> component;
@@ -382,7 +382,7 @@ namespace l::ecs
 
 		struct OnComponentAssigned2
 		{
-			ECS_DECLARE_TYPE;
+			ECS_DECLARE_TYPE
 
 			Entity* entity;
 			l::ecs::TypeIndex componentTypeIndex;
@@ -391,7 +391,7 @@ namespace l::ecs
 
 		struct OnComponentRemoved2
 		{
-			ECS_DECLARE_TYPE;
+			ECS_DECLARE_TYPE
 
 			Entity* entity;
 			l::ecs::TypeIndex componentTypeIndex;
@@ -470,17 +470,7 @@ namespace l::ecs
 		/**
 		* Create a new entity. This will emit the OnEntityCreated event.
 		*/
-		virtual Entity* create()
-		{
-			++lastEntityId;
-			Entity* ent = std::allocator_traits<EntityAllocator>::allocate(entAlloc, 1);
-			std::allocator_traits<EntityAllocator>::construct(entAlloc, ent, this, lastEntityId);
-			entities.push_back(ent);
-
-			emit<Events::OnEntityCreated>({ ent });
-
-			return ent;
-		}
+		virtual Entity* create();
 
 		/**
 		* Destroy an entity. This will emit the OnEntityDestroy event.

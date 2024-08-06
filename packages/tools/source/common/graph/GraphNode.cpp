@@ -4,6 +4,10 @@
 
 namespace l::graph {
 
+    bool IsValidInOutNum(int8_t inoutNum, size_t inoutSize) {
+        return inoutNum >= 0 && inoutSize < 256u && inoutNum < static_cast<int8_t>(inoutSize);
+    }
+
     GraphNodeBase::GraphNodeBase(std::string_view name) :
         mName(name)
     {
@@ -54,19 +58,19 @@ namespace l::graph {
     }
 
     float GraphNodeBase::Get(int8_t outputChannel) {
-        ASSERT(outputChannel >= 0 && outputChannel < mOutputs.size());
+        ASSERT(IsValidInOutNum(outputChannel, mOutputs.size()));
         return mOutputs.at(outputChannel).mOutput;
     }
 
     void GraphNodeBase::SetInput(int8_t inputChannel, GraphNodeBase& source, int8_t sourceOutputChannel) {
-        ASSERT(inputChannel >= 0 && inputChannel < mInputs.size());
+        ASSERT(IsValidInOutNum(inputChannel, mInputs.size()));
         Input input;
         input.mInputNode = &source;
         mInputs.at(inputChannel) = GraphNodeInput{ std::move(input), InputType::INPUT_NODE, sourceOutputChannel };
     }
 
     void GraphNodeBase::SetInput(int8_t inputChannel, GraphNodeGroup& source, int8_t sourceOutputChannel, bool useSourceInternalInput) {
-        ASSERT(inputChannel >= 0 && inputChannel < mInputs.size());
+        ASSERT(IsValidInOutNum(inputChannel, mInputs.size()));
         Input input;
         if (useSourceInternalInput) {
             input.mInputNode = &source.GetInputNode();
@@ -78,14 +82,14 @@ namespace l::graph {
     }
 
     void GraphNodeBase::SetInput(int8_t inputChannel, float constant) {
-        ASSERT(inputChannel >= 0 && inputChannel < mInputs.size());
+        ASSERT(IsValidInOutNum(inputChannel, mInputs.size()));
         Input input;
         input.mInputFloatConstant = constant;
         mInputs.at(inputChannel) = GraphNodeInput{ std::move(input), InputType::INPUT_CONSTANT, 0 };
     }
 
     void GraphNodeBase::SetInput(int8_t inputChannel, float* floatPtr) {
-        ASSERT(inputChannel >= 0 && inputChannel < mInputs.size());
+        ASSERT(IsValidInOutNum(inputChannel, mInputs.size()));
         Input input;
         input.mInputFloat = floatPtr;
         mInputs.at(inputChannel) = GraphNodeInput{ std::move(input), InputType::INPUT_VALUE, 0 };
@@ -108,7 +112,7 @@ namespace l::graph {
     }
 
     void GraphDataCopy::Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) {
-        for (int i = 0; i < inputs.size() && i < outputs.size(); i++) {
+        for (size_t i = 0; i < inputs.size() && i < outputs.size(); i++) {
             outputs.at(i).mOutput = inputs.at(i).Get();
         }
     }

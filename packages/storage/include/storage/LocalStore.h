@@ -42,7 +42,7 @@ namespace storage {
 	bool write(const std::filesystem::path& mLocation, std::stringstream& data);
 
 	struct HeaderValidity {
-		static const int32_t kIdentifier = 0x00defa00; // storage base file identifier
+		static const int32_t kIdentifier;
 
 		friend zpp::serializer::access;
 		template <typename Archive, typename Self>

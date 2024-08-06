@@ -119,3 +119,21 @@ TEST(Logging, TimeConversions) {
 
 	return 0;
 }
+
+PERF_TEST(LoggingTest, LogTimings) {
+	{
+		PERF_TIMER("LogTimings::LogInfo");
+		for (int i = 0; i < 10; i++) {
+			LOG(LogInfo) << "Test logging";
+		}
+	}
+	{
+		PERF_TIMER("LogTimings::LogDebug");
+		for (int i = 0; i < 10; i++) {
+			LOG(LogDebug) << "Test logging";
+		}
+	}
+
+	PERF_TIMER_RESULT("LogTimings");
+	return 0;
+}

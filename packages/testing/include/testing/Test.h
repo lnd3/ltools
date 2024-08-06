@@ -36,10 +36,12 @@ namespace testing {
 
 #define PERFNAME(group, name) CONCATE(Perf, CONCATE(group, name)) \
 
+#define PERFNAMEWRAPPER(group, name) CONCATE(Perf, CONCATE(group, CONCATE(name, Wrapper))) \
+
 #define PERF_TEST(perfgroup, perfname) \
 	int PERFNAME(perfgroup, perfname)(); \
-	int PERFNAME(perfgroup, perfname)Wrapper() {l::testing::get_current_test_group()=#perfgroup;return PERFNAME(perfgroup, perfname)();} \
-	ADDPERF(STRINGIFY(perfgroup), STRINGIFY(perfname), PERFNAME(perfgroup, perfname)Wrapper) \
+	int PERFNAMEWRAPPER(perfgroup, perfname)() {l::testing::get_current_test_group()=#perfgroup;return PERFNAME(perfgroup, perfname)();} \
+	ADDPERF(STRINGIFY(perfgroup), STRINGIFY(perfname), PERFNAMEWRAPPER(perfgroup, perfname)) \
 	int PERFNAME(perfgroup, perfname)() \
 
 #ifndef _DEBUG
