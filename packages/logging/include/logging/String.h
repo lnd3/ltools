@@ -1,12 +1,12 @@
 #pragma once
 
+#include "logging/Log.h"
+
 #include <locale>
 #include <codecvt>
 #include <string.h>
 #include <vector>
 #include <string_view>
-
-#include "logging/Log.h"
 
 namespace l {
 namespace string {

@@ -11,8 +11,6 @@
 #include <time.h>
 #include <atomic>
 
-#include "logging/String.h"
-
 namespace l {
 
 namespace logging {
