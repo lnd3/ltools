@@ -335,7 +335,8 @@ namespace l {
             auto AccumulatePairs = [](const std::set<uint64_t>& pairs, std::vector<float>& data, uint32_t stride) {
                 uint32_t index = INT32_MAX;
                 float count = 0;
-                float tmp[4];
+                float tmp[8] = {};
+                ASSERT(stride < 8);
 
                 for (auto it : pairs) {
                     auto i = stride * static_cast<uint32_t>(it & INT32_MAX);
@@ -364,7 +365,8 @@ namespace l {
 
             auto CopyPairs = [](const std::set<uint64_t>& pairs, std::vector<float>& data, uint32_t stride) {
                 uint32_t index = INT32_MAX;
-                float tmp[4] = {};
+                float tmp[8] = {};
+                ASSERT(stride < 8);
 
                 for (auto it : pairs) {
                     auto i = stride * static_cast<uint32_t>(it & INT32_MAX);
