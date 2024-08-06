@@ -121,8 +121,8 @@ namespace rendering {
 		const std::vector<T>& normals,
 		const std::vector<T>& uvs
 	) {
-		auto verticeCount = vertices.size();
-		auto incideCount = indices.size();
+		size_t verticeCount = vertices.size();
+		size_t incideCount = indices.size();
 
 		std::vector<float> tan1;
 		tan1.resize(verticeCount);
@@ -133,7 +133,7 @@ namespace rendering {
 		uint32_t stride = 3;
 		uint32_t uvStride = 2;
 
-		for (int i = 0; i < incideCount; i += stride) {
+		for (size_t i = 0; i < incideCount; i += stride) {
 			size_t i1 = indices[i + 0];
 			size_t i2 = indices[i + 1];
 			size_t i3 = indices[i + 2];
@@ -183,14 +183,14 @@ namespace rendering {
 		tangent.resize((stride + 1)*(verticeCount / stride));
 
 		int tangentIndex = 0;
-		for (int i = 0; i < verticeCount; i+=stride) {
+		for (size_t i = 0; i < verticeCount; i+=stride) {
 			// Gram-Schmidt orthogonalize
 			T dot1 = vec3_mul_inner(&normals[i], &tan1[i]);
 			vec3 tmp;
 			vec3_scale(tmp, &normals[i], dot1);
 			vec3_sub(tmp, &tan1[i], tmp);
 			vec3_norm(tmp, tmp);
-			for (int j = 0; j < 3; j++) {
+			for (size_t j = 0; j < 3; j++) {
 				tangent[tangentIndex + j] = tmp[j];
 			}
 

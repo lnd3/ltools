@@ -71,9 +71,9 @@ namespace memory {
         }
 
     protected:
-        T* mInstance;
         std::function<T* ()> mConstruct;
         std::function<void(T*)> mDestruct;
+        T* mInstance;
     };
 
 }

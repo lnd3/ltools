@@ -117,8 +117,8 @@ namespace rendering {
             mFragmentShaderId = 0;
         }
 
-        const GLint GetUniformLocation(std::string_view name) {
-            auto location = glGetUniformLocation(mId, name.data());
+        GLint GetUniformLocation(std::string_view name) {
+            GLint location = glGetUniformLocation(mId, name.data());
 
             GL_ASSERT();
             
@@ -129,8 +129,8 @@ namespace rendering {
             return location;
         }
 
-        const GLint GetAttributeLocation(std::string_view name) {
-            auto location = glGetAttribLocation(mId, name.data());
+        GLint GetAttributeLocation(std::string_view name) {
+            GLint location = glGetAttribLocation(mId, name.data());
 
             GL_ASSERT();
 
@@ -155,7 +155,7 @@ namespace rendering {
         void CompileProgram(std::string_view name);
         void UseProgram(std::string_view name);
         ShaderProgram& GetCurrentProgram();
-        const GLuint GetProgramId(std::string_view name);
+        GLuint GetProgramId(std::string_view name);
 
         void UpdateMatrices4x4(const mat4x4 matrices, size_t count, std::string_view uniformName);
         void UpdateVectors4(const vec4 vectors, size_t count, std::string_view uniformName);
@@ -169,7 +169,7 @@ namespace rendering {
         std::unordered_map<std::string, l::rendering::Shader> mShaders;
         std::unordered_map<std::string, l::rendering::ShaderProgram> mShaderPrograms;
 
-        ShaderProgram mCurrentProgram{ 0 };
+        ShaderProgram mCurrentProgram{};
     };
 
     std::unique_ptr<ShaderManager> CreateShaderManager();

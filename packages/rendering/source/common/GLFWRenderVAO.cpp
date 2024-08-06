@@ -42,7 +42,7 @@ namespace l {
 
                 ASSERT(actuallyRead == count) << "Failed to read all bytes";
 
-                ufbx_load_opts flags{ 0 };
+                ufbx_load_opts flags{ };
                 ufbx_error error;
                 auto mesh = std::unique_ptr<ufbx_scene, void(*)(ufbx_scene*)>(ufbx_load_memory(buffer, count, &flags, &error), ufbx_free_scene);
                 //oldTruckScene2 = std::unique_ptr<ofbx::IScene>(ofbx::load(buffer, static_cast<int>(count), 0));
@@ -473,7 +473,7 @@ namespace l {
             }
 
             if (mIndicesBuffered) {
-                if (mEBO >= 0 && mEBO != GL_INVALID_VALUE) {
+                if (mEBO != GL_INVALID_VALUE) {
                     GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLuint>(mEBO)));
                     GL_CALL(glNamedBufferData(
                         mEBO,
