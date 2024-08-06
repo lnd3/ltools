@@ -1,4 +1,3 @@
-
 [submodule "deps/ldeps"]
 	path = deps/ldeps
 	url = git@github.com:lnd3/ldeps.git

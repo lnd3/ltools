@@ -68,17 +68,18 @@ namespace l::ecs {
 			return *reinterpret_cast<ComponentViewCache<Types...>*>(this);
 		}
 
-		virtual void configure(class World*) {};
-		virtual void unconfigure(class World*) {};
-		virtual void receive(class World*, const Events::OnComponentAssigned2&) {};
-		virtual void receive(class World*, const Events::OnComponentRemoved2&) {};
+		virtual void configure(World*) {};
+		virtual void unconfigure(World*) {};
+		virtual void receive(World*, const Events::OnComponentAssigned2&) {};
+		virtual void receive(World*, const Events::OnComponentRemoved2&) {};
 	};
+
+	template<class ...Types>
+	using viewType = std::function<void(Entity*, ComponentHandle<Types>...)>;
 
 	template<class ...Types>
 	class ComponentViewCache : public BaseComponentViewCache {
 	public:
-		template<class ...Types>
-		using viewType = std::function<void(Entity*, ComponentHandle<Types>...)>;
 
 		ComponentViewCache() {}
 		virtual ~ComponentViewCache() {
@@ -146,21 +147,21 @@ namespace l::ecs {
 			return types_to_string<Types...>();
 		}
 
-		virtual void configure(class World* world) {
+		virtual void configure(World* world) {
 			world->subscribe<Events::OnComponentAssigned2>(this);
 			world->subscribe<Events::OnComponentRemoved2>(this);
 		}
 
-		virtual void unconfigure(class World* world) {
+		virtual void unconfigure(World* world) {
 			world->unsubscribe<Events::OnComponentAssigned2>(this);
 			world->unsubscribe<Events::OnComponentRemoved2>(this);
 		}
 
-		virtual void receive(class World*, const Events::OnComponentAssigned2& event) {
+		virtual void receive(World*, const Events::OnComponentAssigned2& event) {
 			tryAdd(event.entity);
 		}
 
-		virtual void receive(class World*, const Events::OnComponentRemoved2& event) {
+		virtual void receive(World*, const Events::OnComponentRemoved2& event) {
 			tryRemove(event.entity);
 		}
 
@@ -175,11 +176,11 @@ namespace l::ecs {
 	public:
 		virtual ~EntitySystem2() {}
 
-		virtual void configure(class World*)
+		virtual void configure(World*)
 		{
 		}
 
-		virtual void unconfigure(class World* world)
+		virtual void unconfigure(World* world)
 		{
 			world->unsubscribeAll(this);
 		}
@@ -187,7 +188,7 @@ namespace l::ecs {
 #ifdef ECS_TICK_TYPE_VOID
 		virtual void tick(World* world)
 #else
-		virtual void tick(class World*, ECS_TICK_TYPE) override
+		virtual void tick(World*, ECS_TICK_TYPE) override
 #endif
 		{
 
@@ -279,7 +280,7 @@ namespace l::ecs {
 				}
 			}
 			if (!it->second) {
-				it->second->unconfigure(this);
+				LOG(LogError) << "ComponeneViewCache has map entry, but is missing the actual cache for types: " << types_to_string<Types...>();
 				mComponentCacheMap.erase(it);
 				return nullptr;
 			}
@@ -291,7 +292,7 @@ namespace l::ecs {
 		auto getFirst() {
 			auto components = getComponentCache<T>();
 			auto entity = components->getFirst();
-			return entity->get<T>();
+			return entity->get();
 		}
 
 		template<typename... Types>

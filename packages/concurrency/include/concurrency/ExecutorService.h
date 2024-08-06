@@ -4,11 +4,13 @@
 
 #include <thread>
 #include <atomic>
+#include <condition_variable>
+#include <mutex>
+#include <memory>
 #include <vector>
 #include <algorithm>
-
-#include "logging/String.h"
-
+#include <string>
+#include <functional>
 
 namespace l::concurrency {
 
@@ -46,25 +48,27 @@ namespace l::concurrency {
 		Runnable() : mName("Undefined"), mTries(0), mNextTry(0), mMaxTries(10) {}
 		Runnable(const char* name, int32_t maxTries = 10) :
 			mName(name), 
-			mMaxTries(maxTries < 1 ? 1 : maxTries),
 			mTries(0),
-			mNextTry(0) {}
+			mNextTry(0),
+			mMaxTries(maxTries < 1 ? 1 : maxTries)
+		{}
 		Runnable(std::string_view name, int32_t maxTries = 10) :
 			mName(name), 
-			mMaxTries(maxTries < 1 ? 1 : maxTries),
 			mTries(0),
-			mNextTry(0) {}
+			mNextTry(0),
+			mMaxTries(maxTries < 1 ? 1 : maxTries)
+		{}
 		Runnable(Runnable&& other) noexcept {
 			mName = other.mName;
-			mMaxTries = other.mMaxTries;
 			mTries = other.mTries;
 			mNextTry = other.mNextTry;
+			mMaxTries = other.mMaxTries;
 		}
 		Runnable& operator=(const Runnable& other) noexcept {
 			mName = other.mName;
-			mMaxTries = other.mMaxTries;
 			mTries = other.mTries;
 			mNextTry = other.mNextTry;
+			mMaxTries = other.mMaxTries;
 			return *this;
 		}
 		virtual ~Runnable() {}
@@ -105,14 +109,15 @@ namespace l::concurrency {
 	public:
 
 		std::atomic_bool gDebugLogging = false;
+		static const uint32_t gInfinite = 0;
 
-		ExecutorService(std::string name = "", int numThreads = 10, int maxQueuedJobs = 2000) : 
+		ExecutorService(std::string name = "", int32_t numThreads = 10, uint32_t maxQueuedJobs = gInfinite) :
 			mName(name), 
 			mNumTotalRequests(0), 
 			mNumCompletedJobs(0),
 			mMaxQueuedJobs(maxQueuedJobs),
 			mRunState() {
-			for (int i = 0; i < numThreads; i++) {
+			for (int32_t i = 0; i < numThreads; i++) {
 				mPoolThreads.push_back(std::thread(std::bind(&ExecutorService::workScheduler, this, i)));
 			}
 		}
@@ -138,7 +143,7 @@ namespace l::concurrency {
 		std::string mName{};
 		std::atomic_int32_t mNumTotalRequests;
 		std::atomic_int32_t mNumCompletedJobs;
-		std::atomic_int32_t mMaxQueuedJobs;
+		std::atomic_uint32_t mMaxQueuedJobs;
 
 		RunState mRunState;
 

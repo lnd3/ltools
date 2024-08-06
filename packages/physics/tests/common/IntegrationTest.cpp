@@ -15,7 +15,7 @@ TEST(Integration, Bisect) {
 		return -1.0 + (x - 1.0) * (x - 1.0);
 		});
 
-	TEST_FUZZY(x, 2.0, EPSILON, "Failed to bisect square function");
+	TEST_FUZZY(x, 2.0, 0.0001, "Failed to bisect square function");
 
 	return 0;
 }

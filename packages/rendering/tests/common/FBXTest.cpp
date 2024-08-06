@@ -3,10 +3,10 @@
 #include "logging/String.h"
 #include "filesystem/File.h"
 
-#define OFBX_DEFAULT_DELETER
 #include <openfbx/src/ofbx.h>
 
 #include <memory>
+#include <functional>
 
 TEST(FBXTest, SimpleLoadFBXFile) {
     
@@ -16,12 +16,16 @@ TEST(FBXTest, SimpleLoadFBXFile) {
 
     TEST_TRUE(f.open(), "");
 
-    std::unique_ptr<ofbx::IScene> oldTruckScene;
-
+    std::unique_ptr<ofbx::IScene, std::function<void(ofbx::IScene*)>> oldTruckScene;
     {
+        auto ofbxSceneDeleter = [](ofbx::IScene* scene) {
+            if (scene) {
+                scene->destroy();
+            }};
+
         ofbx::u8* buffer = new ofbx::u8[count];
         f.read(buffer, count);
-        oldTruckScene = std::unique_ptr<ofbx::IScene>(ofbx::load(buffer, static_cast<int>(count), 0));
+        oldTruckScene = std::unique_ptr<ofbx::IScene, std::function<void(ofbx::IScene*)>>(ofbx::load(buffer, static_cast<int>(count), 0), ofbxSceneDeleter);
         delete[] buffer;
     }
 

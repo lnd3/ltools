@@ -305,6 +305,7 @@ namespace l::network {
 			return mResponseSize;
 		}
 
+
 	protected:
 		CURL* mCurl = nullptr;
 
@@ -313,13 +314,13 @@ namespace l::network {
 		std::string mRequestQueryArgs;
 		std::function<l::concurrency::RunnableResult(bool success, std::string_view queryArguments, Request<T>&)> mHandler;
 		std::atomic_bool mOngoingRequest;
+		int32_t mResponseSize;
 		int32_t mDefaultResponseSize;
 		std::atomic_int32_t mTimeout;
 
 		std::atomic_bool mCompletedRequest;
 
 		T mResponse;
-		int32_t mResponseSize;
 		int64_t mStarted;
 		std::atomic_bool mSuccess;
 	};

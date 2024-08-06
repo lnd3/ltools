@@ -156,7 +156,7 @@ namespace rendering {
 
         template<class T = float, size_t stride = 3>
         void SetPositions3D(T* vertices = nullptr, size_t count = 0) {
-            if (!mInterleaved && vertices == nullptr || count == 0) {
+            if ((!mInterleaved && vertices == nullptr) || count == 0) {
                 return;
             }
             mAttributes.emplace_back(CreateAttribute<T, stride>(&vertices[0], count, "vPosition"));
@@ -164,28 +164,28 @@ namespace rendering {
 
         template<class T = float, size_t stride = 3>
         void SetNormals3D(T* normals = nullptr, size_t count = 0) {
-            if (normals != nullptr && count > 0) {
+            if (normals != nullptr && count > 0u) {
                 mAttributes.emplace_back(CreateAttribute<T, stride>(&normals[0], count, "vNormal"));
             }
         }
 
         template<class T = float, size_t stride = 4>
         void SetColors(T* colors = nullptr, size_t count = 0) {
-            if (colors != nullptr && count > 0) {
+            if (colors != nullptr && count > 0u) {
                 mAttributes.emplace_back(CreateAttribute<T, stride>(&colors[0], count, "vColor"));
             }
         }
 
         template<class T = float, size_t stride = 2>
         void SetUVs2D(T* uvs = nullptr, size_t count = 0) {
-            if (uvs != nullptr && count > 0) {
+            if (uvs != nullptr && count > 0u) {
                 mAttributes.emplace_back(CreateAttribute<T, stride>(&uvs[0], count, "vUV"));
             }
         }
 
         template<class T = float, size_t stride = 3>
         void SetTangents3D(T* tangents = nullptr, size_t count = 0) {
-            if(tangents != nullptr && count > 0){
+            if(tangents != nullptr && count > 0u){
                 mAttributes.emplace_back(CreateAttribute<T, stride>(&tangents[0], count, "vTangent"));
             }
         }
@@ -227,9 +227,9 @@ namespace rendering {
         f0.modeWriteTrunc();
         if (f0.open()) {
             std::stringstream stream;
-            for (int i = 0; i < data.size() / stride; i++) {
+            for (size_t i = 0; i < data.size() / stride; i++) {
                 stream << "{";
-                for (int j = 0; j < stride; j++) {
+                for (size_t j = 0; j < stride; j++) {
                     stream << std::to_string(data[i * stride + j]);
                     if (j < stride - 1) {
                         stream << ", ";

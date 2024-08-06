@@ -39,7 +39,8 @@ std::tuple<uint32_t, uint32_t>  BoundaryList::add(uint32_t id, float low, float 
 	else {
 		mBoundaries.at(mSize+0).set(id, false, low);
 		mBoundaries.at(mSize+1).set(id, true, high);
-		return { mSize++, mSize++ };
+		mSize += 2;
+		return { mSize-2, mSize-1 };
 	}
 }
 

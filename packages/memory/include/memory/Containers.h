@@ -243,11 +243,11 @@ namespace l::container {
 			return vec.end();
 		}
 
-		inline typename size_t size() const noexcept {
+		inline size_t size() const noexcept {
 			return vec.size();
 		}
 
-		inline typename bool empty() const noexcept {
+		inline bool empty() const noexcept {
 			return vec.empty();
 		}
 

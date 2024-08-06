@@ -14,6 +14,8 @@
 namespace l {
 namespace storage {
 
+	const int32_t HeaderValidity::kIdentifier = 0x00defa00; // storage base file identifier
+
 	std::atomic_int32_t count_reads_ops = 0;
 	std::atomic_int32_t count_write_ops = 0;
 	std::atomic_bool abort_all_reads = false;

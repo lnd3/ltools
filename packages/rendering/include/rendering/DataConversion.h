@@ -25,9 +25,9 @@ namespace rendering {
         auto sSize = sizeof(SourceInnerType);
         auto innerCount = vSize / sSize;
         result.reserve(size * innerCount);
-        for (int i = 0; i < size; i++) {
+        for (size_t i = 0; i < size; i++) {
             SourceInnerType* innerTypePtr = reinterpret_cast<SourceInnerType*>(src2);
-            for (int j = 0; j < innerCount; j++) {
+            for (size_t j = 0; j < innerCount; j++) {
                 SourceInnerType& value = *innerTypePtr++;
                 if constexpr (FloatToIntMultipler == 1) {
                     result.emplace_back(static_cast<TargetType>(value));
@@ -56,10 +56,10 @@ namespace rendering {
         auto sSize = sizeof(SourceInnerType);
         auto innerCount = vSize / sSize;
 
-        for (int i = 0; i < size; i++) {
+        for (size_t i = 0; i < size; i++) {
             SourceIndexType index = *indexPtr;
             SourceInnerType* innerTypePtr = reinterpret_cast<SourceInnerType*>(src2 + index);
-            for (int j = 0; j < innerCount; j++) {
+            for (size_t j = 0; j < innerCount; j++) {
                 SourceInnerType& value = *innerTypePtr++;
                 if constexpr (FloatToIntMultipler == 1) {
                     result.emplace_back(static_cast<TargetType>(value));
@@ -94,13 +94,13 @@ namespace rendering {
 
         auto src2 = const_cast<SourceType*>(src);
 
-        auto vSize = sizeof(SourceType);
-        auto sSize = sizeof(SourceInnerType);
-        auto innerCount = vSize / sSize;
+        size_t vSize = sizeof(SourceType);
+        size_t sSize = sizeof(SourceInnerType);
+        size_t innerCount = vSize / sSize;
 
-        size_t dstSize = 0;
+        IndexType dstSize = 0;
 
-        for (int i = 0; i < srcIndexSize; i++) {
+        for (size_t i = 0; i < srcIndexSize; i++) {
             IndexType index0 = *const_cast<IndexType*>(srcIndex + (i < srcIndexSize ? i : srcIndexSize - 1));
             IndexType index1 = *const_cast<IndexType*>(dstIndex + i);
             dstSize = index1 > dstSize ? index1 + 1 : dstSize;
@@ -109,7 +109,7 @@ namespace rendering {
                 LOG(LogError) << "Index too large?";
                 result.resize((index1 + index1 / 4) * innerCount);
             }
-            for (int j = 0; j < innerCount; j++) {
+            for (size_t j = 0; j < innerCount; j++) {
                 SourceInnerType& value = *innerTypePtr++;
                 result[index1 * innerCount + j] = static_cast<TargetType>(value);
             }
@@ -128,20 +128,20 @@ namespace rendering {
 
         SourceType* srcPtr = const_cast<SourceType*>(src);
 
-        auto vSize = sizeof(SourceType);
-        auto sSize = sizeof(SourceInnerType);
-        auto innerCount = vSize / sSize;
+        size_t vSize = sizeof(SourceType);
+        size_t sSize = sizeof(SourceInnerType);
+        size_t innerCount = vSize / sSize;
 
-        auto targetIndex = offset;
+        size_t targetIndex = offset;
 
         { // result.size / stride => num vertices >= sourceSize to fix result buffer
             ASSERT(result.size() >= sourceSize * stride) << "Failed to interleave attributes, required size : " << (sourceSize * stride) << " (actual: " << result.size() << ")";
         }
 
-        for (int i = 0; i < sourceSize; i++) {
+        for (size_t i = 0; i < sourceSize; i++) {
             SourceInnerType* innerTypePtr = reinterpret_cast<SourceInnerType*>(srcPtr);
             auto targetIndexCount = targetIndex;
-            for (int j = 0; j < innerCount; j++) {
+            for (size_t j = 0; j < innerCount; j++) {
                 SourceInnerType& value = *innerTypePtr++;
                 result[targetIndexCount++] = static_cast<TargetType>(value);
             }

@@ -17,7 +17,11 @@ namespace meta {
 
 	template<class T>
 	std::string_view class_raw_name() {
+#ifdef WIN32
 		return typeid(T).raw_name();
+#else
+		return typeid(T).__name();
+#endif
 	}
 
 	template<class T>

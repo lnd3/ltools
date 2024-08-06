@@ -14,12 +14,10 @@ namespace memory {
         using ConstructorType = T*();
         using DestructorType = void(T*);
 
-        template<class T>
         std::unique_ptr<Handle<T>> Create(std::function<ConstructorType> constructor, std::function<DestructorType> destructor) {
             return std::make_unique<Handle<T>>(std::move(constructor), std::move(destructor));
         }
 
-        template<class T>
         bool construct() {
             if (!mInstance && mConstruct) {
                 mInstance = mConstruct();
@@ -30,7 +28,6 @@ namespace memory {
             return false;
         }
 
-        template<class T>
         void destruct() noexcept {
             if (mInstance) {
                 if (mDestruct) {
@@ -49,14 +46,14 @@ namespace memory {
             : mConstruct(std::move(constructor))
             , mDestruct(std::move(destructor))
             , mInstance(nullptr) {
-            construct<T>();
+            construct();
         }
 
         Handle(const Handle& other) = delete;
         Handle& operator=(const Handle& other) = delete;
 
         Handle& operator=(Handle&& other) noexcept {
-            destruct<T>();
+            destruct();
             mConstruct = std::move(other.mConstruct);
             mDestruct = std::move(other.mDestruct);
             mInstance = std::move(other.mInstance);
@@ -70,13 +67,13 @@ namespace memory {
         }
 
         ~Handle() {
-            destruct<T>();
+            destruct();
         }
 
     protected:
-        T* mInstance;
         std::function<T* ()> mConstruct;
         std::function<void(T*)> mDestruct;
+        T* mInstance;
     };
 
 }

@@ -2,6 +2,8 @@
 
 #include "logging/LoggingAll.h"
 
+#include <string.h>
+
 namespace l::network {
 
     void NetworkSerializer::AddFloat(float value) {
@@ -25,7 +27,7 @@ namespace l::network {
     void NetworkSerializer::AddData(void* src, size_t size) {
         auto existingSize = mData.size();
         mData.resize(mData.size() + size);
-        std::memcpy(mData.data() + existingSize, src, size);
+        memcpy(mData.data() + existingSize, src, size);
     }
 
     float NetworkSerializer::MoveFloat(std::vector<unsigned char>& data) {
@@ -50,7 +52,7 @@ namespace l::network {
     }
 
     void NetworkSerializer::MoveData(void* dst, std::vector<unsigned char>& data, size_t size) {
-        std::memcpy(dst, data.data(), size);
+        memcpy(dst, data.data(), size);
         data.erase(data.begin(), data.begin() + size);
     }
 

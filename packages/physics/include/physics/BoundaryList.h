@@ -30,7 +30,7 @@ namespace l::physics {
 		}
 
 		void setBoundaryType(bool isMaxBoundary) {
-			data = data & (~CO_BOUNDARY_MAX) | (isMaxBoundary ? CO_BOUNDARY_MAX : CO_BOUNDARY_MIN);
+			data = (data & (~CO_BOUNDARY_MAX)) | (isMaxBoundary ? CO_BOUNDARY_MAX : CO_BOUNDARY_MIN);
 		}
 
 		bool valid() {

@@ -7,26 +7,26 @@ namespace l::graph {
     /* Mathematical operations */
 
     void GraphNumericAdd::Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) {
-        ASSERT(inputs.size() == mNumInputs);
-        ASSERT(outputs.size() == mNumOutputs);
+        ASSERT(inputs.size() == static_cast<size_t>(mNumInputs));
+        ASSERT(outputs.size() == static_cast<size_t>(mNumOutputs));
         outputs.at(0).mOutput = inputs.at(0).Get() + inputs.at(1).Get();
     }
 
     void GraphNumericMultiply::Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) {
-        ASSERT(inputs.size() == mNumInputs);
-        ASSERT(outputs.size() == mNumOutputs);
+        ASSERT(inputs.size() == static_cast<size_t>(mNumInputs));
+        ASSERT(outputs.size() == static_cast<size_t>(mNumOutputs));
         outputs.at(0).mOutput = inputs.at(0).Get() * inputs.at(1).Get();
     }
 
     void GraphNumericSubtract::Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) {
-        ASSERT(inputs.size() == mNumInputs);
-        ASSERT(outputs.size() == mNumOutputs);
+        ASSERT(inputs.size() == static_cast<size_t>(mNumInputs));
+        ASSERT(outputs.size() == static_cast<size_t>(mNumOutputs));
         outputs.at(0).mOutput = inputs.at(0).Get() - inputs.at(1).Get();
     }
 
     void GraphNumericNegate::Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) {
-        ASSERT(inputs.size() == mNumInputs);
-        ASSERT(outputs.size() == mNumOutputs);
+        ASSERT(inputs.size() == static_cast<size_t>(mNumInputs));
+        ASSERT(outputs.size() == static_cast<size_t>(mNumOutputs));
         outputs.at(0).mOutput = -inputs.at(0).Get();
     }
 
@@ -35,8 +35,8 @@ namespace l::graph {
     }
 
     void GraphNumericIntegral::Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) {
-        ASSERT(inputs.size() == mNumInputs);
-        ASSERT(outputs.size() == mNumOutputs);
+        ASSERT(inputs.size() == static_cast<size_t>(mNumInputs));
+        ASSERT(outputs.size() == static_cast<size_t>(mNumOutputs));
         mOutput += inputs.at(0).Get();
         outputs.at(0).mOutput = mOutput;
     }
@@ -44,24 +44,24 @@ namespace l::graph {
     /* Logical operations */
 
     void GraphLogicalAnd::Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) {
-        ASSERT(inputs.size() == mNumInputs);
-        ASSERT(outputs.size() == mNumOutputs);
+        ASSERT(inputs.size() == static_cast<size_t>(mNumInputs));
+        ASSERT(outputs.size() == static_cast<size_t>(mNumOutputs));
         bool input1 = inputs.at(0).Get() != 0.0f;
         bool input2 = inputs.at(1).Get() != 0.0f;
         outputs.at(0).mOutput = (input1 && input2) ? 1.0f : 0.0f;
     }
 
     void GraphLogicalOr::Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) {
-        ASSERT(inputs.size() == mNumInputs);
-        ASSERT(outputs.size() == mNumOutputs);
+        ASSERT(inputs.size() == static_cast<size_t>(mNumInputs));
+        ASSERT(outputs.size() == static_cast<size_t>(mNumOutputs));
         bool input1 = inputs.at(0).Get() != 0.0f;
         bool input2 = inputs.at(1).Get() != 0.0f;
         outputs.at(0).mOutput = (input1 || input2) ? 1.0f : 0.0f;
     }
 
     void GraphLogicalXor::Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) {
-        ASSERT(inputs.size() == mNumInputs);
-        ASSERT(outputs.size() == mNumOutputs);
+        ASSERT(inputs.size() == static_cast<size_t>(mNumInputs));
+        ASSERT(outputs.size() == static_cast<size_t>(mNumOutputs));
         bool input1 = inputs.at(0).Get() != 0.0f;
         bool input2 = inputs.at(1).Get() != 0.0f;
         outputs.at(0).mOutput = (input1 ^ input2) ? 1.0f : 0.0f;
@@ -75,8 +75,8 @@ namespace l::graph {
     }
 
     void GraphFilterLowpass::Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) {
-        ASSERT(inputs.size() == mNumInputs);
-        ASSERT(outputs.size() == mNumOutputs);
+        ASSERT(inputs.size() == static_cast<size_t>(mNumInputs));
+        ASSERT(outputs.size() == static_cast<size_t>(mNumOutputs));
         float cutoff = inputs.at(0).Get();
         float resonance = inputs.at(1).Get();
         float inputValue = inputs.at(2).Get();

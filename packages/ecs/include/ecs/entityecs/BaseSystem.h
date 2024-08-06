@@ -2,12 +2,10 @@
 
 #include <memory>
 #include <sstream>
-#include <conio.h>
 #include <mutex>
 #include <vector>
 #include <functional>
 #include <iostream>
-#include <Windows.h>
 
 #include "logging/LoggingAll.h"
 

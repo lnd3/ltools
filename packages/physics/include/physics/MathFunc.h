@@ -7,8 +7,93 @@
 #include <string>
 #include <algorithm>
 
+#include "physics/Constants.h"
+
 namespace l {
 namespace algorithm {
+
+	template<class T>
+	T abs(T val) {
+		if constexpr (std::is_floating_point_v<T>) {
+			if constexpr (sizeof(T) == 4) {
+				return fabsf(val);
+			}
+			else if constexpr (sizeof(T) == 8) {
+				return fabs(val);
+			}
+		}
+		else if constexpr (std::is_integral_v<T>) {
+			if constexpr (sizeof(T) == 4) {
+				return ::abs(val);
+			}
+			else if constexpr (sizeof(T) == 8) {
+				return llabs(val);
+			}
+		}
+		return static_cast<T>(0);
+	}
+
+
+	template<class T>
+	requires std::is_floating_point_v<T>
+	T floor(T val) {
+		if constexpr (std::is_floating_point_v<T>) {
+			if constexpr (sizeof(T) == 4) {
+				return floorf(val);
+			}
+			else if constexpr (sizeof(T) == 8) {
+				return ::floor(val);
+			}
+		}
+		return static_cast<T>(0);
+	}
+
+	template<class T>
+	T sqrt(T val) {
+		if constexpr (std::is_floating_point_v<T>) {
+			if constexpr (sizeof(T) == 4) {
+				return sqrtf(val);
+			}
+			else if constexpr (sizeof(T) == 8) {
+				return ::sqrt(val);
+			}
+		}
+		return static_cast<T>(0);
+	}
+
+	template<class T>
+	T pow(T val, T exp) {
+		if constexpr (std::is_floating_point_v<T>) {
+			if constexpr (sizeof(T) == 4) {
+				return powf(val, exp);
+			}
+			else if constexpr (sizeof(T) == 8) {
+				return ::pow(val, exp);
+			}
+		}
+		return static_cast<T>(0);
+	}
+
+	template<class T>
+	T exp(T val) {
+		if constexpr (std::is_floating_point_v<T>) {
+			if constexpr (sizeof(T) == 4) {
+				return expf(val);
+			}
+			else if constexpr (sizeof(T) == 8) {
+				return ::exp(val);
+			}
+		}
+		return static_cast<T>(0);
+	}
+
+	template<class T, class U>
+	T convert(U data) {
+		const char* srcPtr = reinterpret_cast<const char*>(&data);
+		T dst;
+		memcpy(&dst, srcPtr, sizeof(T));
+		return dst;
+	}
 
 	// Almost Identity(I)
 	// Imagine you don't want to modify a signal unless it's drops to zero or close to it, in which case you want to replace the value with a small possitive constant.Then, rather than clamping the valueand introduce a discontinuity, you can smoothly blend the signal into the desired clipped value.So, let m be the threshold(anything above m stays unchanged), and n the value things will take when the signal is zero.Then, the following function does the soft clipping(in a cubic fashion):
@@ -87,7 +172,7 @@ namespace algorithm {
 	template<class T>
 	T cubicPulse(T c, T w, T x)
 	{
-		x = fabs(x - c);
+		x = abs(x - c);
 		if (x > w) return 0.0;
 		x /= w;
 		return 1.0 - x * x * (3.0 - 2.0 * x);

@@ -15,7 +15,7 @@ namespace l {
         }
 
         ShaderManager::ShaderManager()
-            : mCurrentProgram({0}) {}
+            : mCurrentProgram({}) {}
 
         ShaderManager::~ShaderManager() {
             for (auto it : mShaderPrograms) {
@@ -97,7 +97,7 @@ namespace l {
             return mCurrentProgram;
         }
 
-        const GLuint ShaderManager::GetProgramId(std::string_view name) {
+        GLuint ShaderManager::GetProgramId(std::string_view name) {
             auto it = mShaderPrograms.find(name.data());
             if (it == mShaderPrograms.end()) {
                 ASSERT(false) << "Failed to find program '" << name << "'";

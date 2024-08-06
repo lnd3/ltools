@@ -24,12 +24,12 @@ string::SString string::CreateString(const char* src)
 	return string;
 }
 
-__forceinline void string::EndString(SString& dst)
+void string::EndString(SString& dst)
 {
 	*(dst.str + dst.cur_len) = 0;
 }
 
-__forceinline void string::Append(SString& dst, const char src)
+void string::Append(SString& dst, const char src)
 {
 	*(dst.str + dst.cur_len++) = src;
 	EndString(dst);
@@ -65,7 +65,7 @@ void string::Append(SString& dst, int value)
 		value = value % divisor;
 		divisor /= 10;
 
-		Append(dst, (const char)('0' + rest));
+		Append(dst, '0' + rest);
 	}
 }
 

@@ -55,8 +55,8 @@ namespace filesystem {
 		virtual size_t read(std::stringstream& dst, size_t count = INT_MAX);
 		virtual size_t write(std::stringstream& src, size_t count = INT_MAX);
 	protected:
-		std::ios_base::openmode mFileMode;
 		std::filesystem::path mFilePath;
+		int mFileMode;
 		std::optional<std::fstream> mFileStream;
 	};
 }

@@ -1,12 +1,13 @@
 #pragma once
 
+#include "logging/Log.h"
+
 #include <locale>
 #include <codecvt>
-#include <string>
+#include <string.h>
 #include <vector>
 #include <string_view>
-
-#include "Log.h"
+#include <string>
 
 namespace l {
 namespace string {
@@ -17,7 +18,7 @@ namespace string {
 	int32_t get_unix_time(int32_t* fullDateAndTime);
 
 	size_t get_time_string(char* buf, size_t maxSize);
-	std::string get_time_string(int64_t unixtime, std::string_view format = "%Y-%m-%d %X");
+	std::string get_time_string(const int64_t unixtime, std::string_view format = "%Y-%m-%d %X");
 		
 	int32_t get_unix_timestamp();
 	int64_t get_unix_timestamp_ms();
@@ -55,8 +56,8 @@ namespace string {
 	std::vector<std::wstring_view> split(std::wstring_view text, std::wstring_view delim = L" \t\n", char escapeChar = '\"');
 	std::vector<std::string_view> split(std::string_view text, std::string_view delim = " \t\n", char escapeChar = '\"');
 
-	std::string narrow(std::wstring_view str);
-	std::wstring widen(std::string_view str);
+	std::string narrow(const std::wstring& str);
+	std::wstring widen(const std::string& str);
 
 	int count_digits(int number);
 
@@ -69,9 +70,9 @@ namespace string {
 		std::array<char, 32> charBuffer{0};
 		auto srcPtr = const_cast<char*>(src);
 
-		for (int i = 0; i < count; i += bufferSize) {
+		for (size_t i = 0; i < count; i += bufferSize) {
 			auto currentBatchSize = count - i > bufferSize ? bufferSize : count - i;
-			for (int j = 0; j < currentBatchSize; j++) {
+			for (size_t j = 0; j < currentBatchSize; j++) {
 				size_t k = 0;
 				while (*srcPtr != separator) {
 					charBuffer[k++] = *srcPtr++;

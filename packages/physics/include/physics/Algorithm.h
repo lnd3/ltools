@@ -7,6 +7,12 @@
 #include <string>
 #include <algorithm>
 #include <set>
+#include <cmath>
+#include <cstring>
+#include "logging/LoggingAll.h"
+#include <math.h>
+
+#include "physics/MathFunc.h"
 
 namespace l {
 namespace algorithm {
@@ -15,8 +21,6 @@ namespace algorithm {
 	uint32_t pairIndex16(uint16_t i, uint16_t j);
 	uint32_t encodeFloat(const float newPos);
 	float decodeFloat(uint32_t ir);
-	float q_rsqrt(float number);
-	double q_rsqrt(double number);
 
 	template <class T>
 	bool samesign(T a, T b) {
@@ -36,7 +40,7 @@ namespace algorithm {
 		uint32_t R = static_cast<uint32_t>((maxIndex < elements.size() ? maxIndex : elements.size()) - 1);
 
 		while (L <= R) {
-			uint32_t m = static_cast<uint32_t>(std::floor((L + R) / 2));
+			uint32_t m = static_cast<uint32_t>(floor((L + R) / 2.0));
 			auto& e = elements.at(static_cast<size_t>(m));
 			if (e < data) {
 				L = m + 1;
@@ -59,7 +63,8 @@ namespace algorithm {
 			c = (a + b) / 2.0;
 
 			T cEval = eval(c);
-			if (cEval == 0.0 || abs(cEval) < tolerance || (b - a) / 2.0 < tolerance) {
+			LOG(LogDebug) << "bisect iteration " << n << "(" << iterations << ") val: " << c << "(convergence: " << cEval << ")";
+			if (cEval == 0.0 || abs(cEval) < tolerance) {
 				return c;
 			}
 			n++;
@@ -99,7 +104,7 @@ namespace algorithm {
 	}
 
 	template <class T>
-	void gaues_seidel(std::vector<std::vector<T>> A, std::vector<T> b, std::vector<T>& out, int iterations) {
+	void gauss_seidel(std::vector<std::vector<T>> A, std::vector<T> b, std::vector<T>& out, int iterations) {
 
 		do {
 			int n = A.size();
@@ -107,10 +112,10 @@ namespace algorithm {
 				T lambda = 0;
 				for (int j = 0; j < n; j++) {
 					if (j != i) {
-						lambda = lambda + A[i, j] * out[j];
+						lambda = lambda + A[i][j] * out[j];
 					}
 				}
-				out[i] = (b[i] - lambda) / A[i, i];
+				out[i] = (b[i] - lambda) / A[i][i];
 			}
 
 			// Check if convergence is reached

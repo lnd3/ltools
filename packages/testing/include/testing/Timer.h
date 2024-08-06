@@ -40,6 +40,6 @@ namespace l::testing {
     TimeMeasure& get_time_measure(std::string_view groupName, std::string_view id);
 }
 
-#define PERF_TIMER(name) auto UNIQUE(PerfTimer) = std::make_unique<l::testing::PerformanceTimer>(l::testing::get_current_test_group(), name) \
+#define PERF_TIMER(name) auto UNIQUE(PerfTimer) = std::make_unique<l::testing::PerformanceTimer>(l::testing::get_current_test_group(), name)
 
-#define PERF_TIMER_RESULT(name) l::testing::get_time_measure(l::testing::get_current_test_group(), name) \
+#define PERF_TIMER_RESULT(name) l::testing::get_time_measure(l::testing::get_current_test_group(), name)

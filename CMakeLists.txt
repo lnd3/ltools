@@ -2,33 +2,39 @@ cmake_minimum_required (VERSION 3.0.2)
 
 project(ltools)
 
-include(CTest)
-enable_testing()
+get_directory_property(hasParent PARENT_DIRECTORY)
+if(hasParent)
+	message("'ltools' expect 'ldeps' has been externally added to the parent project")
+	file(REMOVE_RECURSE deps)
+else()
+	include(CTest)
+	enable_testing()
 
-add_subdirectory(deps/ldeps)
+	message("'ltools' expect 'ldeps' be present in 'deps/ldeps'")
+	add_subdirectory(deps/ldeps)
 
-include(bs)
+	include(bs)
+	bs_init()
 
-bs_init()
+	# define all package libraries to use
+	set(PACKAGE_NAMES
+		logging
 
-# define all package libraries to use
-set(PACKAGE_NAMES
-	logging
+		testing
+		meta
+		memory
 
-	testing
-	meta
-	memory
+		concurrency
+		filesystem
+		network
+		storage
+		tools
 
-	concurrency
-	filesystem
-	network
-	storage
-	tools
-
-	physics
-	ecs
-	rendering
-)
+		physics
+		ecs
+		rendering
+	)
 
 
-bs_configure_packages("packages" "${PACKAGE_NAMES}")
+	bs_configure_packages("packages" "${PACKAGE_NAMES}")
+endif()

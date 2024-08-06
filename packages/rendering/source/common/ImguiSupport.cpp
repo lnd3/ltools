@@ -2,6 +2,7 @@
 
 #include <memory>
 
+/*
 namespace {
     bool CtrlKeyCombo(ImGuiKey key) {
         return ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(key);
@@ -15,6 +16,7 @@ namespace {
         return ImGui::GetIO().KeyShift && ImGui::IsKeyPressed(key);
     }
 }
+*/
 
 namespace l {
     namespace rendering {

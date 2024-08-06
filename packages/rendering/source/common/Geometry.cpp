@@ -229,7 +229,7 @@ namespace l {
 			tan1.reserve(3 * verticeCount);
 			tan2.reserve(3 * verticeCount);
 
-			for (int i = 0; i < indicesCount; i++)
+			for (size_t i = 0; i < indicesCount; i++)
 			{
 				size_t i1 = indices[3 * i + 0];
 				size_t i2 = indices[3 * i + 1];
@@ -280,7 +280,7 @@ namespace l {
 			std::vector<float> tangent;
 			std::vector<float> normal;
 
-			for (int i = 0; i < verticeCount; i++)
+			for (size_t i = 0; i < verticeCount; i++)
 			{
 				// Gram-Schmidt orthogonalize
 				auto index0 = vertexStride * i + normalOffs;

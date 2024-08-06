@@ -50,18 +50,24 @@ TEST(Logging, StringToHex) {
 	return 0;
 }
 
+#ifdef WIN32
 TEST(Logging, StringCharacterConversion) {
 	//auto s0 = L"ž © Õ ñ Ď Ĺ Ť Ɓ Ǯ Ƕ ɘ ʓ";
-	auto s1 = L"© Õ ñ";
+	auto s1 = std::wstring(L"© Õ ñ");
+	LOG(LogInfo) << s1;
 	auto s2 = string::narrow(s1);
+	LOG(LogInfo) << s2;
 	auto s3 = string::widen(s2);
+	LOG(LogInfo) << s3;
 	auto s4 = string::narrow(s3);
+	LOG(LogInfo) << s4;
 
-	TEST_TRUE(s3 == s1, "Failed to ");
-	TEST_TRUE(s4 == s2, "");
+	TEST_TRUE(s3 == s1, "s1 did not equal s3");
+	TEST_TRUE(s4 == s2, "s2 did not equal s4");
 
 	return 0;
 }
+#endif
 
 TEST(Logging, StringComparisons) {
 	{
@@ -117,5 +123,23 @@ TEST(Logging, TimeConversions) {
 
 	TEST_TRUE(unixtime == unixtime2, "");
 
+	return 0;
+}
+
+PERF_TEST(LoggingTest, LogTimings) {
+	{
+		PERF_TIMER("LogTimings::LogInfo");
+		for (int i = 0; i < 10; i++) {
+			LOG(LogInfo) << "Test logging";
+		}
+	}
+	{
+		PERF_TIMER("LogTimings::LogDebug");
+		for (int i = 0; i < 10; i++) {
+			LOG(LogDebug) << "Test logging";
+		}
+	}
+
+	PERF_TIMER_RESULT("LogTimings");
 	return 0;
 }
