@@ -1,5 +1,3 @@
-#pragma once
-
 #include "logging/LoggingAll.h"
 #include "filesystem/File.h"
 

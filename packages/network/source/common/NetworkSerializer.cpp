@@ -52,7 +52,7 @@ namespace l::network {
     }
 
     void NetworkSerializer::MoveData(void* dst, std::vector<unsigned char>& data, size_t size) {
-        std::memcpy(dst, data.data(), size);
+        memcpy(dst, data.data(), size);
         data.erase(data.begin(), data.begin() + size);
     }
 
