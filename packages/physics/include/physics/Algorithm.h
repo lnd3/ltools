@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <set>
 #include <cmath>
+#include <cstring>
 
 namespace l {
 namespace algorithm {
