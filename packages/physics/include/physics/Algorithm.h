@@ -25,8 +25,6 @@ namespace algorithm {
 	uint32_t pairIndex16(uint16_t i, uint16_t j);
 	uint32_t encodeFloat(const float newPos);
 	float decodeFloat(uint32_t ir);
-	float q_rsqrt(float number);
-	double q_rsqrt(double number);
 
 	template <class T>
 	bool samesign(T a, T b) {

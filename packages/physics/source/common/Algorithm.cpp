@@ -45,38 +45,5 @@ namespace algorithm {
 
 		return convert<float>(rv);
 	}
-
-	float q_rsqrt(float number) {
-		long i;
-		float x2, y;
-		const float threehalfs = 1.5F;
-
-		x2 = number * 0.5F;
-		y = number;
-		i = convert<long>(y);                       // evil floating point bit level hacking
-		i = 0x5F375A86 - (i >> 1);               // what the fuck? 
-		y = convert<float>(i);
-		y = y * (threehalfs - (x2 * y * y));   // 1st iteration
-		y = y * (threehalfs - (x2 * y * y));   // 2nd iteration, this can be removed
-		y = y * (threehalfs - (x2 * y * y));
-		return y;
-	}
-
-	double q_rsqrt(double number) {
-		long long i;
-		double x2, y;
-		const double threehalfs = 1.5F;
-
-		x2 = number * 0.5F;
-		y = number;
-		i = convert<long long>(y);                       // evil floating point bit level hacking
-		i = 0x5FE6EB50C7B537A9 - (i >> 1);               // what the fuck? 
-		y = convert<double>(i);
-		y = y * (threehalfs - (x2 * y * y));   // 1st iteration
-		y = y * (threehalfs - (x2 * y * y));   // 2nd iteration, this can be removed
-		y = y * (threehalfs - (x2 * y * y));
-		y = y * (threehalfs - (x2 * y * y));
-		return y;
-	}
 }
 }
