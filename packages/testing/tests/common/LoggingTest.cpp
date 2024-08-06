@@ -52,13 +52,17 @@ TEST(Logging, StringToHex) {
 
 TEST(Logging, StringCharacterConversion) {
 	//auto s0 = L"ž © Õ ñ Ď Ĺ Ť Ɓ Ǯ Ƕ ɘ ʓ";
-	auto s1 = L"© Õ ñ";
+	auto s1 = std::wstring(L"© Õ ñ");
+	LOG(LogInfo) << s1;
 	auto s2 = string::narrow(s1);
+	LOG(LogInfo) << s2;
 	auto s3 = string::widen(s2);
+	LOG(LogInfo) << s3;
 	auto s4 = string::narrow(s3);
+	LOG(LogInfo) << s4;
 
-	TEST_TRUE(s3 == s1, "Failed to ");
-	TEST_TRUE(s4 == s2, "");
+	TEST_TRUE(s3 == s1, "s1 did not equal s3");
+	TEST_TRUE(s4 == s2, "s2 did not equal s4");
 
 	return 0;
 }

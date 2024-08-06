@@ -376,8 +376,8 @@ namespace string {
 		// http://www.cplusplus.com/reference/locale/ctype/narrow/
 		std::locale loc;
 
-		auto size = str.size();
-		EXPECT(size < buffer_size) << "Failed to narrow string longer than " << buffer_size << " characters";
+		auto size = str.length();
+		EXPECT(size > 0 && size < buffer_size) << "Failed to narrow string of size " << size << " characters";
 
 		auto str_ptr = str.data();
 
@@ -390,8 +390,8 @@ namespace string {
 		// http://www.cplusplus.com/reference/locale/ctype/widen/
 		std::locale loc;
 
-		auto size = str.size();
-		EXPECT(size < buffer_size) << "Failed to widen string longer than " << buffer_size << " characters";
+		auto size = str.length();
+		EXPECT(size > 0 && size < buffer_size) << "Failed to widen string of size " << size << " characters";
 
 		auto str_ptr = str.data();
 
