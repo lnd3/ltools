@@ -27,7 +27,7 @@
 #endif
 
 namespace l::string {
-	std::string narrow(std::wstring_view);
+	std::string narrow(const std::wstring&);
 }
 
 template<class T>

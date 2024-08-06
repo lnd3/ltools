@@ -8,6 +8,11 @@
 #include <iostream>
 #include <chrono>
 #include <ctime>   // localtime
+#include <codecvt>
+#include <clocale>
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
 
 namespace {
 	constexpr size_t buffer_size = 1024;
@@ -372,7 +377,7 @@ namespace string {
 		return out;
 	}
 
-	std::string narrow(std::wstring_view str) {
+	std::string narrow(const std::wstring& str) {
 		// http://www.cplusplus.com/reference/locale/ctype/narrow/
 		std::locale loc;
 
@@ -386,9 +391,10 @@ namespace string {
 		return std::string(buffer, size);
 	}
 
-	std::wstring widen(std::string_view str) {
+	std::wstring widen(const std::string& str) {
 		// http://www.cplusplus.com/reference/locale/ctype/widen/
-		std::locale loc;
+
+		std::locale loc("");
 
 		auto size = str.length();
 		EXPECT(size > 0 && size < buffer_size) << "Failed to widen string of size " << size << " characters";

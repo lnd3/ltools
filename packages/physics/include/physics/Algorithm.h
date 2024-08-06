@@ -9,17 +9,13 @@
 #include <set>
 #include <cmath>
 #include <cstring>
+#include "logging/LoggingAll.h"
+#include <math.h>
+
+#include "physics/MathFunc.h"
 
 namespace l {
 namespace algorithm {
-
-	template<class T, class U>
-	T convert(U data) {
-		const char* srcPtr = reinterpret_cast<const char*>(&data);
-		T dst;
-		memcpy(&dst, srcPtr, sizeof(T));
-		return dst;
-	}
 
 	uint64_t pairIndex32(uint32_t i, uint32_t j);
 	uint32_t pairIndex16(uint16_t i, uint16_t j);
@@ -44,7 +40,7 @@ namespace algorithm {
 		uint32_t R = static_cast<uint32_t>((maxIndex < elements.size() ? maxIndex : elements.size()) - 1);
 
 		while (L <= R) {
-			uint32_t m = static_cast<uint32_t>(floor((L + R) / 2));
+			uint32_t m = static_cast<uint32_t>(floor((L + R) / 2.0));
 			auto& e = elements.at(static_cast<size_t>(m));
 			if (e < data) {
 				L = m + 1;
@@ -67,7 +63,8 @@ namespace algorithm {
 			c = (a + b) / 2.0;
 
 			T cEval = eval(c);
-			if (cEval == 0.0 || abs(cEval) < tolerance || (b - a) / 2.0 < tolerance) {
+			LOG(LogDebug) << "bisect iteration " << n << "(" << iterations << ") val: " << c << "(convergence: " << cEval << ")";
+			if (cEval == 0.0 || abs(cEval) < tolerance) {
 				return c;
 			}
 			n++;

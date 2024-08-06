@@ -7,6 +7,7 @@
 #include <string.h>
 #include <vector>
 #include <string_view>
+#include <string>
 
 namespace l {
 namespace string {
@@ -55,8 +56,8 @@ namespace string {
 	std::vector<std::wstring_view> split(std::wstring_view text, std::wstring_view delim = L" \t\n", char escapeChar = '\"');
 	std::vector<std::string_view> split(std::string_view text, std::string_view delim = " \t\n", char escapeChar = '\"');
 
-	std::string narrow(std::wstring_view str);
-	std::wstring widen(std::string_view str);
+	std::string narrow(const std::wstring& str);
+	std::wstring widen(const std::string& str);
 
 	int count_digits(int number);
 

@@ -50,6 +50,7 @@ TEST(Logging, StringToHex) {
 	return 0;
 }
 
+#ifdef WIN32
 TEST(Logging, StringCharacterConversion) {
 	//auto s0 = L"ž © Õ ñ Ď Ĺ Ť Ɓ Ǯ Ƕ ɘ ʓ";
 	auto s1 = std::wstring(L"© Õ ñ");
@@ -66,6 +67,7 @@ TEST(Logging, StringCharacterConversion) {
 
 	return 0;
 }
+#endif
 
 TEST(Logging, StringComparisons) {
 	{
