@@ -12,6 +12,14 @@
 namespace l {
 namespace algorithm {
 
+	template<class T, class U>
+	T convert(U data) {
+		const char* srcPtr = reinterpret_cast<const char*>(&data);
+		T dst;
+		memcpy(&dst, srcPtr, sizeof(T));
+		return dst;
+	}
+
 	uint64_t pairIndex32(uint32_t i, uint32_t j);
 	uint32_t pairIndex16(uint16_t i, uint16_t j);
 	uint32_t encodeFloat(const float newPos);

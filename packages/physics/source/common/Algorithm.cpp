@@ -23,7 +23,8 @@ namespace algorithm {
 	uint32_t encodeFloat(const float newPos) {
 		//we may need to check on -0 and 0
 		//But it should make no practical difference.
-		uint32_t ir = *((uint32_t*)(&newPos));
+		uint32_t ir = convert<uint32_t>(newPos);
+
 		if (ir & 0x80000000) { //negative?
 			ir = ~ir;//reverse sequence of negative numbers
 		}
@@ -41,7 +42,8 @@ namespace algorithm {
 		else {
 			rv = ~ir; //undo reversal
 		}
-		return *((float*)(&rv));
+
+		return convert<float>(rv);
 	}
 
 	float q_rsqrt(float number) {
@@ -51,9 +53,9 @@ namespace algorithm {
 
 		x2 = number * 0.5F;
 		y = number;
-		i = *(long *)&y;                       // evil floating point bit level hacking
+		i = convert<long>(y);                       // evil floating point bit level hacking
 		i = 0x5F375A86 - (i >> 1);               // what the fuck? 
-		y = *(float *)&i;
+		y = convert<float>(i);
 		y = y * (threehalfs - (x2 * y * y));   // 1st iteration
 		y = y * (threehalfs - (x2 * y * y));   // 2nd iteration, this can be removed
 		y = y * (threehalfs - (x2 * y * y));
@@ -67,9 +69,9 @@ namespace algorithm {
 
 		x2 = number * 0.5F;
 		y = number;
-		i = *(long long *)&y;                       // evil floating point bit level hacking
+		i = convert<long long>(y);                       // evil floating point bit level hacking
 		i = 0x5FE6EB50C7B537A9 - (i >> 1);               // what the fuck? 
-		y = *(double *)&i;
+		y = convert<double>(i);
 		y = y * (threehalfs - (x2 * y * y));   // 1st iteration
 		y = y * (threehalfs - (x2 * y * y));   // 2nd iteration, this can be removed
 		y = y * (threehalfs - (x2 * y * y));
