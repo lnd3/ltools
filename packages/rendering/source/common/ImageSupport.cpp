@@ -2,6 +2,8 @@
 #include "filesystem/File.h"
 
 #include <memory>
+#include <cmath>
+#include <stdio.h>
 
 namespace l::rendering {
 	namespace image {
@@ -189,8 +191,13 @@ namespace l::rendering {
 			(void)srgb;
 
 			FILE* pFile = NULL;
+#ifdef WIN32
 			auto result = fopen_s(&pFile, pFilename, "wb");
 			if (!result)
+#else
+			pFile = fopen64(pFilename, "wb");
+			if (!pFile)
+#endif
 			{
 				fprintf(stderr, "Failed creating file %s!\n", pFilename);
 				return false;
