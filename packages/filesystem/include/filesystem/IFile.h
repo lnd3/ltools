@@ -4,6 +4,7 @@
 #include <ctime>
 #include <sstream>
 #include <vector>
+#include <climits>
 
 namespace l {
 namespace filesystem {

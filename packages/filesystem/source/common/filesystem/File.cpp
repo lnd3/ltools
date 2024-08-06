@@ -23,13 +23,18 @@ namespace filesystem {
 
 	std::string toString(std::time_t t, std::string format) {
 		struct std::tm tminfo {};
+#ifdef WIN32
 		localtime_s(&tminfo, &t);
+#else
+		localtime_r(&t, &tminfo);
+#endif
+
 		std::ostringstream out;
 		out << std::put_time(&tminfo, format.c_str());
 		return out.str();
 	}
 
-	File::File(std::filesystem::path filePath) : mFilePath(filePath), mFileStream(std::nullopt), mFileMode(0) {}
+	File::File(std::filesystem::path filePath) : mFilePath(filePath), mFileMode(0), mFileStream(std::nullopt) {}
 
 	File::~File() {
 		close();
@@ -71,7 +76,7 @@ namespace filesystem {
 			return false;
 		}
 
-		mFileStream = std::fstream(mFilePath, mFileMode);
+		mFileStream = std::fstream(mFilePath, static_cast<std::ios_base::openmode>(mFileMode));
 
 		if (!mFileStream->good()) {
 			close();

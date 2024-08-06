@@ -1,5 +1,3 @@
-#pragma once
-
 #include "network/NetworkManager.h"
 
 namespace l::network {
@@ -92,16 +90,22 @@ namespace l::network {
 			return false;
 		}
 		return mJobManager->queueJob(
-			std::make_unique<l::concurrency::Worker>(requestName, [=, 
-				requestName = std::string(requestName), 
-				queryArguments = std::string(queryArguments),
-				query = std::string(query),
-				callback = cb
+			std::make_unique<l::concurrency::Worker>(requestName, [
+				crequestName = std::string(requestName), 
+				cqueryArguments = std::string(queryArguments),
+				cquery = std::string(query),
+				cexpectedResponseSize = expectedResponseSize,
+				ctimeOut = timeOut,
+				ccallback = cb,
+				&cmConnectionsMutex = mConnectionsMutex,
+				&cmConnections = mConnections,
+				&cmMultiHandle = mMultiHandle,
+				&cmPostedRequests = mPostedRequests
 			](const l::concurrency::RunState& state
 					) {
-				std::unique_lock lock(mConnectionsMutex);
-				auto it = std::find_if(mConnections.begin(), mConnections.end(), [&](std::unique_ptr<RequestBase>& request) {
-					if (requestName != request->GetRequestName()) {
+				std::unique_lock lock(cmConnectionsMutex);
+				auto it = std::find_if(cmConnections.begin(), cmConnections.end(), [&](std::unique_ptr<RequestBase>& request) {
+					if (crequestName != request->GetRequestName()) {
 						return false;
 					}
 					if(request->TryReservingRequest()) {
@@ -110,15 +114,15 @@ namespace l::network {
 					return false;
 					});
 
-				if (it == mConnections.end()) {
+				if (it == cmConnections.end()) {
 					return l::concurrency::RunnableResult::REQUEUE_DELAYED;
 				}
 				auto request = it->get();
 				lock.unlock();
 
-				auto result = request->SendAndUnReserveRequest(mMultiHandle, state, queryArguments, query, expectedResponseSize, timeOut, callback);
+				auto result = request->SendAndUnReserveRequest(cmMultiHandle, state, cqueryArguments, cquery, cexpectedResponseSize, ctimeOut, ccallback);
 				if (result != l::concurrency::RunnableResult::SUCCESS) {
-					mPostedRequests++;
+					cmPostedRequests++;
 				}
 				return result;
 				},
