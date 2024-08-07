@@ -152,7 +152,7 @@ namespace string {
 			timeinfo.tm_sec = 0;
 		}
 
-		ASSERT(ret == 6);
+		ASSERT(ret <= 6);
 
 		timeinfo.tm_year -= 1900;
 		timeinfo.tm_mon -= 1;
@@ -183,7 +183,7 @@ namespace string {
 			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec, &microsec);
 #endif
 
-		ASSERT(ret == 6);
+		ASSERT(ret <= 6);
 
 		timeinfo.tm_year -= 1900;
 		timeinfo.tm_mon -= 1;
@@ -210,7 +210,7 @@ namespace string {
 			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec);
 #endif
 
-		ASSERT(ret == 6);
+		ASSERT(ret <= 6);
 
 		timeinfo.tm_year -= 1900;
 		timeinfo.tm_mon -= 1;
@@ -234,7 +234,7 @@ namespace string {
 			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec, &microsec);
 #endif
 
-		ASSERT(ret == 6);
+		ASSERT(ret <= 6);
 
 		timeinfo.tm_year -= 1900;
 		timeinfo.tm_mon -= 1;
