@@ -31,7 +31,8 @@ void Cmd::ParseArguments(int argc, const char* argv[]) {
 		global::argument.clear();
 		global::params.clear();
 		for (int i = 0; i < argc; i++) {
-			auto arg = std::wstring(argv[i]);
+			std::string argvi(argv[i]);
+			auto arg = std::wstring(argvi.begin(), argvi.end());
 			global::argument.push_back(arg);
 			if (i > 0) {
 				global::params += arg + (i+1 < argc ? L" ": L"");
