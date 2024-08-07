@@ -13,14 +13,21 @@ namespace platform {
 	}
 
 enum class platform {
-		WIN = 0,
+		WINDOWS = 0,
+		UWP,
 		LINUX,
-		ANDROID,// also linux
-		APPLE,  // OS X, iOS
-		//UNIX,
+		ANDROID,
+		CYGWIN,
+		MSYS,
+		GNU,
+		OSX,
+		IOS,
 		UNKNOWN
 	};
 
+	bool IsPlatformPosixCompatible();
+	std::string_view GetPlatformName();
+	std::string_view GetPlatformVersion();
 	platform GetPlatform();
 
 	class FS {

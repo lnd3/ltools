@@ -1,4 +1,4 @@
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(BSYSTEM_PLATFORM_Windows)
 
 #include "tools/platform/Platform.h"
 #include "logging/Log.h"

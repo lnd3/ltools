@@ -1,5 +1,10 @@
 #include "tools/platform/Platform.h"
 
+// Useful platform define article
+// https://stackoverflow.com/questions/2989810/which-cross-platform-preprocessor-defines-win32-or-win32-or-win32
+// Cmake supported system platforms
+// https://cmake.org/cmake/help/latest/variable/CMAKE_SYSTEM_NAME.html
+
 namespace l {
 namespace platform {
 	namespace global {
@@ -8,17 +13,42 @@ namespace platform {
 		std::wstring params;
 	}
 
-	platform GetPlatform() {
-#if defined(WIN32) || defined(_WIN32)
-		return platform::WIN;
-#elif defined(__linux__)
+	bool constexpr IsPlatformPosixCompatible() {
+#if defined(BSYSTEM_PLATFORM_Linux) || defined(BSYSTEM_PLATFORM_Android) || defined(BSYSTEM_PLATFORM_CYGWIN) || defined(BSYSTEM_PLATFORM_MSYS) || defined(BSYSTEM_PLATFORM_GNU) || defined(BSYSTEM_PLATFORM_iOS) || defined(BSYSTEM_PLATFORM_Darwin)
+		return true;
+#endif
+		return false;
+	}
+
+	std::string_view constexpr GetPlatformName() {
+		return BSYSTEM_PLATFORM;
+	}
+
+	std::string_view constexpr GetPlatformVersion() {
+		return BSYSTEM_VERSION;
+	}
+
+	platform constexpr GetPlatform() {
+#if defined(BSYSTEM_PLATFORM_Windows)
+		return platform::WINDOWS;
+#elif defined(BSYSTEM_PLATFORM_WindowsStore)
+		return platform::UWP;
+
+#elif defined(BSYSTEM_PLATFORM_Linux)
 		return platform::LINUX;
-#elif defined(CYGWIN)
+#elif defined(BSYSTEM_PLATFORM_Android)
 		return platform::ANDROID;
-#elif defined(APPLE)
-		return platform::APPLE;
-#elif defined(LINUX)
-		return platform::APPLE;
+#elif defined(BSYSTEM_PLATFORM_CYGWIN)
+		return platform::CYGWIN;
+#elif defined(BSYSTEM_PLATFORM_MSYS)
+		return platform::MSYS;
+#elif defined(BSYSTEM_PLATFORM_GNU)
+		return platform::GNU;
+
+#elif defined(BSYSTEM_PLATFORM_iOS)
+		return platform::IOS;
+#elif defined(BSYSTEM_PLATFORM_Darwin)
+		return platform::OSX;
 #else
 		return platform::UNKNOWN;
 #endif
@@ -41,8 +71,6 @@ namespace platform {
 		std::lock_guard<std::mutex> lock(global::argument_mutex);
 		return global::argument.size();
 	}
-
-
 
 }
 }
