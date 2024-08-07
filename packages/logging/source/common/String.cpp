@@ -28,7 +28,7 @@ namespace l {
 namespace string {
 
 	tm get_time_info(int32_t unixtime, bool adjustYearAndMonth) {
-		struct tm timeinfo;
+		struct tm timeinfo = {};
 		const time_t time = static_cast<time_t>(unixtime);
 #ifdef WIN32
 		auto res = localtime_s(&timeinfo, &time);
@@ -64,7 +64,7 @@ namespace string {
 	}
 
 	int32_t get_unix_time(int32_t* fullDateAndTime) {
-		struct tm timeinfo;
+		struct tm timeinfo = {};
 		timeinfo.tm_year = fullDateAndTime[0];
 		timeinfo.tm_mon = fullDateAndTime[1];
 		timeinfo.tm_mday = fullDateAndTime[2];
@@ -86,7 +86,7 @@ namespace string {
 		auto hours = std::chrono::duration_cast<std::chrono::hours>(tp);
 
 		const time_t now = system_clock::to_time_t(n);
-		struct tm newtime;
+		struct tm newtime = {};
 #ifdef WIN32
 		localtime_s(&newtime, &now);
 #else
@@ -103,7 +103,7 @@ namespace string {
 	}
 
 	std::string get_time_string(const int64_t unixtime, std::string_view format) {
-		struct std::tm tminfo {};
+		struct std::tm tminfo = {};
 #ifdef WIN32
 		localtime_s(&tminfo, &unixtime);
 #else
@@ -124,7 +124,7 @@ namespace string {
 	}
 
 	int32_t to_unix_time(std::string_view utc_date) {
-		struct tm timeinfo;
+		struct tm timeinfo = {};
 
 		int ret = 0;
 
@@ -169,7 +169,7 @@ namespace string {
 	}
 
 	int32_t to_unix_time2(std::string_view utc_date) {
-		struct tm timeinfo;
+		struct tm timeinfo = {};
 
 		int ret = 0;
 		int microsec;
@@ -200,7 +200,7 @@ namespace string {
 	}
 
 	int32_t to_local_unix_time(std::string_view utc_date) {
-		struct tm timeinfo;
+		struct tm timeinfo = {};
 
 #ifdef WIN32
 		int ret = sscanf_s(utc_date.data(), "%4d-%2d-%2d %2d:%2d:%2d",
@@ -223,7 +223,7 @@ namespace string {
 	}
 
 	int32_t to_local_unix_time2(std::string_view utc_date) {
-		struct tm timeinfo;
+		struct tm timeinfo = {};
 		int microsec;
 		ASSERT(utc_date.size() == 28);
 #ifdef WIN32
@@ -247,7 +247,7 @@ namespace string {
 	}
 
 	int32_t to_unix_time(int year, int month, int day, int hour, int min, int sec) {
-		struct tm timeinfo;
+		struct tm timeinfo = {};
 
 		timeinfo.tm_year = year - 1900;
 		timeinfo.tm_mon = month - 1;    //months since January - [0,11]
