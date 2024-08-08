@@ -289,10 +289,10 @@ namespace l::ecs {
 		}
 
 		template<class T>
-		auto getFirst() {
-			auto components = getComponentCache<T>();
-			auto entity = components->getFirst();
-			return entity->get();
+		ComponentHandle<T> getFirst() {
+			ComponentViewCache<T>* components = getComponentCache<T>();
+			Entity* entity = components->getFirst();
+			return entity->get<T>();
 		}
 
 		template<typename... Types>
@@ -309,7 +309,7 @@ namespace l::ecs {
 		template<typename... Types>
 		void each2(typename std::common_type<std::function<void(Entity*, ComponentHandle<Types>...)>>::type viewFunc)
 		{
-			auto* cache = getComponentCache<Types...>();
+			ComponentViewCache<Types...>* cache = getComponentCache<Types...>();
 			if (cache != nullptr) {
 				cache->each(viewFunc);
 			}

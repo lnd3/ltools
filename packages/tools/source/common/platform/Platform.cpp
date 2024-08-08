@@ -1,27 +1,16 @@
 #include "tools/platform/Platform.h"
 
+// Useful platform define article
+// https://stackoverflow.com/questions/2989810/which-cross-platform-preprocessor-defines-win32-or-win32-or-win32
+// Cmake supported system platforms
+// https://cmake.org/cmake/help/latest/variable/CMAKE_SYSTEM_NAME.html
+
 namespace l {
 namespace platform {
 	namespace global {
 		std::mutex argument_mutex;
 		std::vector<std::wstring> argument;
 		std::wstring params;
-	}
-
-	platform GetPlatform() {
-#if defined(WIN32) || defined(_WIN32)
-		return platform::WIN;
-#elif defined(__linux__)
-		return platform::LINUX;
-#elif defined(CYGWIN)
-		return platform::ANDROID;
-#elif defined(APPLE)
-		return platform::APPLE;
-#elif defined(LINUX)
-		return platform::APPLE;
-#else
-		return platform::UNKNOWN;
-#endif
 	}
 
 	std::wstring Cmd::GetCommandLineArgument(size_t index) {
@@ -41,8 +30,6 @@ namespace platform {
 		std::lock_guard<std::mutex> lock(global::argument_mutex);
 		return global::argument.size();
 	}
-
-
 
 }
 }

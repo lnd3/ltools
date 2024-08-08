@@ -1,5 +1,3 @@
-#pragma once
-
 #include "Process.h"
 
 #include "logging/Log.h"
