@@ -165,7 +165,7 @@ namespace l::signals {
             T mCutoff = this->mData[0];
             T mResonance = this->mData[1];
             T cutoff = mCutoff * mCutoff;
-            double rc = 1 - mResonance * cutoff;
+            T rc = 1 - mResonance * cutoff;
             mFilterState[0] = rc * mFilterState[0] - cutoff * (mFilterState[1] + inVal);
             mFilterState[1] = rc * mFilterState[1] + cutoff * mFilterState[0];
             return -mFilterState[1];
