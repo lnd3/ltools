@@ -255,6 +255,10 @@ namespace l::signals {
             int32_t width = 1 + static_cast<int32_t>(widthModifier * (kernelSize - 2));
             mFilterStateIndex = (mFilterStateIndex + 1) % width;
             mFilterState[mFilterStateIndex] = inVal;
+            
+            if (width == 1) {
+                return inVal;
+            }
 
             T outVal = 0.0;
             for (int32_t i = 0; i < width; i++) {
