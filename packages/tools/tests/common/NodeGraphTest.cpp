@@ -1,15 +1,15 @@
 #include "testing/Test.h"
 #include "logging/Log.h"
 
-#include "tools/graph/GraphNode.h"
-#include "tools/graph/GraphOperations.h"
+#include "tools/graph/NodeGraph.h"
+#include "tools/graph/NodeGraphOperations.h"
 
 using namespace l;
-using namespace l::graph;
+using namespace l::nodegraph;
 
-TEST(GraphNode, BasicFunction) {
+TEST(NodeGraph, BasicFunction) {
 
-	GraphNode<GraphNumericAdd> node;
+	NodeGraph<GraphNumericAdd> node;
 
 	float in2 = 2.3f;
 
@@ -22,11 +22,11 @@ TEST(GraphNode, BasicFunction) {
 	return 0;
 }
 
-TEST(GraphNode, SimpleAddNetwork) {
+TEST(NodeGraph, SimpleAddNetwork) {
 
-	GraphNode<GraphNumericAdd> node1;
-	GraphNode<GraphNumericAdd> node2;
-	GraphNode<GraphNumericAdd> nodeFinal;
+	NodeGraph<GraphNumericAdd> node1;
+	NodeGraph<GraphNumericAdd> node2;
+	NodeGraph<GraphNumericAdd> nodeFinal;
 
 	float in1 = 1.8f;
 	float in3 = 5.2f;
@@ -46,11 +46,11 @@ TEST(GraphNode, SimpleAddNetwork) {
 	return 0;
 }
 
-TEST(GraphNode, BasicMathematicalOperations) {
-	GraphNode<GraphNumericAdd> node1;
-	GraphNode<GraphNumericMultiply> node2;
-	GraphNode<GraphNumericSubtract> node3;
-	GraphNode<GraphNumericNegate> nodeOutput;
+TEST(NodeGraph, BasicMathematicalOperations) {
+	NodeGraph<GraphNumericAdd> node1;
+	NodeGraph<GraphNumericMultiply> node2;
+	NodeGraph<GraphNumericSubtract> node3;
+	NodeGraph<GraphNumericNegate> nodeOutput;
 
 	float in1 = 1.8f;
 	float in3 = 2.0f;
@@ -73,8 +73,8 @@ TEST(GraphNode, BasicMathematicalOperations) {
 	return 0;
 }
 
-TEST(GraphNode, NumericIntegral) {
-	GraphNode<GraphNumericIntegral> nodeIntegral;
+TEST(NodeGraph, NumericIntegral) {
+	NodeGraph<GraphNumericIntegral> nodeIntegral;
 
 	float input;
 	nodeIntegral.SetInput(0, &input);
@@ -91,8 +91,8 @@ TEST(GraphNode, NumericIntegral) {
 	return 0;
 }
 
-TEST(GraphNode, FilterLowpass) {
-	GraphNode<GraphFilterLowpass> nodeLowpass;
+TEST(NodeGraph, FilterLowpass) {
+	NodeGraph<GraphFilterLowpass> nodeLowpass;
 
 	float cutoff = 0.8f;
 	float resonance = 0.1f;
@@ -114,12 +114,12 @@ TEST(GraphNode, FilterLowpass) {
 	return 0;
 }
 
-TEST(GraphNode, GraphGroups) {
+TEST(NodeGraph, GraphGroups) {
 
-	GraphNodeGroup group;
+	NodeGraphGroup group;
 
-	GraphNode<GraphFilterLowpass> nodeLowpass1;
-	GraphNode<GraphFilterLowpass> nodeLowpass2;
+	NodeGraph<GraphFilterLowpass> nodeLowpass1;
+	NodeGraph<GraphFilterLowpass> nodeLowpass2;
 
 	float cutoff = 0.8f;
 	float resonance = 0.0001f;
@@ -151,8 +151,8 @@ TEST(GraphNode, GraphGroups) {
 		group.SetOutput(1, nodeLowpass2, 0);
 	}
 
-	GraphNodeGroup group2;
-	GraphNode<GraphDataCopy> copyNode;
+	NodeGraphGroup group2;
+	NodeGraph<GraphDataCopy> copyNode;
 
 	{ // wire sequential group with a simple copy node
 		group2.SetNumInputs(2);
@@ -181,9 +181,9 @@ TEST(GraphNode, GraphGroups) {
 	return 0;
 }
 
-TEST(GraphNode, SchemaBasic) {
+TEST(NodeGraph, SchemaBasic) {
 
-	GraphNodeSchema schema;
+	NodeGraphSchema schema;
 	schema.NewNode<GraphDataCopy>();
 
 	return 0;

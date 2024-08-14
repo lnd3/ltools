@@ -1,5 +1,5 @@
 #pragma once
-#include "GraphNode.h"
+#include "NodeGraph.h"
 
 #include "logging/LoggingAll.h"
 
@@ -9,7 +9,7 @@
 #include <typeinfo>
 #include <type_traits>
 
-namespace l::graph {
+namespace l::nodegraph {
 
     /* Mathematical operations */
 
@@ -19,7 +19,7 @@ namespace l::graph {
             GraphOp(2, 1)
         {}
         virtual ~GraphNumericAdd() = default;
-        void Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) override;
+        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     };
 
     class GraphNumericMultiply : public GraphOp {
@@ -29,7 +29,7 @@ namespace l::graph {
         {}
 
         virtual ~GraphNumericMultiply() = default;
-        void Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) override;
+        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     };
 
     class GraphNumericSubtract : public GraphOp {
@@ -38,7 +38,7 @@ namespace l::graph {
             GraphOp(2, 1)
         {}
         virtual ~GraphNumericSubtract() = default;
-        void Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) override;
+        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     };
 
     class GraphNumericNegate : public GraphOp {
@@ -48,7 +48,7 @@ namespace l::graph {
         {}
 
         virtual ~GraphNumericNegate() = default;
-        void Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) override;
+        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     };
 
     class GraphNumericIntegral : public GraphOp {
@@ -59,7 +59,7 @@ namespace l::graph {
 
         virtual ~GraphNumericIntegral() = default;
         void Reset() override;
-        void Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) override;
+        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
 
     protected:
         float mOutput = 0.0f;
@@ -74,7 +74,7 @@ namespace l::graph {
         {}
 
         virtual ~GraphLogicalAnd() = default;
-        void Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) override;
+        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     };
 
     class GraphLogicalOr : public GraphOp {
@@ -84,7 +84,7 @@ namespace l::graph {
         {}
 
         virtual ~GraphLogicalOr() = default;
-        void Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) override;
+        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     };
 
     class GraphLogicalXor : public GraphOp {
@@ -94,7 +94,7 @@ namespace l::graph {
         {}
 
         virtual ~GraphLogicalXor() = default;
-        void Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) override;
+        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     };
 
     /* Stateful filtering operations */
@@ -107,7 +107,7 @@ namespace l::graph {
 
         virtual ~GraphFilterLowpass() = default;
         void Reset() override;
-        void Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) override;
+        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
 
     protected:
         float mState0 = 0.0f;

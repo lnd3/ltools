@@ -1,30 +1,30 @@
-#include "tools/graph/GraphOperations.h"
+#include "tools/nodegraph/NodeGraphOperations.h"
 
 #include "logging/Log.h"
 
-namespace l::graph {
+namespace l::nodegraph {
 
     /* Mathematical operations */
 
-    void GraphNumericAdd::Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) {
+    void GraphNumericAdd::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         ASSERT(inputs.size() == static_cast<size_t>(mNumInputs));
         ASSERT(outputs.size() == static_cast<size_t>(mNumOutputs));
         outputs.at(0).mOutput = inputs.at(0).Get() + inputs.at(1).Get();
     }
 
-    void GraphNumericMultiply::Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) {
+    void GraphNumericMultiply::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         ASSERT(inputs.size() == static_cast<size_t>(mNumInputs));
         ASSERT(outputs.size() == static_cast<size_t>(mNumOutputs));
         outputs.at(0).mOutput = inputs.at(0).Get() * inputs.at(1).Get();
     }
 
-    void GraphNumericSubtract::Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) {
+    void GraphNumericSubtract::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         ASSERT(inputs.size() == static_cast<size_t>(mNumInputs));
         ASSERT(outputs.size() == static_cast<size_t>(mNumOutputs));
         outputs.at(0).mOutput = inputs.at(0).Get() - inputs.at(1).Get();
     }
 
-    void GraphNumericNegate::Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) {
+    void GraphNumericNegate::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         ASSERT(inputs.size() == static_cast<size_t>(mNumInputs));
         ASSERT(outputs.size() == static_cast<size_t>(mNumOutputs));
         outputs.at(0).mOutput = -inputs.at(0).Get();
@@ -34,7 +34,7 @@ namespace l::graph {
         mOutput = 0.0f;
     }
 
-    void GraphNumericIntegral::Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) {
+    void GraphNumericIntegral::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         ASSERT(inputs.size() == static_cast<size_t>(mNumInputs));
         ASSERT(outputs.size() == static_cast<size_t>(mNumOutputs));
         mOutput += inputs.at(0).Get();
@@ -43,7 +43,7 @@ namespace l::graph {
 
     /* Logical operations */
 
-    void GraphLogicalAnd::Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) {
+    void GraphLogicalAnd::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         ASSERT(inputs.size() == static_cast<size_t>(mNumInputs));
         ASSERT(outputs.size() == static_cast<size_t>(mNumOutputs));
         bool input1 = inputs.at(0).Get() != 0.0f;
@@ -51,7 +51,7 @@ namespace l::graph {
         outputs.at(0).mOutput = (input1 && input2) ? 1.0f : 0.0f;
     }
 
-    void GraphLogicalOr::Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) {
+    void GraphLogicalOr::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         ASSERT(inputs.size() == static_cast<size_t>(mNumInputs));
         ASSERT(outputs.size() == static_cast<size_t>(mNumOutputs));
         bool input1 = inputs.at(0).Get() != 0.0f;
@@ -59,7 +59,7 @@ namespace l::graph {
         outputs.at(0).mOutput = (input1 || input2) ? 1.0f : 0.0f;
     }
 
-    void GraphLogicalXor::Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) {
+    void GraphLogicalXor::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         ASSERT(inputs.size() == static_cast<size_t>(mNumInputs));
         ASSERT(outputs.size() == static_cast<size_t>(mNumOutputs));
         bool input1 = inputs.at(0).Get() != 0.0f;
@@ -74,7 +74,7 @@ namespace l::graph {
         mState1 = 0.0f;
     }
 
-    void GraphFilterLowpass::Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) {
+    void GraphFilterLowpass::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         ASSERT(inputs.size() == static_cast<size_t>(mNumInputs));
         ASSERT(outputs.size() == static_cast<size_t>(mNumOutputs));
         float cutoff = inputs.at(0).Get();

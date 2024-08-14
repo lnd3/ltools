@@ -8,25 +8,7 @@
 #include <typeinfo>
 #include <type_traits>
 
-namespace l::graph {
-
-    bool IsValidInOutNum(int8_t inoutNum, size_t inoutSize);
-
-    struct GraphNodeOutput {
-        float mOutput = 0.0f;
-    };
-
-    class GraphNodeBase;
-    struct GraphNodeInput;
-    class GraphNodeGroup;
-
-    union Input {
-        GraphNodeBase* mInputNode = nullptr;
-        float* mInputFloat;
-        float mInputFloatConstant;
-        int32_t* mInputInt;
-        int32_t mInputIntConstant;
-    };
+namespace l::nodegraph {
 
     enum class DataType {
         FLOAT32,
@@ -40,10 +22,35 @@ namespace l::graph {
         INPUT_VALUE
     };
 
-    class GraphNodeBase {
+    bool IsValidInOutNum(int8_t inoutNum, size_t inoutSize);
+
+    struct NodeGraphOutput {
+        float mOutput = 0.0f;
+    };
+
+    class NodeGraphBase;
+    class NodeGraphGroup;
+
+    union Input {
+        NodeGraphBase* mInputNode = nullptr;
+        float* mInputFloat;
+        float mInputFloatConstant;
+        int32_t* mInputInt;
+        int32_t mInputIntConstant;
+    };
+
+    struct NodeGraphInput {
+        Input mInput;
+        InputType mInputType = InputType::INPUT_NODE;
+        int8_t mInputFromOutputChannel = 0;
+
+        float Get();
+    };
+
+    class NodeGraphBase {
     public:
-        GraphNodeBase(std::string_view name = "");
-        virtual ~GraphNodeBase() = default;
+        NodeGraphBase(std::string_view name = "");
+        virtual ~NodeGraphBase() = default;
 
         virtual void Reset();
 
@@ -54,8 +61,8 @@ namespace l::graph {
 
         virtual float Get(int8_t outputChannel);
 
-        virtual void SetInput(int8_t inputChannel, GraphNodeBase& source, int8_t sourceOutputChannel = 0);
-        virtual void SetInput(int8_t inputChannel, GraphNodeGroup& source, int8_t sourceOutputChannel = 0, bool useSourceInternalInput = true);
+        virtual void SetInput(int8_t inputChannel, NodeGraphBase& source, int8_t sourceOutputChannel = 0);
+        virtual void SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel = 0, bool useSourceInternalInput = true);
         virtual void SetInput(int8_t inputChannel, float constant);
         virtual void SetInput(int8_t inputChannel, float* floatPtr);
     protected:
@@ -63,18 +70,10 @@ namespace l::graph {
         virtual void ProcessOperation();
 
         bool mProcessUpdateHasRun = false;
-        std::vector<GraphNodeInput> mInputs;
-        std::vector<GraphNodeOutput> mOutputs;
+        std::vector<NodeGraphInput> mInputs;
+        std::vector<NodeGraphOutput> mOutputs;
 
         std::string mName;
-    };
-
-    struct GraphNodeInput {
-        Input mInput;
-        InputType mInputType = InputType::INPUT_NODE;
-        int8_t mInputFromOutputChannel = 0;
-
-        float Get();
     };
 
     class GraphOp {
@@ -86,7 +85,7 @@ namespace l::graph {
 
         virtual ~GraphOp() = default;
         virtual void Reset() {}
-        virtual void Process(std::vector<GraphNodeInput>& mInputs, std::vector<GraphNodeOutput>& outputs) = 0;
+        virtual void Process(std::vector<NodeGraphInput>& mInputs, std::vector<NodeGraphOutput>& outputs) = 0;
 
         virtual void SetNumInputs(int8_t numInputs);
         virtual void SetNumOutputs(int8_t numOutputs);
@@ -104,20 +103,20 @@ namespace l::graph {
         {}
         virtual ~GraphDataCopy() = default;
 
-        void Process(std::vector<GraphNodeInput>& inputs, std::vector<GraphNodeOutput>& outputs) override;
+        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     };
 
     template<class T, class = std::enable_if_t<std::is_base_of_v<GraphOp, T>>>
-    class GraphNode : public GraphNodeBase {
+    class NodeGraph : public NodeGraphBase {
     public:
-        GraphNode(std::string_view name = "") :
-            GraphNodeBase(name)
+        NodeGraph(std::string_view name = "") :
+            NodeGraphBase(name)
         {
             SetNumInputs(mOperation.GetNumInputs());
             SetNumOutputs(mOperation.GetNumOutputs());
         }
 
-        virtual ~GraphNode() = default;
+        virtual ~NodeGraph() = default;
 
         void SetNumInputs(int8_t numInputs) {
             mInputs.resize(numInputs);
@@ -130,12 +129,12 @@ namespace l::graph {
         }
 
         void Reset() override {
-            GraphNodeBase::Reset();
+            NodeGraphBase::Reset();
             mOperation.Reset();
         }
 
         void ProcessOperation() override {
-            GraphNodeBase::ProcessOperation();
+            NodeGraphBase::ProcessOperation();
             mOperation.Process(mInputs, mOutputs);
         }
 
@@ -143,48 +142,48 @@ namespace l::graph {
         T mOperation;
     };
 
-    class GraphNodeGroup {
+    class NodeGraphGroup {
     public:
-        GraphNodeGroup() {
+        NodeGraphGroup() {
             SetNumInputs(1);
             SetNumOutputs(1);
         }
-        ~GraphNodeGroup() = default;
+        ~NodeGraphGroup() = default;
 
         void SetNumInputs(int8_t numInputs);
         void SetNumOutputs(int8_t outputCount);
-        void SetInput(int8_t inputChannel, GraphNodeBase& source, int8_t sourceOutputChannel);
-        void SetInput(int8_t inputChannel, GraphNodeGroup& source, int8_t sourceOutputChannel, bool useSourceInternalInput = false);
+        void SetInput(int8_t inputChannel, NodeGraphBase& source, int8_t sourceOutputChannel);
+        void SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel, bool useSourceInternalInput = false);
         void SetInput(int8_t inputChannel, float constant);
         void SetInput(int8_t inputChannel, float* floatPtr);
 
-        void SetOutput(int8_t outputChannel, GraphNodeBase& source, int8_t sourceOutputChannel);
-        void SetOutput(int8_t outputChannel, GraphNodeGroup& source, int8_t sourceOutputChannel);
+        void SetOutput(int8_t outputChannel, NodeGraphBase& source, int8_t sourceOutputChannel);
+        void SetOutput(int8_t outputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel);
 
         float Get(int8_t outputChannel);
-        GraphNodeBase& GetInputNode();
-        GraphNodeBase& GetOutputNode();
+        NodeGraphBase& GetInputNode();
+        NodeGraphBase& GetOutputNode();
 
         void Update();
     protected:
-        GraphNode<GraphDataCopy> mInputNode;
-        GraphNode<GraphDataCopy> mOutputNode;
+        NodeGraph<GraphDataCopy> mInputNode;
+        NodeGraph<GraphDataCopy> mOutputNode;
 
-        std::vector<std::unique_ptr<GraphNodeBase>> mNodes;
+        std::vector<std::unique_ptr<NodeGraphBase>> mNodes;
     };
 
-    class GraphNodeSchema {
+    class NodeGraphSchema {
     public:
-        GraphNodeSchema() = default;
-        ~GraphNodeSchema() = default;
+        NodeGraphSchema() = default;
+        ~NodeGraphSchema() = default;
 
-        template<class T, class = std::enable_if<std::is_base_of_v<GraphNodeBase, T>>>
+        template<class T, class = std::enable_if<std::is_base_of_v<NodeGraphBase, T>>>
         void NewNode(std::string_view name = "") {
-            mNodes.emplace_back(std::make_unique<GraphNode<T>>(name));
+            mNodes.emplace_back(std::make_unique<NodeGraph<T>>(name));
         }
 
     protected:
-        std::vector<std::unique_ptr<GraphNodeBase>> mNodes;
+        std::vector<std::unique_ptr<NodeGraphBase>> mNodes;
 
     };
 
