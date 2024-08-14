@@ -1,8 +1,8 @@
 #include "testing/Test.h"
 #include "logging/Log.h"
 
-#include "tools/graph/NodeGraph.h"
-#include "tools/graph/NodeGraphOperations.h"
+#include "tools/nodegraph/NodeGraph.h"
+#include "tools/nodegraph/NodeGraphOperations.h"
 
 using namespace l;
 using namespace l::nodegraph;
