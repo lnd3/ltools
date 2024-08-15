@@ -31,7 +31,9 @@ namespace l {
 
         GLFWImguiHandle::GLFWImguiHandle(
             GLFWwindow* parent
-        ) : mParent(parent) 
+        ) : mParent(parent),
+            mBuilder(nullptr),
+            mNewFrame(false)
         {
             const char* glsl_version = "#version 130";
 
@@ -69,7 +71,7 @@ namespace l {
             ImGui::DestroyContext();
         }
 
-        void GLFWImguiHandle::Render() {
+        void GLFWImguiHandle::NewFrame() {
             // Start the Dear ImGui frame
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
@@ -77,6 +79,14 @@ namespace l {
 
             ImGui::CaptureKeyboardFromApp();
             ImGui::CaptureMouseFromApp();
+
+            mNewFrame = true;
+        }
+
+        void GLFWImguiHandle::Render() {
+            if (!mNewFrame) {
+                NewFrame();
+            }
 
             if (mBuilder) {
                 mBuilder(*this);
@@ -98,6 +108,8 @@ namespace l {
                 ImGui::RenderPlatformWindowsDefault();
                 glfwMakeContextCurrent(backup_current_context);
             }
+
+            mNewFrame = false;
         }
 
         void GLFWImguiHandle::SetGuiBuilder(ImguiHandler builder) {
