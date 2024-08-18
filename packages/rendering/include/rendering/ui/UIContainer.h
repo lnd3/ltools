@@ -16,8 +16,6 @@
 
 namespace l::ui {
 
-    ImVec2 DragMovement(const ImVec2& prevPos, const ImVec2& curPos, float curScale);
-
     struct InputState {
         ImVec2 mRootPos;
         ImVec2 mCurPos;
@@ -40,16 +38,18 @@ namespace l::ui {
             return ImVec2(mPosition.x + mSize.x, mPosition.y + mSize.y);
         }
 
-        ImVec2 Transform(const ImVec2& rootPos, const ImVec2& p) const {
+        ImVec2 Transform(const ImVec2& rootPos, const ImVec2& p, ImVec2 pixelOffset = ImVec2()) const {
             ImVec2 transformed;
-            transformed.x = rootPos.x + mPosition.x + p.x * mScale;
-            transformed.y = rootPos.y + mPosition.y + p.y * mScale;
+            transformed.x = rootPos.x + mPosition.x + p.x * mScale + pixelOffset.x;
+            transformed.y = rootPos.y + mPosition.y + p.y * mScale + pixelOffset.y;
             return transformed;
         }
     };
 
+    ImVec2 DragMovement(const ImVec2& prevPos, const ImVec2& curPos, float curScale);
     bool Overlap(const ImVec2& p, const ImVec2& pMin, const ImVec2& pMax);
     bool Overlap(const ImVec2 rootPos, const ImVec2& p, const ImVec2& pMin, const ImVec2& pMax, const ContainerArea& parent);
+    bool OverlapPixelArea(const ImVec2 rootPos, const ImVec2& p, const ImVec2& pCenter, const ImVec2& offset, const ContainerArea& parent);
 
     class UIContainer;
 
@@ -71,7 +71,7 @@ namespace l::ui {
     const uint32_t UIContainer_Reserved2 = 0x00000004;
     const uint32_t UIContainer_Reserved3 = 0x00000008;
 
-    const uint32_t UIContainer_RenderFlag = 0x00000010;
+    const uint32_t UIContainer_DrawFlag = 0x00000010;
     const uint32_t UIContainer_DragFlag = 0x00000020; // Can be dragged regardless of size
     const uint32_t UIContainer_ZoomFlag = 0x00000040; // Can be scaled, zoomed in/out
     const uint32_t UIContainer_MoveFlag = 0x00000080; // Can be moved when grabbed

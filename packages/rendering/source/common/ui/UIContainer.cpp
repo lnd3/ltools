@@ -23,6 +23,12 @@ namespace l::ui {
         return pMinT.x < p.x && pMinT.y < p.y && pMaxT.x > p.x && pMaxT.y > p.y;
     }
 
+    bool OverlapPixelArea(const ImVec2 rootPos, const ImVec2& p, const ImVec2& pCenter, const ImVec2& offset, const ContainerArea& parent) {
+        ImVec2 pMinT = parent.Transform(rootPos, pCenter, ImVec2(-offset.x, -offset.y));
+        ImVec2 pMaxT = parent.Transform(rootPos, pCenter, ImVec2(offset.x, offset.y));
+        return pMinT.x < p.x && pMinT.y < p.y && pMaxT.x > p.x && pMaxT.y > p.y;
+    }
+
     bool UIContainer::Accept(UIVisitor& visitor, const InputState& input, uint32_t flags) {
         ContainerArea current;
         return Accept(visitor, input, current, flags);
@@ -210,20 +216,28 @@ namespace l::ui {
     }
 
     bool UIResize::Visit(UIContainer& container, const InputState& input, const ContainerArea& parent) {
-        if (input.mStarted && !mResizing) {
+        if (!mResizing) {
             const float radii = mResizeAreaSize * 0.5f;
             ImVec2 p = container.GetPositionAtSize();
-            ImVec2 p1 = ImVec2(p.x - radii, p.y - radii);
-            ImVec2 p2 = ImVec2(p.x + radii, p.y + radii);
-            if (Overlap(ImVec2(), input.GetLocalPos(), p1, p2, parent)) {
-                mResizing = true;
+            if (OverlapPixelArea(ImVec2(), input.GetLocalPos(), p, ImVec2(radii, radii), parent)) {
                 mCurrentContainer = &container;
+                container.Notification(UIContainer_ResizeFlag);
+
+                if (input.mStarted) {
+                    mResizing = true;
+                }
+                else {
+                    return true;
+                }
+            }
+            else {
+                mCurrentContainer = nullptr;
+                container.ClearNotifications();
             }
         }
         if (mResizing && mCurrentContainer == &container) {
             ImVec2 move = DragMovement(input.mPrevPos, input.mCurPos, parent.mScale);
             container.Resize(move);
-            container.Notification(UIContainer_ResizeFlag);
 
             if (input.mStopped) {
                 mResizing = false;
@@ -244,20 +258,22 @@ namespace l::ui {
         if (mDebugLog) {
             container.DebugLog();
         }
+        ImVec2 pTopLeft = container.GetPosition();
+        ImVec2 pLowRight = container.GetPositionAtSize();
 
-        ImVec2 p1 = parent.Transform(input.mRootPos, container.GetPosition());
-        ImVec2 p2 = parent.Transform(input.mRootPos, container.GetPositionAtSize());
+        ImVec2 p1 = parent.Transform(input.mRootPos, pTopLeft);
+        ImVec2 p2 = parent.Transform(input.mRootPos, pLowRight);
 
         ImVec4 colf = ImVec4(1.0f, 0.4f, 0.4f, 1.0f);
         const ImU32 col = ImColor(colf);
 
         mDrawList->AddRect(p1, p2, col, 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
 
-        ImVec2 p3 = parent.Transform(input.mRootPos, container.GetPositionAtSize(ImVec2(-3.0f, -3.0f)));
-        ImVec2 p4 = parent.Transform(input.mRootPos, container.GetPositionAtSize(ImVec2(3.0f, 3.0f)));
+        ImVec2 p3 = parent.Transform(input.mRootPos, pLowRight, ImVec2(-3.0f, -3.0f));
+        ImVec2 p4 = parent.Transform(input.mRootPos, pLowRight, ImVec2(3.0f, 3.0f));
         if (container.HasNotification(ui::UIContainer_ResizeFlag)) {
-            p3 = parent.Transform(input.mRootPos, container.GetPositionAtSize(ImVec2(-5.0f, -5.0f)));
-            p4 = parent.Transform(input.mRootPos, container.GetPositionAtSize(ImVec2(5.0f, 5.0f)));
+            p3 = parent.Transform(input.mRootPos, pLowRight, ImVec2(-5.0f, -5.0f));
+            p4 = parent.Transform(input.mRootPos, pLowRight, ImVec2(5.0f, 5.0f));
         }
         mDrawList->AddRectFilled(p3, p4, col);
         return false;
