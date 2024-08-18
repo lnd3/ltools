@@ -66,7 +66,7 @@ namespace l::ui {
         if (IsShowing() && IsHovered() && scroll != 0.0f) {
             ImVec2 parentPos = GetPosition();
             float scaleChange = (1.0f + 0.1f * scroll);
-            if (mContentScale > 100.0f && scaleChange > 1.0f || mContentScale < 0.01f && scaleChange < 1.0f) {
+            if ((mContentScale > 100.0f && scaleChange > 1.0f) || (mContentScale < 0.01f && scaleChange < 1.0f)) {
                 return true;
             }
             mContentScale *= scaleChange;
