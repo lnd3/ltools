@@ -68,13 +68,13 @@ namespace l::ui {
             mContent.push_back(container);
         }
         else {
-            ASSERT(i < mContent.size());
+            ASSERT(static_cast<size_t>(i) < mContent.size());
             mContent.insert(mContent.begin() + i, container);
         }
     }
 
     void UIContainer::Remove(int32_t i) {
-        ASSERT(i >= 0 && i < mContent.size());
+        ASSERT(i >= 0 && static_cast<size_t>(i) < mContent.size());
         mContent.erase(mContent.begin() + i);
     }
 
@@ -157,7 +157,7 @@ namespace l::ui {
             if (input.mScroll < 0.0f) {
                 scaleChange = 1.0f / (1.0f - scaleDelta * input.mScroll);
             }
-            if (container.GetScale() > 100.0f && scaleChange > 1.0f || container.GetScale() < 0.01f && scaleChange < 1.0f) {
+            if ((container.GetScale() > 100.0f && scaleChange > 1.0f) || (container.GetScale() < 0.01f && scaleChange < 1.0f)) {
                 return true;
             }
 
