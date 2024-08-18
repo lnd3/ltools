@@ -37,11 +37,11 @@ namespace l::ui {
         ImGuiWindow* mWindowPtr;
         bool mOpened;
         bool mIsHovered;
-        ImVec2 mContentPan;
+        std::function<void()> mWindowFunction;
         float mContentScale;
         bool mMoving;
 
-        std::function<void()> mWindowFunction;
+        ImVec2 mContentPan;
     };
 
 }
