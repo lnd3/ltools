@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <time.h>
 
 namespace {
 	constexpr size_t buffer_size = 1024;
@@ -22,228 +23,112 @@ namespace {
 
 	std::mutex wbufferMutex;
 	wchar_t wbuffer[buffer_size];
+
 }
 
 namespace l {
 namespace string {
 
-	tm get_time_info(int32_t unixtime, bool adjustYearAndMonth) {
-		struct tm timeinfo = {};
-		const time_t time = static_cast<time_t>(unixtime);
+	int32_t get_local_timezone() {
 #ifdef WIN32
-		auto res = localtime_s(&timeinfo, &time);
-#else
-		auto res = localtime_r(&time, &timeinfo);
-#endif
+		long time;
+		auto res = _get_timezone(&time);
 		ASSERT(res == 0);
-		if (adjustYearAndMonth) {
-			timeinfo.tm_year += 1900;
-			timeinfo.tm_mon += 1;
-		}
-		return timeinfo;
-	}
-
-	int32_t get_unix_time(const tm& timeinfo, bool adjustYearAndMonth) {
-		struct tm ti = timeinfo;
-		if (adjustYearAndMonth) {
-			ti.tm_year -= 1900;
-			ti.tm_mon -= 1;
-		}
-		auto date = mktime(&ti);
-		return static_cast<int32_t>(date);
-	}
-
-	void get_time_info(int32_t* fullDateAndTime, int32_t unixtime) {
-		auto timeinfo = l::string::get_time_info(unixtime, true);
-		fullDateAndTime[0] = timeinfo.tm_year;
-		fullDateAndTime[1] = timeinfo.tm_mon;
-		fullDateAndTime[2] = timeinfo.tm_mday;
-		fullDateAndTime[3] = timeinfo.tm_hour;
-		fullDateAndTime[4] = timeinfo.tm_min;
-		fullDateAndTime[5] = timeinfo.tm_sec;
-	}
-
-	int32_t get_unix_time(int32_t* fullDateAndTime) {
-		struct tm timeinfo = {};
-		timeinfo.tm_year = fullDateAndTime[0];
-		timeinfo.tm_mon = fullDateAndTime[1];
-		timeinfo.tm_mday = fullDateAndTime[2];
-		timeinfo.tm_hour = fullDateAndTime[3];
-		timeinfo.tm_min = fullDateAndTime[4];
-		timeinfo.tm_sec = fullDateAndTime[5];
-		return get_unix_time(timeinfo, true);
-	}
-
-	size_t get_time_string(char* buf, size_t maxSize) {
-		using namespace std::chrono;
-
-		auto n = system_clock::now();
-		auto tp = n.time_since_epoch();
-
-		auto micros = std::chrono::duration_cast<std::chrono::microseconds>(tp);
-		auto seconds = std::chrono::duration_cast<std::chrono::hours>(tp);
-		auto minutes = std::chrono::duration_cast<std::chrono::hours>(tp);
-		auto hours = std::chrono::duration_cast<std::chrono::hours>(tp);
-
-		const time_t now = system_clock::to_time_t(n);
-		struct tm newtime = {};
-#ifdef WIN32
-		localtime_s(&newtime, &now);
 #else
-		localtime_r(&now, &newtime);
+		auto time = __timezone;
+#endif
+		return static_cast<int32_t>(- time); // negate since timezone is how to get utc time from local time (local time - utc time)
+	}
+
+	int32_t get_local_daylight_savings(bool inHours) {
+#ifdef WIN32
+		int time;
+		auto res = _get_daylight(&time);
+		ASSERT(res == 0);
+#else
+		auto time = __daylight;
+#endif
+		return static_cast<int32_t>(inHours ? time : time * 3600);
+	}
+
+	time_t convert_to_local_time_from_utc_time(const time_t time) {
+		auto daylight = get_local_daylight_savings();
+		auto timezone = get_local_timezone();
+		return time + timezone + daylight;
+	}
+
+	time_t convert_to_utc_time_from_local_time(const time_t time) {
+		auto daylight = get_local_daylight_savings();
+		auto timezone = get_local_timezone();
+		return time - timezone - daylight;
+	}
+
+	time_t convert_to_time(const tm* timeinfo, bool adjustYearAndMonth) {
+		tm timeinfo2 = *timeinfo;
+		if (adjustYearAndMonth) {
+			timeinfo2.tm_year -= 1900;
+			timeinfo2.tm_mon -= 1;
+		}
+#ifdef WIN32
+		// Converts a UTC time represented by a struct tm to a UTC time represented by a time_t type.
+		// i.e does not correct for time zone
+		time_t time = _mkgmtime64(&timeinfo2);
+#else
+		time_t time = timegm(&timeinfo2);
+#endif
+		return time;
+	}
+
+	void convert_to_tm(const time_t time, tm* timeinfo, bool adjustYearAndMonth) {
+#ifdef WIN32
+		auto res = _gmtime64_s(timeinfo, &time);
+		ASSERT(res == 0);
+#else
+		tm* ti = gmtime(&time);
+		*timeinfo = *ti;
 #endif
 
-
-
-		newtime.tm_year += 1900;
-		auto micro = static_cast<int>(micros.count() % 1000000);
-		auto count = std::snprintf(buf, maxSize, "%.2d-%.2d-%.2d %.2d:%.2d:%.2d.%.6d", newtime.tm_year, newtime.tm_mon, newtime.tm_mday, newtime.tm_hour, newtime.tm_min, newtime.tm_sec, micro);
-
-		return static_cast<size_t>(count);
+		if (adjustYearAndMonth) {
+			timeinfo->tm_year += 1900;
+			timeinfo->tm_mon += 1;
+		}
 	}
 
-	std::string get_time_string(const int64_t unixtime, std::string_view format) {
-		struct std::tm tminfo = {};
+	time_t convert_to_utc_time_from_local_tm(const tm* utctimeinfo, bool adjustYearAndMonth) {
+		tm timeinfo = *utctimeinfo;
+		if (adjustYearAndMonth) {
+			timeinfo.tm_year -= 1900;
+			timeinfo.tm_mon -= 1;
+		}
 #ifdef WIN32
-		localtime_s(&tminfo, &unixtime);
+		// Convert the local time to a calendar value.
+		time_t time = _mktime64(&timeinfo);
 #else
-		localtime_r(&unixtime, &tminfo);
+		time_t time = mktime(&timeinfo);
 #endif
-
-		std::ostringstream out;
-		out << std::put_time(&tminfo, format.data());
-		return out.str();
+		return time;
 	}
 
-	int32_t get_unix_timestamp() {
+	void convert_to_local_tm_from_utc_time(const time_t utctime, tm* timeinfo, bool adjustYearAndMonth) {
+#ifdef WIN32
+		// Converts a time_t time value to a tm structure, and corrects for the local time zone. 
+		auto res = _localtime64_s(timeinfo, &utctime);
+#else
+		auto res = localtime_r(&utctime, timeinfo);
+#endif
+		if (adjustYearAndMonth) {
+			timeinfo->tm_year += 1900;
+			timeinfo->tm_mon += 1;
+		}
+		ASSERT(res == 0);
+	}
+
+	int32_t get_unix_epoch() {
 		return static_cast<int32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() / 1000LL);
 	}
 
-	int64_t get_unix_timestamp_ms() {
+	int64_t get_unix_epoch_ms() {
 		return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-	}
-
-	int32_t to_unix_time(std::string_view utc_date) {
-		struct tm timeinfo = {};
-
-		int ret = 0;
-
-		if (utc_date.size() > 10) {
-			ASSERT(utc_date.size() == 19);
-#ifdef WIN32
-			ret = sscanf_s(utc_date.data(), "%4d-%2d-%2d %2d:%2d:%2d",
-				&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec);
-#else
-			ret = sscanf(utc_date.data(), "%4d-%2d-%2d %2d:%2d:%2d",
-				&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec);
-#endif
-		}
-		else {
-			ASSERT(utc_date.size() == 10);
-#ifdef WIN32
-			ret = sscanf_s(utc_date.data(), "%4d-%2d-%2d",
-				&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday);
-#else
-			ret = sscanf(utc_date.data(), "%4d-%2d-%2d",
-				&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday);
-#endif
-			timeinfo.tm_hour = 0;
-			timeinfo.tm_min = 0;
-			timeinfo.tm_sec = 0;
-		}
-
-		ASSERT(ret <= 6);
-
-		timeinfo.tm_year -= 1900;
-		timeinfo.tm_mon -= 1;
-
-		// use _mkgmtime for gmt/utc time, use it when local time zone is unknown, for example in storage
-		// use mktime for local time zone presentation
-#ifdef WIN32
-		auto unix_time = _mkgmtime(&timeinfo);
-#else
-		auto unix_time = mktime(&timeinfo);
-#endif
-
-		return static_cast<int32_t>(unix_time);
-	}
-
-	int32_t to_unix_time2(std::string_view utc_date) {
-		struct tm timeinfo = {};
-
-		int ret = 0;
-		int microsec;
-
-		ASSERT(utc_date.size() == 28);
-#ifdef WIN32
-		ret = sscanf_s(utc_date.data(), "%4d-%2d-%2dT%2d:%2d:%2d.%7dZ",
-			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec, &microsec);
-#else
-		ret = sscanf(utc_date.data(), "%4d-%2d-%2dT%2d:%2d:%2d.%7dZ",
-			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec, &microsec);
-#endif
-
-		ASSERT(ret <= 6);
-
-		timeinfo.tm_year -= 1900;
-		timeinfo.tm_mon -= 1;
-
-		// use _mkgmtime for gmt/utc time, use it when local time zone is unknown, for example in storage
-		// use mktime for local time zone presentation
-#ifdef WIN32
-		auto unix_time = _mkgmtime(&timeinfo);
-#else
-		auto unix_time = mktime(&timeinfo);
-#endif
-
-		return static_cast<int32_t>(unix_time);
-	}
-
-	int32_t to_local_unix_time(std::string_view utc_date) {
-		struct tm timeinfo = {};
-
-#ifdef WIN32
-		int ret = sscanf_s(utc_date.data(), "%4d-%2d-%2d %2d:%2d:%2d",
-			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec);
-#else
-		int ret = sscanf(utc_date.data(), "%4d-%2d-%2d %2d:%2d:%2d",
-			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec);
-#endif
-
-		ASSERT(ret <= 6);
-
-		timeinfo.tm_year -= 1900;
-		timeinfo.tm_mon -= 1;
-
-		// use _mkgmtime for gmt/utc time, use it when local time zone is unknown, for example in storage
-		// use mktime for local time zone presentation
-		auto unix_time = mktime(&timeinfo);
-
-		return static_cast<int32_t>(unix_time);
-	}
-
-	int32_t to_local_unix_time2(std::string_view utc_date) {
-		struct tm timeinfo = {};
-		int microsec;
-		ASSERT(utc_date.size() == 28);
-#ifdef WIN32
-		int ret = sscanf_s(utc_date.data(), "%4d-%2d-%2dT%2d:%2d:%2d.%7dZ",
-			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec, &microsec);
-#else
-		int ret = sscanf(utc_date.data(), "%4d-%2d-%2dT%2d:%2d:%2d.%7dZ",
-			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec, &microsec);
-#endif
-
-		ASSERT(ret <= 6);
-
-		timeinfo.tm_year -= 1900;
-		timeinfo.tm_mon -= 1;
-
-		// use _mkgmtime for gmt/utc time, use it when local time zone is unknown, for example in storage
-		// use mktime for local time zone presentation
-		auto unix_time = mktime(&timeinfo);
-
-		return static_cast<int32_t>(unix_time);
 	}
 
 	int32_t to_unix_time(int year, int month, int day, int hour, int min, int sec) {
@@ -258,13 +143,173 @@ namespace string {
 
 		// use gmtime for gmt/utc time, use it when local time zone is unknown, for example in storage
 		// use mktime for local time zone presentation
+		return static_cast<int32_t>(convert_to_time(&timeinfo));
+	}
+
+	int32_t to_unix_time(std::string_view date) {
+		struct tm timeinfo = {};
+
+		int ret = 0;
+
+		if (date.size() > 10) {
+			ASSERT(date.size() == 19);
 #ifdef WIN32
-		auto date = _mkgmtime(&timeinfo);
+			ret = sscanf_s(date.data(), "%4d-%2d-%2d %2d:%2d:%2d",
+				&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec);
 #else
-		auto date = mktime(&timeinfo);
+			ret = sscanf(date.data(), "%4d-%2d-%2d %2d:%2d:%2d",
+				&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec);
+#endif
+			ASSERT(ret <= 6);
+		}
+		else {
+			ASSERT(date.size() == 10);
+#ifdef WIN32
+			ret = sscanf_s(date.data(), "%4d-%2d-%2d",
+				&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday);
+#else
+			ret = sscanf(date.data(), "%4d-%2d-%2d",
+				&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday);
+#endif
+			timeinfo.tm_hour = 0;
+			timeinfo.tm_min = 0;
+			timeinfo.tm_sec = 0;
+			ASSERT(ret <= 3);
+		}
+
+
+		timeinfo.tm_year -= 1900;
+		timeinfo.tm_mon -= 1;
+
+		// use _mkgmtime for gmt/utc time, use it when local time zone is unknown, for example in storage
+		// use mktime for local time zone presentation
+		return static_cast<int32_t>(convert_to_time(&timeinfo));
+	}
+
+	int32_t to_unix_time2(std::string_view date) {
+		struct tm timeinfo = {};
+
+		int ret = 0;
+		int microsec;
+
+		ASSERT(date.size() == 28);
+#ifdef WIN32
+		ret = sscanf_s(date.data(), "%4d-%2d-%2dT%2d:%2d:%2d.%7dZ",
+			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec, &microsec);
+#else
+		ret = sscanf(date.data(), "%4d-%2d-%2dT%2d:%2d:%2d.%7dZ",
+			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec, &microsec);
 #endif
 
-		return static_cast<int32_t>(date);
+		ASSERT(ret <= 7);
+
+		timeinfo.tm_year -= 1900;
+		timeinfo.tm_mon -= 1;
+
+		// use _mkgmtime for gmt/utc time, use it when local time zone is unknown, for example in storage
+		// use mktime for local time zone presentation
+		return static_cast<int32_t>(convert_to_time(&timeinfo));
+	}
+
+	int32_t to_unix_time_from_local(const int32_t* dateAndTime) {
+		struct tm timeinfo = {};
+		timeinfo.tm_year = dateAndTime[0];
+		timeinfo.tm_mon = dateAndTime[1];
+		timeinfo.tm_mday = dateAndTime[2];
+		timeinfo.tm_hour = dateAndTime[3];
+		timeinfo.tm_min = dateAndTime[4];
+		timeinfo.tm_sec = dateAndTime[5];
+		timeinfo.tm_isdst = get_local_daylight_savings(true);
+
+		bool adjustYearAndMonth = timeinfo.tm_year > 1000 ? true : false;
+		return static_cast<int32_t>(convert_to_utc_time_from_local_tm(&timeinfo, adjustYearAndMonth));
+	}
+
+	int32_t to_unix_time_from_local(const tm& timeinfo) {
+		bool adjustYearAndMonth = timeinfo.tm_year > 1000 ? true : false;
+		return static_cast<int32_t>(convert_to_utc_time_from_local_tm(&timeinfo, adjustYearAndMonth));
+	}
+
+	int32_t to_unix_time_local(std::string_view dateAndTime) {
+		struct tm timeinfo = {};
+
+#ifdef WIN32
+		int ret = sscanf_s(dateAndTime.data(), "%4d-%2d-%2d %2d:%2d:%2d",
+			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec);
+#else
+		int ret = sscanf(dateAndTime.data(), "%4d-%2d-%2d %2d:%2d:%2d",
+			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec);
+#endif
+
+		ASSERT(ret <= 6);
+
+		// use _mkgmtime for gmt/utc time, use it when local time zone is unknown, for example in storage
+		// use mktime for local time zone presentation
+		bool adjustYearAndMonth = timeinfo.tm_year > 1000 ? true : false;
+		return static_cast<int32_t>(convert_to_utc_time_from_local_tm(&timeinfo), adjustYearAndMonth);
+	}
+
+	int32_t to_unix_time_local2(std::string_view dateAndTime) {
+		struct tm timeinfo = {};
+		int microsec;
+		ASSERT(dateAndTime.size() == 28);
+#ifdef WIN32
+		int ret = sscanf_s(dateAndTime.data(), "%4d-%2d-%2dT%2d:%2d:%2d.%7dZ",
+			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec, &microsec);
+#else
+		int ret = sscanf(dateAndTime.data(), "%4d-%2d-%2dT%2d:%2d:%2d.%7dZ",
+			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec, &microsec);
+#endif
+
+		ASSERT(ret <= 7);
+
+		// use _mkgmtime for gmt/utc time, use it when local time zone is unknown, for example in storage
+		// use mktime for local time zone presentation
+		bool adjustYearAndMonth = timeinfo.tm_year > 1000 ? true : false;
+		return static_cast<int32_t>(convert_to_utc_time_from_local_tm(&timeinfo), adjustYearAndMonth);
+	}
+
+	void to_local_time(const int32_t unixtime, int32_t* dateAndTime) {
+		tm timeinfo;
+		convert_to_local_tm_from_utc_time(unixtime, &timeinfo);
+		dateAndTime[0] = timeinfo.tm_year;
+		dateAndTime[1] = timeinfo.tm_mon;
+		dateAndTime[2] = timeinfo.tm_mday;
+		dateAndTime[3] = timeinfo.tm_hour;
+		dateAndTime[4] = timeinfo.tm_min;
+		dateAndTime[5] = timeinfo.tm_sec;
+	}
+
+	std::string to_local_time(const int32_t unixtime, std::string_view format) {
+		struct std::tm tminfo = {};
+
+		convert_to_local_tm_from_utc_time(unixtime, &tminfo);
+
+		std::ostringstream out;
+		out << std::put_time(&tminfo, format.data());
+		return out.str();
+	}
+
+	size_t get_local_time_string(char* buf, size_t maxSize) {
+		using namespace std::chrono;
+
+		auto n = system_clock::now();
+		auto tp = n.time_since_epoch();
+
+		auto micros = std::chrono::duration_cast<std::chrono::microseconds>(tp);
+		auto seconds = std::chrono::duration_cast<std::chrono::hours>(tp);
+		auto minutes = std::chrono::duration_cast<std::chrono::hours>(tp);
+		auto hours = std::chrono::duration_cast<std::chrono::hours>(tp);
+
+		const time_t now = system_clock::to_time_t(n);
+		struct tm newtime = {};
+
+		convert_to_local_tm_from_utc_time(now, &newtime);
+
+		auto micro = static_cast<int>(micros.count() % 1000000);
+		auto count = std::snprintf(buf, maxSize, "%.2d-%.2d-%.2d %.2d:%.2d:%.2d.%.6d", newtime.tm_year, newtime.tm_mon, newtime.tm_mday, newtime.tm_hour, newtime.tm_min, newtime.tm_sec, micro);
+
+		return static_cast<size_t>(count);
 	}
 
 	bool cstring_equal(const char* a, const char* b, size_t a_offset, size_t b_offset) {

@@ -11,17 +11,34 @@
 
 namespace l {
 namespace string {
+	int32_t get_local_timezone();
+	int32_t get_local_daylight_savings(bool inHours = false);
 
-	tm get_time_info(int32_t unixtime, bool adjustYearAndMonth = false);
-	int32_t get_unix_time(const tm& timeinfo, bool adjustYearAndMonth = false);
-	void get_time_info(int32_t* fullDateAndTime, int32_t unixtime);
-	int32_t get_unix_time(int32_t* fullDateAndTime);
+	time_t convert_to_local_time_from_utc_time(const time_t time);
+	time_t convert_to_utc_time_from_local_time(const time_t time);
 
-	size_t get_time_string(char* buf, size_t maxSize);
-	std::string get_time_string(const int64_t unixtime, std::string_view format = "%Y-%m-%d %X");
+	void convert_to_tm(const time_t time, tm* timeinfo, bool adjustYearAndMonth = true);
+	time_t convert_to_time(const tm* timeinfo, bool adjustYearAndMonth = true);
+	void convert_to_local_tm_from_utc_time(const time_t utctime, tm* localtimeinfo, bool adjustYearAndMonth = true);
+	time_t convert_to_utc_time_from_local_tm(const tm* localtimeinfo, bool adjustYearAndMonth = true);
+
+	int32_t get_unix_epoch();
+	int64_t get_unix_epoch_ms();
+
+	int32_t to_unix_time(int year, int month, int day, int hour = 0, int min = 0, int sec = 0);
+	int32_t to_unix_time(std::string_view date = "2024-01-18 14:04:00");
+	int32_t to_unix_time2(std::string_view date = "2024-01-18T14:04:00000Z");
+
+	int32_t to_unix_time_from_local(const int32_t* dateAndTime);
+	int32_t to_unix_time_from_local(const tm& timeinfo);
+	int32_t to_unix_time_local(std::string_view utcdate = "2024-01-18 14:04:00");
+	int32_t to_unix_time_local2(std::string_view utcdate = "2024-01-18T14:04:00000Z");
+
+	void to_local_time(const int32_t unixtime, int32_t* fullDateAndTime);
+	std::string to_local_time(const int32_t unixtime, std::string_view format = "%Y-%m-%d %X");
+
+	size_t get_local_time_string(char* buf, size_t maxSize);
 		
-	int32_t get_unix_timestamp();
-	int64_t get_unix_timestamp_ms();
 
 	template<class T>
 	T get_number(std::string_view number) {
@@ -40,14 +57,6 @@ namespace string {
 			return 0;
 		}
 	}
-
-	
-
-	int32_t to_unix_time(std::string_view date = "2024-01-18 14:04:00");
-	int32_t to_unix_time2(std::string_view date = "2024-01-18T14:04:00000Z");
-	int32_t to_local_unix_time(std::string_view date = "2024-01-18 14:04:00");
-	int32_t to_local_unix_time2(std::string_view date = "2024-01-18T14:04:00000Z");
-	int32_t to_unix_time(int year = 2024, int month = 1, int day = 1, int hour = 0, int min = 0, int sec = 0);
 
 	bool cstring_equal(const char* a, const char* b, size_t a_offset = 0, size_t b_offset = 0);
 	bool partial_equality(const char* a, const char* b, size_t a_offset = 0, size_t b_offset = 0);

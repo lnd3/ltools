@@ -5,7 +5,7 @@
 
 TEST(Containers, VectorOps) {
 	{
-		LOG(LogInfo) << l::string::get_unix_timestamp_ms();
+		LOG(LogInfo) << l::string::get_unix_epoch_ms();
 
 		std::vector<int> v = { 1, 3, 5, 32, 53, 2, 95 };
 		auto v_sub3 = l::container::vector_extract(v, 4u, 3u);
