@@ -134,8 +134,8 @@ namespace string {
 	int32_t to_unix_time(int year, int month, int day, int hour, int min, int sec) {
 		struct tm timeinfo = {};
 
-		timeinfo.tm_year = year - 1900;
-		timeinfo.tm_mon = month - 1;    //months since January - [0,11]
+		timeinfo.tm_year = year;
+		timeinfo.tm_mon = month;    //months since January - [0,11]
 		timeinfo.tm_mday = day;          //day of the month - [1,31] 
 		timeinfo.tm_hour = hour;         //hours since midnight - [0,23]
 		timeinfo.tm_min = min;          //minutes after the hour - [0,59]
@@ -143,7 +143,8 @@ namespace string {
 
 		// use gmtime for gmt/utc time, use it when local time zone is unknown, for example in storage
 		// use mktime for local time zone presentation
-		return static_cast<int32_t>(convert_to_time(&timeinfo));
+		bool adjustYearAndMonth = timeinfo.tm_year > 1000 ? true : false;
+		return static_cast<int32_t>(convert_to_time(&timeinfo, adjustYearAndMonth));
 	}
 
 	int32_t to_unix_time(std::string_view date) {
@@ -177,13 +178,10 @@ namespace string {
 			ASSERT(ret <= 3);
 		}
 
-
-		timeinfo.tm_year -= 1900;
-		timeinfo.tm_mon -= 1;
-
 		// use _mkgmtime for gmt/utc time, use it when local time zone is unknown, for example in storage
 		// use mktime for local time zone presentation
-		return static_cast<int32_t>(convert_to_time(&timeinfo));
+		bool adjustYearAndMonth = timeinfo.tm_year > 1000 ? true : false;
+		return static_cast<int32_t>(convert_to_time(&timeinfo, adjustYearAndMonth));
 	}
 
 	int32_t to_unix_time2(std::string_view date) {
@@ -203,12 +201,10 @@ namespace string {
 
 		ASSERT(ret <= 7);
 
-		timeinfo.tm_year -= 1900;
-		timeinfo.tm_mon -= 1;
-
 		// use _mkgmtime for gmt/utc time, use it when local time zone is unknown, for example in storage
 		// use mktime for local time zone presentation
-		return static_cast<int32_t>(convert_to_time(&timeinfo));
+		bool adjustYearAndMonth = timeinfo.tm_year > 1000 ? true : false;
+		return static_cast<int32_t>(convert_to_time(&timeinfo, adjustYearAndMonth));
 	}
 
 	int32_t to_unix_time_from_local(const int32_t* dateAndTime) {
