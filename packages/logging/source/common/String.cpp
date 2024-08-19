@@ -279,7 +279,7 @@ namespace string {
 	std::string get_local_time_string(const int32_t unixtime, std::string_view format) {
 		struct std::tm tminfo = {};
 
-		convert_to_local_tm_from_utc_time(unixtime, &tminfo);
+		convert_to_local_tm_from_utc_time(unixtime, &tminfo, false);
 
 		std::ostringstream out;
 		out << std::put_time(&tminfo, format.data());
