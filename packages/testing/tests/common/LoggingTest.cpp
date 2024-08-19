@@ -109,6 +109,11 @@ TEST(Logging, StringComparisons) {
 		TEST_TRUE(l::string::partial_equality(d, e, 2, 0), "");
 		TEST_TRUE(l::string::partial_equality(d, f, 1, 1), "");
 	}
+	{
+		std::string a = "asdgkösd";
+		TEST_TRUE(l::string::cstring_equal(a.c_str(), "asdg34643", 0, 0, 4), "");
+		TEST_FALSE(l::string::cstring_equal(a.c_str(), "asdg34643", 0, 0, 5), "");
+	}
 
 	return 0;
 }
@@ -142,33 +147,25 @@ TEST(Logging, TimeConversions) {
 	}
 	{
 		auto unixtime = l::string::get_unix_epoch();
-
 		auto localtime = l::string::convert_to_local_time_from_utc_time(unixtime);
 		struct tm timeinfolocal;
 		l::string::convert_to_tm(localtime, &timeinfolocal, true);
-
 		struct tm timeinfo;
 		l::string::convert_to_local_tm_from_utc_time(unixtime, &timeinfo, true);
-
 		TEST_EQ(timeinfo.tm_hour, timeinfolocal.tm_hour, "");
 	}
 
 	{
 		auto unixtime = l::string::get_unix_epoch();
-
 		int32_t fullDate[6];
 		l::string::to_local_time(unixtime, fullDate);
-
 		auto unixtime2 = l::string::to_unix_time_from_local(fullDate);
-
 		TEST_EQ(unixtime, unixtime2, "");
 	}
 	{
-		auto unixtime = l::string::get_unix_epoch();
-		int32_t fullDate[6];
-		l::string::to_local_time(unixtime, fullDate);
-		auto unixtimelocal = l::string::to_unix_time_from_local(fullDate);
-
+		auto unixtime = 1724097382;
+		auto timeString = l::string::get_local_time_string(unixtime);
+		TEST_TRUE(l::string::cstring_equal(timeString.c_str(), "2024-08-19 21:56:22"), "");
 	}
 
 	return 0;

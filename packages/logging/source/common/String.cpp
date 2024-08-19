@@ -308,17 +308,17 @@ namespace string {
 		return static_cast<size_t>(count);
 	}
 
-	bool cstring_equal(const char* a, const char* b, size_t a_offset, size_t b_offset) {
-		return !strcmp(a + a_offset, b + b_offset);
+	bool cstring_equal(const char* a, const char* b, size_t a_offset, size_t b_offset, size_t maxCount) {
+		return !strncmp(a + a_offset, b + b_offset, maxCount);
 	}
 
-	bool partial_equality(const char* a, const char* b, size_t a_offset, size_t b_offset) {
-		for (size_t i = 0; i < a_offset; i++) { // check for missed null terminators before a_offset
+	bool partial_equality(const char* a, const char* b, size_t a_offset, size_t b_offset, size_t maxCount) {
+		for (size_t i = 0; i < a_offset && i < maxCount; i++) { // check for missed null terminators before a_offset
 			if (a[i] == 0) {
 				return false;
 			}
 		}
-		for (size_t i = 0; i < b_offset; i++) { // check for missed null terminators before b_offset
+		for (size_t i = 0; i < b_offset && i < maxCount; i++) { // check for missed null terminators before b_offset
 			if (b[i] == 0) {
 				return false;
 			}
@@ -326,7 +326,7 @@ namespace string {
 		const char* a1 = a + a_offset;
 		const char* b1 = b + b_offset;
 		int i = 0;
-		for (i = 0; a1[i] != 0 && b1[i] != 0; i++) {
+		for (i = 0; a1[i] != 0 && b1[i] != 0 && i < maxCount; i++) {
 			if (a1[i] != b1[i]) {
 				return false;
 			}
