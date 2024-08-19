@@ -17,16 +17,22 @@ namespace l::ui {
         return pMin.x < p.x && pMin.y < p.y && pMax.x > p.x && pMax.y > p.y;
     }
 
-    bool Overlap(const ImVec2 rootPos, const ImVec2& p, const ImVec2& pMin, const ImVec2& pMax, const ContainerArea& parent) {
-        ImVec2 pMinT = parent.Transform(rootPos, pMin);
-        ImVec2 pMaxT = parent.Transform(rootPos, pMax);
+    bool Overlap(const ImVec2& p, const ImVec2& pMin, const ImVec2& pMax, const ContainerArea& parent) {
+        ImVec2 pMinT = parent.Transform(pMin);
+        ImVec2 pMaxT = parent.Transform(pMax);
         return pMinT.x < p.x && pMinT.y < p.y && pMaxT.x > p.x && pMaxT.y > p.y;
     }
 
-    bool OverlapPixelArea(const ImVec2 rootPos, const ImVec2& p, const ImVec2& pCenter, const ImVec2& offset, const ContainerArea& parent) {
-        ImVec2 pMinT = parent.Transform(rootPos, pCenter, ImVec2(-offset.x, -offset.y));
-        ImVec2 pMaxT = parent.Transform(rootPos, pCenter, ImVec2(offset.x, offset.y));
+    bool OverlapScreenRect(const ImVec2& p, const ImVec2& pCenter, const ImVec2& offset, const ContainerArea& parent) {
+        ImVec2 pMinT = parent.Transform(pCenter, ImVec2(-offset.x, -offset.y));
+        ImVec2 pMaxT = parent.Transform(pCenter, ImVec2(offset.x, offset.y));
         return pMinT.x < p.x && pMinT.y < p.y && pMaxT.x > p.x && pMaxT.y > p.y;
+    }
+
+    bool OverlapScreenCircle(const ImVec2& p, const ImVec2& pCenter, float radii, const ContainerArea& parent) {
+        ImVec2 pT = parent.Transform(pCenter);
+        ImVec2 d = ImVec2(pT.x - p.x, pT.y - p.y);
+        return d.x*d.x + d.y*d.y < radii * radii;
     }
 
     bool UIContainer::Accept(UIVisitor& visitor, const InputState& input, uint32_t flags) {
@@ -196,7 +202,7 @@ namespace l::ui {
 
     bool UIMove::Visit(UIContainer& container, const InputState& input, const ContainerArea& parent) {
         if (input.mStarted && !mMoving) {
-            if (Overlap(ImVec2(), input.GetLocalPos(), container.GetPosition(), container.GetPositionAtSize(), parent)) {
+            if (Overlap(input.GetLocalPos(), container.GetPosition(), container.GetPositionAtSize(), parent)) {
                 mMoving = true;
                 mCurrentContainer = &container;
             }
@@ -219,7 +225,7 @@ namespace l::ui {
         if (!mResizing) {
             const float radii = mResizeAreaSize * 0.5f;
             ImVec2 p = container.GetPositionAtSize();
-            if (OverlapPixelArea(ImVec2(), input.GetLocalPos(), p, ImVec2(radii, radii), parent)) {
+            if (OverlapScreenRect(input.GetLocalPos(), p, ImVec2(radii, radii), parent)) {
                 mCurrentContainer = &container;
                 container.Notification(UIContainer_ResizeFlag);
 
@@ -261,19 +267,19 @@ namespace l::ui {
         ImVec2 pTopLeft = container.GetPosition();
         ImVec2 pLowRight = container.GetPositionAtSize();
 
-        ImVec2 p1 = parent.Transform(input.mRootPos, pTopLeft);
-        ImVec2 p2 = parent.Transform(input.mRootPos, pLowRight);
+        ImVec2 p1 = parent.Transform(pTopLeft, input.mRootPos);
+        ImVec2 p2 = parent.Transform(pLowRight, input.mRootPos);
 
         ImVec4 colf = ImVec4(1.0f, 0.4f, 0.4f, 1.0f);
         const ImU32 col = ImColor(colf);
 
         mDrawList->AddRect(p1, p2, col, 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
 
-        ImVec2 p3 = parent.Transform(input.mRootPos, pLowRight, ImVec2(-3.0f, -3.0f));
-        ImVec2 p4 = parent.Transform(input.mRootPos, pLowRight, ImVec2(3.0f, 3.0f));
+        ImVec2 p3 = parent.Transform(pLowRight, ImVec2(input.mRootPos.x - 3.0f, input.mRootPos.y - 3.0f));
+        ImVec2 p4 = parent.Transform(pLowRight, ImVec2(input.mRootPos.x + 3.0f, input.mRootPos.y + 3.0f));
         if (container.HasNotification(ui::UIContainer_ResizeFlag)) {
-            p3 = parent.Transform(input.mRootPos, pLowRight, ImVec2(-5.0f, -5.0f));
-            p4 = parent.Transform(input.mRootPos, pLowRight, ImVec2(5.0f, 5.0f));
+            p3 = parent.Transform(pLowRight, ImVec2(input.mRootPos.x - 5.0f, input.mRootPos.y - 5.0f));
+            p4 = parent.Transform(pLowRight, ImVec2(input.mRootPos.x + 5.0f, input.mRootPos.y + 5.0f));
         }
         mDrawList->AddRectFilled(p3, p4, col);
         return false;

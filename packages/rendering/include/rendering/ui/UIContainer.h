@@ -38,18 +38,18 @@ namespace l::ui {
             return ImVec2(mPosition.x + mSize.x, mPosition.y + mSize.y);
         }
 
-        ImVec2 Transform(const ImVec2& rootPos, const ImVec2& p, ImVec2 pixelOffset = ImVec2()) const {
+        ImVec2 Transform(const ImVec2& p, ImVec2 rootPos = ImVec2()) const {
             ImVec2 transformed;
-            transformed.x = rootPos.x + mPosition.x + p.x * mScale + pixelOffset.x;
-            transformed.y = rootPos.y + mPosition.y + p.y * mScale + pixelOffset.y;
+            transformed.x = rootPos.x + mPosition.x + p.x * mScale;
+            transformed.y = rootPos.y + mPosition.y + p.y * mScale;
             return transformed;
         }
     };
 
     ImVec2 DragMovement(const ImVec2& prevPos, const ImVec2& curPos, float curScale);
     bool Overlap(const ImVec2& p, const ImVec2& pMin, const ImVec2& pMax);
-    bool Overlap(const ImVec2 rootPos, const ImVec2& p, const ImVec2& pMin, const ImVec2& pMax, const ContainerArea& parent);
-    bool OverlapPixelArea(const ImVec2 rootPos, const ImVec2& p, const ImVec2& pCenter, const ImVec2& offset, const ContainerArea& parent);
+    bool Overlap(const ImVec2& p, const ImVec2& pMin, const ImVec2& pMax, const ContainerArea& parent);
+    bool OverlapScreenRect(const ImVec2& p, const ImVec2& pCenter, const ImVec2& offset, const ContainerArea& parent);
 
     class UIContainer;
 

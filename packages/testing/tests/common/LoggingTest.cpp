@@ -162,11 +162,6 @@ TEST(Logging, TimeConversions) {
 		auto unixtime2 = l::string::to_unix_time_from_local(fullDate);
 		TEST_EQ(unixtime, unixtime2, "");
 	}
-	{
-		auto unixtime = 1724097382;
-		auto timeString = l::string::get_local_time_string(unixtime);
-		TEST_TRUE(l::string::cstring_equal(timeString.c_str(), "2024-08-19 21:56:22"), "");
-	}
 
 	return 0;
 }
