@@ -223,7 +223,7 @@ namespace l::signals {
         SignalMovingAverage(int32_t filterKernelSize = 50) :
             mFilterStateIndex(0)
         {
-            this->mData[0] = 0.999;
+            this->mData[0] = static_cast<T>(0.999);
             this->mData[1] = static_cast<T>(filterKernelSize);
             mFilterState.resize(filterKernelSize);
             Reset();
@@ -264,7 +264,7 @@ namespace l::signals {
             for (int32_t i = 0; i < width; i++) {
                 outVal += mFilterState[i];
             }
-            return outVal / static_cast<double>(width);
+            return outVal / static_cast<T>(width);
         }
 
     protected:

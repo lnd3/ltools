@@ -280,7 +280,7 @@ namespace string {
 		dateAndTime[5] = timeinfo.tm_sec;
 	}
 
-	std::string to_local_time(const int32_t unixtime, std::string_view format) {
+	std::string get_local_time_string(const int32_t unixtime, std::string_view format) {
 		struct std::tm tminfo = {};
 
 		convert_to_local_tm_from_utc_time(unixtime, &tminfo);
@@ -290,7 +290,7 @@ namespace string {
 		return out.str();
 	}
 
-	size_t get_local_time_string(char* buf, size_t maxSize) {
+	size_t get_local_time_string_verbose(char* buf, size_t maxSize) {
 		using namespace std::chrono;
 
 		auto n = system_clock::now();

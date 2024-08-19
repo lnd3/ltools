@@ -35,9 +35,9 @@ namespace string {
 	int32_t to_unix_time_local2(std::string_view utcdate = "2024-01-18T14:04:00000Z");
 
 	void to_local_time(const int32_t unixtime, int32_t* fullDateAndTime);
-	std::string to_local_time(const int32_t unixtime, std::string_view format = "%Y-%m-%d %X");
+	std::string get_local_time_string(const int32_t unixtime, std::string_view format = "%Y-%m-%d %X");
 
-	size_t get_local_time_string(char* buf, size_t maxSize);
+	size_t get_local_time_string_verbose(char* buf, size_t maxSize);
 		
 
 	template<class T>
