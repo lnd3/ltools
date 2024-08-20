@@ -16,6 +16,18 @@
 
 namespace l::ui {
 
+    enum class UIAlignH {
+        Left = 0,
+        Center = 1,
+        Right = 2
+    };
+
+    enum class UIAlignV {
+        Top = 0,
+        Middle = 1,
+        Bottom = 2
+    };
+
     struct InputState {
         ImVec2 mRootPos;
         ImVec2 mCurPos;
@@ -29,10 +41,17 @@ namespace l::ui {
         }
     };
 
+    struct ContainerLayout {
+        float mBorder = 3.0f;
+        UIAlignH mAlignH = UIAlignH::Left;
+        UIAlignV mAlignV = UIAlignV::Top;
+    };
+
     struct ContainerArea {
         ImVec2 mPosition;
-        ImVec2 mSize;
+        ImVec2 mSize = ImVec2(20.0f, 20.0f);
         float mScale = 1.0f;
+        ContainerLayout mLayout;
 
         ImVec2 GetPositionAtSize() const {
             return ImVec2(mPosition.x + mSize.x, mPosition.y + mSize.y);
@@ -79,22 +98,25 @@ namespace l::ui {
     const uint32_t UIContainer_InputFlag = 0x00000200;
     const uint32_t UIContainer_OutputFlag = 0x00000400;
 
+    class UIDraw;
 
     class UIContainer {
     public:
-        UIContainer(std::string name, uint32_t flags = 0) : mName(name), mConfigFlags(flags) {}
+        UIContainer(std::string_view name, uint32_t flags = 0) : mName(name), mConfigFlags(flags) {}
         ~UIContainer() = default;
 
-        bool Accept(UIVisitor& visitor, const InputState& input, uint32_t flags = 0);
-        bool Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& parent, uint32_t flags = 0);
-        void Add(UIContainer* container, int32_t i = -1);
-        void Remove(int32_t i);
+        virtual bool Accept(UIVisitor& visitor, const InputState& input, uint32_t flags = 0);
+        virtual bool Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& parent, uint32_t flags = 0);
+        virtual void Add(UIContainer* container, int32_t i = -1);
+        virtual void Remove(int32_t i);
+
         void Move(ImVec2 localChange);
         void Resize(ImVec2 localChange);
         void Rescale(float localChange);
         void ClearNotifications();
         void Notification(uint32_t flag);
         bool HasNotification(uint32_t flag);
+        bool HasConfigFlag(uint32_t flag);
         void SetPosition(ImVec2 p);
         void SetSize(ImVec2 s);
         void SetContainerArea(const ContainerArea& area);
@@ -104,6 +126,7 @@ namespace l::ui {
         float GetScale();
         void DebugLog();
 
+        friend UIVisitor;
     protected:
         std::string mName;
         ContainerArea mArea;

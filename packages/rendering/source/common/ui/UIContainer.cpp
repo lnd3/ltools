@@ -46,8 +46,8 @@ namespace l::ui {
         current.mScale = mArea.mScale * parent.mScale;
 
         // scale local position with accumulated world scale and add to accumulated world position
-        current.mPosition.x = (parent.mPosition.x + mArea.mPosition.x * mArea.mScale) * parent.mScale;
-        current.mPosition.y = (parent.mPosition.y + mArea.mPosition.y * mArea.mScale) * parent.mScale;
+        current.mPosition.x = parent.mPosition.x + (mArea.mPosition.x * mArea.mScale) * parent.mScale;
+        current.mPosition.y = parent.mPosition.y + (mArea.mPosition.y * mArea.mScale) * parent.mScale;
 
         // scale local size with accumulated world scale
         current.mSize.x = mArea.mSize.x * mArea.mScale * parent.mScale;
@@ -110,6 +110,10 @@ namespace l::ui {
 
     bool UIContainer::HasNotification(uint32_t flag) {
         return (mNotificationFlags & flag) == flag;
+    }
+
+    bool UIContainer::HasConfigFlag(uint32_t flag) {
+        return (mConfigFlags & flag) == flag;
     }
 
     void UIContainer::SetPosition(ImVec2 p) {
@@ -264,6 +268,7 @@ namespace l::ui {
         if (mDebugLog) {
             container.DebugLog();
         }
+
         ImVec2 pTopLeft = container.GetPosition();
         ImVec2 pLowRight = container.GetPositionAtSize();
 
@@ -275,13 +280,16 @@ namespace l::ui {
 
         mDrawList->AddRect(p1, p2, col, 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
 
-        ImVec2 p3 = parent.Transform(pLowRight, ImVec2(input.mRootPos.x - 3.0f, input.mRootPos.y - 3.0f));
-        ImVec2 p4 = parent.Transform(pLowRight, ImVec2(input.mRootPos.x + 3.0f, input.mRootPos.y + 3.0f));
-        if (container.HasNotification(ui::UIContainer_ResizeFlag)) {
-            p3 = parent.Transform(pLowRight, ImVec2(input.mRootPos.x - 5.0f, input.mRootPos.y - 5.0f));
-            p4 = parent.Transform(pLowRight, ImVec2(input.mRootPos.x + 5.0f, input.mRootPos.y + 5.0f));
+        if (container.HasConfigFlag(ui::UIContainer_ResizeFlag)) {
+            ImVec2 p3 = parent.Transform(pLowRight, ImVec2(input.mRootPos.x - 3.0f, input.mRootPos.y - 3.0f));
+            ImVec2 p4 = parent.Transform(pLowRight, ImVec2(input.mRootPos.x + 3.0f, input.mRootPos.y + 3.0f));
+            if (container.HasNotification(ui::UIContainer_ResizeFlag)) {
+                p3 = parent.Transform(pLowRight, ImVec2(input.mRootPos.x - 5.0f, input.mRootPos.y - 5.0f));
+                p4 = parent.Transform(pLowRight, ImVec2(input.mRootPos.x + 5.0f, input.mRootPos.y + 5.0f));
+            }
+            mDrawList->AddRectFilled(p3, p4, col);
         }
-        mDrawList->AddRectFilled(p3, p4, col);
+
         return false;
     }
 
