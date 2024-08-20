@@ -92,6 +92,10 @@ namespace l::ui {
             return transformed;
         }
 
+        float GetWorldScale(float parentScale) {
+            return parentScale * mScale;
+        }
+
         // Used in ui container layout, this is where we premultiply parent scale
         ImVec2 GetWorldPos(float parentScale, ImVec2 parentPos) {
             ImVec2 worldPos;
@@ -100,8 +104,18 @@ namespace l::ui {
             return worldPos;
         }
 
-        float GetWorldScale(float parentScale) {
-            return parentScale * mScale;
+        ImVec2 GetWorldSize(float parentScale) const {
+            ImVec2 worldSize;
+            worldSize.x = (mSize.x - mLayout.mBorder * 2.0f) * mScale * parentScale;
+            worldSize.y = (mSize.y - mLayout.mBorder * 2.0f) * mScale * parentScale;
+            return worldSize;
+        }
+
+        ImVec2 GetLocalSize() const {
+            ImVec2 localSize;
+            localSize.x = mSize.x / mScale;
+            localSize.y = mSize.y / mScale;
+            return localSize;
         }
 
         ImVec2 GetWorldPosLayout(float parentScale, ImVec2 parentPos, ImVec2 contentSize, UIAlignH alignH, UIAlignV alignV) {
@@ -131,18 +145,11 @@ namespace l::ui {
             return worldPos;
         }
 
-        ImVec2 GetWorldSize(float parentScale) const {
+        ImVec2 GetWorldSizeLayout(float parentScale) const {
             ImVec2 worldSize;
             worldSize.x = (mSize.x - mLayout.mBorder * 2.0f) * mScale * parentScale;
             worldSize.y = (mSize.y - mLayout.mBorder * 2.0f) * mScale * parentScale;
             return worldSize;
-        }
-
-        ImVec2 GetLocalSize() const {
-            ImVec2 localSize;
-            localSize.x = mSize.x / mScale;
-            localSize.y = mSize.y / mScale;
-            return localSize;
         }
     };
 
