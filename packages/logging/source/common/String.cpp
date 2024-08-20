@@ -325,7 +325,7 @@ namespace string {
 		}
 		const char* a1 = a + a_offset;
 		const char* b1 = b + b_offset;
-		int i = 0;
+		size_t i = 0;
 		for (i = 0; a1[i] != 0 && b1[i] != 0 && i < maxCount; i++) {
 			if (a1[i] != b1[i]) {
 				return false;

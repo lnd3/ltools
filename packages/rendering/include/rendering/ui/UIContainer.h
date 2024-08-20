@@ -28,6 +28,32 @@ namespace l::ui {
         Bottom = 2
     };
 
+    enum class UIRenderType {
+        Rect = 0,
+        RectFilled = 1,
+        Triangle = 2,
+        TriangleFilled = 3,
+        Circle = 4,
+        CircleFilled = 5,
+        Polygon = 6,
+        PolygonFilled = 7,
+        Spline = 8,
+        Text = 9,
+        Texture = 10
+    };
+
+    struct UIRenderData {
+        UIRenderType mType = UIRenderType::Rect;
+        ImU32 mColor = ImColor(ImVec4(1.0f, 0.4f, 0.4f, 1.0f));
+
+        ImVec2 mData0;
+        ImVec2 mData1;
+
+        void SetColor(ImVec4 colf) {
+            mColor = ImColor(colf);
+        }
+    };
+
     struct InputState {
         ImVec2 mRootPos;
         ImVec2 mCurPos;
@@ -41,7 +67,7 @@ namespace l::ui {
         }
     };
 
-    struct ContainerLayout {
+    struct UILayoutData {
         float mBorder = 3.0f;
         UIAlignH mAlignH = UIAlignH::Left;
         UIAlignV mAlignV = UIAlignV::Top;
@@ -51,17 +77,72 @@ namespace l::ui {
         ImVec2 mPosition;
         ImVec2 mSize = ImVec2(20.0f, 20.0f);
         float mScale = 1.0f;
-        ContainerLayout mLayout;
+        UILayoutData mLayout;
+        UIRenderData mRender;
 
         ImVec2 GetPositionAtSize() const {
             return ImVec2(mPosition.x + mSize.x, mPosition.y + mSize.y);
         }
 
+        // Used in visitors only and parent scale is already premultiplied
         ImVec2 Transform(const ImVec2& p, ImVec2 rootPos = ImVec2()) const {
             ImVec2 transformed;
             transformed.x = rootPos.x + mPosition.x + p.x * mScale;
             transformed.y = rootPos.y + mPosition.y + p.y * mScale;
             return transformed;
+        }
+
+        // Used in ui container layout, this is where we premultiply parent scale
+        ImVec2 GetWorldPos(float parentScale, ImVec2 parentPos) {
+            ImVec2 worldPos;
+            worldPos.x = parentPos.x + (mPosition.x + mLayout.mBorder) * mScale * parentScale;
+            worldPos.y = parentPos.y + (mPosition.y + mLayout.mBorder) * mScale * parentScale;
+            return worldPos;
+        }
+
+        float GetWorldScale(float parentScale) {
+            return parentScale * mScale;
+        }
+
+        ImVec2 GetWorldPosLayout(float parentScale, ImVec2 parentPos, ImVec2 contentSize, UIAlignH alignH, UIAlignV alignV) {
+            ImVec2 worldPos;
+            switch (alignH) {
+            case UIAlignH::Left:
+                worldPos.x = parentPos.x + (mPosition.x + mLayout.mBorder) * mScale * parentScale;
+                break;
+            case UIAlignH::Center:
+                worldPos.x = parentPos.x + (mPosition.x + mSize.x * 0.5f - contentSize.x * 0.5f) * mScale * parentScale;
+                break;
+            case UIAlignH::Right:
+                worldPos.x = parentPos.x + (mPosition.x - mLayout.mBorder * 2.0f + mSize.x - contentSize.x) * mScale * parentScale;
+                break;
+            }
+            switch (alignV) {
+            case UIAlignV::Top:
+                worldPos.y = parentPos.y + (mPosition.y + mLayout.mBorder) * mScale * parentScale;
+                break;
+            case UIAlignV::Middle:
+                worldPos.y = parentPos.y + (mPosition.y + mSize.y * 0.5f - contentSize.y * 0.5f) * mScale * parentScale;
+                break;
+            case UIAlignV::Bottom:
+                worldPos.y = parentPos.y + (mPosition.y - mLayout.mBorder * 2.0f + mSize.y - contentSize.y) * mScale * parentScale;
+                break;
+            }
+            return worldPos;
+        }
+
+        ImVec2 GetWorldSize(float parentScale) const {
+            ImVec2 worldSize;
+            worldSize.x = (mSize.x - mLayout.mBorder * 2.0f) * mScale * parentScale;
+            worldSize.y = (mSize.y - mLayout.mBorder * 2.0f) * mScale * parentScale;
+            return worldSize;
+        }
+
+        ImVec2 GetLocalSize() const {
+            ImVec2 localSize;
+            localSize.x = mSize.x / mScale;
+            localSize.y = mSize.y / mScale;
+            return localSize;
         }
     };
 
@@ -95,8 +176,6 @@ namespace l::ui {
     const uint32_t UIContainer_ZoomFlag = 0x00000040; // Can be scaled, zoomed in/out
     const uint32_t UIContainer_MoveFlag = 0x00000080; // Can be moved when grabbed
     const uint32_t UIContainer_ResizeFlag = 0x00000100; // Can be resized when grabbing bottom right corner
-    const uint32_t UIContainer_InputFlag = 0x00000200;
-    const uint32_t UIContainer_OutputFlag = 0x00000400;
 
     class UIDraw;
 
@@ -121,6 +200,7 @@ namespace l::ui {
         void SetSize(ImVec2 s);
         void SetContainerArea(const ContainerArea& area);
         ImVec2 GetPosition(bool untransformed = false);
+        ImVec2 GetPositionAtCenter(ImVec2 offset = ImVec2(), bool untransformed = false);
         ImVec2 GetPositionAtSize(ImVec2 offset = ImVec2(), bool untransformed = false);
         ImVec2 GetSize(bool untransformed = false);
         float GetScale();

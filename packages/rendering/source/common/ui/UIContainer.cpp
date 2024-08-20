@@ -42,20 +42,14 @@ namespace l::ui {
 
     bool UIContainer::Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& parent, uint32_t flags) {
         ContainerArea current;
-        // compute local scale
-        current.mScale = mArea.mScale * parent.mScale;
-
-        // scale local position with accumulated world scale and add to accumulated world position
-        current.mPosition.x = parent.mPosition.x + (mArea.mPosition.x * mArea.mScale) * parent.mScale;
-        current.mPosition.y = parent.mPosition.y + (mArea.mPosition.y * mArea.mScale) * parent.mScale;
-
-        // scale local size with accumulated world scale
-        current.mSize.x = mArea.mSize.x * mArea.mScale * parent.mScale;
-        current.mSize.y = mArea.mSize.y * mArea.mScale * parent.mScale;
+        current.mScale = mArea.GetWorldScale(parent.mScale);
+        current.mPosition = mArea.GetWorldPos(parent.mScale, parent.mPosition);
+        current.mSize = mArea.GetWorldSize(parent.mScale);
 
         bool exitOnAccept = (UIContainer_ExitOnAccept & flags) == UIContainer_ExitOnAccept;
 
         for (auto& content : mContent) {
+
             if (content->Accept(visitor, input, current, flags)) {
                 if (exitOnAccept) {
                     return true;
@@ -133,6 +127,13 @@ namespace l::ui {
             return mArea.mPosition;
         }
         return ImVec2(mArea.mPosition.x * mArea.mScale, mArea.mPosition.y * mArea.mScale);
+    }
+
+    ImVec2 UIContainer::GetPositionAtCenter(ImVec2 offset, bool untransformed) {
+        if (untransformed) {
+            return ImVec2(mArea.mPosition.x + mArea.mSize.x * 0.5f + offset.x, mArea.mPosition.y * 0.5f + mArea.mSize.y + offset.y);
+        }
+        return ImVec2((mArea.mPosition.x + mArea.mSize.x * 0.5f + offset.x) * mArea.mScale, (mArea.mPosition.y * 0.5f + mArea.mSize.y + offset.y) * mArea.mScale);
     }
 
     ImVec2 UIContainer::GetPositionAtSize(ImVec2 offset, bool untransformed) {
