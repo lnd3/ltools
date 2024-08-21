@@ -35,35 +35,6 @@ namespace l::ui {
         return d.x*d.x + d.y*d.y < radii * radii;
     }
 
-    bool UIContainer::Accept(UIVisitor& visitor, const InputState& input, UITraversalMode mode) {
-        ContainerArea current;
-        if (visitor.Active(input)) {
-            return Accept(visitor, input, current, mode);
-        }
-        return false;
-    }
-
-    bool UIContainer::Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& parent, UITraversalMode mode) {
-        ContainerArea current;
-        current.mScale = mArea.GetWorldScale(parent.mScale);
-        current.mPosition = mArea.GetWorldPos(parent.mScale, parent.mPosition);
-        current.mSize = mArea.GetWorldSize(parent.mScale);
-
-        for (auto& content : mContent) {
-
-            if (content->Accept(visitor, input, current, mode)) {
-                if (mode == UITraversalMode::Once) {
-                    return true;
-                }
-            }
-        }
-
-        if (visitor.Active(input)) {
-            return visitor.Visit(*this, input, parent);
-        }
-        return false;
-    }
-
     void UIContainer::Add(UIContainer* container, int32_t i) {
         if (i < 0) {
             mContent.push_back(container);
@@ -119,242 +90,144 @@ namespace l::ui {
         mArea.mSize = s;
     }
 
-void UIContainer::SetContainerArea(const ContainerArea& area) {
-    mArea = area;
-}
-
-ImVec2 UIContainer::GetPosition(bool untransformed) {
-    if (untransformed) {
-        return mArea.mPosition;
+    void UIContainer::SetContainerArea(const ContainerArea& area) {
+        mArea = area;
     }
-    return ImVec2(mArea.mPosition.x * mArea.mScale, mArea.mPosition.y * mArea.mScale);
-}
 
-ImVec2 UIContainer::GetPositionAtCenter(ImVec2 offset, bool untransformed) {
-    if (untransformed) {
-        return ImVec2(mArea.mPosition.x + mArea.mSize.x * 0.5f + offset.x, mArea.mPosition.y * 0.5f + mArea.mSize.y + offset.y);
-    }
-    return ImVec2((mArea.mPosition.x + mArea.mSize.x * 0.5f + offset.x) * mArea.mScale, (mArea.mPosition.y * 0.5f + mArea.mSize.y + offset.y) * mArea.mScale);
-}
-
-ImVec2 UIContainer::GetPositionAtSize(ImVec2 offset, bool untransformed) {
-    if (untransformed) {
-        return ImVec2(mArea.mPosition.x + mArea.mSize.x + offset.x, mArea.mPosition.y + mArea.mSize.y + offset.y);
-    }
-    return ImVec2((mArea.mPosition.x + mArea.mSize.x + offset.x) * mArea.mScale, (mArea.mPosition.y + mArea.mSize.y + offset.y) * mArea.mScale);
-}
-
-ImVec2 UIContainer::GetSize(bool untransformed) {
-    if (untransformed) {
-        return mArea.mSize;
-    }
-    return ImVec2(mArea.mSize.x * mArea.mScale, mArea.mSize.y * mArea.mScale);
-}
-
-float UIContainer::GetScale() {
-    return mArea.mScale;
-}
-
-void UIContainer::DebugLog() {
-    LOG(LogDebug) << "UIContainer: " << mName << ", [" << mArea.mScale << "][" << mArea.mPosition.x << ", " << mArea.mPosition.y << "][" << mArea.mSize.x << ", " << mArea.mSize.y << "]";
-}
-
-
-bool UIZoom::Active(const InputState& input) {
-    return input.mScroll != 0;
-}
-
-bool UIZoom::Visit(UIContainer& container, const InputState& input, const ContainerArea& parent) {
-    if (!container.HasConfigFlag(UIContainer_ZoomFlag)) {
-        return false;
-    }
-    if (input.mScroll != 0.0f) {
-        float scaleChange = 1.0f;
-        float scaleDelta = 0.1f;
-        scaleChange = 1.0f + scaleDelta * input.mScroll;
-        if (input.mScroll < 0.0f) {
-            scaleChange = 1.0f / (1.0f - scaleDelta * input.mScroll);
+    ImVec2 UIContainer::GetPosition(bool untransformed) {
+        if (untransformed) {
+            return mArea.mPosition;
         }
-        if ((container.GetScale() > 100.0f && scaleChange > 1.0f) || (container.GetScale() < 0.01f && scaleChange < 1.0f)) {
-            return true;
-        }
-
-        ImVec2 mousePos = input.GetLocalPos();
-        ImVec2 localMousePos = ImVec2(parent.mPosition.x - mousePos.x, parent.mPosition.y - mousePos.y);
-        ImVec2 p = container.GetPosition();
-        container.Rescale(scaleChange);
-        p.x = ((p.x + localMousePos.x) * scaleChange - localMousePos.x) / container.GetScale();
-        p.y = ((p.y + localMousePos.y) * scaleChange - localMousePos.y) / container.GetScale();
-        container.SetPosition(p);
-        return true;
+        return ImVec2(mArea.mPosition.x * mArea.mScale, mArea.mPosition.y * mArea.mScale);
     }
-    return false;
-}
 
-bool UIDrag::Active(const InputState& input) {
-    return (input.mStarted && !mDragging) || mDragging;
-}
-
-bool UIDrag::Visit(UIContainer& container, const InputState& input, const ContainerArea& parent) {
-    if (!container.HasConfigFlag(UIContainer_DragFlag)) {
-        return false;
+    ImVec2 UIContainer::GetPositionAtCenter(ImVec2 offset, bool untransformed) {
+        if (untransformed) {
+            return ImVec2(mArea.mPosition.x + mArea.mSize.x * 0.5f + offset.x, mArea.mPosition.y * 0.5f + mArea.mSize.y + offset.y);
+        }
+        return ImVec2((mArea.mPosition.x + mArea.mSize.x * 0.5f + offset.x) * mArea.mScale, (mArea.mPosition.y * 0.5f + mArea.mSize.y + offset.y) * mArea.mScale);
     }
-    if (input.mStarted && !mDragging) {
-        if (input.GetLocalPos().x >= 0.0f && input.GetLocalPos().y >= 0.0f) {
-            mDragging = true;
-            mCurrentContainer = &container;
+
+    ImVec2 UIContainer::GetPositionAtSize(ImVec2 offset, bool untransformed) {
+        if (untransformed) {
+            return ImVec2(mArea.mPosition.x + mArea.mSize.x + offset.x, mArea.mPosition.y + mArea.mSize.y + offset.y);
         }
+        return ImVec2((mArea.mPosition.x + mArea.mSize.x + offset.x) * mArea.mScale, (mArea.mPosition.y + mArea.mSize.y + offset.y) * mArea.mScale);
     }
-    if (mDragging && mCurrentContainer == &container) {
-        ImVec2 move = DragMovement(input.mPrevPos, input.mCurPos, parent.mScale * container.GetScale());
-        container.Move(move);
-        container.Notification(UIContainer_DragFlag);
 
-        if (input.mStopped) {
-            mDragging = false;
-            mCurrentContainer = nullptr;
+    ImVec2 UIContainer::GetSize(bool untransformed) {
+        if (untransformed) {
+            return mArea.mSize;
         }
-        return mDragging;
+        return ImVec2(mArea.mSize.x * mArea.mScale, mArea.mSize.y * mArea.mScale);
     }
-    return false;
-}
 
-bool UIMove::Active(const InputState& input) {
-    return (input.mStarted && !mMoving) || mMoving;
-}
+    float UIContainer::GetScale() {
+        return mArea.mScale;
+    }
 
-bool UIMove::Visit(UIContainer& container, const InputState& input, const ContainerArea& parent) {
-        if(!container.HasConfigFlag(UIContainer_MoveFlag)){
-            return false;
-        }
-        if (input.mStarted && !mMoving) {
-            if (Overlap(input.GetLocalPos(), container.GetPosition(), container.GetPositionAtSize(), parent)) {
-                mMoving = true;
-                mCurrentContainer = &container;
-            }
-        }
-        if (mMoving && mCurrentContainer == &container) {
-            ImVec2 move = DragMovement(input.mPrevPos, input.mCurPos, parent.mScale);
-            container.Move(move);
-            container.Notification(UIContainer_MoveFlag);
+    void UIContainer::DebugLog() {
+        LOG(LogDebug) << "UIContainer: " << mName << ", [" << mArea.mScale << "][" << mArea.mPosition.x << ", " << mArea.mPosition.y << "][" << mArea.mSize.x << ", " << mArea.mSize.y << "]";
+    }
 
-            if (input.mStopped) {
-                mMoving = false;
-                mCurrentContainer = nullptr;
-            }
-            return mMoving;
+    bool UIContainer::Accept(UIVisitor& visitor, const InputState& input, UITraversalMode mode) {
+        ContainerArea current;
+        if (visitor.Active(input)) {
+            return Accept(visitor, input, current, mode);
         }
         return false;
     }
 
-    bool UIResize::Visit(UIContainer& container, const InputState& input, const ContainerArea& parent) {
-        if (!container.HasConfigFlag(UIContainer_ResizeFlag)) {
-            return false;
-        }
-        if (!mResizing) {
-            const float radii = mResizeAreaSize * 0.5f;
-            ImVec2 p = container.GetPositionAtSize();
-            if (OverlapScreenRect(input.GetLocalPos(), p, ImVec2(radii, radii), parent)) {
-                mCurrentContainer = &container;
-                container.Notification(UIContainer_ResizeFlag);
+    bool UIContainer::Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& parent, UITraversalMode mode) {
+        ContainerArea current;
+        current.mScale = mArea.GetWorldScale(parent.mScale);
+        current.mPosition = mArea.GetWorldPos(parent.mScale, parent.mPosition);
+        current.mSize = mArea.GetWorldSize(parent.mScale);
 
-                if (input.mStarted) {
-                    mResizing = true;
-                }
-                else {
+        for (auto& content : mContent) {
+
+            if (content->Accept(visitor, input, current, mode)) {
+                if (mode == UITraversalMode::Once) {
                     return true;
                 }
             }
+        }
+
+        if (visitor.Active(input)) {
+            return visitor.Visit(*this, input, parent);
+        }
+        return false;
+    }
+
+    bool UISplit::Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& parent, UITraversalMode mode) {
+        // Since we can have multiple layouts in a container for different content, it will act as
+        // an anchor rather than a container, therefore it has to align within it and size 
+        mArea.mSize = parent.GetLocalSize();
+
+        float contentCount = static_cast<float>(mContent.size());
+
+        int32_t i = 0;
+        for (auto& content : mContent) {
+            auto contentSize = content->GetSize();
+
+            ContainerArea current;
+            current.mScale = mArea.GetWorldScale(parent.mScale);
+            current.mSize = mArea.GetWorldSize(parent.mScale);
+            current.mPosition = mArea.GetWorldPos(parent.mScale, parent.mPosition);
+
+
+            ImVec2 size = mArea.mSize;
+            size.x -= mArea.mLayout.mBorder * 2.0f;
+            size.y -= mArea.mLayout.mBorder * 2.0f;
+
+            float split = i++ / contentCount;
+            if (mHorizontalSplit) {
+                current.mPosition.x += current.mSize.x * split;
+                size.x /= contentCount;
+            }
             else {
-                mCurrentContainer = nullptr;
-                container.ClearNotifications();
+                current.mPosition.y += current.mSize.y * split;
+                size.y /= contentCount;
             }
-        }
-        if (mResizing && mCurrentContainer == &container) {
-            ImVec2 move = DragMovement(input.mPrevPos, input.mCurPos, parent.mScale);
-            container.Resize(move);
+            content->SetSize(size);
 
-            if (input.mStopped) {
-                mResizing = false;
-                mCurrentContainer = nullptr;
-                container.ClearNotifications();
-            }
-            return mResizing;
-        }
-        return false;
-    }
 
-    void UIDraw::DebugLog() {
-        mDebugLog = true;
-    }
-
-    bool UIDraw::Visit(UIContainer& container, const InputState& input, const ContainerArea& parent) {
-        if (!container.HasConfigFlag(UIContainer_DrawFlag)) {
-            return false;
-        }
-        if (mDebugLog) {
-            container.DebugLog();
-        }
-
-        ImU32 color = container.GetRenderData().mColor;
-        ImVec2 pTopLeft = container.GetPosition();
-        ImVec2 pCenter = container.GetPositionAtCenter();
-        ImVec2 pLowRight = container.GetPositionAtSize();
-        ImVec2 pSize = container.GetSize();
-        ImVec2 p1 = parent.Transform(pTopLeft, input.mRootPos);
-        ImVec2 p12 = parent.Transform(pCenter, input.mRootPos);
-        ImVec2 p2 = parent.Transform(pLowRight, input.mRootPos);
-
-        switch (container.GetRenderData().mType) {
-        case l::ui::UIRenderType::Rect:
-            mDrawList->AddRect(p1, p2, color, 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
-            break;
-        case l::ui::UIRenderType::RectFilled:
-            mDrawList->AddRectFilled(p1, p2, color, 2.0f, ImDrawFlags_RoundCornersAll);
-            break;
-        case l::ui::UIRenderType::Triangle:
-            break;
-        case l::ui::UIRenderType::TriangleFilled:
-            break;
-        case l::ui::UIRenderType::Circle:
-            mDrawList->AddCircle(p12, pSize.x, color, 15, 2.0f);
-            break;
-        case l::ui::UIRenderType::CircleFilled:
-            mDrawList->AddCircleFilled(p12, pSize.x, color, 15);
-            break;
-        case l::ui::UIRenderType::Polygon:
-            break;
-        case l::ui::UIRenderType::PolygonFilled:
-            break;
-        case l::ui::UIRenderType::Spline:
-            break;
-        case l::ui::UIRenderType::Text:
-            break;
-        case l::ui::UIRenderType::Texture:
-            break;
-        }
-
-        switch (container.GetRenderData().mType) {
-        case l::ui::UIRenderType::Rect:
-        case l::ui::UIRenderType::RectFilled:
-        case l::ui::UIRenderType::Texture:
-            mDrawList->AddRect(p1, p2, color, 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
-
-            if (container.HasConfigFlag(ui::UIContainer_ResizeFlag)) {
-                ImVec2 p3 = parent.Transform(pLowRight, ImVec2(input.mRootPos.x - 3.0f, input.mRootPos.y - 3.0f));
-                ImVec2 p4 = parent.Transform(pLowRight, ImVec2(input.mRootPos.x + 3.0f, input.mRootPos.y + 3.0f));
-                if (container.HasNotification(ui::UIContainer_ResizeFlag)) {
-                    p3 = parent.Transform(pLowRight, ImVec2(input.mRootPos.x - 5.0f, input.mRootPos.y - 5.0f));
-                    p4 = parent.Transform(pLowRight, ImVec2(input.mRootPos.x + 5.0f, input.mRootPos.y + 5.0f));
+            if (content->Accept(visitor, input, current, mode)) {
+                if (mode == UITraversalMode::Once) {
+                    return true;
                 }
-                mDrawList->AddRectFilled(p3, p4, color);
             }
-            break;
-        default:
-            break;
         }
 
+        if (visitor.Active(input)) {
+            return visitor.Visit(*this, input, parent);
+        }
         return false;
     }
 
+    bool UILayout::Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& parent, UITraversalMode mode) {
+        // Since we can have multiple layout in a container for different content, it will act as
+        // an anchor rather than a container, therefore it has to align within it and size 
+        mArea.mSize = parent.GetLocalSize();
+
+        for (auto& content : mContent) {
+            auto contentSize = content->GetSize();
+
+            ContainerArea current;
+            current.mScale = mArea.GetWorldScale(parent.mScale);
+            current.mSize = mArea.GetWorldSizeLayout(parent.mScale);
+            current.mPosition = mArea.GetWorldPosLayout(parent.mScale, parent.mPosition, contentSize, mArea.mLayout.mAlignH, mArea.mLayout.mAlignV);
+
+            if (content->Accept(visitor, input, current, mode)) {
+                if (mode == UITraversalMode::Once) {
+                    return true;
+                }
+            }
+        }
+
+        if (visitor.Active(input)) {
+            return visitor.Visit(*this, input, parent);
+        }
+        return false;
+    }
 }

@@ -240,48 +240,27 @@ namespace l::ui {
         std::vector<UIContainer*> mContent;
     };
 
-    class UIZoom : public UIVisitor {
+    class UISplit : public UIContainer {
     public:
-        virtual bool Active(const InputState& input);
-        virtual bool Visit(UIContainer& container, const InputState& input, const ContainerArea& parent);
+        UISplit(std::string_view name, uint32_t flags, bool horizontalSplit, float border) : UIContainer(name, flags), mHorizontalSplit(horizontalSplit) {
+            mArea.mLayout.mBorder = border;
+        }
+        ~UISplit() = default;
+
+        virtual bool Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& parent, UITraversalMode mode);
+    protected:
+        bool mHorizontalSplit;
     };
 
-    class UIDrag : public UIVisitor {
+    class UILayout : public UIContainer {
     public:
-        virtual bool Active(const InputState& input);
-        virtual bool Visit(UIContainer& container, const InputState& input, const ContainerArea& parent);
-    protected:
-        bool mDragging = false;
-        UIContainer* mCurrentContainer = nullptr;
-    };
+        UILayout(std::string_view name, uint32_t flags, UIAlignH alignH, UIAlignV alignV, float border) : UIContainer(name, flags) {
+            mArea.mLayout.mAlignH = alignH;
+            mArea.mLayout.mAlignV = alignV;
+            mArea.mLayout.mBorder = border;
+        }
+        ~UILayout() = default;
 
-    class UIMove : public UIVisitor {
-    public:
-        virtual bool Active(const InputState& input);
-        virtual bool Visit(UIContainer& container, const InputState& input, const ContainerArea& parent);
-    protected:
-        bool mMoving = false;
-        UIContainer* mCurrentContainer = nullptr;
-    };
-
-    class UIResize : public UIVisitor {
-    public:
-        virtual bool Visit(UIContainer& container, const InputState& input, const ContainerArea& parent);
-    protected:
-        bool mResizing = false;
-        float mResizeAreaSize = 8.0f;
-        UIContainer* mCurrentContainer = nullptr;
-    };
-
-    class UIDraw : public UIVisitor {
-    public:
-        UIDraw(ImDrawList* drawList) : mDrawList(drawList) {}
-        ~UIDraw() = default;
-
-        void DebugLog();
-        virtual bool Visit(UIContainer& container, const InputState& input, const ContainerArea& parent);
-    protected:
-        ImDrawList* mDrawList;
-        bool mDebugLog = false;
+        virtual bool Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& parent, UITraversalMode mode);
     };
 }
