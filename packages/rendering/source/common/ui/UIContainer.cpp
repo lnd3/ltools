@@ -192,7 +192,7 @@ bool UIZoom::Visit(UIContainer& container, const InputState& input, const Contai
 }
 
 bool UIDrag::Active(const InputState& input) {
-    return input.mStarted && !mDragging || mDragging;
+    return (input.mStarted && !mDragging) || mDragging;
 }
 
 bool UIDrag::Visit(UIContainer& container, const InputState& input, const ContainerArea& parent) {
@@ -220,7 +220,7 @@ bool UIDrag::Visit(UIContainer& container, const InputState& input, const Contai
 }
 
 bool UIMove::Active(const InputState& input) {
-    return input.mStarted && !mMoving || mMoving;
+    return (input.mStarted && !mMoving) || mMoving;
 }
 
 bool UIMove::Visit(UIContainer& container, const InputState& input, const ContainerArea& parent) {
@@ -317,10 +317,10 @@ bool UIMove::Visit(UIContainer& container, const InputState& input, const Contai
         case l::ui::UIRenderType::TriangleFilled:
             break;
         case l::ui::UIRenderType::Circle:
-            mDrawList->AddCircle(p1, pSize.x, color, 15, 2.0f);
+            mDrawList->AddCircle(p12, pSize.x, color, 15, 2.0f);
             break;
         case l::ui::UIRenderType::CircleFilled:
-            mDrawList->AddCircleFilled(p1, pSize.x, color, 15);
+            mDrawList->AddCircleFilled(p12, pSize.x, color, 15);
             break;
         case l::ui::UIRenderType::Polygon:
             break;
