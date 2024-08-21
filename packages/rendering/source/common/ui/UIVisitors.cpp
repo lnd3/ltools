@@ -146,6 +146,8 @@ bool UIMove::Visit(UIContainer& container, const InputState& input, const Contai
         ImVec2 p1 = parent.Transform(pTopLeft, input.mRootPos);
         ImVec2 p12 = parent.Transform(pCenter, input.mRootPos);
         ImVec2 p2 = parent.Transform(pLowRight, input.mRootPos);
+        const char* nameStart = container.GetDisplayName().data();
+        const char* nameEnd = container.GetDisplayName().data() + container.GetDisplayName().size();
 
         switch (container.GetRenderData().mType) {
         case l::ui::UIRenderType::Rect:
@@ -171,9 +173,17 @@ bool UIMove::Visit(UIContainer& container, const InputState& input, const Contai
         case l::ui::UIRenderType::Spline:
             break;
         case l::ui::UIRenderType::Text:
+            if (!container.GetDisplayName().empty()) {
+                mDrawList->AddText(ImGui::GetDefaultFont(), 13.0f * parent.mScale, p1, color, nameStart, nameEnd);
+            }
             break;
         case l::ui::UIRenderType::Texture:
             break;
+        }
+
+        if (container.GetRenderData().mType != l::ui::UIRenderType::Text && !container.GetDisplayName().empty()) {
+            // also render name if it is non empty as debug text
+            mDrawList->AddText(p1, color, nameStart, nameEnd);
         }
 
         switch (container.GetRenderData().mType) {

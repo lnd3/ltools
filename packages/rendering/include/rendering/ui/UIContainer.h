@@ -197,7 +197,10 @@ namespace l::ui {
 
     class UIContainer {
     public:
-        UIContainer(std::string_view name, uint32_t flags = 0) : mName(name), mConfigFlags(flags) {}
+        UIContainer(std::string_view name, uint32_t flags = 0, UIRenderType renderType = UIRenderType::Rect) : mDisplayName(name), mConfigFlags(flags) {
+            mArea.mRender.mType = renderType;
+            mArea.mLayout.mBorder = 3.0f;
+        }
         ~UIContainer() = default;
 
         bool Accept(UIVisitor& visitor, const InputState& input, UITraversalMode mode = UITraversalMode::All);
@@ -230,9 +233,13 @@ namespace l::ui {
             return mArea.mLayout;
         }
 
+        std::string_view GetDisplayName() {
+            return mDisplayName;
+        }
+
         friend UIVisitor;
     protected:
-        std::string mName;
+        std::string mDisplayName;
         ContainerArea mArea;
         uint32_t mConfigFlags = 0; // Active visitor flags
         uint32_t mNotificationFlags = 0; // Notification flags for ux feedback (resizing box animation etc)
@@ -242,8 +249,9 @@ namespace l::ui {
 
     class UISplit : public UIContainer {
     public:
-        UISplit(std::string_view name, uint32_t flags, bool horizontalSplit, float border) : UIContainer(name, flags), mHorizontalSplit(horizontalSplit) {
-            mArea.mLayout.mBorder = border;
+        UISplit(std::string_view name, uint32_t flags, bool horizontalSplit = true) : UIContainer(name, flags), mHorizontalSplit(horizontalSplit) {
+            mArea.mRender.mType = UIRenderType::Rect;
+            mArea.mLayout.mBorder = 3.0f;
         }
         ~UISplit() = default;
 
@@ -254,13 +262,15 @@ namespace l::ui {
 
     class UILayout : public UIContainer {
     public:
-        UILayout(std::string_view name, uint32_t flags, UIAlignH alignH, UIAlignV alignV, float border) : UIContainer(name, flags) {
+        UILayout(std::string_view name, uint32_t flags, UIAlignH alignH, UIAlignV alignV) : UIContainer(name, flags) {
+            mArea.mRender.mType = UIRenderType::Rect;
             mArea.mLayout.mAlignH = alignH;
             mArea.mLayout.mAlignV = alignV;
-            mArea.mLayout.mBorder = border;
+            mArea.mLayout.mBorder = 0.0f;
         }
         ~UILayout() = default;
 
         virtual bool Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& parent, UITraversalMode mode);
     };
+
 }

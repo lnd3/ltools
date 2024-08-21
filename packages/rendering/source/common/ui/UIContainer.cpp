@@ -127,7 +127,7 @@ namespace l::ui {
     }
 
     void UIContainer::DebugLog() {
-        LOG(LogDebug) << "UIContainer: " << mName << ", [" << mArea.mScale << "][" << mArea.mPosition.x << ", " << mArea.mPosition.y << "][" << mArea.mSize.x << ", " << mArea.mSize.y << "]";
+        LOG(LogDebug) << "UIContainer: " << mDisplayName << ", [" << mArea.mScale << "][" << mArea.mPosition.x << ", " << mArea.mPosition.y << "][" << mArea.mSize.x << ", " << mArea.mSize.y << "]";
     }
 
     bool UIContainer::Accept(UIVisitor& visitor, const InputState& input, UITraversalMode mode) {
