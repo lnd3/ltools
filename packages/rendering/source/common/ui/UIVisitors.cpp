@@ -126,16 +126,9 @@ bool UIMove::Visit(UIContainer& container, const InputState& input, const Contai
         return false;
     }
 
-    void UIDraw::DebugLog() {
-        mDebugLog = true;
-    }
-
     bool UIDraw::Visit(UIContainer& container, const InputState& input, const ContainerArea& parent) {
-        if (!container.HasConfigFlag(UIContainer_DrawFlag)) {
+        if (!mDebug && !container.HasConfigFlag(UIContainer_DrawFlag)) {
             return false;
-        }
-        if (mDebugLog) {
-            container.DebugLog();
         }
 
         ImU32 color = container.GetRenderData().mColor;
@@ -146,8 +139,8 @@ bool UIMove::Visit(UIContainer& container, const InputState& input, const Contai
         ImVec2 p1 = parent.Transform(pTopLeft, input.mRootPos);
         ImVec2 p12 = parent.Transform(pCenter, input.mRootPos);
         ImVec2 p2 = parent.Transform(pLowRight, input.mRootPos);
-        const char* nameStart = container.GetDisplayName().data();
-        const char* nameEnd = container.GetDisplayName().data() + container.GetDisplayName().size();
+        const char* nameStart;
+        const char* nameEnd;
 
         switch (container.GetRenderData().mType) {
         case l::ui::UIRenderType::Rect:
@@ -174,6 +167,8 @@ bool UIMove::Visit(UIContainer& container, const InputState& input, const Contai
             break;
         case l::ui::UIRenderType::Text:
             if (!container.GetDisplayName().empty()) {
+                nameStart = container.GetDisplayName().data();
+                nameEnd = container.GetDisplayName().data() + container.GetDisplayName().size();
                 mDrawList->AddText(ImGui::GetDefaultFont(), 13.0f * parent.mScale, p1, color, nameStart, nameEnd);
             }
             break;
@@ -181,8 +176,10 @@ bool UIMove::Visit(UIContainer& container, const InputState& input, const Contai
             break;
         }
 
-        if (container.GetRenderData().mType != l::ui::UIRenderType::Text && !container.GetDisplayName().empty()) {
+        if (mDebug && !container.GetId().empty()) {
             // also render name if it is non empty as debug text
+            nameStart = container.GetId().data();
+            nameEnd = container.GetId().data() + container.GetId().size();
             mDrawList->AddText(p1, color, nameStart, nameEnd);
         }
 

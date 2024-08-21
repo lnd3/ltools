@@ -18,20 +18,35 @@
 #include <functional>
 
 namespace l::ui {
+    template<class T, class = std::enable_if_t<std::is_base_of_v<UIContainer, T>>>
+    std::string CreateUniqueId() {
+        static uint32_t mId = 0;
+        std::string id;
+        if constexpr (std::is_same_v<T, UIContainer>) {
+            id += "UIContainer";
+        }
+        else if constexpr (std::is_same_v<T, UISplit>) {
+            id += "UISplit";
+        }
+        else if constexpr (std::is_same_v<T, UILayout>) {
+            id += "UILayout";
+        }
+        else {
+            id += "Unknown";
+        }
 
-    struct UIHandle {
-        std::string mId;
-        UIContainer* mContainer;
-    };
+        id += l::string::to_hex<uint32_t>(mId++, 4);
 
-    class UI {
+        return id;
+    }
+
+    class UICreator {
     public:
-        UI() = default;
-        ~UI() = default;
+        UICreator() = default;
+        ~UICreator() = default;
 
-        UIHandle CreateContainer(std::string_view name, uint32_t flags);
-        UIHandle CreateSplit(std::string_view name, uint32_t flags, bool horizontalSplit = true);
-        UIHandle CreateLayout(std::string_view name, uint32_t flags, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top);
+        UIHandle<UIContainer> CreateContainer(uint32_t flags, UIRenderType renderType = UIRenderType::Rect, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top, UILayout layout = UILayout::Fixed);
+        UIHandle<UISplit> CreateSplit(uint32_t flags, bool horizontalSplit = true);
 
     protected:
         std::unordered_map<std::string, std::unique_ptr<UIContainer>> mContainers;

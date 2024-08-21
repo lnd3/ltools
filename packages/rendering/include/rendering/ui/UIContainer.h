@@ -28,6 +28,12 @@ namespace l::ui {
         Bottom = 2
     };
 
+    enum class UILayout {
+        Fixed = 0,
+        Scaled = 1,
+        Parent = 2
+    };
+
     enum class UIRenderType {
         Rect = 0,
         RectFilled = 1,
@@ -77,6 +83,7 @@ namespace l::ui {
         float mBorder = 3.0f;
         UIAlignH mAlignH = UIAlignH::Left;
         UIAlignV mAlignV = UIAlignV::Top;
+        UILayout mLayout = UILayout::Fixed;
     };
 
     struct ContainerArea {
@@ -174,15 +181,19 @@ namespace l::ui {
         virtual bool Visit(UIContainer&, const InputState&, const ContainerArea&) {
             return false;
         }
+        virtual void Debug(bool on = true) {
+            mDebug = on;
+        }
+
+    protected:
+        bool mDebug = false;
     };
 
     const uint32_t UIContainer_ReservedMask = 0x0000000f;
     const uint32_t UIContainer_ConfigMask = 0x000ffff0;
     const uint32_t UIContainer_CustomMask = 0xfff00000;
 
-    const uint32_t UIContainer_VisitAll = 0x00000000;
-    const uint32_t UIContainer_ExitOnAccept = 0x00000001;
-
+    const uint32_t UIContainer_Reserved0 = 0x00000001;
     const uint32_t UIContainer_Reserved1 = 0x00000002;
     const uint32_t UIContainer_Reserved2 = 0x00000004;
     const uint32_t UIContainer_Reserved3 = 0x00000008;
@@ -195,17 +206,52 @@ namespace l::ui {
 
     class UIDraw;
 
+    template<class T, class = std::enable_if_t<std::is_base_of_v<UIContainer, T>>>
+    class UIHandle {
+    public:
+        UIHandle(std::string_view id, UIContainer* container) : mId(id), mContainer(container) {};
+        ~UIHandle() = default;
+
+        std::string mId;
+        UIContainer* mContainer = nullptr;
+
+        std::string_view id() {
+            return mId;
+        }
+
+        T* get() {
+            return reinterpret_cast<T*>(mContainer);
+        }
+
+        T* operator->() {
+            return reinterpret_cast<T*>(mContainer);
+        }
+
+        T& ref() {
+            return &reinterpret_cast<T*>(mContainer);
+        }
+    };
+
     class UIContainer {
     public:
-        UIContainer(std::string_view name, uint32_t flags = 0, UIRenderType renderType = UIRenderType::Rect) : mDisplayName(name), mConfigFlags(flags) {
+        UIContainer(uint32_t flags = 0, UIRenderType renderType = UIRenderType::Rect, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top, UILayout layout = UILayout::Fixed) : mConfigFlags(flags) {
             mArea.mRender.mType = renderType;
             mArea.mLayout.mBorder = 3.0f;
+            mArea.mLayout.mAlignH = alignH;
+            mArea.mLayout.mAlignV = alignV;
+            mArea.mLayout.mLayout = layout;
         }
         ~UIContainer() = default;
 
         bool Accept(UIVisitor& visitor, const InputState& input, UITraversalMode mode = UITraversalMode::All);
         virtual bool Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& parent, UITraversalMode mode = UITraversalMode::All);
         virtual void Add(UIContainer* container, int32_t i = -1);
+
+        template<class T>
+        void Add(UIHandle<T>& handle, int32_t i = -1) {
+            Add(handle.get());
+        }
+
         virtual void Remove(int32_t i);
 
         void Move(ImVec2 localChange);
@@ -217,12 +263,16 @@ namespace l::ui {
         bool HasConfigFlag(uint32_t flag);
         void SetPosition(ImVec2 p);
         void SetSize(ImVec2 s);
+        void SetDisplayName(std::string_view id);
+        void SetId(std::string_view id);
         void SetContainerArea(const ContainerArea& area);
         ImVec2 GetPosition(bool untransformed = false);
         ImVec2 GetPositionAtCenter(ImVec2 offset = ImVec2(), bool untransformed = false);
         ImVec2 GetPositionAtSize(ImVec2 offset = ImVec2(), bool untransformed = false);
         ImVec2 GetSize(bool untransformed = false);
         float GetScale();
+        ContainerArea& GetContainerArea();
+
         void DebugLog();
 
         const UIRenderData& GetRenderData() const {
@@ -237,8 +287,12 @@ namespace l::ui {
             return mDisplayName;
         }
 
-        friend UIVisitor;
+        std::string_view GetId() {
+            return mId;
+        }
+
     protected:
+        std::string mId;
         std::string mDisplayName;
         ContainerArea mArea;
         uint32_t mConfigFlags = 0; // Active visitor flags
@@ -249,7 +303,7 @@ namespace l::ui {
 
     class UISplit : public UIContainer {
     public:
-        UISplit(std::string_view name, uint32_t flags, bool horizontalSplit = true) : UIContainer(name, flags), mHorizontalSplit(horizontalSplit) {
+        UISplit(uint32_t flags, bool horizontalSplit = true) : UIContainer(flags), mHorizontalSplit(horizontalSplit) {
             mArea.mRender.mType = UIRenderType::Rect;
             mArea.mLayout.mBorder = 3.0f;
         }
@@ -258,19 +312,6 @@ namespace l::ui {
         virtual bool Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& parent, UITraversalMode mode);
     protected:
         bool mHorizontalSplit;
-    };
-
-    class UILayout : public UIContainer {
-    public:
-        UILayout(std::string_view name, uint32_t flags, UIAlignH alignH, UIAlignV alignV) : UIContainer(name, flags) {
-            mArea.mRender.mType = UIRenderType::Rect;
-            mArea.mLayout.mAlignH = alignH;
-            mArea.mLayout.mAlignV = alignV;
-            mArea.mLayout.mBorder = 0.0f;
-        }
-        ~UILayout() = default;
-
-        virtual bool Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& parent, UITraversalMode mode);
     };
 
 }

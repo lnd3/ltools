@@ -52,10 +52,8 @@ namespace l::ui {
         UIDraw(ImDrawList* drawList) : mDrawList(drawList) {}
         ~UIDraw() = default;
 
-        void DebugLog();
         virtual bool Visit(UIContainer& container, const InputState& input, const ContainerArea& parent);
     protected:
         ImDrawList* mDrawList;
-        bool mDebugLog = false;
     };
 }

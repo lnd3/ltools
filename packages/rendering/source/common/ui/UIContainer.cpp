@@ -90,6 +90,15 @@ namespace l::ui {
         mArea.mSize = s;
     }
 
+    void UIContainer::SetDisplayName(std::string_view displayName) {
+        mDisplayName = displayName;
+    }
+
+    void UIContainer::SetId(std::string_view id) {
+        mId = id;
+    }
+
+
     void UIContainer::SetContainerArea(const ContainerArea& area) {
         mArea = area;
     }
@@ -126,6 +135,10 @@ namespace l::ui {
         return mArea.mScale;
     }
 
+    ContainerArea& UIContainer::GetContainerArea() {
+        return mArea;
+    }
+
     void UIContainer::DebugLog() {
         LOG(LogDebug) << "UIContainer: " << mDisplayName << ", [" << mArea.mScale << "][" << mArea.mPosition.x << ", " << mArea.mPosition.y << "][" << mArea.mSize.x << ", " << mArea.mSize.y << "]";
     }
@@ -139,12 +152,29 @@ namespace l::ui {
     }
 
     bool UIContainer::Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& parent, UITraversalMode mode) {
-        ContainerArea current;
-        current.mScale = mArea.GetWorldScale(parent.mScale);
-        current.mPosition = mArea.GetWorldPos(parent.mScale, parent.mPosition);
-        current.mSize = mArea.GetWorldSize(parent.mScale);
+        //ContainerArea current;
+        //current.mScale = mArea.GetWorldScale(parent.mScale);
+        //current.mPosition = mArea.GetWorldPos(parent.mScale, parent.mPosition);
+        //current.mSize = mArea.GetWorldSize(parent.mScale);
+        auto& layout = GetContainerArea().mLayout;
+        switch (layout.mLayout) {
+        case UILayout::Fixed:
+            break;
+        case UILayout::Scaled:
+            break;
+        case UILayout::Parent:
+            SetSize(parent.GetLocalSize());
+            break;
+        }
+
 
         for (auto& content : mContent) {
+            auto contentSize = content->GetSize();
+            auto& contentLayout = content->GetContainerArea().mLayout;
+            ContainerArea current;
+            current.mScale = mArea.GetWorldScale(parent.mScale);
+            current.mSize = mArea.GetWorldSizeLayout(parent.mScale);
+            current.mPosition = mArea.GetWorldPosLayout(parent.mScale, parent.mPosition, contentSize, contentLayout.mAlignH, contentLayout.mAlignV);
 
             if (content->Accept(visitor, input, current, mode)) {
                 if (mode == UITraversalMode::Once) {
@@ -162,40 +192,44 @@ namespace l::ui {
     bool UISplit::Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& parent, UITraversalMode mode) {
         // Since we can have multiple layouts in a container for different content, it will act as
         // an anchor rather than a container, therefore it has to align within it and size 
-        mArea.mSize = parent.GetLocalSize();
+
+        auto& layout = GetContainerArea().mLayout;
+        switch (layout.mLayout) {
+        case UILayout::Fixed:
+            break;
+        case UILayout::Scaled:
+            break;
+        case UILayout::Parent:
+            SetSize(parent.GetLocalSize());
+            break;
+        }
 
         float contentCount = static_cast<float>(mContent.size());
 
-        int32_t i = 0;
+        ContainerArea current;
+        current.mScale = mArea.GetWorldScale(parent.mScale);
+        current.mSize = mArea.GetWorldSize(parent.mScale);
+        current.mPosition = mArea.GetWorldPos(parent.mScale, parent.mPosition);
+
+        if (mHorizontalSplit) {
+            current.mSize.x /= contentCount;
+        }
+        else {
+            current.mSize.y /= contentCount;
+        }
+
         for (auto& content : mContent) {
-            auto contentSize = content->GetSize();
+            if (content->Accept(visitor, input, current, mode)) {
+                if (mode == UITraversalMode::Once) {
+                    return true;
+                }
+            }
 
-            ContainerArea current;
-            current.mScale = mArea.GetWorldScale(parent.mScale);
-            current.mSize = mArea.GetWorldSize(parent.mScale);
-            current.mPosition = mArea.GetWorldPos(parent.mScale, parent.mPosition);
-
-
-            ImVec2 size = mArea.mSize;
-            size.x -= mArea.mLayout.mBorder * 2.0f;
-            size.y -= mArea.mLayout.mBorder * 2.0f;
-
-            float split = i++ / contentCount;
             if (mHorizontalSplit) {
-                current.mPosition.x += current.mSize.x * split;
-                size.x /= contentCount;
+                current.mPosition.x += current.mSize.x;
             }
             else {
-                current.mPosition.y += current.mSize.y * split;
-                size.y /= contentCount;
-            }
-            content->SetSize(size);
-
-
-            if (content->Accept(visitor, input, current, mode)) {
-                if (mode == UITraversalMode::Once) {
-                    return true;
-                }
+                current.mPosition.y += current.mSize.y;
             }
         }
 
@@ -205,29 +239,4 @@ namespace l::ui {
         return false;
     }
 
-    bool UILayout::Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& parent, UITraversalMode mode) {
-        // Since we can have multiple layout in a container for different content, it will act as
-        // an anchor rather than a container, therefore it has to align within it and size 
-        mArea.mSize = parent.GetLocalSize();
-
-        for (auto& content : mContent) {
-            auto contentSize = content->GetSize();
-
-            ContainerArea current;
-            current.mScale = mArea.GetWorldScale(parent.mScale);
-            current.mSize = mArea.GetWorldSizeLayout(parent.mScale);
-            current.mPosition = mArea.GetWorldPosLayout(parent.mScale, parent.mPosition, contentSize, mArea.mLayout.mAlignH, mArea.mLayout.mAlignV);
-
-            if (content->Accept(visitor, input, current, mode)) {
-                if (mode == UITraversalMode::Once) {
-                    return true;
-                }
-            }
-        }
-
-        if (visitor.Active(input)) {
-            return visitor.Visit(*this, input, parent);
-        }
-        return false;
-    }
 }
