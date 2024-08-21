@@ -162,6 +162,9 @@ namespace l::ui {
 
     class UIVisitor {
     public:
+        virtual bool Active(const InputState&) {
+            return true;
+        }
         virtual bool Visit(UIContainer&, const InputState&, const ContainerArea&) {
             return false;
         }
@@ -213,6 +216,14 @@ namespace l::ui {
         float GetScale();
         void DebugLog();
 
+        const UIRenderData& GetRenderData() const {
+            return mArea.mRender;
+        }
+
+        const UILayoutData& GetLayoutData() const {
+            return mArea.mLayout;
+        }
+
         friend UIVisitor;
     protected:
         std::string mName;
@@ -225,11 +236,13 @@ namespace l::ui {
 
     class UIZoom : public UIVisitor {
     public:
+        virtual bool Active(const InputState& input);
         virtual bool Visit(UIContainer& container, const InputState& input, const ContainerArea& parent);
     };
 
     class UIDrag : public UIVisitor {
     public:
+        virtual bool Active(const InputState& input);
         virtual bool Visit(UIContainer& container, const InputState& input, const ContainerArea& parent);
     protected:
         bool mDragging = false;
@@ -238,6 +251,7 @@ namespace l::ui {
 
     class UIMove : public UIVisitor {
     public:
+        virtual bool Active(const InputState& input);
         virtual bool Visit(UIContainer& container, const InputState& input, const ContainerArea& parent);
     protected:
         bool mMoving = false;
