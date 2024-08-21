@@ -42,6 +42,12 @@ namespace l::ui {
         Texture = 10
     };
 
+    enum class UITraversalMode {
+        All = 0, // when a visitor performs an action on all containers of its type for example rendering
+        Once = 1, // when a visitor performs an action on one container of its type for example resizing
+        Twice = 2 // when a visitor performs an action on two containers of its type for example drag and drop actions like connecting input/output between two containers
+    };
+
     struct UIRenderData {
         UIRenderType mType = UIRenderType::Rect;
         ImU32 mColor = ImColor(ImVec4(1.0f, 0.4f, 0.4f, 1.0f));
@@ -194,8 +200,8 @@ namespace l::ui {
         UIContainer(std::string_view name, uint32_t flags = 0) : mName(name), mConfigFlags(flags) {}
         ~UIContainer() = default;
 
-        virtual bool Accept(UIVisitor& visitor, const InputState& input, uint32_t flags = 0);
-        virtual bool Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& parent, uint32_t flags = 0);
+        bool Accept(UIVisitor& visitor, const InputState& input, UITraversalMode mode = UITraversalMode::All);
+        virtual bool Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& parent, UITraversalMode mode = UITraversalMode::All);
         virtual void Add(UIContainer* container, int32_t i = -1);
         virtual void Remove(int32_t i);
 
