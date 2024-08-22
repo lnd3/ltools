@@ -28,9 +28,6 @@ namespace l::ui {
         else if constexpr (std::is_same_v<T, UISplit>) {
             id += "UISplit";
         }
-        else if constexpr (std::is_same_v<T, UILayoutH>) {
-            id += "UILayout";
-        }
         else {
             id += "Unknown";
         }

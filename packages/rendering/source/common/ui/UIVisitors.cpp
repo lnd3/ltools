@@ -146,17 +146,17 @@ bool UIMove::Visit(UIContainer& container, const InputState& input, const Contai
 
         switch (container.GetRenderData().mType) {
         case l::ui::UIRenderType::Rect:
-            mDrawList->AddRect(p1, p2, color, 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
+            mDrawList->AddRect(p1, p2, color, 5.0f, ImDrawFlags_RoundCornersAll, 1.0f * container.GetScale() * parent.mScale);
             break;
         case l::ui::UIRenderType::RectFilled:
-            mDrawList->AddRectFilled(p1, p2, color, 2.0f, ImDrawFlags_RoundCornersAll);
+            mDrawList->AddRectFilled(p1, p2, color, 5.0f, ImDrawFlags_RoundCornersAll);
             break;
         case l::ui::UIRenderType::Triangle:
             break;
         case l::ui::UIRenderType::TriangleFilled:
             break;
         case l::ui::UIRenderType::Circle:
-            mDrawList->AddCircle(p12, pSize.x, color, 15, 2.0f);
+            mDrawList->AddCircle(p12, pSize.x, color, 15, 2.0f * container.GetScale() * parent.mScale);
             break;
         case l::ui::UIRenderType::CircleFilled:
             mDrawList->AddCircleFilled(p12, pSize.x, color, 15);
@@ -196,7 +196,6 @@ bool UIMove::Visit(UIContainer& container, const InputState& input, const Contai
         case l::ui::UIRenderType::Rect:
         case l::ui::UIRenderType::RectFilled:
         case l::ui::UIRenderType::Texture:
-            mDrawList->AddRect(p1, p2, color, 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
 
             if (container.HasConfigFlag(ui::UIContainer_ResizeFlag)) {
                 ImVec2 p3 = parent.Transform(pLowRight, ImVec2(input.mRootPos.x - 3.0f, input.mRootPos.y - 3.0f));
