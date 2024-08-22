@@ -82,6 +82,10 @@ namespace l::ui {
         return (mConfigFlags & flag) == flag;
     }
 
+    void UIContainer::SetScale(float scale) {
+        mArea.mScale = scale;
+    }
+
     void UIContainer::SetPosition(ImVec2 p) {
         mArea.mPosition = p;
     }
@@ -156,6 +160,7 @@ namespace l::ui {
         //current.mScale = mArea.GetWorldScale(parent.mScale);
         //current.mPosition = mArea.GetWorldPos(parent.mScale, parent.mPosition);
         //current.mSize = mArea.GetWorldSize(parent.mScale);
+
         auto& layout = GetContainerArea().mLayout;
         switch (layout.mLayoutH) {
         case UILayoutH::Fixed:
@@ -176,6 +181,9 @@ namespace l::ui {
             break;
         }
 
+        if (mode == UITraversalMode::AllBFS && visitor.Active(input)) {
+            visitor.Visit(*this, input, parent);
+        }
 
         for (auto& content : mContent) {
             auto contentSize = content->GetSize();
@@ -192,7 +200,7 @@ namespace l::ui {
             }
         }
 
-        if (visitor.Active(input)) {
+        if ((mode == UITraversalMode::AllDFS || mode == UITraversalMode::Once || mode == UITraversalMode::Twice) && visitor.Active(input)) {
             return visitor.Visit(*this, input, parent);
         }
         return false;
@@ -209,7 +217,7 @@ namespace l::ui {
         case UILayoutH::Scaled:
             break;
         case UILayoutH::Parent:
-            mArea.mSize.y = parent.GetLocalSize().y;
+            mArea.mSize.x = parent.GetLocalSize().x;
             break;
         }
         switch (layout.mLayoutV) {
@@ -218,7 +226,7 @@ namespace l::ui {
         case UILayoutV::Scaled:
             break;
         case UILayoutV::Parent:
-            mArea.mSize.x = parent.GetLocalSize().x;
+            mArea.mSize.y = parent.GetLocalSize().y;
             break;
         }
 
@@ -229,11 +237,25 @@ namespace l::ui {
         current.mSize = mArea.GetWorldSize(parent.mScale);
         current.mPosition = mArea.GetWorldPos(parent.mScale, parent.mPosition);
 
-        if (mHorizontalSplit) {
+        switch (mSplitMode) {
+        case UISplitMode::EqualSplitH:
             current.mSize.x /= contentCount;
-        }
-        else {
+            break;
+        case UISplitMode::EqualSplitV:
             current.mSize.y /= contentCount;
+            break;
+        case UISplitMode::AppendH:
+            break;
+        case UISplitMode::AppendV:
+            break;
+        case UISplitMode::EqualResizeH:
+            break;
+        case UISplitMode::EqualResizeV:
+            break;
+        }
+
+        if (mode == UITraversalMode::AllBFS && visitor.Active(input)) {
+            visitor.Visit(*this, input, parent);
         }
 
         for (auto& content : mContent) {
@@ -243,15 +265,27 @@ namespace l::ui {
                 }
             }
 
-            if (mHorizontalSplit) {
+            switch (mSplitMode) {
+            case UISplitMode::EqualSplitH:
                 current.mPosition.x += current.mSize.x;
-            }
-            else {
+                break;
+            case UISplitMode::EqualSplitV:
                 current.mPosition.y += current.mSize.y;
+                break;
+            case UISplitMode::AppendH:
+                current.mPosition.x += content->GetSize().x * parent.mScale;
+                break;
+            case UISplitMode::AppendV:
+                current.mPosition.y += content->GetSize().y * parent.mScale;
+                break;
+            case UISplitMode::EqualResizeH:
+                break;
+            case UISplitMode::EqualResizeV:
+                break;
             }
         }
 
-        if (visitor.Active(input)) {
+        if ((mode == UITraversalMode::AllDFS || mode == UITraversalMode::Once || mode == UITraversalMode::Twice) && visitor.Active(input)) {
             return visitor.Visit(*this, input, parent);
         }
         return false;

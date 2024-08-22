@@ -14,8 +14,8 @@ namespace l::ui {
         return UIHandle<UIContainer>{ id, mContainers.at(id).get() };
     }
 
-    UIHandle<UISplit> UICreator::CreateSplit(uint32_t flags, bool horizontalSplit) {
-        std::unique_ptr<UISplit> container = std::make_unique<UISplit>(flags, horizontalSplit);
+    UIHandle<UISplit> UICreator::CreateSplit(uint32_t flags, UISplitMode splitMode, UILayoutH layoutH, UILayoutV layoutV) {
+        std::unique_ptr<UISplit> container = std::make_unique<UISplit>(flags, splitMode, layoutH, layoutV);
 
         std::string id = CreateUniqueId<UISplit>();
         container->SetId(id);

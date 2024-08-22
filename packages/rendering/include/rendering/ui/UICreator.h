@@ -46,7 +46,7 @@ namespace l::ui {
         ~UICreator() = default;
 
         UIHandle<UIContainer> CreateContainer(uint32_t flags, UIRenderType renderType = UIRenderType::Rect, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed);
-        UIHandle<UISplit> CreateSplit(uint32_t flags, bool horizontalSplit = true);
+        UIHandle<UISplit> CreateSplit(uint32_t flags, UISplitMode splitMode = UISplitMode::AppendV, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed);
 
     protected:
         std::unordered_map<std::string, std::unique_ptr<UIContainer>> mContainers;

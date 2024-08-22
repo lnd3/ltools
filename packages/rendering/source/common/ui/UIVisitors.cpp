@@ -136,6 +136,8 @@ bool UIMove::Visit(UIContainer& container, const InputState& input, const Contai
         ImVec2 pCenter = container.GetPositionAtCenter();
         ImVec2 pLowRight = container.GetPositionAtSize();
         ImVec2 pSize = container.GetSize();
+        pSize.x *= parent.mScale;
+        pSize.y *= parent.mScale;
         ImVec2 p1 = parent.Transform(pTopLeft, input.mRootPos);
         ImVec2 p12 = parent.Transform(pCenter, input.mRootPos);
         ImVec2 p2 = parent.Transform(pLowRight, input.mRootPos);
@@ -176,7 +178,7 @@ bool UIMove::Visit(UIContainer& container, const InputState& input, const Contai
                 nameStart = container.GetDisplayName().data();
                 nameEnd = container.GetDisplayName().data() + container.GetDisplayName().size();
                 container.SetSize(ImGui::CalcTextSize(nameStart, nameEnd));
-                mDrawList->AddText(ImGui::GetDefaultFont(), 13.0f * parent.mScale, p1, color, nameStart, nameEnd);
+                mDrawList->AddText(ImGui::GetDefaultFont(), 13.0f * container.GetScale() * parent.mScale, p1, color, nameStart, nameEnd);
             }
             break;
         case l::ui::UIRenderType::Texture:

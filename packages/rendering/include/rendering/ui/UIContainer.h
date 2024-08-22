@@ -55,9 +55,10 @@ namespace l::ui {
     };
 
     enum class UITraversalMode {
-        All = 0, // when a visitor performs an action on all containers of its type for example rendering
-        Once = 1, // when a visitor performs an action on one container of its type for example resizing
-        Twice = 2 // when a visitor performs an action on two containers of its type for example drag and drop actions like connecting input/output between two containers
+        AllDFS = 0, // when a visitor performs an action on all containers of its type for example rendering (visiting leaves first)
+        AllBFS = 1, // when a visitor performs an action on all containers starting with the root (visiting leaves last)
+        Once = 2, // when a visitor performs an action on one container of its type for example resizing
+        Twice = 3, // when a visitor performs an action on two containers of its type for example drag and drop actions like connecting input/output between two containers
     };
 
     struct UIRenderData {
@@ -251,8 +252,8 @@ namespace l::ui {
         }
         ~UIContainer() = default;
 
-        bool Accept(UIVisitor& visitor, const InputState& input, UITraversalMode mode = UITraversalMode::All);
-        virtual bool Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& parent, UITraversalMode mode = UITraversalMode::All);
+        bool Accept(UIVisitor& visitor, const InputState& input, UITraversalMode mode = UITraversalMode::AllBFS);
+        virtual bool Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& parent, UITraversalMode mode = UITraversalMode::AllBFS);
         virtual void Add(UIContainer* container, int32_t i = -1);
 
         template<class T>
@@ -269,6 +270,7 @@ namespace l::ui {
         void Notification(uint32_t flag);
         bool HasNotification(uint32_t flag);
         bool HasConfigFlag(uint32_t flag);
+        void SetScale(float scale);
         void SetPosition(ImVec2 p);
         void SetSize(ImVec2 s);
         void SetDisplayName(std::string_view id);
@@ -309,17 +311,28 @@ namespace l::ui {
         std::vector<UIContainer*> mContent;
     };
 
+    enum class UISplitMode {
+        EqualSplitH = 0,
+        EqualSplitV = 1,
+        AppendH = 2,
+        AppendV = 3,
+        EqualResizeH = 4,
+        EqualResizeV = 5
+    };
+
     class UISplit : public UIContainer {
     public:
-        UISplit(uint32_t flags, bool horizontalSplit = true) : UIContainer(flags), mHorizontalSplit(horizontalSplit) {
+        UISplit(uint32_t flags, UISplitMode splitMode, UILayoutH layoutH, UILayoutV layoutV) : UIContainer(flags), mSplitMode(splitMode) {
             mArea.mRender.mType = UIRenderType::Rect;
             mArea.mLayout.mBorder = 3.0f;
+            mArea.mLayout.mLayoutH = layoutH;
+            mArea.mLayout.mLayoutV = layoutV;
         }
         ~UISplit() = default;
 
         virtual bool Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& parent, UITraversalMode mode);
     protected:
-        bool mHorizontalSplit;
+        UISplitMode mSplitMode;
     };
 
 }
