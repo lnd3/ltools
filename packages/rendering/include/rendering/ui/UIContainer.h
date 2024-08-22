@@ -28,7 +28,13 @@ namespace l::ui {
         Bottom = 2
     };
 
-    enum class UILayout {
+    enum class UILayoutH {
+        Fixed = 0,
+        Scaled = 1,
+        Parent = 2
+    };
+
+    enum class UILayoutV {
         Fixed = 0,
         Scaled = 1,
         Parent = 2
@@ -83,7 +89,8 @@ namespace l::ui {
         float mBorder = 3.0f;
         UIAlignH mAlignH = UIAlignH::Left;
         UIAlignV mAlignV = UIAlignV::Top;
-        UILayout mLayout = UILayout::Fixed;
+        UILayoutH mLayoutH = UILayoutH::Fixed;
+        UILayoutV mLayoutV = UILayoutV::Fixed;
     };
 
     struct ContainerArea {
@@ -141,7 +148,7 @@ namespace l::ui {
                 worldPos.x = parentPos.x + (mPosition.x + mSize.x * 0.5f - contentSize.x * 0.5f) * mScale * parentScale;
                 break;
             case UIAlignH::Right:
-                worldPos.x = parentPos.x + (mPosition.x - mLayout.mBorder * 2.0f + mSize.x - contentSize.x) * mScale * parentScale;
+                worldPos.x = parentPos.x + (mPosition.x - mLayout.mBorder + mSize.x - contentSize.x) * mScale * parentScale;
                 break;
             }
             switch (alignV) {
@@ -152,7 +159,7 @@ namespace l::ui {
                 worldPos.y = parentPos.y + (mPosition.y + mSize.y * 0.5f - contentSize.y * 0.5f) * mScale * parentScale;
                 break;
             case UIAlignV::Bottom:
-                worldPos.y = parentPos.y + (mPosition.y - mLayout.mBorder * 2.0f + mSize.y - contentSize.y) * mScale * parentScale;
+                worldPos.y = parentPos.y + (mPosition.y - mLayout.mBorder + mSize.y - contentSize.y) * mScale * parentScale;
                 break;
             }
             return worldPos;
@@ -160,8 +167,8 @@ namespace l::ui {
 
         ImVec2 GetWorldSizeLayout(float parentScale) const {
             ImVec2 worldSize;
-            worldSize.x = (mSize.x - mLayout.mBorder * 2.0f) * mScale * parentScale;
-            worldSize.y = (mSize.y - mLayout.mBorder * 2.0f) * mScale * parentScale;
+            worldSize.x = (mSize.x - mLayout.mBorder) * mScale * parentScale;
+            worldSize.y = (mSize.y - mLayout.mBorder) * mScale * parentScale;
             return worldSize;
         }
     };
@@ -234,12 +241,13 @@ namespace l::ui {
 
     class UIContainer {
     public:
-        UIContainer(uint32_t flags = 0, UIRenderType renderType = UIRenderType::Rect, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top, UILayout layout = UILayout::Fixed) : mConfigFlags(flags) {
+        UIContainer(uint32_t flags = 0, UIRenderType renderType = UIRenderType::Rect, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed) : mConfigFlags(flags) {
             mArea.mRender.mType = renderType;
             mArea.mLayout.mBorder = 3.0f;
             mArea.mLayout.mAlignH = alignH;
             mArea.mLayout.mAlignV = alignV;
-            mArea.mLayout.mLayout = layout;
+            mArea.mLayout.mLayoutH = layoutH;
+            mArea.mLayout.mLayoutV = layoutV;
         }
         ~UIContainer() = default;
 

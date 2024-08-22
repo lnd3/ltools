@@ -166,9 +166,16 @@ bool UIMove::Visit(UIContainer& container, const InputState& input, const Contai
         case l::ui::UIRenderType::Spline:
             break;
         case l::ui::UIRenderType::Text:
+
+            //const ImVec2 text_pos(window->DC.CursorPos.x, window->DC.CursorPos.y + window->DC.CurrLineTextBaseOffset);
+            //const float wrap_pos_x = window->DC.TextWrapPos;
+
+            //     if (window->DC.CurrentColumns)
+
             if (!container.GetDisplayName().empty()) {
                 nameStart = container.GetDisplayName().data();
                 nameEnd = container.GetDisplayName().data() + container.GetDisplayName().size();
+                container.SetSize(ImGui::CalcTextSize(nameStart, nameEnd));
                 mDrawList->AddText(ImGui::GetDefaultFont(), 13.0f * parent.mScale, p1, color, nameStart, nameEnd);
             }
             break;

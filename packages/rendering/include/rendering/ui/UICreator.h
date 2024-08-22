@@ -28,7 +28,7 @@ namespace l::ui {
         else if constexpr (std::is_same_v<T, UISplit>) {
             id += "UISplit";
         }
-        else if constexpr (std::is_same_v<T, UILayout>) {
+        else if constexpr (std::is_same_v<T, UILayoutH>) {
             id += "UILayout";
         }
         else {
@@ -45,7 +45,7 @@ namespace l::ui {
         UICreator() = default;
         ~UICreator() = default;
 
-        UIHandle<UIContainer> CreateContainer(uint32_t flags, UIRenderType renderType = UIRenderType::Rect, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top, UILayout layout = UILayout::Fixed);
+        UIHandle<UIContainer> CreateContainer(uint32_t flags, UIRenderType renderType = UIRenderType::Rect, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed);
         UIHandle<UISplit> CreateSplit(uint32_t flags, bool horizontalSplit = true);
 
     protected:

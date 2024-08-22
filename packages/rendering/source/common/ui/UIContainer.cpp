@@ -157,13 +157,22 @@ namespace l::ui {
         //current.mPosition = mArea.GetWorldPos(parent.mScale, parent.mPosition);
         //current.mSize = mArea.GetWorldSize(parent.mScale);
         auto& layout = GetContainerArea().mLayout;
-        switch (layout.mLayout) {
-        case UILayout::Fixed:
+        switch (layout.mLayoutH) {
+        case UILayoutH::Fixed:
             break;
-        case UILayout::Scaled:
+        case UILayoutH::Scaled:
             break;
-        case UILayout::Parent:
-            SetSize(parent.GetLocalSize());
+        case UILayoutH::Parent:
+            mArea.mSize.x = parent.GetLocalSize().x;
+            break;
+        }
+        switch (layout.mLayoutV) {
+        case UILayoutV::Fixed:
+            break;
+        case UILayoutV::Scaled:
+            break;
+        case UILayoutV::Parent:
+            mArea.mSize.y = parent.GetLocalSize().y;
             break;
         }
 
@@ -194,13 +203,22 @@ namespace l::ui {
         // an anchor rather than a container, therefore it has to align within it and size 
 
         auto& layout = GetContainerArea().mLayout;
-        switch (layout.mLayout) {
-        case UILayout::Fixed:
+        switch (layout.mLayoutH) {
+        case UILayoutH::Fixed:
             break;
-        case UILayout::Scaled:
+        case UILayoutH::Scaled:
             break;
-        case UILayout::Parent:
-            SetSize(parent.GetLocalSize());
+        case UILayoutH::Parent:
+            mArea.mSize.y = parent.GetLocalSize().y;
+            break;
+        }
+        switch (layout.mLayoutV) {
+        case UILayoutV::Fixed:
+            break;
+        case UILayoutV::Scaled:
+            break;
+        case UILayoutV::Parent:
+            mArea.mSize.x = parent.GetLocalSize().x;
             break;
         }
 
