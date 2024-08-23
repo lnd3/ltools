@@ -178,22 +178,27 @@ namespace l::ui {
                 splineThickness = container.HasNotification(UIContainer_LinkFlag) ? 2.0f * splineThickness : splineThickness;
                 ImVec2 pLinkInput = container.GetParent()->GetPosition();
                 p1 = contentArea.Transform(ImVec2(), input.mRootPos);
-                p11 = contentArea.Transform(ImVec2(pLinkInput.x + 120.0f, pLinkInput.y), input.mRootPos);
 
                 if (container.GetCoParent() != nullptr) {
                     ImVec2 pLinkOutput = container.GetCoParent()->GetPosition();
                     auto& coContentArea = container.GetCoParent()->GetLayoutArea();
                     p2 = coContentArea.Transform(pLinkOutput, input.mRootPos);
-                    p22 = coContentArea.Transform(ImVec2(pLinkOutput.x - 120.0f, pLinkOutput.y), input.mRootPos);
+                    float d12 = sqrt(0.25f*((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y)) / (contentArea.mScale * contentArea.mScale));
+
+                    p11 = contentArea.Transform(ImVec2(pLinkInput.x + d12, pLinkInput.y), input.mRootPos);
+                    p22 = coContentArea.Transform(ImVec2(pLinkOutput.x - d12, pLinkOutput.y), input.mRootPos);
                 }
                 else {
                     p2 = input.mCurPos;
-                    p22 = ImVec2(p2.x - 120.0f, p2.y);
+                    float d12 = sqrt(0.25f * ((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y)) / (contentArea.mScale * contentArea.mScale));
+                    p11 = contentArea.Transform(ImVec2(pLinkInput.x + d12, pLinkInput.y), input.mRootPos);
+                    p22 = ImVec2(p2.x - d12 * contentArea.mScale, p2.y);
                 }
             }
             else {
-                p11 = contentArea.Transform(ImVec2(pTopLeft.x + 120.0f, pTopLeft.y), input.mRootPos);
-                p22 = contentArea.Transform(ImVec2(pLowRight.x - 120.0f, pLowRight.y), input.mRootPos);
+                float d12 = sqrt(0.25f * ((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y)));
+                p11 = contentArea.Transform(ImVec2(pTopLeft.x + d12, pTopLeft.y), input.mRootPos);
+                p22 = contentArea.Transform(ImVec2(pLowRight.x - d12, pLowRight.y), input.mRootPos);
             }
             mDrawList->AddBezierCubic(p1, p11, p22, p2, color, splineThickness, 30);
             break;
