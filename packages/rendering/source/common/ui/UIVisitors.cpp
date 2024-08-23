@@ -261,6 +261,16 @@ namespace l::ui {
                 return true;
             }
         }
+        if (container.HasConfigFlag(UIContainer_LinkFlag) && !mDragging && input.mStarted && mLinkContainer.get() == nullptr && container.GetCoParent() != nullptr) {
+            ImVec2 pCenter = container.GetCoParent()->GetPosition();
+            ImVec2 size = container.GetCoParent()->GetSize();
+            ImVec2 pT = container.GetCoParent()->GetLayoutArea().Transform(pCenter, input.mRootPos);
+            if (OverlapCircle(input.mCurPos, pT, size.x * container.GetCoParent()->GetLayoutArea().mScale)) {
+                mDragging = true;
+                mLinkContainer.mContainer = &container;
+                return true;
+            }
+        }
 
         if (mDragging && mLinkContainer.get() != nullptr && container.HasConfigFlag(UIContainer_LinkFlag) && mLinkContainer.get() == &container) {
             // On the newly created link container, drag the end point along the mouse movement
