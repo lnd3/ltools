@@ -108,10 +108,10 @@ namespace l::ui {
         }
 
         // Used in visitors only and parent scale is already premultiplied
-        ImVec2 Transform(const ImVec2& p, ImVec2 rootPos = ImVec2()) const {
+        ImVec2 Transform(const ImVec2& p, ImVec2 screenRootPos = ImVec2()) const {
             ImVec2 transformed;
-            transformed.x = rootPos.x + mPosition.x + p.x * mScale;
-            transformed.y = rootPos.y + mPosition.y + p.y * mScale;
+            transformed.x = screenRootPos.x + mPosition.x + p.x * mScale;
+            transformed.y = screenRootPos.y + mPosition.y + p.y * mScale;
             return transformed;
         }
 
@@ -180,6 +180,8 @@ namespace l::ui {
     bool Overlap(const ImVec2& p, const ImVec2& pMin, const ImVec2& pMax);
     bool Overlap(const ImVec2& p, const ImVec2& pMin, const ImVec2& pMax, const ContainerArea& parent);
     bool OverlapScreenRect(const ImVec2& p, const ImVec2& pCenter, const ImVec2& offset, const ContainerArea& parent);
+    bool OverlapScreenCircle(const ImVec2& p, const ImVec2& pCenter, float radii, const ContainerArea& parent);
+    bool OverlapCircle(const ImVec2& p, const ImVec2& pCenter, float radii);
 
     class UIContainer;
 
@@ -187,7 +189,7 @@ namespace l::ui {
     public:
         virtual ~UIVisitor() = default;
 
-        virtual bool Active(const InputState&) {
+        virtual bool Active(UIContainer&, const InputState&) {
             return true;
         }
         virtual bool Visit(UIContainer&, const InputState&, const ContainerArea&) {
@@ -195,6 +197,9 @@ namespace l::ui {
         }
         virtual void Debug(bool on = true) {
             mDebug = on;
+        }
+        virtual bool ShouldUpdateContainer() {
+            return false;
         }
 
     protected:
@@ -240,8 +245,8 @@ namespace l::ui {
             mContainer = nullptr;
         }
 
-        T* get() {
-            return reinterpret_cast<T*>(mContainer);
+        UIContainer* get() {
+            return mContainer;
         }
 
         T* operator->() {
@@ -266,7 +271,7 @@ namespace l::ui {
         virtual ~UIContainer() = default;
 
         bool Accept(UIVisitor& visitor, const InputState& input, UITraversalMode mode = UITraversalMode::AllBFS);
-        virtual bool Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& parent, UITraversalMode mode = UITraversalMode::AllBFS);
+        virtual bool Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& contentArea, UITraversalMode mode = UITraversalMode::AllBFS);
         virtual void Add(UIContainer* container, int32_t i = -1);
 
         template<class T>
@@ -275,6 +280,17 @@ namespace l::ui {
         }
 
         virtual void Remove(int32_t i);
+
+        template<class T>
+        void Remove(UIHandle<T>& handle) {
+            for (auto it = mContent.begin(); it != mContent.end();it++) {
+                auto containerPtr = *it;
+                if (containerPtr == handle.get()) {
+                    mContent.erase(it);
+                    break;
+                }
+            }
+        }
 
         void Move(ImVec2 localChange);
         void Resize(ImVec2 localChange);
@@ -289,6 +305,7 @@ namespace l::ui {
         void SetDisplayName(std::string_view id);
         void SetId(std::string_view id);
         void SetContainerArea(const ContainerArea& area);
+        void SetLayoutArea(const ContainerArea& area);
         void SetParent(UIContainer* input);
         void SetCoParent(UIContainer* input);
         UIContainer* GetParent();
@@ -299,6 +316,7 @@ namespace l::ui {
         ImVec2 GetSize(bool untransformed = false);
         float GetScale();
         ContainerArea& GetContainerArea();
+        const ContainerArea& GetLayoutArea() const;
 
         void DebugLog();
 
@@ -325,9 +343,12 @@ namespace l::ui {
         uint32_t mConfigFlags = 0; // Active visitor flags
         uint32_t mNotificationFlags = 0; // Notification flags for ux feedback (resizing box animation etc)
 
-        UIContainer* mParent;
-        UIContainer* mCoParent; // when a container is influenced by two parent in a specific way defined by the type of container and the visitor
+        ContainerArea mAreaT;
+
+        UIContainer* mParent = nullptr;
+        UIContainer* mCoParent = nullptr; // when a container is influenced by two parent in a specific way defined by the type of container and the visitor
         std::vector<UIContainer*> mContent;
+        std::vector<ContainerArea> mContentAreas;
     };
 
     enum class UISplitMode {
@@ -349,7 +370,7 @@ namespace l::ui {
         }
         ~UISplit() = default;
 
-        virtual bool Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& parent, UITraversalMode mode);
+        virtual bool Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& contentArea, UITraversalMode mode);
     protected:
         UISplitMode mSplitMode;
     };

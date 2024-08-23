@@ -14,15 +14,23 @@
 
 namespace l::ui {
 
+    class UIUpdate : public UIVisitor {
+    public:
+        UIUpdate() {}
+        ~UIUpdate() = default;
+
+        virtual bool ShouldUpdateContainer();
+    };
+
     class UIZoom : public UIVisitor {
     public:
-        virtual bool Active(const InputState& input);
+        virtual bool Active(UIContainer& container, const InputState& input);
         virtual bool Visit(UIContainer& container, const InputState& input, const ContainerArea& parent);
     };
 
     class UIDrag : public UIVisitor {
     public:
-        virtual bool Active(const InputState& input);
+        virtual bool Active(UIContainer& container, const InputState& input);
         virtual bool Visit(UIContainer& container, const InputState& input, const ContainerArea& parent);
     protected:
         bool mDragging = false;
@@ -31,7 +39,7 @@ namespace l::ui {
 
     class UIMove : public UIVisitor {
     public:
-        virtual bool Active(const InputState& input);
+        virtual bool Active(UIContainer& container, const InputState& input);
         virtual bool Visit(UIContainer& container, const InputState& input, const ContainerArea& parent);
     protected:
         bool mMoving = false;
@@ -59,15 +67,17 @@ namespace l::ui {
 
     class UILinkIO : public UIVisitor {
     public:
+        virtual bool Active(UIContainer& container, const InputState& input);
+
         UILinkIO(UICreator* creator = nullptr) : mCreator(creator) {}
         ~UILinkIO() = default;
 
         virtual bool Visit(UIContainer& container, const InputState& input, const ContainerArea& parent);
     protected:
         bool mDragging = false;
+        bool mPossibleLinkImminent = false;
         UIHandle<UIContainer> mLinkContainer;
         UICreator* mCreator = nullptr;
-        float mResizeAreaSize = 8.0f;
     };
 
 }

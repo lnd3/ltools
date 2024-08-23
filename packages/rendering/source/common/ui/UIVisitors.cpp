@@ -2,81 +2,85 @@
 
 namespace l::ui {
 
-bool UIZoom::Active(const InputState& input) {
-    return input.mScroll != 0;
-}
-
-bool UIZoom::Visit(UIContainer& container, const InputState& input, const ContainerArea& parent) {
-    if (!container.HasConfigFlag(UIContainer_ZoomFlag)) {
-        return false;
-    }
-    if (input.mScroll != 0.0f) {
-        float scaleChange = 1.0f;
-        float scaleDelta = 0.1f;
-        scaleChange = 1.0f + scaleDelta * input.mScroll;
-        if (input.mScroll < 0.0f) {
-            scaleChange = 1.0f / (1.0f - scaleDelta * input.mScroll);
-        }
-        if ((container.GetScale() > 100.0f && scaleChange > 1.0f) || (container.GetScale() < 0.01f && scaleChange < 1.0f)) {
-            return true;
-        }
-
-        ImVec2 mousePos = input.GetLocalPos();
-        ImVec2 localMousePos = ImVec2(parent.mPosition.x - mousePos.x, parent.mPosition.y - mousePos.y);
-        ImVec2 p = container.GetPosition();
-        container.Rescale(scaleChange);
-        p.x = ((p.x + localMousePos.x) * scaleChange - localMousePos.x) / container.GetScale();
-        p.y = ((p.y + localMousePos.y) * scaleChange - localMousePos.y) / container.GetScale();
-        container.SetPosition(p);
+    bool UIUpdate::ShouldUpdateContainer() {
         return true;
     }
-    return false;
-}
 
-bool UIDrag::Active(const InputState& input) {
-    return (input.mStarted && !mDragging) || mDragging;
-}
+    bool UIZoom::Active(UIContainer&, const InputState& input) {
+        return input.mScroll != 0;
+    }
 
-bool UIDrag::Visit(UIContainer& container, const InputState& input, const ContainerArea& parent) {
-    if (!container.HasConfigFlag(UIContainer_DragFlag)) {
+    bool UIZoom::Visit(UIContainer& container, const InputState& input, const ContainerArea& contentArea) {
+        if (!container.HasConfigFlag(UIContainer_ZoomFlag)) {
+            return false;
+        }
+        if (input.mScroll != 0.0f) {
+            float scaleChange = 1.0f;
+            float scaleDelta = 0.1f;
+            scaleChange = 1.0f + scaleDelta * input.mScroll;
+            if (input.mScroll < 0.0f) {
+                scaleChange = 1.0f / (1.0f - scaleDelta * input.mScroll);
+            }
+            if ((container.GetScale() > 100.0f && scaleChange > 1.0f) || (container.GetScale() < 0.01f && scaleChange < 1.0f)) {
+                return true;
+            }
+
+            ImVec2 mousePos = input.GetLocalPos();
+            ImVec2 localMousePos = ImVec2(contentArea.mPosition.x - mousePos.x, contentArea.mPosition.y - mousePos.y);
+            ImVec2 p = container.GetPosition();
+            container.Rescale(scaleChange);
+            p.x = ((p.x + localMousePos.x) * scaleChange - localMousePos.x) / container.GetScale();
+            p.y = ((p.y + localMousePos.y) * scaleChange - localMousePos.y) / container.GetScale();
+            container.SetPosition(p);
+            return true;
+        }
         return false;
     }
-    if (input.mStarted && !mDragging) {
-        if (input.GetLocalPos().x >= 0.0f && input.GetLocalPos().y >= 0.0f) {
-            mDragging = true;
-            mSourceContainer = &container;
-        }
+
+    bool UIDrag::Active(UIContainer&, const InputState& input) {
+        return (input.mStarted && !mDragging) || mDragging;
     }
-    if (mDragging && mSourceContainer == &container) {
-        ImVec2 move = DragMovement(input.mPrevPos, input.mCurPos, parent.mScale * container.GetScale());
-        container.Move(move);
-        container.Notification(UIContainer_DragFlag);
 
-        if (input.mStopped) {
-            mDragging = false;
-            mSourceContainer = nullptr;
+    bool UIDrag::Visit(UIContainer& container, const InputState& input, const ContainerArea& contentArea) {
+        if (!container.HasConfigFlag(UIContainer_DragFlag)) {
+            return false;
         }
-        return mDragging;
+        if (input.mStarted && !mDragging) {
+            if (input.GetLocalPos().x >= 0.0f && input.GetLocalPos().y >= 0.0f) {
+                mDragging = true;
+                mSourceContainer = &container;
+            }
+        }
+        if (mDragging && mSourceContainer == &container) {
+            ImVec2 move = DragMovement(input.mPrevPos, input.mCurPos, contentArea.mScale * container.GetScale());
+            container.Move(move);
+            container.Notification(UIContainer_DragFlag);
+
+            if (input.mStopped) {
+                mDragging = false;
+                mSourceContainer = nullptr;
+            }
+            return mDragging;
+        }
+        return false;
     }
-    return false;
-}
 
-bool UIMove::Active(const InputState& input) {
-    return (input.mStarted && !mMoving) || mMoving;
-}
+    bool UIMove::Active(UIContainer&, const InputState& input) {
+        return (input.mStarted && !mMoving) || mMoving;
+    }
 
-bool UIMove::Visit(UIContainer& container, const InputState& input, const ContainerArea& parent) {
+    bool UIMove::Visit(UIContainer& container, const InputState& input, const ContainerArea& contentArea) {
         if(!container.HasConfigFlag(UIContainer_MoveFlag)){
             return false;
         }
         if (input.mStarted && !mMoving) {
-            if (Overlap(input.GetLocalPos(), container.GetPosition(), container.GetPositionAtSize(), parent)) {
+            if (Overlap(input.GetLocalPos(), container.GetPosition(), container.GetPositionAtSize(), contentArea)) {
                 mMoving = true;
                 mSourceContainer = &container;
             }
         }
         if (mMoving && mSourceContainer == &container) {
-            ImVec2 move = DragMovement(input.mPrevPos, input.mCurPos, parent.mScale);
+            ImVec2 move = DragMovement(input.mPrevPos, input.mCurPos, contentArea.mScale);
             container.Move(move);
             container.Notification(UIContainer_MoveFlag);
 
@@ -89,14 +93,14 @@ bool UIMove::Visit(UIContainer& container, const InputState& input, const Contai
         return false;
     }
 
-    bool UIResize::Visit(UIContainer& container, const InputState& input, const ContainerArea& parent) {
+    bool UIResize::Visit(UIContainer& container, const InputState& input, const ContainerArea& contentArea) {
         if (!container.HasConfigFlag(UIContainer_ResizeFlag)) {
             return false;
         }
         if (!mResizing) {
             const float radii = mResizeAreaSize * 0.5f;
             ImVec2 p = container.GetPositionAtSize();
-            if (OverlapScreenRect(input.GetLocalPos(), p, ImVec2(radii, radii), parent)) {
+            if (OverlapScreenRect(input.GetLocalPos(), p, ImVec2(radii, radii), contentArea)) {
                 mSourceContainer = &container;
                 container.Notification(UIContainer_ResizeFlag);
 
@@ -113,7 +117,7 @@ bool UIMove::Visit(UIContainer& container, const InputState& input, const Contai
             }
         }
         if (mResizing && mSourceContainer == &container) {
-            ImVec2 move = DragMovement(input.mPrevPos, input.mCurPos, parent.mScale);
+            ImVec2 move = DragMovement(input.mPrevPos, input.mCurPos, contentArea.mScale);
             container.Resize(move);
 
             if (input.mStopped) {
@@ -126,27 +130,31 @@ bool UIMove::Visit(UIContainer& container, const InputState& input, const Contai
         return false;
     }
 
-    bool UIDraw::Visit(UIContainer& container, const InputState& input, const ContainerArea& parent) {
+    bool UIDraw::Visit(UIContainer& container, const InputState& input, const ContainerArea& contentArea) {
         if (!mDebug && !container.HasConfigFlag(UIContainer_DrawFlag)) {
             return false;
         }
 
+        float splineThickness = 2.0f;
         ImU32 color = container.GetRenderData().mColor;
         ImVec2 pTopLeft = container.GetPosition();
         ImVec2 pCenter = container.GetPositionAtCenter();
         ImVec2 pLowRight = container.GetPositionAtSize();
         ImVec2 pSize = container.GetSize();
-        pSize.x *= parent.mScale;
-        pSize.y *= parent.mScale;
-        ImVec2 p1 = parent.Transform(pTopLeft, input.mRootPos);
-        ImVec2 p12 = parent.Transform(pCenter, input.mRootPos);
-        ImVec2 p2 = parent.Transform(pLowRight, input.mRootPos);
+        pSize.x *= contentArea.mScale;
+        pSize.y *= contentArea.mScale;
+        ImVec2 p1 = contentArea.Transform(pTopLeft, input.mRootPos);
+        ImVec2 p12 = contentArea.Transform(pCenter, input.mRootPos);
+        ImVec2 p2 = contentArea.Transform(pLowRight, input.mRootPos);
+        ImVec2 p11;
+        ImVec2 p22;
+
         const char* nameStart;
         const char* nameEnd;
 
         switch (container.GetRenderData().mType) {
         case l::ui::UIRenderType::Rect:
-            mDrawList->AddRect(p1, p2, color, 5.0f, ImDrawFlags_RoundCornersAll, 1.0f * container.GetScale() * parent.mScale);
+            mDrawList->AddRect(p1, p2, color, 5.0f, ImDrawFlags_RoundCornersAll, 1.0f * container.GetScale() * contentArea.mScale);
             break;
         case l::ui::UIRenderType::RectFilled:
             mDrawList->AddRectFilled(p1, p2, color, 5.0f, ImDrawFlags_RoundCornersAll);
@@ -156,7 +164,7 @@ bool UIMove::Visit(UIContainer& container, const InputState& input, const Contai
         case l::ui::UIRenderType::TriangleFilled:
             break;
         case l::ui::UIRenderType::Circle:
-            mDrawList->AddCircle(p12, pSize.x, color, 15, 2.0f * container.GetScale() * parent.mScale);
+            mDrawList->AddCircle(p12, pSize.x, color, 15, 2.0f * container.GetScale() * contentArea.mScale);
             break;
         case l::ui::UIRenderType::CircleFilled:
             mDrawList->AddCircleFilled(p12, pSize.x, color, 15);
@@ -167,15 +175,27 @@ bool UIMove::Visit(UIContainer& container, const InputState& input, const Contai
             break;
         case l::ui::UIRenderType::Spline:
             if (container.HasConfigFlag(UIContainer_LinkFlag)) {
-                ImVec2 pLinkInput = container.GetParent()->GetPositionAtCenter();
-                ImVec2 pLinkOutput = container.GetCoParent()->GetPositionAtCenter();
+                splineThickness = container.HasNotification(UIContainer_LinkFlag) ? 2.0f * splineThickness : splineThickness;
+                ImVec2 pLinkInput = container.GetParent()->GetPosition();
+                p1 = contentArea.Transform(ImVec2(), input.mRootPos);
+                p11 = contentArea.Transform(ImVec2(pLinkInput.x + 120.0f, pLinkInput.y), input.mRootPos);
 
+                if (container.GetCoParent() != nullptr) {
+                    ImVec2 pLinkOutput = container.GetCoParent()->GetPosition();
+                    auto& coContentArea = container.GetCoParent()->GetLayoutArea();
+                    p2 = coContentArea.Transform(pLinkOutput, input.mRootPos);
+                    p22 = coContentArea.Transform(ImVec2(pLinkOutput.x - 120.0f, pLinkOutput.y), input.mRootPos);
+                }
+                else {
+                    p2 = input.mCurPos;
+                    p22 = ImVec2(p2.x - 120.0f, p2.y);
+                }
             }
             else {
-                ImVec2 p11 = parent.Transform(ImVec2(pTopLeft.x + 120.0f, pTopLeft.y), input.mRootPos);
-                ImVec2 p22 = parent.Transform(ImVec2(pLowRight.x - 120.0f, pLowRight.y), input.mRootPos);
-                mDrawList->AddBezierCubic(p1, p11, p22, p2, color, 2.0f, 15);
+                p11 = contentArea.Transform(ImVec2(pTopLeft.x + 120.0f, pTopLeft.y), input.mRootPos);
+                p22 = contentArea.Transform(ImVec2(pLowRight.x - 120.0f, pLowRight.y), input.mRootPos);
             }
+            mDrawList->AddBezierCubic(p1, p11, p22, p2, color, splineThickness, 30);
             break;
         case l::ui::UIRenderType::Text:
 
@@ -188,7 +208,7 @@ bool UIMove::Visit(UIContainer& container, const InputState& input, const Contai
                 nameStart = container.GetDisplayName().data();
                 nameEnd = container.GetDisplayName().data() + container.GetDisplayName().size();
                 container.SetSize(ImGui::CalcTextSize(nameStart, nameEnd));
-                mDrawList->AddText(ImGui::GetDefaultFont(), 13.0f * container.GetScale() * parent.mScale, p1, color, nameStart, nameEnd);
+                mDrawList->AddText(ImGui::GetDefaultFont(), 13.0f * container.GetScale() * contentArea.mScale, p1, color, nameStart, nameEnd);
             }
             break;
         case l::ui::UIRenderType::Texture:
@@ -208,11 +228,11 @@ bool UIMove::Visit(UIContainer& container, const InputState& input, const Contai
         case l::ui::UIRenderType::Texture:
         case l::ui::UIRenderType::Spline:
             if (container.HasConfigFlag(ui::UIContainer_ResizeFlag)) {
-                ImVec2 p3 = parent.Transform(pLowRight, ImVec2(input.mRootPos.x - 3.0f, input.mRootPos.y - 3.0f));
-                ImVec2 p4 = parent.Transform(pLowRight, ImVec2(input.mRootPos.x + 3.0f, input.mRootPos.y + 3.0f));
+                ImVec2 p3 = contentArea.Transform(pLowRight, ImVec2(input.mRootPos.x - 3.0f, input.mRootPos.y - 3.0f));
+                ImVec2 p4 = contentArea.Transform(pLowRight, ImVec2(input.mRootPos.x + 3.0f, input.mRootPos.y + 3.0f));
                 if (container.HasNotification(ui::UIContainer_ResizeFlag)) {
-                    p3 = parent.Transform(pLowRight, ImVec2(input.mRootPos.x - 5.0f, input.mRootPos.y - 5.0f));
-                    p4 = parent.Transform(pLowRight, ImVec2(input.mRootPos.x + 5.0f, input.mRootPos.y + 5.0f));
+                    p3 = contentArea.Transform(pLowRight, ImVec2(input.mRootPos.x - 5.0f, input.mRootPos.y - 5.0f));
+                    p4 = contentArea.Transform(pLowRight, ImVec2(input.mRootPos.x + 5.0f, input.mRootPos.y + 5.0f));
                 }
                 mDrawList->AddRectFilled(p3, p4, color);
             }
@@ -224,12 +244,17 @@ bool UIMove::Visit(UIContainer& container, const InputState& input, const Contai
         return false;
     }
 
-    bool UILinkIO::Visit(UIContainer& container, const InputState& input, const ContainerArea& parent) {
+    bool UILinkIO::Active(UIContainer& container, const InputState&) {
+        return container.HasConfigFlag(UIContainer_InputFlag) || container.HasConfigFlag(UIContainer_OutputFlag) || container.HasConfigFlag(UIContainer_LinkFlag);
+    }
+
+    bool UILinkIO::Visit(UIContainer& container, const InputState& input, const ContainerArea& contentArea) {
         // Create link at from a clicked output container
-        const float radii = mResizeAreaSize * 0.5f;
-        if (!mDragging && input.mStarted && container.HasConfigFlag(UIContainer_OutputFlag)) {
-            ImVec2 p = container.GetPosition();
-            if (OverlapScreenRect(input.GetLocalPos(), p, ImVec2(radii, radii), parent)) {
+        if (container.HasConfigFlag(UIContainer_OutputFlag) && !mDragging && input.mStarted && mLinkContainer.get() == nullptr) {
+            ImVec2 pCenter = container.GetPosition();
+            ImVec2 size = container.GetSize();
+            ImVec2 pT = contentArea.Transform(pCenter, input.mRootPos);
+            if (OverlapCircle(input.mCurPos, pT, size.x * contentArea.mScale)) {
                 mDragging = true;
                 mLinkContainer = mCreator->CreateContainer(UIContainer_LinkFlag | UIContainer_DrawFlag, UIRenderType::Spline);
                 container.Add(mLinkContainer);
@@ -237,36 +262,36 @@ bool UIMove::Visit(UIContainer& container, const InputState& input, const Contai
             }
         }
 
-        if (mDragging) {
-            if (mLinkContainer.get() == &container) {
-                // On the newly create link container, drag the end point along the mouse movement
-                ImVec2 move = DragMovement(input.mPrevPos, input.mCurPos, parent.mScale * container.GetScale());
-                mLinkContainer->Move(move);
-            }
-            else if (mLinkContainer->GetParent() != &container) {
-                // When checking for an input container we check all but the output and link containers
-                if (container.HasConfigFlag(UIContainer_InputFlag)) {
-                    ImVec2 p = container.GetPosition();
-                    if (OverlapScreenRect(input.GetLocalPos(), p, ImVec2(radii, radii), parent)) {
-                        container.Notification(UIContainer_LinkFlag);
+        if (mDragging && mLinkContainer.get() != nullptr && container.HasConfigFlag(UIContainer_LinkFlag) && mLinkContainer.get() == &container) {
+            // On the newly created link container, drag the end point along the mouse movement
+            ImVec2 move = DragMovement(input.mPrevPos, input.mCurPos, contentArea.mScale * container.GetScale());
+            mLinkContainer->Move(move);
+        }
 
-                        if (input.mStopped) {
-                            mLinkContainer->SetCoParent(&container);
-                            mLinkContainer.reset();
-                            mDragging = false;
-                            container.ClearNotifications();
-                            return true;
-                        }
-                    }
-                    else {
-                        container.ClearNotifications();
-                    }
-                }
-                if (input.mStopped) {
-                    mLinkContainer.reset();
+        if (mDragging && mLinkContainer.get() != nullptr && container.HasConfigFlag(UIContainer_InputFlag)) {
+            ImVec2 pCenter = container.GetPosition();
+            ImVec2 size = container.GetSize();
+            ImVec2 pT = contentArea.Transform(pCenter, input.mRootPos);
+
+            if (OverlapCircle(input.mCurPos, pT, size.x * contentArea.mScale)) {
+                mLinkContainer->Notification(UIContainer_LinkFlag);
+                mLinkContainer->SetCoParent(&container);
+            }
+            else if (mLinkContainer->GetCoParent() == &container){
+                mLinkContainer->SetCoParent(nullptr);
+                mLinkContainer->ClearNotifications();
+            }
+
+            if (input.mStopped) {
+                mLinkContainer->ClearNotifications();
+                if (mLinkContainer->GetCoParent() != nullptr) {
                     mDragging = false;
-                    container.ClearNotifications();
-                    return true;
+                    mLinkContainer.reset();
+                }
+                else {
+                    mLinkContainer->GetParent()->Remove(mLinkContainer);
+                    mDragging = false;
+                    mLinkContainer.reset();
                 }
             }
         }
