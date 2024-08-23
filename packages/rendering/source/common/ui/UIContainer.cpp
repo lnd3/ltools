@@ -4,6 +4,26 @@
 
 namespace l::ui {
 
+    UIHandle<UIContainer> UICreator::CreateContainer(uint32_t flags, UIRenderType renderType, UIAlignH alignH, UIAlignV alignV, UILayoutH layoutH, UILayoutV layoutV) {
+        std::unique_ptr<UIContainer> container = std::make_unique<UIContainer>(flags, renderType, alignH, alignV, layoutH, layoutV);
+
+        std::string id = CreateUniqueId<UIContainer>();
+        container->SetId(id);
+        mContainers.insert({ id, std::move(container) });
+
+        return UIHandle<UIContainer>{ id, mContainers.at(id).get() };
+    }
+
+    UIHandle<UISplit> UICreator::CreateSplit(uint32_t flags, UISplitMode splitMode, UILayoutH layoutH, UILayoutV layoutV) {
+        std::unique_ptr<UISplit> container = std::make_unique<UISplit>(flags, splitMode, layoutH, layoutV);
+
+        std::string id = CreateUniqueId<UISplit>();
+        container->SetId(id);
+        mContainers.insert({ id, std::move(container) });
+
+        return UIHandle<UISplit>{ id, mContainers.at(id).get() };
+    }
+
     ImVec2 DragMovement(const ImVec2& prevPos, const ImVec2& curPos, float curScale) {
         ImVec2 move = curPos;
         move.x -= prevPos.x;
@@ -38,6 +58,7 @@ namespace l::ui {
     void UIContainer::Add(UIContainer* container, int32_t i) {
         if (i < 0) {
             mContent.push_back(container);
+            container->SetParent(this);
         }
         else {
             ASSERT(static_cast<size_t>(i) < mContent.size());
@@ -58,8 +79,10 @@ namespace l::ui {
     void UIContainer::Resize(ImVec2 localChange) {
         mArea.mSize.x += localChange.x;
         mArea.mSize.y += localChange.y;
-        mArea.mSize.x = mArea.mSize.x < 1.0f ? 1.0f : mArea.mSize.x;
-        mArea.mSize.y = mArea.mSize.y < 1.0f ? 1.0f : mArea.mSize.y;
+        if (mArea.mRender.mType != UIRenderType::Spline) {
+            mArea.mSize.x = mArea.mSize.x < 1.0f ? 1.0f : mArea.mSize.x;
+            mArea.mSize.y = mArea.mSize.y < 1.0f ? 1.0f : mArea.mSize.y;
+        }
     }
 
     void UIContainer::Rescale(float localChange) {
@@ -105,6 +128,22 @@ namespace l::ui {
 
     void UIContainer::SetContainerArea(const ContainerArea& area) {
         mArea = area;
+    }
+
+    UIContainer* UIContainer::GetParent() {
+        return mParent;
+    }
+
+    void UIContainer::SetParent(UIContainer* parent) {
+        mParent = parent;
+    }
+
+    void UIContainer::SetCoParent(UIContainer* coParent) {
+        mCoParent = coParent;
+    }
+
+    UIContainer* UIContainer::GetCoParent() {
+        return mCoParent;
     }
 
     ImVec2 UIContainer::GetPosition(bool untransformed) {

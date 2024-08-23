@@ -13,6 +13,7 @@
 #include "implot/implot_internal.h"
 
 #include <functional>
+#include <unordered_map>
 
 namespace l::ui {
 
@@ -87,7 +88,6 @@ namespace l::ui {
     };
 
     struct UILayoutData {
-        float mBorder = 3.0f;
         UIAlignH mAlignH = UIAlignH::Left;
         UIAlignV mAlignV = UIAlignV::Top;
         UILayoutH mLayoutH = UILayoutH::Fixed;
@@ -98,6 +98,8 @@ namespace l::ui {
         ImVec2 mPosition;
         ImVec2 mSize = ImVec2(20.0f, 20.0f);
         float mScale = 1.0f;
+        float mBorder = 3.0f;
+
         UILayoutData mLayout;
         UIRenderData mRender;
 
@@ -120,15 +122,15 @@ namespace l::ui {
         // Used in ui container layout, this is where we premultiply parent scale
         ImVec2 GetWorldPos(float parentScale, ImVec2 parentPos) {
             ImVec2 worldPos;
-            worldPos.x = parentPos.x + (mPosition.x + mLayout.mBorder) * mScale * parentScale;
-            worldPos.y = parentPos.y + (mPosition.y + mLayout.mBorder) * mScale * parentScale;
+            worldPos.x = parentPos.x + (mPosition.x + mBorder) * mScale * parentScale;
+            worldPos.y = parentPos.y + (mPosition.y + mBorder) * mScale * parentScale;
             return worldPos;
         }
 
         ImVec2 GetWorldSize(float parentScale) const {
             ImVec2 worldSize;
-            worldSize.x = (mSize.x - mLayout.mBorder * 2.0f) * mScale * parentScale;
-            worldSize.y = (mSize.y - mLayout.mBorder * 2.0f) * mScale * parentScale;
+            worldSize.x = (mSize.x - mBorder * 2.0f) * mScale * parentScale;
+            worldSize.y = (mSize.y - mBorder * 2.0f) * mScale * parentScale;
             return worldSize;
         }
 
@@ -143,24 +145,24 @@ namespace l::ui {
             ImVec2 worldPos;
             switch (alignH) {
             case UIAlignH::Left:
-                worldPos.x = parentPos.x + (mPosition.x + mLayout.mBorder) * mScale * parentScale;
+                worldPos.x = parentPos.x + (mPosition.x + mBorder) * mScale * parentScale;
                 break;
             case UIAlignH::Center:
                 worldPos.x = parentPos.x + (mPosition.x + mSize.x * 0.5f - contentSize.x * 0.5f) * mScale * parentScale;
                 break;
             case UIAlignH::Right:
-                worldPos.x = parentPos.x + (mPosition.x - mLayout.mBorder + mSize.x - contentSize.x) * mScale * parentScale;
+                worldPos.x = parentPos.x + (mPosition.x - mBorder + mSize.x - contentSize.x) * mScale * parentScale;
                 break;
             }
             switch (alignV) {
             case UIAlignV::Top:
-                worldPos.y = parentPos.y + (mPosition.y + mLayout.mBorder) * mScale * parentScale;
+                worldPos.y = parentPos.y + (mPosition.y + mBorder) * mScale * parentScale;
                 break;
             case UIAlignV::Middle:
                 worldPos.y = parentPos.y + (mPosition.y + mSize.y * 0.5f - contentSize.y * 0.5f) * mScale * parentScale;
                 break;
             case UIAlignV::Bottom:
-                worldPos.y = parentPos.y + (mPosition.y - mLayout.mBorder + mSize.y - contentSize.y) * mScale * parentScale;
+                worldPos.y = parentPos.y + (mPosition.y - mBorder + mSize.y - contentSize.y) * mScale * parentScale;
                 break;
             }
             return worldPos;
@@ -168,8 +170,8 @@ namespace l::ui {
 
         ImVec2 GetWorldSizeLayout(float parentScale) const {
             ImVec2 worldSize;
-            worldSize.x = (mSize.x - mLayout.mBorder) * mScale * parentScale;
-            worldSize.y = (mSize.y - mLayout.mBorder) * mScale * parentScale;
+            worldSize.x = (mSize.x - mBorder) * mScale * parentScale;
+            worldSize.y = (mSize.y - mBorder) * mScale * parentScale;
             return worldSize;
         }
     };
@@ -183,6 +185,8 @@ namespace l::ui {
 
     class UIVisitor {
     public:
+        virtual ~UIVisitor() = default;
+
         virtual bool Active(const InputState&) {
             return true;
         }
@@ -211,12 +215,16 @@ namespace l::ui {
     const uint32_t UIContainer_ZoomFlag = 0x00000040; // Can be scaled, zoomed in/out
     const uint32_t UIContainer_MoveFlag = 0x00000080; // Can be moved when grabbed
     const uint32_t UIContainer_ResizeFlag = 0x00000100; // Can be resized when grabbing bottom right corner
+    const uint32_t UIContainer_InputFlag = 0x00000200; // Can be grabbed and dropped on a container with output flag
+    const uint32_t UIContainer_OutputFlag = 0x00000400; // Can be dropped a grabbed 
+    const uint32_t UIContainer_LinkFlag = 0x00000800; // Can be dropped a grabbed 
 
     class UIDraw;
 
     template<class T, class = std::enable_if_t<std::is_base_of_v<UIContainer, T>>>
     class UIHandle {
     public:
+        UIHandle() : mContainer(nullptr) {};
         UIHandle(std::string_view id, UIContainer* container) : mId(id), mContainer(container) {};
         ~UIHandle() = default;
 
@@ -225,6 +233,11 @@ namespace l::ui {
 
         std::string_view id() {
             return mId;
+        }
+
+        void reset() {
+            mId.clear();
+            mContainer = nullptr;
         }
 
         T* get() {
@@ -244,13 +257,13 @@ namespace l::ui {
     public:
         UIContainer(uint32_t flags = 0, UIRenderType renderType = UIRenderType::Rect, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed) : mConfigFlags(flags) {
             mArea.mRender.mType = renderType;
-            mArea.mLayout.mBorder = 3.0f;
+            mArea.mBorder = 3.0f;
             mArea.mLayout.mAlignH = alignH;
             mArea.mLayout.mAlignV = alignV;
             mArea.mLayout.mLayoutH = layoutH;
             mArea.mLayout.mLayoutV = layoutV;
         }
-        ~UIContainer() = default;
+        virtual ~UIContainer() = default;
 
         bool Accept(UIVisitor& visitor, const InputState& input, UITraversalMode mode = UITraversalMode::AllBFS);
         virtual bool Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& parent, UITraversalMode mode = UITraversalMode::AllBFS);
@@ -258,7 +271,7 @@ namespace l::ui {
 
         template<class T>
         void Add(UIHandle<T>& handle, int32_t i = -1) {
-            Add(handle.get());
+            Add(handle.get(), i);
         }
 
         virtual void Remove(int32_t i);
@@ -276,6 +289,10 @@ namespace l::ui {
         void SetDisplayName(std::string_view id);
         void SetId(std::string_view id);
         void SetContainerArea(const ContainerArea& area);
+        void SetParent(UIContainer* input);
+        void SetCoParent(UIContainer* input);
+        UIContainer* GetParent();
+        UIContainer* GetCoParent();
         ImVec2 GetPosition(bool untransformed = false);
         ImVec2 GetPositionAtCenter(ImVec2 offset = ImVec2(), bool untransformed = false);
         ImVec2 GetPositionAtSize(ImVec2 offset = ImVec2(), bool untransformed = false);
@@ -308,6 +325,8 @@ namespace l::ui {
         uint32_t mConfigFlags = 0; // Active visitor flags
         uint32_t mNotificationFlags = 0; // Notification flags for ux feedback (resizing box animation etc)
 
+        UIContainer* mParent;
+        UIContainer* mCoParent; // when a container is influenced by two parent in a specific way defined by the type of container and the visitor
         std::vector<UIContainer*> mContent;
     };
 
@@ -324,7 +343,7 @@ namespace l::ui {
     public:
         UISplit(uint32_t flags, UISplitMode splitMode, UILayoutH layoutH, UILayoutV layoutV) : UIContainer(flags), mSplitMode(splitMode) {
             mArea.mRender.mType = UIRenderType::Rect;
-            mArea.mLayout.mBorder = 3.0f;
+            mArea.mBorder = 3.0f;
             mArea.mLayout.mLayoutH = layoutH;
             mArea.mLayout.mLayoutV = layoutV;
         }
@@ -335,4 +354,36 @@ namespace l::ui {
         UISplitMode mSplitMode;
     };
 
+    template<class T, class = std::enable_if_t<std::is_base_of_v<UIContainer, T>>>
+    std::string CreateUniqueId() {
+        static uint32_t mId = 0;
+        std::string id;
+        if constexpr (std::is_same_v<T, UIContainer>) {
+            id += "UIContainer";
+        }
+        else if constexpr (std::is_same_v<T, UISplit>) {
+            id += "UISplit";
+        }
+        else {
+            id += "Unknown";
+        }
+
+        id += l::string::to_hex<uint32_t>(mId++, 4);
+
+        return id;
+    }
+
+    class UICreator {
+    public:
+        UICreator() = default;
+        ~UICreator() = default;
+
+        UIHandle<UIContainer> CreateContainer(uint32_t flags, UIRenderType renderType = UIRenderType::Rect, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed);
+        UIHandle<UISplit> CreateSplit(uint32_t flags, UISplitMode splitMode = UISplitMode::AppendV, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed);
+
+    protected:
+        std::unordered_map<std::string, std::unique_ptr<UIContainer>> mContainers;
+        std::vector<UIVisitor> mVisitors;
+
+    };
 }
