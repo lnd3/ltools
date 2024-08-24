@@ -56,10 +56,8 @@ namespace l::ui {
     };
 
     enum class UITraversalMode {
-        AllDFS = 0, // when a visitor performs an action on all containers of its type for example rendering (visiting leaves first)
-        AllBFS = 1, // when a visitor performs an action on all containers starting with the root (visiting leaves last)
-        Once = 2, // when a visitor performs an action on one container of its type for example resizing
-        Twice = 3, // when a visitor performs an action on two containers of its type for example drag and drop actions like connecting input/output between two containers
+        DFS = 0, // Depth first search, leaves first, root last
+        BFS = 1, // Breadth first search, root first, leaves last
     };
 
     struct UIRenderData {
@@ -270,8 +268,8 @@ namespace l::ui {
         }
         virtual ~UIContainer() = default;
 
-        bool Accept(UIVisitor& visitor, const InputState& input, UITraversalMode mode = UITraversalMode::AllBFS);
-        virtual bool Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& contentArea, UITraversalMode mode = UITraversalMode::AllBFS);
+        bool Accept(UIVisitor& visitor, const InputState& input, UITraversalMode mode = UITraversalMode::BFS);
+        virtual bool Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& contentArea, UITraversalMode mode = UITraversalMode::BFS);
         virtual void Add(UIContainer* container, int32_t i = -1);
 
         template<class T>

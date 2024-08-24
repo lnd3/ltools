@@ -230,8 +230,10 @@ namespace l::ui {
             }
         }
 
-        if (mode == UITraversalMode::AllBFS && visitor.Active(*this, input)) {
-            visitor.Visit(*this, input, contentArea);
+        if (mode == UITraversalMode::BFS && visitor.Active(*this, input)) {
+            if (visitor.Visit(*this, input, contentArea)) {
+                return true;
+            }
         }
 
         size_t i = 0;
@@ -251,14 +253,12 @@ namespace l::ui {
             }
 
             if (content->Accept(visitor, input, mContentAreas.at(i), mode)) {
-                if (mode == UITraversalMode::Once) {
-                    return true;
-                }
+                return true;
             }
             i++;
         }
 
-        if ((mode == UITraversalMode::AllDFS || mode == UITraversalMode::Once || mode == UITraversalMode::Twice) && visitor.Active(*this, input)) {
+        if (mode == UITraversalMode::DFS && visitor.Active(*this, input)) {
             return visitor.Visit(*this, input, contentArea);
         }
         return false;
@@ -314,8 +314,10 @@ namespace l::ui {
             }
         }
 
-        if (mode == UITraversalMode::AllBFS && visitor.Active(*this, input)) {
-            visitor.Visit(*this, input, contentArea);
+        if (mode == UITraversalMode::BFS && visitor.Active(*this, input)) {
+            if (visitor.Visit(*this, input, contentArea)) {
+                return true;
+            }
         }
 
         size_t i = 0;
@@ -327,9 +329,7 @@ namespace l::ui {
             }
 
             if (content->Accept(visitor, input, mContentAreas.at(i), mode)) {
-                if (mode == UITraversalMode::Once) {
-                    return true;
-                }
+                return true;
             }
 
             if (visitor.ShouldUpdateContainer()) {
@@ -355,7 +355,7 @@ namespace l::ui {
             i++;
         }
 
-        if ((mode == UITraversalMode::AllDFS || mode == UITraversalMode::Once || mode == UITraversalMode::Twice) && visitor.Active(*this, input)) {
+        if ((mode == UITraversalMode::DFS) && visitor.Active(*this, input)) {
             return visitor.Visit(*this, input, contentArea);
         }
         return false;
