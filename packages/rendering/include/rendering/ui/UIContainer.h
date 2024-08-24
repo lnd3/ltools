@@ -259,13 +259,13 @@ namespace l::ui {
     class UIContainer {
     public:
         UIContainer(uint32_t flags = 0, UIRenderType renderType = UIRenderType::Rect, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed) : mConfigFlags(flags) {
-            mArea.mRender.mType = renderType;
-            mArea.mBorder = 3.0f;
-            mArea.mLayout.mAlignH = alignH;
-            mArea.mLayout.mAlignV = alignV;
-            mArea.mLayout.mLayoutH = layoutH;
-            mArea.mLayout.mLayoutV = layoutV;
-            mAreaT.mBorder = 0.0f;
+            mDisplayArea.mRender.mType = renderType;
+            mDisplayArea.mBorder = 3.0f;
+            mDisplayArea.mLayout.mAlignH = alignH;
+            mDisplayArea.mLayout.mAlignV = alignV;
+            mDisplayArea.mLayout.mLayoutH = layoutH;
+            mDisplayArea.mLayout.mLayoutV = layoutV;
+            mLayoutArea.mBorder = 0.0f;
         }
         virtual ~UIContainer() = default;
 
@@ -320,11 +320,11 @@ namespace l::ui {
         void DebugLog();
 
         const UIRenderData& GetRenderData() const {
-            return mArea.mRender;
+            return mDisplayArea.mRender;
         }
 
         const UILayoutData& GetLayoutData() const {
-            return mArea.mLayout;
+            return mDisplayArea.mLayout;
         }
 
         std::string_view GetDisplayName() {
@@ -338,11 +338,11 @@ namespace l::ui {
     protected:
         std::string mId;
         std::string mDisplayName;
-        ContainerArea mArea;
         uint32_t mConfigFlags = 0; // Active visitor flags
         uint32_t mNotificationFlags = 0; // Notification flags for ux feedback (resizing box animation etc)
 
-        ContainerArea mAreaT;
+        ContainerArea mDisplayArea;
+        ContainerArea mLayoutArea;
 
         UIContainer* mParent = nullptr;
         UIContainer* mCoParent = nullptr; // when a container is influenced by two parent in a specific way defined by the type of container and the visitor
@@ -361,10 +361,10 @@ namespace l::ui {
     class UISplit : public UIContainer {
     public:
         UISplit(uint32_t flags, UISplitMode splitMode, UILayoutH layoutH, UILayoutV layoutV) : UIContainer(flags), mSplitMode(splitMode) {
-            mArea.mRender.mType = UIRenderType::Rect;
-            mArea.mBorder = 3.0f;
-            mArea.mLayout.mLayoutH = layoutH;
-            mArea.mLayout.mLayoutV = layoutV;
+            mDisplayArea.mRender.mType = UIRenderType::Rect;
+            mDisplayArea.mBorder = 3.0f;
+            mDisplayArea.mLayout.mLayoutH = layoutH;
+            mDisplayArea.mLayout.mLayoutV = layoutV;
         }
         ~UISplit() = default;
 

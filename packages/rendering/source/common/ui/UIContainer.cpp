@@ -37,20 +37,20 @@ namespace l::ui {
         return pMin.x < p.x && pMin.y < p.y && pMax.x > p.x && pMax.y > p.y;
     }
 
-    bool Overlap(const ImVec2& p, const ImVec2& pMin, const ImVec2& pMax, const ContainerArea& contentArea) {
-        ImVec2 pMinT = contentArea.Transform(pMin);
-        ImVec2 pMaxT = contentArea.Transform(pMax);
+    bool Overlap(const ImVec2& p, const ImVec2& pMin, const ImVec2& pMax, const ContainerArea& area) {
+        ImVec2 pMinT = area.Transform(pMin);
+        ImVec2 pMaxT = area.Transform(pMax);
         return pMinT.x < p.x && pMinT.y < p.y && pMaxT.x > p.x && pMaxT.y > p.y;
     }
 
-    bool OverlapScreenRect(const ImVec2& p, const ImVec2& pCenter, const ImVec2& screenOffset, const ContainerArea& contentArea) {
-        ImVec2 pMinT = contentArea.Transform(pCenter, ImVec2(-screenOffset.x, -screenOffset.y));
-        ImVec2 pMaxT = contentArea.Transform(pCenter, ImVec2(screenOffset.x, screenOffset.y));
+    bool OverlapScreenRect(const ImVec2& p, const ImVec2& pCenter, const ImVec2& screenOffset, const ContainerArea& area) {
+        ImVec2 pMinT = area.Transform(pCenter, ImVec2(-screenOffset.x, -screenOffset.y));
+        ImVec2 pMaxT = area.Transform(pCenter, ImVec2(screenOffset.x, screenOffset.y));
         return pMinT.x < p.x && pMinT.y < p.y && pMaxT.x > p.x && pMaxT.y > p.y;
     }
 
-    bool OverlapScreenCircle(const ImVec2& p, const ImVec2& pCenter, float radii, const ContainerArea& contentArea) {
-        ImVec2 pT = contentArea.Transform(pCenter);
+    bool OverlapScreenCircle(const ImVec2& p, const ImVec2& pCenter, float radii, const ContainerArea& area) {
+        ImVec2 pT = area.Transform(pCenter);
         ImVec2 d = ImVec2(pT.x - p.x, pT.y - p.y);
         return d.x * d.x + d.y * d.y < radii * radii;
     }
@@ -78,21 +78,21 @@ namespace l::ui {
     }
 
     void UIContainer::Move(ImVec2 localChange) {
-        mArea.mPosition.x += localChange.x;
-        mArea.mPosition.y += localChange.y;
+        mDisplayArea.mPosition.x += localChange.x;
+        mDisplayArea.mPosition.y += localChange.y;
     }
 
     void UIContainer::Resize(ImVec2 localChange) {
-        mArea.mSize.x += localChange.x;
-        mArea.mSize.y += localChange.y;
-        if (mArea.mRender.mType != UIRenderType::Spline) {
-            mArea.mSize.x = mArea.mSize.x < 1.0f ? 1.0f : mArea.mSize.x;
-            mArea.mSize.y = mArea.mSize.y < 1.0f ? 1.0f : mArea.mSize.y;
+        mDisplayArea.mSize.x += localChange.x;
+        mDisplayArea.mSize.y += localChange.y;
+        if (mDisplayArea.mRender.mType != UIRenderType::Spline) {
+            mDisplayArea.mSize.x = mDisplayArea.mSize.x < 1.0f ? 1.0f : mDisplayArea.mSize.x;
+            mDisplayArea.mSize.y = mDisplayArea.mSize.y < 1.0f ? 1.0f : mDisplayArea.mSize.y;
         }
     }
 
     void UIContainer::Rescale(float localChange) {
-        mArea.mScale *= localChange;
+        mDisplayArea.mScale *= localChange;
     }
 
     void UIContainer::ClearNotifications() {
@@ -112,19 +112,19 @@ namespace l::ui {
     }
 
     void UIContainer::SetScale(float scale) {
-        mArea.mScale = scale;
+        mDisplayArea.mScale = scale;
     }
 
     void UIContainer::SetPosition(ImVec2 p) {
-        mArea.mPosition = p;
+        mDisplayArea.mPosition = p;
     }
 
     void UIContainer::SetSize(ImVec2 s) {
-        mArea.mSize = s;
+        mDisplayArea.mSize = s;
     }
 
     void UIContainer::SetLayoutSize(ImVec2 s) {
-        mAreaT.mSize = s;
+        mLayoutArea.mSize = s;
     }
 
     void UIContainer::SetDisplayName(std::string_view displayName) {
@@ -136,11 +136,11 @@ namespace l::ui {
     }
 
     void UIContainer::SetContainerArea(const ContainerArea& area) {
-        mArea = area;
+        mDisplayArea = area;
     }
 
     void UIContainer::SetLayoutArea(const ContainerArea& transformedLayoutArea) {
-        mAreaT = transformedLayoutArea;
+        mLayoutArea = transformedLayoutArea;
     }
 
     UIContainer* UIContainer::GetParent() {
@@ -161,46 +161,46 @@ namespace l::ui {
 
     ImVec2 UIContainer::GetPosition(bool untransformed) {
         if (untransformed) {
-            return mArea.mPosition;
+            return mDisplayArea.mPosition;
         }
-        return ImVec2(mArea.mPosition.x * mArea.mScale, mArea.mPosition.y * mArea.mScale);
+        return ImVec2(mDisplayArea.mPosition.x * mDisplayArea.mScale, mDisplayArea.mPosition.y * mDisplayArea.mScale);
     }
 
     ImVec2 UIContainer::GetPositionAtCenter(ImVec2 offset, bool untransformed) {
         if (untransformed) {
-            return ImVec2(mArea.mPosition.x + mArea.mSize.x * 0.5f + offset.x, mArea.mPosition.y * 0.5f + mArea.mSize.y + offset.y);
+            return ImVec2(mDisplayArea.mPosition.x + mDisplayArea.mSize.x * 0.5f + offset.x, mDisplayArea.mPosition.y * 0.5f + mDisplayArea.mSize.y + offset.y);
         }
-        return ImVec2((mArea.mPosition.x + mArea.mSize.x * 0.5f + offset.x) * mArea.mScale, (mArea.mPosition.y * 0.5f + mArea.mSize.y + offset.y) * mArea.mScale);
+        return ImVec2((mDisplayArea.mPosition.x + mDisplayArea.mSize.x * 0.5f + offset.x) * mDisplayArea.mScale, (mDisplayArea.mPosition.y * 0.5f + mDisplayArea.mSize.y + offset.y) * mDisplayArea.mScale);
     }
 
     ImVec2 UIContainer::GetPositionAtSize(ImVec2 offset, bool untransformed) {
         if (untransformed) {
-            return ImVec2(mArea.mPosition.x + mArea.mSize.x + offset.x, mArea.mPosition.y + mArea.mSize.y + offset.y);
+            return ImVec2(mDisplayArea.mPosition.x + mDisplayArea.mSize.x + offset.x, mDisplayArea.mPosition.y + mDisplayArea.mSize.y + offset.y);
         }
-        return ImVec2((mArea.mPosition.x + mArea.mSize.x + offset.x) * mArea.mScale, (mArea.mPosition.y + mArea.mSize.y + offset.y) * mArea.mScale);
+        return ImVec2((mDisplayArea.mPosition.x + mDisplayArea.mSize.x + offset.x) * mDisplayArea.mScale, (mDisplayArea.mPosition.y + mDisplayArea.mSize.y + offset.y) * mDisplayArea.mScale);
     }
 
     ImVec2 UIContainer::GetSize(bool untransformed) {
         if (untransformed) {
-            return mArea.mSize;
+            return mDisplayArea.mSize;
         }
-        return ImVec2(mArea.mSize.x * mArea.mScale, mArea.mSize.y * mArea.mScale);
+        return ImVec2(mDisplayArea.mSize.x * mDisplayArea.mScale, mDisplayArea.mSize.y * mDisplayArea.mScale);
     }
 
     float UIContainer::GetScale() {
-        return mArea.mScale;
+        return mDisplayArea.mScale;
     }
 
     ContainerArea& UIContainer::GetContainerArea() {
-        return mArea;
+        return mDisplayArea;
     }
 
     const ContainerArea& UIContainer::GetLayoutArea() const {
-        return mAreaT;
+        return mLayoutArea;
     }
 
     void UIContainer::DebugLog() {
-        LOG(LogDebug) << "UIContainer: " << mDisplayName << ", [" << mArea.mScale << "][" << mArea.mPosition.x << ", " << mArea.mPosition.y << "][" << mArea.mSize.x << ", " << mArea.mSize.y << "]";
+        LOG(LogDebug) << "UIContainer: " << mDisplayName << ", [" << mDisplayArea.mScale << "][" << mDisplayArea.mPosition.x << ", " << mDisplayArea.mPosition.y << "][" << mDisplayArea.mSize.x << ", " << mDisplayArea.mSize.y << "]";
     }
 
     bool UIContainer::Accept(UIVisitor& visitor, const InputState& input, UITraversalMode mode) {
@@ -212,7 +212,7 @@ namespace l::ui {
             case UILayoutH::Scaled:
                 break;
             case UILayoutH::Parent:
-                mArea.mSize.x = GetLayoutArea().GetLocalSize().x;
+                mDisplayArea.mSize.x = mLayoutArea.GetLocalSize().x;
                 break;
             }
             switch (layout.mLayoutV) {
@@ -221,7 +221,7 @@ namespace l::ui {
             case UILayoutV::Scaled:
                 break;
             case UILayoutV::Parent:
-                mArea.mSize.y = GetLayoutArea().GetLocalSize().y;
+                mDisplayArea.mSize.y = mLayoutArea.GetLocalSize().y;
                 break;
             }
         }
@@ -238,9 +238,9 @@ namespace l::ui {
                 auto contentSize = content->GetSize();
                 auto& contentLayout = content->GetContainerArea().mLayout;
                 ContainerArea current;
-                current.mScale = mArea.GetWorldScale(GetLayoutArea().mScale);
-                current.mSize = mArea.GetWorldSizeLayout(GetLayoutArea().mScale);
-                current.mPosition = mArea.GetWorldPosLayout(GetLayoutArea().mScale, GetLayoutArea().mPosition, contentSize, contentLayout.mAlignH, contentLayout.mAlignV);
+                current.mScale = mDisplayArea.GetWorldScale(mLayoutArea.mScale);
+                current.mSize = mDisplayArea.GetWorldSizeLayout(mLayoutArea.mScale);
+                current.mPosition = mDisplayArea.GetWorldPosLayout(mLayoutArea.mScale, mLayoutArea.mPosition, contentSize, contentLayout.mAlignH, contentLayout.mAlignV);
                 content->SetLayoutArea(current);
             }
 
@@ -270,7 +270,7 @@ namespace l::ui {
             case UILayoutH::Scaled:
                 break;
             case UILayoutH::Parent:
-                mArea.mSize.x = GetLayoutArea().GetLocalSize().x;
+                mDisplayArea.mSize.x = mLayoutArea.GetLocalSize().x;
                 break;
             }
             switch (layout.mLayoutV) {
@@ -279,14 +279,14 @@ namespace l::ui {
             case UILayoutV::Scaled:
                 break;
             case UILayoutV::Parent:
-                mArea.mSize.y = GetLayoutArea().GetLocalSize().y;
+                mDisplayArea.mSize.y = mLayoutArea.GetLocalSize().y;
                 break;
             }
 
             float contentCount = static_cast<float>(mContent.size());
-            current.mScale = mArea.GetWorldScale(GetLayoutArea().mScale);
-            current.mSize = mArea.GetWorldSize(GetLayoutArea().mScale);
-            current.mPosition = mArea.GetWorldPos(GetLayoutArea().mScale, GetLayoutArea().mPosition);
+            current.mScale = mDisplayArea.GetWorldScale(mLayoutArea.mScale);
+            current.mSize = mDisplayArea.GetWorldSize(mLayoutArea.mScale);
+            current.mPosition = mDisplayArea.GetWorldPos(mLayoutArea.mScale, mLayoutArea.mPosition);
 
             switch (mSplitMode) {
             case UISplitMode::EqualSplitH:
@@ -331,10 +331,10 @@ namespace l::ui {
                     current.mPosition.y += current.mSize.y;
                     break;
                 case UISplitMode::AppendH:
-                    current.mPosition.x += content->GetSize().x * GetLayoutArea().mScale;
+                    current.mPosition.x += content->GetSize().x * mLayoutArea.mScale;
                     break;
                 case UISplitMode::AppendV:
-                    current.mPosition.y += content->GetSize().y * GetLayoutArea().mScale;
+                    current.mPosition.y += content->GetSize().y * mLayoutArea.mScale;
                     break;
                 case UISplitMode::EqualResizeH:
                     break;
