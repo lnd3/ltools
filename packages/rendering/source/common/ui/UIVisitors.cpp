@@ -153,9 +153,9 @@ namespace l::ui {
         ImVec2 pSize = container.GetSize();
         pSize.x *= layoutArea.mScale;
         pSize.y *= layoutArea.mScale;
-        ImVec2 p1 = layoutArea.Transform(pTopLeft, input.mRootPos);
-        ImVec2 p12 = layoutArea.Transform(pCenter, input.mRootPos);
-        ImVec2 p2 = layoutArea.Transform(pLowRight, input.mRootPos);
+        ImVec2 p1 = layoutArea.Transform(pTopLeft);
+        ImVec2 p12 = layoutArea.Transform(pCenter);
+        ImVec2 p2 = layoutArea.Transform(pLowRight);
         ImVec2 p11;
         ImVec2 p22;
 
@@ -187,28 +187,28 @@ namespace l::ui {
             if (container.HasConfigFlag(UIContainer_LinkFlag)) {
                 splineThickness = container.HasNotification(UIContainer_LinkFlag) ? 2.0f * splineThickness : splineThickness;
                 ImVec2 pLinkInput = container.GetParent()->GetPosition();
-                p1 = layoutArea.Transform(ImVec2(), input.mRootPos);
+                p1 = layoutArea.Transform(ImVec2());
 
                 if (container.GetCoParent() != nullptr) {
                     ImVec2 pLinkOutput = container.GetCoParent()->GetPosition();
                     auto& coLayoutArea = container.GetCoParent()->GetLayoutArea();
-                    p2 = coLayoutArea.Transform(pLinkOutput, input.mRootPos);
+                    p2 = coLayoutArea.Transform(pLinkOutput);
                     float d12 = sqrt(0.25f*((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y)) / (layoutArea.mScale * layoutArea.mScale));
 
-                    p11 = layoutArea.Transform(ImVec2(pLinkInput.x + d12, pLinkInput.y), input.mRootPos);
-                    p22 = coLayoutArea.Transform(ImVec2(pLinkOutput.x - d12, pLinkOutput.y), input.mRootPos);
+                    p11 = layoutArea.Transform(ImVec2(pLinkInput.x + d12, pLinkInput.y));
+                    p22 = coLayoutArea.Transform(ImVec2(pLinkOutput.x - d12, pLinkOutput.y));
                 }
                 else {
                     p2 = input.mCurPos;
                     float d12 = sqrt(0.25f * ((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y)) / (layoutArea.mScale * layoutArea.mScale));
-                    p11 = layoutArea.Transform(ImVec2(pLinkInput.x + d12, pLinkInput.y), input.mRootPos);
+                    p11 = layoutArea.Transform(ImVec2(pLinkInput.x + d12, pLinkInput.y));
                     p22 = ImVec2(p2.x - d12 * layoutArea.mScale, p2.y);
                 }
             }
             else {
                 float d12 = sqrt(0.25f * ((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y)) / (layoutArea.mScale * layoutArea.mScale));
-                p11 = layoutArea.Transform(ImVec2(pTopLeft.x + d12, pTopLeft.y), input.mRootPos);
-                p22 = layoutArea.Transform(ImVec2(pLowRight.x - d12, pLowRight.y), input.mRootPos);
+                p11 = layoutArea.Transform(ImVec2(pTopLeft.x + d12, pTopLeft.y));
+                p22 = layoutArea.Transform(ImVec2(pLowRight.x - d12, pLowRight.y));
             }
             mDrawList->AddBezierCubic(p1, p11, p22, p2, color, splineThickness, 30);
             break;
@@ -243,11 +243,11 @@ namespace l::ui {
         case l::ui::UIRenderType::Texture:
         case l::ui::UIRenderType::Spline:
             if (container.HasConfigFlag(ui::UIContainer_ResizeFlag)) {
-                ImVec2 p3 = layoutArea.Transform(pLowRight, ImVec2(input.mRootPos.x - 3.0f, input.mRootPos.y - 3.0f));
-                ImVec2 p4 = layoutArea.Transform(pLowRight, ImVec2(input.mRootPos.x + 3.0f, input.mRootPos.y + 3.0f));
+                ImVec2 p3 = layoutArea.Transform(pLowRight, ImVec2(- 3.0f, - 3.0f));
+                ImVec2 p4 = layoutArea.Transform(pLowRight, ImVec2(3.0f, 3.0f));
                 if (container.HasNotification(ui::UIContainer_ResizeFlag)) {
-                    p3 = layoutArea.Transform(pLowRight, ImVec2(input.mRootPos.x - 5.0f, input.mRootPos.y - 5.0f));
-                    p4 = layoutArea.Transform(pLowRight, ImVec2(input.mRootPos.x + 5.0f, input.mRootPos.y + 5.0f));
+                    p3 = layoutArea.Transform(pLowRight, ImVec2(- 5.0f, - 5.0f));
+                    p4 = layoutArea.Transform(pLowRight, ImVec2(5.0f, 5.0f));
                 }
                 mDrawList->AddRectFilled(p3, p4, color);
             }
@@ -270,7 +270,7 @@ namespace l::ui {
             ImVec2 size = container.GetSize();
             auto& layoutArea = container.GetLayoutArea();
 
-            ImVec2 pT = layoutArea.Transform(pCenter, input.mRootPos);
+            ImVec2 pT = layoutArea.Transform(pCenter);
             if (OverlapCircle(input.mCurPos, pT, size.x * layoutArea.mScale)) {
                 mDragging = true;
                 mLinkContainer = mCreator->CreateContainer(UIContainer_LinkFlag | UIContainer_DrawFlag, UIRenderType::Spline);
@@ -281,7 +281,7 @@ namespace l::ui {
         if (container.HasConfigFlag(UIContainer_LinkFlag) && !mDragging && input.mStarted && mLinkContainer.get() == nullptr && container.GetCoParent() != nullptr) {
             ImVec2 pCenter = container.GetCoParent()->GetPosition();
             ImVec2 size = container.GetCoParent()->GetSize();
-            ImVec2 pT = container.GetCoParent()->GetLayoutArea().Transform(pCenter, input.mRootPos);
+            ImVec2 pT = container.GetCoParent()->GetLayoutArea().Transform(pCenter);
             if (OverlapCircle(input.mCurPos, pT, size.x * container.GetCoParent()->GetLayoutArea().mScale)) {
                 mDragging = true;
                 mLinkContainer.mContainer = &container;
@@ -302,7 +302,7 @@ namespace l::ui {
             ImVec2 size = container.GetSize();
             auto& layoutArea = container.GetLayoutArea();
 
-            ImVec2 pT = layoutArea.Transform(pCenter, input.mRootPos);
+            ImVec2 pT = layoutArea.Transform(pCenter);
 
             if (OverlapCircle(input.mCurPos, pT, size.x * layoutArea.mScale)) {
                 mLinkContainer->Notification(UIContainer_LinkFlag);

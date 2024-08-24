@@ -73,7 +73,6 @@ namespace l::ui {
     };
 
     struct InputState {
-        ImVec2 mRootPos;
         ImVec2 mCurPos;
         ImVec2 mPrevPos;
         float mScroll = 0.0f;
@@ -81,7 +80,7 @@ namespace l::ui {
         bool mStopped = false;
 
         ImVec2 GetLocalPos() const {
-            return ImVec2(mCurPos.x - mRootPos.x, mCurPos.y - mRootPos.y);
+            return ImVec2(mCurPos.x, mCurPos.y);
         }
     };
 
@@ -300,6 +299,7 @@ namespace l::ui {
         void SetScale(float scale);
         void SetPosition(ImVec2 p);
         void SetSize(ImVec2 s);
+        void SetLayoutPosition(ImVec2 s);
         void SetLayoutSize(ImVec2 s);
         void SetDisplayName(std::string_view id);
         void SetId(std::string_view id);

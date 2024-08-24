@@ -123,6 +123,10 @@ namespace l::ui {
         mDisplayArea.mSize = s;
     }
 
+    void UIContainer::SetLayoutPosition(ImVec2 s) {
+        mLayoutArea.mPosition = s;
+    }
+
     void UIContainer::SetLayoutSize(ImVec2 s) {
         mLayoutArea.mSize = s;
     }
@@ -205,7 +209,7 @@ namespace l::ui {
 
     bool UIContainer::Accept(UIVisitor& visitor, const InputState& input, UITraversalMode mode) {
         if (visitor.ShouldUpdateContainer()) {
-            auto& layout = GetContainerArea().mLayout;
+            auto& layout = mDisplayArea.mLayout;
             switch (layout.mLayoutH) {
             case UILayoutH::Fixed:
                 break;
@@ -236,7 +240,7 @@ namespace l::ui {
         for (auto& content : mContent) {
             if (visitor.ShouldUpdateContainer()) {
                 auto contentSize = content->GetSize();
-                auto& contentLayout = content->GetContainerArea().mLayout;
+                auto& contentLayout = content->mDisplayArea.mLayout;
                 ContainerArea current;
                 current.mScale = mDisplayArea.GetWorldScale(mLayoutArea.mScale);
                 current.mSize = mDisplayArea.GetWorldSizeLayout(mLayoutArea.mScale);
@@ -263,7 +267,7 @@ namespace l::ui {
         ContainerArea current;
 
         if (visitor.ShouldUpdateContainer()) {
-            auto& layout = GetContainerArea().mLayout;
+            auto& layout = mDisplayArea.mLayout;
             switch (layout.mLayoutH) {
             case UILayoutH::Fixed:
                 break;
