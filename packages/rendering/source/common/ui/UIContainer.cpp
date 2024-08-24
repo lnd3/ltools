@@ -163,7 +163,7 @@ namespace l::ui {
         return mCoParent;
     }
 
-    ImVec2 UIContainer::GetPosition(bool untransformed) {
+    ImVec2 UIContainer::GetPosition(bool untransformed) const {
         if (untransformed) {
             return mDisplayArea.mPosition;
         }

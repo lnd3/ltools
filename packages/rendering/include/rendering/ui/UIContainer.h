@@ -309,7 +309,7 @@ namespace l::ui {
         void SetCoParent(UIContainer* input);
         UIContainer* GetParent();
         UIContainer* GetCoParent();
-        ImVec2 GetPosition(bool untransformed = false);
+        ImVec2 GetPosition(bool untransformed = false) const;
         ImVec2 GetPositionAtCenter(ImVec2 offset = ImVec2(), bool untransformed = false);
         ImVec2 GetPositionAtSize(ImVec2 offset = ImVec2(), bool untransformed = false);
         ImVec2 GetSize(bool untransformed = false);
@@ -402,7 +402,6 @@ namespace l::ui {
 
     protected:
         std::unordered_map<std::string, std::unique_ptr<UIContainer>> mContainers;
-        std::vector<UIVisitor> mVisitors;
 
     };
 }

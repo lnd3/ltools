@@ -174,10 +174,10 @@ namespace l::ui {
         case l::ui::UIRenderType::TriangleFilled:
             break;
         case l::ui::UIRenderType::Circle:
-            mDrawList->AddCircle(p12, pSize.x, color, 15, 2.0f * container.GetScale() * layoutArea.mScale);
+            mDrawList->AddCircle(p1, pSize.x, color, 18, 2.0f * container.GetScale() * layoutArea.mScale);
             break;
         case l::ui::UIRenderType::CircleFilled:
-            mDrawList->AddCircleFilled(p12, pSize.x, color, 15);
+            mDrawList->AddCircleFilled(p1, pSize.x, color, 15);
             break;
         case l::ui::UIRenderType::Polygon:
             break;
@@ -189,20 +189,20 @@ namespace l::ui {
                 ImVec2 pLinkInput = container.GetParent()->GetPosition();
                 p1 = layoutArea.Transform(ImVec2());
 
-                if (container.GetCoParent() != nullptr) {
+                if (container.GetCoParent() == nullptr) {
+                    p2 = input.mCurPos;
+                    float d12 = sqrt(0.25f * ((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y)) / (layoutArea.mScale * layoutArea.mScale));
+                    p11 = layoutArea.Transform(ImVec2(pLinkInput.x + d12, 0.0f));
+                    p22 = ImVec2(p2.x - d12 * layoutArea.mScale, p2.y);
+                }
+                else {
                     ImVec2 pLinkOutput = container.GetCoParent()->GetPosition();
                     auto& coLayoutArea = container.GetCoParent()->GetLayoutArea();
                     p2 = coLayoutArea.Transform(pLinkOutput);
-                    float d12 = sqrt(0.25f*((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y)) / (layoutArea.mScale * layoutArea.mScale));
-
-                    p11 = layoutArea.Transform(ImVec2(pLinkInput.x + d12, pLinkInput.y));
-                    p22 = coLayoutArea.Transform(ImVec2(pLinkOutput.x - d12, pLinkOutput.y));
-                }
-                else {
-                    p2 = input.mCurPos;
                     float d12 = sqrt(0.25f * ((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y)) / (layoutArea.mScale * layoutArea.mScale));
-                    p11 = layoutArea.Transform(ImVec2(pLinkInput.x + d12, pLinkInput.y));
-                    p22 = ImVec2(p2.x - d12 * layoutArea.mScale, p2.y);
+
+                    p11 = layoutArea.Transform(ImVec2(pLinkInput.x + d12, 0.0f));
+                    p22 = coLayoutArea.Transform(ImVec2(pLinkOutput.x - d12, pLinkOutput.y));
                 }
             }
             else {
@@ -210,7 +210,7 @@ namespace l::ui {
                 p11 = layoutArea.Transform(ImVec2(pTopLeft.x + d12, pTopLeft.y));
                 p22 = layoutArea.Transform(ImVec2(pLowRight.x - d12, pLowRight.y));
             }
-            mDrawList->AddBezierCubic(p1, p11, p22, p2, color, splineThickness, 30);
+            mDrawList->AddBezierCubic(p1, p11, p22, p2, color, splineThickness * layoutArea.mScale, static_cast<int>(10.0f  +  20.0f * sqrt(layoutArea.mScale)));
             break;
         case l::ui::UIRenderType::Text:
 
