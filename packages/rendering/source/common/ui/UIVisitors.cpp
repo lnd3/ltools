@@ -10,7 +10,7 @@ namespace l::ui {
         return input.mScroll != 0;
     }
 
-    bool UIZoom::Visit(UIContainer& container, const InputState& input, const ContainerArea& contentArea) {
+    bool UIZoom::Visit(UIContainer& container, const InputState& input) {
         if (!container.HasConfigFlag(UIContainer_ZoomFlag)) {
             return false;
         }
@@ -24,6 +24,8 @@ namespace l::ui {
             if ((container.GetScale() > 100.0f && scaleChange > 1.0f) || (container.GetScale() < 0.01f && scaleChange < 1.0f)) {
                 return true;
             }
+
+            auto& contentArea = container.GetLayoutArea();
 
             ImVec2 mousePos = input.GetLocalPos();
             ImVec2 localMousePos = ImVec2(contentArea.mPosition.x - mousePos.x, contentArea.mPosition.y - mousePos.y);
@@ -41,7 +43,7 @@ namespace l::ui {
         return (input.mStarted && !mDragging) || mDragging;
     }
 
-    bool UIDrag::Visit(UIContainer& container, const InputState& input, const ContainerArea& contentArea) {
+    bool UIDrag::Visit(UIContainer& container, const InputState& input) {
         if (!container.HasConfigFlag(UIContainer_DragFlag)) {
             return false;
         }
@@ -52,6 +54,8 @@ namespace l::ui {
             }
         }
         if (mDragging && mSourceContainer == &container) {
+            auto& contentArea = container.GetLayoutArea();
+
             ImVec2 move = DragMovement(input.mPrevPos, input.mCurPos, contentArea.mScale * container.GetScale());
             container.Move(move);
             container.Notification(UIContainer_DragFlag);
@@ -69,17 +73,19 @@ namespace l::ui {
         return (input.mStarted && !mMoving) || mMoving;
     }
 
-    bool UIMove::Visit(UIContainer& container, const InputState& input, const ContainerArea& contentArea) {
+    bool UIMove::Visit(UIContainer& container, const InputState& input) {
         if(!container.HasConfigFlag(UIContainer_MoveFlag)){
             return false;
         }
         if (input.mStarted && !mMoving) {
+            auto& contentArea = container.GetLayoutArea();
             if (Overlap(input.GetLocalPos(), container.GetPosition(), container.GetPositionAtSize(), contentArea)) {
                 mMoving = true;
                 mSourceContainer = &container;
             }
         }
         if (mMoving && mSourceContainer == &container) {
+            auto& contentArea = container.GetLayoutArea();
             ImVec2 move = DragMovement(input.mPrevPos, input.mCurPos, contentArea.mScale);
             container.Move(move);
             container.Notification(UIContainer_MoveFlag);
@@ -93,13 +99,14 @@ namespace l::ui {
         return false;
     }
 
-    bool UIResize::Visit(UIContainer& container, const InputState& input, const ContainerArea& contentArea) {
+    bool UIResize::Visit(UIContainer& container, const InputState& input) {
         if (!container.HasConfigFlag(UIContainer_ResizeFlag)) {
             return false;
         }
         if (!mResizing) {
             const float radii = mResizeAreaSize * 0.5f;
             ImVec2 p = container.GetPositionAtSize();
+            auto& contentArea = container.GetLayoutArea();
             if (OverlapScreenRect(input.GetLocalPos(), p, ImVec2(radii, radii), contentArea)) {
                 mSourceContainer = &container;
                 container.Notification(UIContainer_ResizeFlag);
@@ -117,6 +124,7 @@ namespace l::ui {
             }
         }
         if (mResizing && mSourceContainer == &container) {
+            auto& contentArea = container.GetLayoutArea();
             ImVec2 move = DragMovement(input.mPrevPos, input.mCurPos, contentArea.mScale);
             container.Resize(move);
 
@@ -130,10 +138,12 @@ namespace l::ui {
         return false;
     }
 
-    bool UIDraw::Visit(UIContainer& container, const InputState& input, const ContainerArea& contentArea) {
+    bool UIDraw::Visit(UIContainer& container, const InputState& input) {
         if (!mDebug && !container.HasConfigFlag(UIContainer_DrawFlag)) {
             return false;
         }
+
+        auto& contentArea = container.GetLayoutArea();
 
         float splineThickness = 2.0f;
         ImU32 color = container.GetRenderData().mColor;
@@ -253,11 +263,13 @@ namespace l::ui {
         return container.HasConfigFlag(UIContainer_InputFlag) || container.HasConfigFlag(UIContainer_OutputFlag) || container.HasConfigFlag(UIContainer_LinkFlag);
     }
 
-    bool UILinkIO::Visit(UIContainer& container, const InputState& input, const ContainerArea& contentArea) {
+    bool UILinkIO::Visit(UIContainer& container, const InputState& input) {
         // Create link at from a clicked output container
         if (container.HasConfigFlag(UIContainer_OutputFlag) && !mDragging && input.mStarted && mLinkContainer.get() == nullptr) {
             ImVec2 pCenter = container.GetPosition();
             ImVec2 size = container.GetSize();
+            auto& contentArea = container.GetLayoutArea();
+
             ImVec2 pT = contentArea.Transform(pCenter, input.mRootPos);
             if (OverlapCircle(input.mCurPos, pT, size.x * contentArea.mScale)) {
                 mDragging = true;
@@ -279,6 +291,8 @@ namespace l::ui {
 
         if (mDragging && mLinkContainer.get() != nullptr && container.HasConfigFlag(UIContainer_LinkFlag) && mLinkContainer.get() == &container) {
             // On the newly created link container, drag the end point along the mouse movement
+            auto& contentArea = container.GetLayoutArea();
+
             ImVec2 move = DragMovement(input.mPrevPos, input.mCurPos, contentArea.mScale * container.GetScale());
             mLinkContainer->Move(move);
         }
@@ -286,6 +300,8 @@ namespace l::ui {
         if (mDragging && mLinkContainer.get() != nullptr && container.HasConfigFlag(UIContainer_InputFlag)) {
             ImVec2 pCenter = container.GetPosition();
             ImVec2 size = container.GetSize();
+            auto& contentArea = container.GetLayoutArea();
+
             ImVec2 pT = contentArea.Transform(pCenter, input.mRootPos);
 
             if (OverlapCircle(input.mCurPos, pT, size.x * contentArea.mScale)) {

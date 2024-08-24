@@ -216,7 +216,7 @@ namespace l::ui {
             case UILayoutH::Scaled:
                 break;
             case UILayoutH::Parent:
-                mArea.mSize.x = contentArea.GetLocalSize().x;
+                mArea.mSize.x = GetLayoutArea().GetLocalSize().x;
                 break;
             }
             switch (layout.mLayoutV) {
@@ -231,7 +231,7 @@ namespace l::ui {
         }
 
         if (mode == UITraversalMode::BFS && visitor.Active(*this, input)) {
-            if (visitor.Visit(*this, input, contentArea)) {
+            if (visitor.Visit(*this, input)) {
                 return true;
             }
         }
@@ -259,7 +259,7 @@ namespace l::ui {
         }
 
         if (mode == UITraversalMode::DFS && visitor.Active(*this, input)) {
-            return visitor.Visit(*this, input, contentArea);
+            return visitor.Visit(*this, input);
         }
         return false;
     }
@@ -315,7 +315,7 @@ namespace l::ui {
         }
 
         if (mode == UITraversalMode::BFS && visitor.Active(*this, input)) {
-            if (visitor.Visit(*this, input, contentArea)) {
+            if (visitor.Visit(*this, input)) {
                 return true;
             }
         }
@@ -356,7 +356,7 @@ namespace l::ui {
         }
 
         if ((mode == UITraversalMode::DFS) && visitor.Active(*this, input)) {
-            return visitor.Visit(*this, input, contentArea);
+            return visitor.Visit(*this, input);
         }
         return false;
     }

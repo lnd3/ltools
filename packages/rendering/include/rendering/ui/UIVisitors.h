@@ -25,13 +25,13 @@ namespace l::ui {
     class UIZoom : public UIVisitor {
     public:
         virtual bool Active(UIContainer& container, const InputState& input);
-        virtual bool Visit(UIContainer& container, const InputState& input, const ContainerArea& parent);
+        virtual bool Visit(UIContainer& container, const InputState& input);
     };
 
     class UIDrag : public UIVisitor {
     public:
         virtual bool Active(UIContainer& container, const InputState& input);
-        virtual bool Visit(UIContainer& container, const InputState& input, const ContainerArea& parent);
+        virtual bool Visit(UIContainer& container, const InputState& input);
     protected:
         bool mDragging = false;
         UIContainer* mSourceContainer = nullptr;
@@ -40,7 +40,7 @@ namespace l::ui {
     class UIMove : public UIVisitor {
     public:
         virtual bool Active(UIContainer& container, const InputState& input);
-        virtual bool Visit(UIContainer& container, const InputState& input, const ContainerArea& parent);
+        virtual bool Visit(UIContainer& container, const InputState& input);
     protected:
         bool mMoving = false;
         UIContainer* mSourceContainer = nullptr;
@@ -48,7 +48,7 @@ namespace l::ui {
 
     class UIResize : public UIVisitor {
     public:
-        virtual bool Visit(UIContainer& container, const InputState& input, const ContainerArea& parent);
+        virtual bool Visit(UIContainer& container, const InputState& input);
     protected:
         bool mResizing = false;
         float mResizeAreaSize = 8.0f;
@@ -60,7 +60,7 @@ namespace l::ui {
         UIDraw(ImDrawList* drawList) : mDrawList(drawList) {}
         ~UIDraw() = default;
 
-        virtual bool Visit(UIContainer& container, const InputState& input, const ContainerArea& parent);
+        virtual bool Visit(UIContainer& container, const InputState& input);
     protected:
         ImDrawList* mDrawList;
     };
@@ -72,7 +72,7 @@ namespace l::ui {
         UILinkIO(UICreator* creator = nullptr) : mCreator(creator) {}
         ~UILinkIO() = default;
 
-        virtual bool Visit(UIContainer& container, const InputState& input, const ContainerArea& parent);
+        virtual bool Visit(UIContainer& container, const InputState& input);
     protected:
         bool mDragging = false;
         bool mPossibleLinkImminent = false;

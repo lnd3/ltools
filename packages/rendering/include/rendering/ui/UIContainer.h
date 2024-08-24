@@ -190,7 +190,7 @@ namespace l::ui {
         virtual bool Active(UIContainer&, const InputState&) {
             return true;
         }
-        virtual bool Visit(UIContainer&, const InputState&, const ContainerArea&) {
+        virtual bool Visit(UIContainer&, const InputState&) {
             return false;
         }
         virtual void Debug(bool on = true) {
