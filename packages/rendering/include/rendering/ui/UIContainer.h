@@ -265,11 +265,11 @@ namespace l::ui {
             mArea.mLayout.mAlignV = alignV;
             mArea.mLayout.mLayoutH = layoutH;
             mArea.mLayout.mLayoutV = layoutV;
+            mAreaT.mBorder = 0.0f;
         }
         virtual ~UIContainer() = default;
 
-        bool Accept(UIVisitor& visitor, const InputState& input, UITraversalMode mode = UITraversalMode::BFS);
-        virtual bool Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& contentArea, UITraversalMode mode = UITraversalMode::BFS);
+        virtual bool Accept(UIVisitor& visitor, const InputState& input, UITraversalMode mode = UITraversalMode::BFS);
         virtual void Add(UIContainer* container, int32_t i = -1);
 
         template<class T>
@@ -300,6 +300,7 @@ namespace l::ui {
         void SetScale(float scale);
         void SetPosition(ImVec2 p);
         void SetSize(ImVec2 s);
+        void SetLayoutSize(ImVec2 s);
         void SetDisplayName(std::string_view id);
         void SetId(std::string_view id);
         void SetContainerArea(const ContainerArea& area);
@@ -346,7 +347,6 @@ namespace l::ui {
         UIContainer* mParent = nullptr;
         UIContainer* mCoParent = nullptr; // when a container is influenced by two parent in a specific way defined by the type of container and the visitor
         std::vector<UIContainer*> mContent;
-        std::vector<ContainerArea> mContentAreas;
     };
 
     enum class UISplitMode {
@@ -368,7 +368,7 @@ namespace l::ui {
         }
         ~UISplit() = default;
 
-        virtual bool Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& contentArea, UITraversalMode mode);
+        virtual bool Accept(UIVisitor& visitor, const InputState& input, UITraversalMode mode);
     protected:
         UISplitMode mSplitMode;
     };

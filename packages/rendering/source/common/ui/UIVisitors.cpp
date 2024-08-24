@@ -206,7 +206,7 @@ namespace l::ui {
                 }
             }
             else {
-                float d12 = sqrt(0.25f * ((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y)));
+                float d12 = sqrt(0.25f * ((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y)) / (contentArea.mScale * contentArea.mScale));
                 p11 = contentArea.Transform(ImVec2(pTopLeft.x + d12, pTopLeft.y), input.mRootPos);
                 p22 = contentArea.Transform(ImVec2(pLowRight.x - d12, pLowRight.y), input.mRootPos);
             }

@@ -123,6 +123,10 @@ namespace l::ui {
         mArea.mSize = s;
     }
 
+    void UIContainer::SetLayoutSize(ImVec2 s) {
+        mAreaT.mSize = s;
+    }
+
     void UIContainer::SetDisplayName(std::string_view displayName) {
         mDisplayName = displayName;
     }
@@ -200,14 +204,6 @@ namespace l::ui {
     }
 
     bool UIContainer::Accept(UIVisitor& visitor, const InputState& input, UITraversalMode mode) {
-        ContainerArea current;
-        if (visitor.Active(*this, input)) {
-            return Accept(visitor, input, current, mode);
-        }
-        return false;
-    }
-
-    bool UIContainer::Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& contentArea, UITraversalMode mode) {
         if (visitor.ShouldUpdateContainer()) {
             auto& layout = GetContainerArea().mLayout;
             switch (layout.mLayoutH) {
@@ -225,7 +221,7 @@ namespace l::ui {
             case UILayoutV::Scaled:
                 break;
             case UILayoutV::Parent:
-                mArea.mSize.y = contentArea.GetLocalSize().y;
+                mArea.mSize.y = GetLayoutArea().GetLocalSize().y;
                 break;
             }
         }
@@ -242,17 +238,13 @@ namespace l::ui {
                 auto contentSize = content->GetSize();
                 auto& contentLayout = content->GetContainerArea().mLayout;
                 ContainerArea current;
-                current.mScale = mArea.GetWorldScale(contentArea.mScale);
-                current.mSize = mArea.GetWorldSizeLayout(contentArea.mScale);
-                current.mPosition = mArea.GetWorldPosLayout(contentArea.mScale, contentArea.mPosition, contentSize, contentLayout.mAlignH, contentLayout.mAlignV);
-
-                mContentAreas.resize(mContent.size());
-                mContentAreas.at(i) = current;
-
+                current.mScale = mArea.GetWorldScale(GetLayoutArea().mScale);
+                current.mSize = mArea.GetWorldSizeLayout(GetLayoutArea().mScale);
+                current.mPosition = mArea.GetWorldPosLayout(GetLayoutArea().mScale, GetLayoutArea().mPosition, contentSize, contentLayout.mAlignH, contentLayout.mAlignV);
                 content->SetLayoutArea(current);
             }
 
-            if (content->Accept(visitor, input, mContentAreas.at(i), mode)) {
+            if (content->Accept(visitor, input, mode)) {
                 return true;
             }
             i++;
@@ -264,7 +256,7 @@ namespace l::ui {
         return false;
     }
 
-    bool UISplit::Accept(UIVisitor& visitor, const InputState& input, const ContainerArea& contentArea, UITraversalMode mode) {
+    bool UISplit::Accept(UIVisitor& visitor, const InputState& input, UITraversalMode mode) {
         // Since we can have multiple layouts in a container for different content, it will act as
         // an anchor rather than a container, therefore it has to align within it and size 
 
@@ -278,7 +270,7 @@ namespace l::ui {
             case UILayoutH::Scaled:
                 break;
             case UILayoutH::Parent:
-                mArea.mSize.x = contentArea.GetLocalSize().x;
+                mArea.mSize.x = GetLayoutArea().GetLocalSize().x;
                 break;
             }
             switch (layout.mLayoutV) {
@@ -287,14 +279,14 @@ namespace l::ui {
             case UILayoutV::Scaled:
                 break;
             case UILayoutV::Parent:
-                mArea.mSize.y = contentArea.GetLocalSize().y;
+                mArea.mSize.y = GetLayoutArea().GetLocalSize().y;
                 break;
             }
 
             float contentCount = static_cast<float>(mContent.size());
-            current.mScale = mArea.GetWorldScale(contentArea.mScale);
-            current.mSize = mArea.GetWorldSize(contentArea.mScale);
-            current.mPosition = mArea.GetWorldPos(contentArea.mScale, contentArea.mPosition);
+            current.mScale = mArea.GetWorldScale(GetLayoutArea().mScale);
+            current.mSize = mArea.GetWorldSize(GetLayoutArea().mScale);
+            current.mPosition = mArea.GetWorldPos(GetLayoutArea().mScale, GetLayoutArea().mPosition);
 
             switch (mSplitMode) {
             case UISplitMode::EqualSplitH:
@@ -323,12 +315,10 @@ namespace l::ui {
         size_t i = 0;
         for (auto& content : mContent) {
             if (visitor.ShouldUpdateContainer()) {
-                mContentAreas.resize(mContent.size());
-                mContentAreas.at(i) = current;
                 content->SetLayoutArea(current);
             }
 
-            if (content->Accept(visitor, input, mContentAreas.at(i), mode)) {
+            if (content->Accept(visitor, input, mode)) {
                 return true;
             }
 
@@ -341,10 +331,10 @@ namespace l::ui {
                     current.mPosition.y += current.mSize.y;
                     break;
                 case UISplitMode::AppendH:
-                    current.mPosition.x += content->GetSize().x * contentArea.mScale;
+                    current.mPosition.x += content->GetSize().x * GetLayoutArea().mScale;
                     break;
                 case UISplitMode::AppendV:
-                    current.mPosition.y += content->GetSize().y * contentArea.mScale;
+                    current.mPosition.y += content->GetSize().y * GetLayoutArea().mScale;
                     break;
                 case UISplitMode::EqualResizeH:
                     break;
