@@ -104,10 +104,10 @@ namespace l::ui {
             return false;
         }
         if (!mResizing) {
-            const float radii = mResizeAreaSize * 0.5f;
             ImVec2 p = container.GetPositionAtSize();
             auto& layoutArea = container.GetLayoutArea();
-            if (OverlapScreenRect(input.GetLocalPos(), p, ImVec2(radii, radii), layoutArea)) {
+            float size = 3.0f * layoutArea.mScale;
+            if (OverlapScreenRect(input.GetLocalPos(), p, ImVec2(size, size), layoutArea)) {
                 mSourceContainer = &container;
                 container.Notification(UIContainer_ResizeFlag);
 
@@ -148,16 +148,15 @@ namespace l::ui {
         float splineThickness = 2.0f;
         ImU32 color = container.GetRenderData().mColor;
         ImVec2 pTopLeft = container.GetPosition();
-        ImVec2 pCenter = container.GetPositionAtCenter();
         ImVec2 pLowRight = container.GetPositionAtSize();
         ImVec2 pSize = container.GetSize();
         pSize.x *= layoutArea.mScale;
         pSize.y *= layoutArea.mScale;
         ImVec2 p1 = layoutArea.Transform(pTopLeft);
-        ImVec2 p12 = layoutArea.Transform(pCenter);
         ImVec2 p2 = layoutArea.Transform(pLowRight);
         ImVec2 p11;
         ImVec2 p22;
+        float d12 = 1.0f;
 
         const char* nameStart;
         const char* nameEnd;
@@ -183,7 +182,7 @@ namespace l::ui {
             break;
         case l::ui::UIRenderType::PolygonFilled:
             break;
-        case l::ui::UIRenderType::Spline:
+        case l::ui::UIRenderType::LinkH:
             if (container.HasConfigFlag(UIContainer_LinkFlag)) {
                 splineThickness = container.HasNotification(UIContainer_LinkFlag) ? 2.0f * splineThickness : splineThickness;
                 ImVec2 pLinkInput = container.GetParent()->GetPosition();
@@ -191,7 +190,7 @@ namespace l::ui {
 
                 if (container.GetCoParent() == nullptr) {
                     p2 = input.mCurPos;
-                    float d12 = sqrt(0.25f * ((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y)) / (layoutArea.mScale * layoutArea.mScale));
+                    d12 = sqrt(0.25f * ((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y)) / (layoutArea.mScale * layoutArea.mScale));
                     p11 = layoutArea.Transform(ImVec2(pLinkInput.x + d12, 0.0f));
                     p22 = ImVec2(p2.x - d12 * layoutArea.mScale, p2.y);
                 }
@@ -199,18 +198,24 @@ namespace l::ui {
                     ImVec2 pLinkOutput = container.GetCoParent()->GetPosition();
                     auto& coLayoutArea = container.GetCoParent()->GetLayoutArea();
                     p2 = coLayoutArea.Transform(pLinkOutput);
-                    float d12 = sqrt(0.25f * ((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y)) / (layoutArea.mScale * layoutArea.mScale));
+                    d12 = sqrt(0.25f * ((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y)) / (layoutArea.mScale * layoutArea.mScale));
 
                     p11 = layoutArea.Transform(ImVec2(pLinkInput.x + d12, 0.0f));
                     p22 = coLayoutArea.Transform(ImVec2(pLinkOutput.x - d12, pLinkOutput.y));
                 }
             }
             else {
-                float d12 = sqrt(0.25f * ((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y)) / (layoutArea.mScale * layoutArea.mScale));
+                d12 = sqrt(0.25f * ((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y)) / (layoutArea.mScale * layoutArea.mScale));
                 p11 = layoutArea.Transform(ImVec2(pTopLeft.x + d12, pTopLeft.y));
                 p22 = layoutArea.Transform(ImVec2(pLowRight.x - d12, pLowRight.y));
             }
-            mDrawList->AddBezierCubic(p1, p11, p22, p2, color, splineThickness * layoutArea.mScale, static_cast<int>(10.0f  +  20.0f * sqrt(layoutArea.mScale)));
+            {
+                float scaleFactor = sqrt(d12 * layoutArea.mScale);
+                if (scaleFactor > 50.0f) {
+                    scaleFactor = 50.0f;
+                }
+                mDrawList->AddBezierCubic(p1, p11, p22, p2, color, splineThickness * layoutArea.mScale, static_cast<int>(10.0f + scaleFactor));
+            }
             break;
         case l::ui::UIRenderType::Text:
 
@@ -241,13 +246,18 @@ namespace l::ui {
         case l::ui::UIRenderType::Rect:
         case l::ui::UIRenderType::RectFilled:
         case l::ui::UIRenderType::Texture:
-        case l::ui::UIRenderType::Spline:
+        case l::ui::UIRenderType::LinkH:
+            if (container.HasConfigFlag(UIContainer_InputFlag)) {
+
+            }
             if (container.HasConfigFlag(ui::UIContainer_ResizeFlag)) {
-                ImVec2 p3 = layoutArea.Transform(pLowRight, ImVec2(- 3.0f, - 3.0f));
-                ImVec2 p4 = layoutArea.Transform(pLowRight, ImVec2(3.0f, 3.0f));
+                float size = 3.0f * layoutArea.mScale;
+                ImVec2 p3 = layoutArea.Transform(pLowRight, ImVec2(-size, -size));
+                ImVec2 p4 = layoutArea.Transform(pLowRight, ImVec2(size, size));
                 if (container.HasNotification(ui::UIContainer_ResizeFlag)) {
-                    p3 = layoutArea.Transform(pLowRight, ImVec2(- 5.0f, - 5.0f));
-                    p4 = layoutArea.Transform(pLowRight, ImVec2(5.0f, 5.0f));
+                    float size2 = 5.0f * layoutArea.mScale;
+                    p3 = layoutArea.Transform(pLowRight, ImVec2(-size2, -size2));
+                    p4 = layoutArea.Transform(pLowRight, ImVec2(size2, size2));
                 }
                 mDrawList->AddRectFilled(p3, p4, color);
             }
@@ -273,7 +283,7 @@ namespace l::ui {
             ImVec2 pT = layoutArea.Transform(pCenter);
             if (OverlapCircle(input.mCurPos, pT, size.x * layoutArea.mScale)) {
                 mDragging = true;
-                mLinkContainer = mCreator->CreateContainer(UIContainer_LinkFlag | UIContainer_DrawFlag, UIRenderType::Spline);
+                mLinkContainer = mCreator->CreateContainer(UIContainer_LinkFlag | UIContainer_DrawFlag, UIRenderType::LinkH);
                 container.Add(mLinkContainer);
                 return true;
             }

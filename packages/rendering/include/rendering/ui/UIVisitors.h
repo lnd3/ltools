@@ -51,7 +51,6 @@ namespace l::ui {
         virtual bool Visit(UIContainer& container, const InputState& input);
     protected:
         bool mResizing = false;
-        float mResizeAreaSize = 8.0f;
         UIContainer* mSourceContainer = nullptr;
     };
 
@@ -78,6 +77,8 @@ namespace l::ui {
         bool mPossibleLinkImminent = false;
         UIHandle<UIContainer> mLinkContainer;
         UICreator* mCreator = nullptr;
+
+        std::function<void(int32_t, int32_t, bool)> mLink;
     };
 
 }

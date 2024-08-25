@@ -19,7 +19,8 @@ namespace l::nodegraph {
     enum class InputType {
         INPUT_NODE,
         INPUT_CONSTANT,
-        INPUT_VALUE
+        INPUT_VALUE,
+        //INPUT_ARRAY // TODO: is it possible  to process batches for example for audio processing?
     };
 
     bool IsValidInOutNum(int8_t inoutNum, size_t inoutSize);

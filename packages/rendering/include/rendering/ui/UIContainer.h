@@ -50,7 +50,7 @@ namespace l::ui {
         CircleFilled = 5,
         Polygon = 6,
         PolygonFilled = 7,
-        Spline = 8,
+        LinkH = 8,
         Text = 9,
         Texture = 10
     };
@@ -95,7 +95,7 @@ namespace l::ui {
         ImVec2 mPosition;
         ImVec2 mSize = ImVec2(20.0f, 20.0f);
         float mScale = 1.0f;
-        float mBorder = 3.0f;
+        float mMargin = 3.0f;
 
         UILayoutData mLayout;
         UIRenderData mRender;
@@ -119,15 +119,15 @@ namespace l::ui {
         // Used in ui container layout, this is where we premultiply parent scale
         ImVec2 GetWorldPos(float parentScale, ImVec2 parentPos) {
             ImVec2 worldPos;
-            worldPos.x = parentPos.x + (mPosition.x + mBorder) * mScale * parentScale;
-            worldPos.y = parentPos.y + (mPosition.y + mBorder) * mScale * parentScale;
+            worldPos.x = parentPos.x + (mPosition.x + mMargin) * mScale * parentScale;
+            worldPos.y = parentPos.y + (mPosition.y + mMargin) * mScale * parentScale;
             return worldPos;
         }
 
         ImVec2 GetWorldSize(float parentScale) const {
             ImVec2 worldSize;
-            worldSize.x = (mSize.x - mBorder * 2.0f) * mScale * parentScale;
-            worldSize.y = (mSize.y - mBorder * 2.0f) * mScale * parentScale;
+            worldSize.x = (mSize.x - mMargin * 2.0f) * mScale * parentScale;
+            worldSize.y = (mSize.y - mMargin * 2.0f) * mScale * parentScale;
             return worldSize;
         }
 
@@ -142,24 +142,24 @@ namespace l::ui {
             ImVec2 worldPos;
             switch (alignH) {
             case UIAlignH::Left:
-                worldPos.x = parentPos.x + (mPosition.x + mBorder) * mScale * parentScale;
+                worldPos.x = parentPos.x + (mPosition.x + mMargin) * mScale * parentScale;
                 break;
             case UIAlignH::Center:
                 worldPos.x = parentPos.x + (mPosition.x + mSize.x * 0.5f - contentSize.x * 0.5f) * mScale * parentScale;
                 break;
             case UIAlignH::Right:
-                worldPos.x = parentPos.x + (mPosition.x - mBorder + mSize.x - contentSize.x) * mScale * parentScale;
+                worldPos.x = parentPos.x + (mPosition.x - mMargin + mSize.x - contentSize.x) * mScale * parentScale;
                 break;
             }
             switch (alignV) {
             case UIAlignV::Top:
-                worldPos.y = parentPos.y + (mPosition.y + mBorder) * mScale * parentScale;
+                worldPos.y = parentPos.y + (mPosition.y + mMargin) * mScale * parentScale;
                 break;
             case UIAlignV::Middle:
                 worldPos.y = parentPos.y + (mPosition.y + mSize.y * 0.5f - contentSize.y * 0.5f) * mScale * parentScale;
                 break;
             case UIAlignV::Bottom:
-                worldPos.y = parentPos.y + (mPosition.y - mBorder + mSize.y - contentSize.y) * mScale * parentScale;
+                worldPos.y = parentPos.y + (mPosition.y - mMargin + mSize.y - contentSize.y) * mScale * parentScale;
                 break;
             }
             return worldPos;
@@ -167,8 +167,8 @@ namespace l::ui {
 
         ImVec2 GetWorldSizeLayout(float parentScale) const {
             ImVec2 worldSize;
-            worldSize.x = (mSize.x - mBorder) * mScale * parentScale;
-            worldSize.y = (mSize.y - mBorder) * mScale * parentScale;
+            worldSize.x = (mSize.x - mMargin) * mScale * parentScale;
+            worldSize.y = (mSize.y - mMargin) * mScale * parentScale;
             return worldSize;
         }
     };
@@ -259,12 +259,12 @@ namespace l::ui {
     public:
         UIContainer(uint32_t flags = 0, UIRenderType renderType = UIRenderType::Rect, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed) : mConfigFlags(flags) {
             mDisplayArea.mRender.mType = renderType;
-            mDisplayArea.mBorder = 3.0f;
+            mDisplayArea.mMargin = 3.0f;
             mDisplayArea.mLayout.mAlignH = alignH;
             mDisplayArea.mLayout.mAlignV = alignV;
             mDisplayArea.mLayout.mLayoutH = layoutH;
             mDisplayArea.mLayout.mLayoutV = layoutV;
-            mLayoutArea.mBorder = 0.0f;
+            mLayoutArea.mMargin = 0.0f;
         }
         virtual ~UIContainer() = default;
 
@@ -362,7 +362,7 @@ namespace l::ui {
     public:
         UISplit(uint32_t flags, UISplitMode splitMode, UILayoutH layoutH, UILayoutV layoutV) : UIContainer(flags), mSplitMode(splitMode) {
             mDisplayArea.mRender.mType = UIRenderType::Rect;
-            mDisplayArea.mBorder = 3.0f;
+            mDisplayArea.mMargin = 3.0f;
             mDisplayArea.mLayout.mLayoutH = layoutH;
             mDisplayArea.mLayout.mLayoutV = layoutV;
         }

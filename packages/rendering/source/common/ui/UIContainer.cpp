@@ -85,7 +85,7 @@ namespace l::ui {
     void UIContainer::Resize(ImVec2 localChange) {
         mDisplayArea.mSize.x += localChange.x;
         mDisplayArea.mSize.y += localChange.y;
-        if (mDisplayArea.mRender.mType != UIRenderType::Spline) {
+        if (mDisplayArea.mRender.mType != UIRenderType::LinkH) {
             mDisplayArea.mSize.x = mDisplayArea.mSize.x < 1.0f ? 1.0f : mDisplayArea.mSize.x;
             mDisplayArea.mSize.y = mDisplayArea.mSize.y < 1.0f ? 1.0f : mDisplayArea.mSize.y;
         }
