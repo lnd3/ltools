@@ -94,13 +94,6 @@ namespace l::nodegraph {
     }
 
     bool NodeGraphBase::SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel, bool useSourceInternalInput) {
-        auto& input = mInputs.at(inputChannel);
-        if (!IsValidInOutNum(sourceOutputChannel, source.GetOutputNode().mOutputs.size()) || 
-            !IsValidInOutNum(inputChannel, mInputs.size()) || 
-            input.HasInput()){
-            return false;
-        }
-
         Input newInput;
         if (useSourceInternalInput) {
             newInput.mInputNode = &source.GetInputNode();
@@ -108,6 +101,14 @@ namespace l::nodegraph {
         else {
             newInput.mInputNode = &source.GetOutputNode();
         }
+
+        auto& input = mInputs.at(inputChannel);
+        if (!IsValidInOutNum(sourceOutputChannel, newInput.mInputNode->mOutputs.size()) ||
+            !IsValidInOutNum(inputChannel, mInputs.size()) || 
+            input.HasInput()){
+            return false;
+        }
+
         input = NodeGraphInput{ std::move(newInput), InputType::INPUT_NODE, sourceOutputChannel };
         return true;
     }
