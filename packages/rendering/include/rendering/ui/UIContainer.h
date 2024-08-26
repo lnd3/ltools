@@ -281,8 +281,11 @@ namespace l::ui {
     class UIContainer {
     public:
         UIContainer(uint32_t flags = 0, UIRenderType renderType = UIRenderType::Rect, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed) : 
+            mId(0),
             mConfigFlags(flags),
-            mId(0)
+            mNotificationFlags(0),
+            mParent(nullptr),
+            mCoParent(nullptr)
         {
             mDisplayArea.mRender.mType = renderType;
             mDisplayArea.mMargin = 3.0f;
