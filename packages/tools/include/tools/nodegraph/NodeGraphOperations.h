@@ -13,48 +13,48 @@ namespace l::nodegraph {
 
     /* Mathematical operations */
 
-    class GraphNumericAdd : public GraphOp {
+    class GraphNumericAdd : public NodeGraphOp {
     public:
         GraphNumericAdd() :
-            GraphOp(2, 1)
+            NodeGraphOp(2, 1)
         {}
         virtual ~GraphNumericAdd() = default;
         void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     };
 
-    class GraphNumericMultiply : public GraphOp {
+    class GraphNumericMultiply : public NodeGraphOp {
     public:
         GraphNumericMultiply() : 
-            GraphOp(2, 1)
+            NodeGraphOp(2, 1)
         {}
 
         virtual ~GraphNumericMultiply() = default;
         void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     };
 
-    class GraphNumericSubtract : public GraphOp {
+    class GraphNumericSubtract : public NodeGraphOp {
     public:
         GraphNumericSubtract() :
-            GraphOp(2, 1)
+            NodeGraphOp(2, 1)
         {}
         virtual ~GraphNumericSubtract() = default;
         void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     };
 
-    class GraphNumericNegate : public GraphOp {
+    class GraphNumericNegate : public NodeGraphOp {
     public:
         GraphNumericNegate() :
-            GraphOp(1, 1)
+            NodeGraphOp(1, 1)
         {}
 
         virtual ~GraphNumericNegate() = default;
         void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     };
 
-    class GraphNumericIntegral : public GraphOp {
+    class GraphNumericIntegral : public NodeGraphOp {
     public:
         GraphNumericIntegral() :
-            GraphOp(1, 1)
+            NodeGraphOp(1, 1)
         {}
 
         virtual ~GraphNumericIntegral() = default;
@@ -67,30 +67,30 @@ namespace l::nodegraph {
 
     /* Logical operations */
 
-    class GraphLogicalAnd : public GraphOp {
+    class GraphLogicalAnd : public NodeGraphOp {
     public:
         GraphLogicalAnd() :
-            GraphOp(2, 1)
+            NodeGraphOp(2, 1)
         {}
 
         virtual ~GraphLogicalAnd() = default;
         void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     };
 
-    class GraphLogicalOr : public GraphOp {
+    class GraphLogicalOr : public NodeGraphOp {
     public:
         GraphLogicalOr() :
-            GraphOp(2, 1)
+            NodeGraphOp(2, 1)
         {}
 
         virtual ~GraphLogicalOr() = default;
         void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     };
 
-    class GraphLogicalXor : public GraphOp {
+    class GraphLogicalXor : public NodeGraphOp {
     public:
         GraphLogicalXor() :
-            GraphOp(2, 1)
+            NodeGraphOp(2, 1)
         {}
 
         virtual ~GraphLogicalXor() = default;
@@ -99,10 +99,10 @@ namespace l::nodegraph {
 
     /* Stateful filtering operations */
 
-    class GraphFilterLowpass : public GraphOp {
+    class GraphFilterLowpass : public NodeGraphOp {
     public:
         GraphFilterLowpass() :
-            GraphOp(3, 1)
+            NodeGraphOp(3, 1)
         {}
 
         virtual ~GraphFilterLowpass() = default;

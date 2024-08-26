@@ -7,6 +7,7 @@
 #include <map>
 #include <typeinfo>
 #include <type_traits>
+#include <memory>
 
 namespace l::nodegraph {
 
@@ -56,10 +57,10 @@ namespace l::nodegraph {
         virtual ~NodeGraphBase() = default;
 
         virtual void Reset();
-        void SetId(int32_t id) { mId = id; }
-        int32_t GetId() const { return mId; }
+        virtual void SetId(int32_t id) { mId = id; }
+        virtual int32_t GetId() const { return mId; }
 
-        void Update();
+        virtual void Update();
 
         virtual void SetNumInputs(int8_t numInputs);
         virtual void SetNumOutputs(int8_t outputCount);
@@ -84,14 +85,14 @@ namespace l::nodegraph {
         std::string mName;
     };
 
-    class GraphOp {
+    class NodeGraphOp {
     public:
-        GraphOp(int8_t numInputs = 1, int8_t numOutputs = 1) : 
+        NodeGraphOp(int8_t numInputs = 1, int8_t numOutputs = 1) : 
             mNumInputs(numInputs), 
             mNumOutputs(numOutputs) 
         {}
 
-        virtual ~GraphOp() = default;
+        virtual ~NodeGraphOp() = default;
         virtual void Reset() {}
         virtual void Process(std::vector<NodeGraphInput>& mInputs, std::vector<NodeGraphOutput>& outputs) = 0;
 
@@ -104,17 +105,17 @@ namespace l::nodegraph {
         int8_t mNumOutputs;
     };
 
-    class GraphDataCopy : public GraphOp {
+    class GraphDataCopy : public NodeGraphOp {
     public:
         GraphDataCopy(int8_t numChannels = 1) :
-            GraphOp(numChannels, numChannels)
+            NodeGraphOp(numChannels, numChannels)
         {}
         virtual ~GraphDataCopy() = default;
 
         void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     };
 
-    template<class T, class = std::enable_if_t<std::is_base_of_v<GraphOp, T>>>
+    template<class T, class = std::enable_if_t<std::is_base_of_v<NodeGraphOp, T>>>
     class NodeGraph : public NodeGraphBase {
     public:
         NodeGraph(std::string_view name = "") :
@@ -124,24 +125,22 @@ namespace l::nodegraph {
             SetNumOutputs(mOperation.GetNumOutputs());
         }
 
-        virtual ~NodeGraph() = default;
-
-        void SetNumInputs(int8_t numInputs) {
+        virtual void SetNumInputs(int8_t numInputs) {
             mInputs.resize(numInputs);
             mOperation.SetNumInputs(numInputs);
         }
 
-        void SetNumOutputs(int8_t numOutputs) {
+        virtual void SetNumOutputs(int8_t numOutputs) {
             mOutputs.resize(numOutputs);
             mOperation.SetNumOutputs(numOutputs);
         }
 
-        void Reset() override {
+        virtual void Reset() override {
             NodeGraphBase::Reset();
             mOperation.Reset();
         }
 
-        void ProcessOperation() override {
+        virtual void ProcessOperation() override {
             NodeGraphBase::ProcessOperation();
             mOperation.Process(mInputs, mOutputs);
         }
@@ -173,8 +172,13 @@ namespace l::nodegraph {
         NodeGraphBase& GetOutputNode();
 
         NodeGraphBase* GetNode(int32_t id);
+        bool RemoveNode(int32_t id);
 
-        void AddNode();
+        template<class T, class = std::enable_if_t<std::is_base_of_v<NodeGraphOp, T>>>
+        l::nodegraph::NodeGraphBase* NewNode() {
+            mNodes.push_back(std::make_unique<l::nodegraph::NodeGraph<T>>());
+            return mNodes.back().get();
+        }
 
         void Update();
     protected:

@@ -275,7 +275,7 @@ namespace l::ui {
 
     bool UILinkIO::Visit(UIContainer& container, const InputState& input) {
         // Create link at from a clicked output container
-        if (container.HasConfigFlag(UIContainer_OutputFlag) && !mDragging && input.mStarted && mLinkContainer.get() == nullptr) {
+        if (container.HasConfigFlag(UIContainer_OutputFlag) && !mDragging && input.mStarted && mLinkContainer.Get() == nullptr) {
             ImVec2 pCenter = container.GetPosition();
             ImVec2 size = container.GetSize();
             auto& layoutArea = container.GetLayoutArea();
@@ -288,7 +288,7 @@ namespace l::ui {
                 return true;
             }
         }
-        if (container.HasConfigFlag(UIContainer_LinkFlag) && !mDragging && input.mStarted && mLinkContainer.get() == nullptr && container.GetCoParent() != nullptr) {
+        if (container.HasConfigFlag(UIContainer_LinkFlag) && !mDragging && input.mStarted && mLinkContainer.Get() == nullptr && container.GetCoParent() != nullptr) {
             ImVec2 pCenter = container.GetCoParent()->GetPosition();
             ImVec2 size = container.GetCoParent()->GetSize();
             ImVec2 pT = container.GetCoParent()->GetLayoutArea().Transform(pCenter);
@@ -299,7 +299,7 @@ namespace l::ui {
             }
         }
 
-        if (mDragging && mLinkContainer.get() != nullptr && container.HasConfigFlag(UIContainer_LinkFlag) && mLinkContainer.get() == &container) {
+        if (mDragging && mLinkContainer.Get() != nullptr && container.HasConfigFlag(UIContainer_LinkFlag) && mLinkContainer.Get() == &container) {
             // On the newly created link container, drag the end point along the mouse movement
             auto& layoutArea = container.GetLayoutArea();
 
@@ -307,7 +307,7 @@ namespace l::ui {
             mLinkContainer->Move(move);
         }
 
-        if (mDragging && mLinkContainer.get() != nullptr && container.HasConfigFlag(UIContainer_InputFlag)) {
+        if (mDragging && mLinkContainer.Get() != nullptr && container.HasConfigFlag(UIContainer_InputFlag)) {
             ImVec2 pCenter = container.GetPosition();
             ImVec2 size = container.GetSize();
             auto& layoutArea = container.GetLayoutArea();
@@ -315,7 +315,7 @@ namespace l::ui {
             ImVec2 pT = layoutArea.Transform(pCenter);
 
             if (OverlapCircle(input.mCurPos, pT, size.x * layoutArea.mScale)) {
-                if (!mHandler || mHandler(container.GetId(), mLinkContainer->GetParent()->GetId(), 0, 0, true)) {
+                if (!mHandler || mHandler(container.GetId(), mLinkContainer->GetParent()->GetId(), container.GetSubId(), mLinkContainer->GetParent()->GetSubId(), true)) {
                     mLinkContainer->SetNotification(UIContainer_LinkFlag);
                     mLinkContainer->SetCoParent(&container);
                 }
@@ -323,9 +323,9 @@ namespace l::ui {
                     // Failed to connect link
                 }
             }
-            else if (mLinkContainer->GetCoParent() == &container){
+            else if (mLinkContainer->GetCoParent() == &container) {
                 if (mHandler) {
-                    mHandler(container.GetId(), mLinkContainer->GetParent()->GetId(), 0, 0, false);
+                    mHandler(container.GetId(), mLinkContainer->GetParent()->GetId(), container.GetSubId(), mLinkContainer->GetParent()->GetSubId(), false);
                 }
                 mLinkContainer->SetCoParent(nullptr);
                 mLinkContainer->ClearNotifications();
@@ -335,15 +335,17 @@ namespace l::ui {
                 mLinkContainer->ClearNotifications();
                 if (mLinkContainer->GetCoParent() != nullptr) {
                     mDragging = false;
-                    mLinkContainer.reset();
+                    mLinkContainer.Reset();
                 }
                 else {
                     mLinkContainer->GetParent()->Remove(mLinkContainer);
                     mDragging = false;
-                    mLinkContainer.reset();
+                    mLinkContainer.Reset();
                 }
             }
         }
         return false;
     }
+
+
 }

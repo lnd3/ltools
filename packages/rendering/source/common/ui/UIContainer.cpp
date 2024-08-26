@@ -4,7 +4,7 @@
 
 namespace l::ui {
 
-    UIHandle<UIContainer> UICreator::CreateContainer(uint32_t flags, UIRenderType renderType, UIAlignH alignH, UIAlignV alignV, UILayoutH layoutH, UILayoutV layoutV) {
+    UIHandle UICreator::CreateContainer(uint32_t flags, UIRenderType renderType, UIAlignH alignH, UIAlignV alignV, UILayoutH layoutH, UILayoutV layoutV) {
         std::unique_ptr<UIContainer> container = std::make_unique<UIContainer>(flags, renderType, alignH, alignV, layoutH, layoutV);
 
         auto id = CreateUniqueId();
@@ -13,10 +13,10 @@ namespace l::ui {
         container->SetStringId(stringId);
         mContainers.insert({ id, std::move(container) });
 
-        return UIHandle<UIContainer>{ id, stringId, mContainers.at(id).get() };
+        return UIHandle{ id, stringId, mContainers.at(id).get() };
     }
 
-    UIHandle<UISplit> UICreator::CreateSplit(uint32_t flags, UIRenderType renderType, UISplitMode splitMode, UILayoutH layoutH, UILayoutV layoutV) {
+    UIHandle UICreator::CreateSplit(uint32_t flags, UIRenderType renderType, UISplitMode splitMode, UILayoutH layoutH, UILayoutV layoutV) {
         std::unique_ptr<UISplit> container = std::make_unique<UISplit>(flags, renderType, splitMode, layoutH, layoutV);
 
         auto id = CreateUniqueId();
@@ -25,7 +25,7 @@ namespace l::ui {
         container->SetStringId(stringId);
         mContainers.insert({ id, std::move(container) });
 
-        return UIHandle<UISplit>{ id, stringId, mContainers.at(id).get() };
+        return UIHandle{ id, stringId, mContainers.at(id).get() };
     }
 
     ImVec2 DragMovement(const ImVec2& prevPos, const ImVec2& curPos, float curScale) {
@@ -79,6 +79,16 @@ namespace l::ui {
         ASSERT(i >= 0 && static_cast<size_t>(i) < mContent.size());
         mContent.at(i)->SetParent(nullptr);
         mContent.erase(mContent.begin() + i);
+    }
+
+    void UIContainer::Remove(const UIHandle& handle) {
+        for (auto it = mContent.begin(); it != mContent.end(); it++) {
+            auto containerPtr = *it;
+            if (containerPtr == handle.Get()) {
+                mContent.erase(it);
+                break;
+            }
+        }
     }
 
     void UIContainer::Move(ImVec2 localChange) {
@@ -272,7 +282,7 @@ namespace l::ui {
     }
 
     int32_t CreateUniqueId() {
-        static int32_t mId = 0;
+        static int32_t mId = 1;
         return mId++;
     }
 

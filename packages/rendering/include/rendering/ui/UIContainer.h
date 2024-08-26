@@ -245,7 +245,6 @@ namespace l::ui {
 
     class UIDraw;
 
-    template<class T, class = std::enable_if_t<std::is_base_of_v<UIContainer, T>>>
     class UIHandle {
     public:
         UIHandle() : mId(0), mContainer(nullptr) {};
@@ -256,24 +255,29 @@ namespace l::ui {
         std::string mStringId;
         UIContainer* mContainer = nullptr;
 
-        std::string_view id() {
+        std::string_view GetStringId() const {
             return mStringId;
         }
 
-        void reset() {
+        void Reset() {
             mStringId.clear();
             mContainer = nullptr;
         }
 
-        UIContainer* get() {
+        bool IsValid() const {
+            return mContainer != nullptr;
+        }
+
+        UIContainer* Get() const {
             return mContainer;
         }
 
-        T* operator->() {
-            return reinterpret_cast<T*>(mContainer);
+        UIContainer* operator->() {
+            return mContainer;
         }
 
-        T& ref() {
+        template<class T, class = std::enable_if_t<std::is_base_of_v<UIContainer, T>>>
+        T& Ref() {
             return &reinterpret_cast<T*>(mContainer);
         }
     };
@@ -282,6 +286,7 @@ namespace l::ui {
     public:
         UIContainer(uint32_t flags = 0, UIRenderType renderType = UIRenderType::Rect, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed) : 
             mId(0),
+            mSubId(0),
             mConfigFlags(flags),
             mNotificationFlags(0),
             mParent(nullptr),
@@ -300,23 +305,12 @@ namespace l::ui {
         virtual bool Accept(UIVisitor& visitor, const InputState& input, UITraversalMode mode = UITraversalMode::BFS);
         virtual void Add(UIContainer* container, int32_t i = -1);
 
-        template<class T>
-        void Add(UIHandle<T>& handle, int32_t i = -1) {
-            Add(handle.get(), i);
+        void Add(UIHandle& handle, int32_t i = -1) {
+            Add(handle.Get(), i);
         }
 
         virtual void Remove(int32_t i);
-
-        template<class T>
-        void Remove(UIHandle<T>& handle) {
-            for (auto it = mContent.begin(); it != mContent.end();it++) {
-                auto containerPtr = *it;
-                if (containerPtr == handle.get()) {
-                    mContent.erase(it);
-                    break;
-                }
-            }
-        }
+        virtual void Remove(const UIHandle& handle);
 
         void SetNotification(uint32_t flag) { mNotificationFlags |= flag; }
         void ClearNotifications() { mNotificationFlags = 0; }
@@ -342,6 +336,7 @@ namespace l::ui {
         std::string_view GetDisplayName() { return mDisplayName; }
         std::string_view GetStringId() { return mStringId; }
         int32_t GetId() { return mId; }
+        int32_t GetSubId() { return mSubId; }
 
         void SetColor(ImVec4 color) { mDisplayArea.mRender.mColor = ImColor(color); }
         void SetScale(float scale) {mDisplayArea.mScale = scale;}
@@ -351,7 +346,8 @@ namespace l::ui {
         void SetLayoutSize(ImVec2 s) {mLayoutArea.mSize = s;}
         void SetDisplayName(std::string_view displayName) {mDisplayName = displayName;}
         void SetStringId(std::string_view id) {mStringId = id;}
-        void SetId(int32_t id) {mId = id;}
+        void SetId(int32_t id, int32_t subId = 0) { mId = id; mSubId = subId; }
+
         void SetContainerArea(const ContainerArea& area) {mDisplayArea = area;}
         void SetLayoutArea(const ContainerArea& transformedLayoutArea) {mLayoutArea = transformedLayoutArea;}
         void SetParent(UIContainer* parent) {mParent = parent;}
@@ -360,6 +356,7 @@ namespace l::ui {
         void DebugLog() { LOG(LogDebug) << "UIContainer: " << mDisplayName << ", [" << mDisplayArea.mScale << "][" << mDisplayArea.mPosition.x << ", " << mDisplayArea.mPosition.y << "][" << mDisplayArea.mSize.x << ", " << mDisplayArea.mSize.y << "]"; }
     protected:
         int32_t mId = 0;
+        int32_t mSubId = 0;
         std::string mStringId;
         std::string mDisplayName;
         uint32_t mConfigFlags = 0; // Active visitor flags
@@ -403,8 +400,8 @@ namespace l::ui {
         UICreator() = default;
         ~UICreator() = default;
 
-        UIHandle<UIContainer> CreateContainer(uint32_t flags, UIRenderType renderType = UIRenderType::Rect, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed);
-        UIHandle<UISplit> CreateSplit(uint32_t flags, UIRenderType renderType, UISplitMode splitMode = UISplitMode::AppendV, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed);
+        UIHandle CreateContainer(uint32_t flags, UIRenderType renderType = UIRenderType::Rect, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed);
+        UIHandle CreateSplit(uint32_t flags, UIRenderType renderType, UISplitMode splitMode = UISplitMode::AppendV, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed);
 
     protected:
         std::unordered_map<uint32_t, std::unique_ptr<UIContainer>> mContainers;

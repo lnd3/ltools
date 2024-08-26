@@ -8,7 +8,13 @@ namespace l::nodegraph {
         return inoutNum >= 0 && inoutSize < 256u && inoutNum < static_cast<int8_t>(inoutSize);
     }
 
+    int32_t CreateUniqueId() {
+        static int32_t id = 1;
+        return id++;
+    }
+
     NodeGraphBase::NodeGraphBase(std::string_view name) :
+        mId(CreateUniqueId()),
         mName(name)
     {
         mInputs.resize(1);
@@ -75,7 +81,9 @@ namespace l::nodegraph {
 
     bool NodeGraphBase::SetInput(int8_t inputChannel, NodeGraphBase& source, int8_t sourceOutputChannel) {
         auto& input = mInputs.at(inputChannel);
-        if (!IsValidInOutNum(inputChannel, mInputs.size()) || input.HasInput()) {
+        if (!IsValidInOutNum(sourceOutputChannel, source.mOutputs.size()) || 
+            !IsValidInOutNum(inputChannel, mInputs.size()) || 
+            input.HasInput()) {
             return false;
         }
 
@@ -87,7 +95,9 @@ namespace l::nodegraph {
 
     bool NodeGraphBase::SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel, bool useSourceInternalInput) {
         auto& input = mInputs.at(inputChannel);
-        if (!IsValidInOutNum(inputChannel, mInputs.size()) || input.HasInput()){
+        if (!IsValidInOutNum(sourceOutputChannel, source.GetOutputNode().mOutputs.size()) || 
+            !IsValidInOutNum(inputChannel, mInputs.size()) || 
+            input.HasInput()){
             return false;
         }
 
@@ -126,19 +136,19 @@ namespace l::nodegraph {
         return true;
     }
 
-    void GraphOp::SetNumInputs(int8_t numInputs) {
+    void NodeGraphOp::SetNumInputs(int8_t numInputs) {
         mNumInputs = numInputs;
     }
 
-    void GraphOp::SetNumOutputs(int8_t numOutputs) {
+    void NodeGraphOp::SetNumOutputs(int8_t numOutputs) {
         mNumOutputs = numOutputs;
     }
 
-    int8_t GraphOp::GetNumInputs() {
+    int8_t NodeGraphOp::GetNumInputs() {
         return mNumInputs;
     }
 
-    int8_t GraphOp::GetNumOutputs() {
+    int8_t NodeGraphOp::GetNumOutputs() {
         return mNumOutputs;
     }
 
@@ -228,12 +238,16 @@ namespace l::nodegraph {
         return mInputNode;
     }
 
+    NodeGraphBase& NodeGraphGroup::GetOutputNode() {
+        return mOutputNode;
+    }
+
     NodeGraphBase* NodeGraphGroup::GetNode(int32_t id) {
         auto it = std::find_if(mNodes.begin(), mNodes.end(), [&](const std::unique_ptr<NodeGraphBase>& node) {
-                if (node->GetId() == id) {
-                    return true;
-                }
-                return false;
+            if (node->GetId() == id) {
+                return true;
+            }
+            return false;
             });
         if (it != mNodes.end()) {
             return it->get();
@@ -241,8 +255,14 @@ namespace l::nodegraph {
         return nullptr;
     }
 
-    NodeGraphBase& NodeGraphGroup::GetOutputNode() {
-        return mOutputNode;
+    bool NodeGraphGroup::RemoveNode(int32_t id) {
+        auto count = std::erase_if(mNodes, [&](const std::unique_ptr<NodeGraphBase>& node) {
+            if (node->GetId() == id) {
+                return true;
+            }
+            return false;
+            });
+        return count > 0 ? true : false;
     }
 
     void NodeGraphGroup::Update() {
