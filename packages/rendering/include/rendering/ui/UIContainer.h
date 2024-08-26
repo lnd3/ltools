@@ -181,6 +181,28 @@ namespace l::ui {
     bool OverlapCircle(const ImVec2& p, const ImVec2& pCenter, float radii);
 
     class UIContainer;
+    class UISplit;
+
+    int32_t CreateUniqueId();
+
+    template<class T, class = std::enable_if_t<std::is_base_of_v<UIContainer, T>>>
+    std::string CreateUniqueStringId() {
+        static uint32_t mStringId = 0;
+        std::string id;
+        if constexpr (std::is_same_v<T, UIContainer>) {
+            id += "UIContainer";
+        }
+        else if constexpr (std::is_same_v<T, UISplit>) {
+            id += "UISplit";
+        }
+        else {
+            id += "Unknown";
+        }
+
+        id += l::string::to_hex<uint32_t>(mStringId++, 4);
+
+        return id;
+    }
 
     class UIVisitor {
     public:
@@ -226,19 +248,20 @@ namespace l::ui {
     template<class T, class = std::enable_if_t<std::is_base_of_v<UIContainer, T>>>
     class UIHandle {
     public:
-        UIHandle() : mContainer(nullptr) {};
-        UIHandle(std::string_view id, UIContainer* container) : mId(id), mContainer(container) {};
+        UIHandle() : mId(0), mContainer(nullptr) {};
+        UIHandle(int32_t id, std::string_view stringId, UIContainer* container) : mId(id), mStringId(stringId), mContainer(container) {};
         ~UIHandle() = default;
 
-        std::string mId;
+        int32_t mId;
+        std::string mStringId;
         UIContainer* mContainer = nullptr;
 
         std::string_view id() {
-            return mId;
+            return mStringId;
         }
 
         void reset() {
-            mId.clear();
+            mStringId.clear();
             mContainer = nullptr;
         }
 
@@ -257,7 +280,10 @@ namespace l::ui {
 
     class UIContainer {
     public:
-        UIContainer(uint32_t flags = 0, UIRenderType renderType = UIRenderType::Rect, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed) : mConfigFlags(flags) {
+        UIContainer(uint32_t flags = 0, UIRenderType renderType = UIRenderType::Rect, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed) : 
+            mConfigFlags(flags),
+            mId(0)
+        {
             mDisplayArea.mRender.mType = renderType;
             mDisplayArea.mMargin = 3.0f;
             mDisplayArea.mLayout.mAlignH = alignH;
@@ -289,54 +315,49 @@ namespace l::ui {
             }
         }
 
+        void SetNotification(uint32_t flag) { mNotificationFlags |= flag; }
+        void ClearNotifications() { mNotificationFlags = 0; }
+        bool HasNotification(uint32_t flag) { return (mNotificationFlags & flag) == flag; }
+        bool HasConfigFlag(uint32_t flag) { return (mConfigFlags & flag) == flag; }
+
         void Move(ImVec2 localChange);
         void Resize(ImVec2 localChange);
-        void Rescale(float localChange);
-        void ClearNotifications();
-        void Notification(uint32_t flag);
-        bool HasNotification(uint32_t flag);
-        bool HasConfigFlag(uint32_t flag);
-        void SetScale(float scale);
-        void SetPosition(ImVec2 p);
-        void SetSize(ImVec2 s);
-        void SetLayoutPosition(ImVec2 s);
-        void SetLayoutSize(ImVec2 s);
-        void SetDisplayName(std::string_view id);
-        void SetId(std::string_view id);
-        void SetContainerArea(const ContainerArea& area);
-        void SetLayoutArea(const ContainerArea& area);
-        void SetParent(UIContainer* input);
-        void SetCoParent(UIContainer* input);
-        UIContainer* GetParent();
-        UIContainer* GetCoParent();
+        void Rescale(float localChange) { mDisplayArea.mScale *= localChange; }
+
         ImVec2 GetPosition(bool untransformed = false) const;
         ImVec2 GetPositionAtCenter(ImVec2 offset = ImVec2(), bool untransformed = false);
         ImVec2 GetPositionAtSize(ImVec2 offset = ImVec2(), bool untransformed = false);
         ImVec2 GetSize(bool untransformed = false);
-        float GetScale();
-        ContainerArea& GetContainerArea();
-        const ContainerArea& GetLayoutArea() const;
 
-        void DebugLog();
+        float GetScale() {return mDisplayArea.mScale;}
+        ContainerArea& GetContainerArea() {return mDisplayArea;}
+        const ContainerArea& GetLayoutArea() const {return mLayoutArea;}
+        UIContainer* GetParent() { return mParent; }
+        UIContainer* GetCoParent() { return mCoParent; }
+        const UIRenderData& GetRenderData() const { return mDisplayArea.mRender; }
+        const UILayoutData& GetLayoutData() const { return mDisplayArea.mLayout; }
+        std::string_view GetDisplayName() { return mDisplayName; }
+        std::string_view GetStringId() { return mStringId; }
+        int32_t GetId() { return mId; }
 
-        const UIRenderData& GetRenderData() const {
-            return mDisplayArea.mRender;
-        }
+        void SetColor(ImVec4 color) { mDisplayArea.mRender.mColor = ImColor(color); }
+        void SetScale(float scale) {mDisplayArea.mScale = scale;}
+        void SetPosition(ImVec2 p) {mDisplayArea.mPosition = p;}
+        void SetSize(ImVec2 s) {mDisplayArea.mSize = s;}
+        void SetLayoutPosition(ImVec2 s) {mLayoutArea.mPosition = s;}
+        void SetLayoutSize(ImVec2 s) {mLayoutArea.mSize = s;}
+        void SetDisplayName(std::string_view displayName) {mDisplayName = displayName;}
+        void SetStringId(std::string_view id) {mStringId = id;}
+        void SetId(int32_t id) {mId = id;}
+        void SetContainerArea(const ContainerArea& area) {mDisplayArea = area;}
+        void SetLayoutArea(const ContainerArea& transformedLayoutArea) {mLayoutArea = transformedLayoutArea;}
+        void SetParent(UIContainer* parent) {mParent = parent;}
+        void SetCoParent(UIContainer* coParent) {mCoParent = coParent;}
 
-        const UILayoutData& GetLayoutData() const {
-            return mDisplayArea.mLayout;
-        }
-
-        std::string_view GetDisplayName() {
-            return mDisplayName;
-        }
-
-        std::string_view GetId() {
-            return mId;
-        }
-
+        void DebugLog() { LOG(LogDebug) << "UIContainer: " << mDisplayName << ", [" << mDisplayArea.mScale << "][" << mDisplayArea.mPosition.x << ", " << mDisplayArea.mPosition.y << "][" << mDisplayArea.mSize.x << ", " << mDisplayArea.mSize.y << "]"; }
     protected:
-        std::string mId;
+        int32_t mId = 0;
+        std::string mStringId;
         std::string mDisplayName;
         uint32_t mConfigFlags = 0; // Active visitor flags
         uint32_t mNotificationFlags = 0; // Notification flags for ux feedback (resizing box animation etc)
@@ -360,11 +381,12 @@ namespace l::ui {
 
     class UISplit : public UIContainer {
     public:
-        UISplit(uint32_t flags, UISplitMode splitMode, UILayoutH layoutH, UILayoutV layoutV) : UIContainer(flags), mSplitMode(splitMode) {
-            mDisplayArea.mRender.mType = UIRenderType::Rect;
+        UISplit(uint32_t flags, UIRenderType renderType, UISplitMode splitMode, UILayoutH layoutH, UILayoutV layoutV) : UIContainer(flags), mSplitMode(splitMode) {
+            mDisplayArea.mRender.mType = renderType;
             mDisplayArea.mMargin = 3.0f;
             mDisplayArea.mLayout.mLayoutH = layoutH;
             mDisplayArea.mLayout.mLayoutV = layoutV;
+            mDisplayArea.mRender.mColor = ImColor(ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
         }
         ~UISplit() = default;
 
@@ -373,35 +395,16 @@ namespace l::ui {
         UISplitMode mSplitMode;
     };
 
-    template<class T, class = std::enable_if_t<std::is_base_of_v<UIContainer, T>>>
-    std::string CreateUniqueId() {
-        static uint32_t mId = 0;
-        std::string id;
-        if constexpr (std::is_same_v<T, UIContainer>) {
-            id += "UIContainer";
-        }
-        else if constexpr (std::is_same_v<T, UISplit>) {
-            id += "UISplit";
-        }
-        else {
-            id += "Unknown";
-        }
-
-        id += l::string::to_hex<uint32_t>(mId++, 4);
-
-        return id;
-    }
-
     class UICreator {
     public:
         UICreator() = default;
         ~UICreator() = default;
 
         UIHandle<UIContainer> CreateContainer(uint32_t flags, UIRenderType renderType = UIRenderType::Rect, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed);
-        UIHandle<UISplit> CreateSplit(uint32_t flags, UISplitMode splitMode = UISplitMode::AppendV, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed);
+        UIHandle<UISplit> CreateSplit(uint32_t flags, UIRenderType renderType, UISplitMode splitMode = UISplitMode::AppendV, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed);
 
     protected:
-        std::unordered_map<std::string, std::unique_ptr<UIContainer>> mContainers;
+        std::unordered_map<uint32_t, std::unique_ptr<UIContainer>> mContainers;
 
     };
 }

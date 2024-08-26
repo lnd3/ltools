@@ -66,19 +66,26 @@ namespace l::ui {
 
     class UILinkIO : public UIVisitor {
     public:
+        using HandlerFunctionType = bool(int32_t, int32_t, int8_t, int8_t, bool);
+
         virtual bool Active(UIContainer& container, const InputState& input);
 
-        UILinkIO(UICreator* creator = nullptr) : mCreator(creator) {}
+        UILinkIO(UICreator* creator, std::function<HandlerFunctionType> handler = nullptr) : mCreator(creator), mHandler(std::move(handler)) {}
         ~UILinkIO() = default;
 
         virtual bool Visit(UIContainer& container, const InputState& input);
+
+        void SetHandler(std::function<HandlerFunctionType> handler) {
+            mHandler = std::move(handler);
+        }
+
     protected:
         bool mDragging = false;
         bool mPossibleLinkImminent = false;
         UIHandle<UIContainer> mLinkContainer;
         UICreator* mCreator = nullptr;
 
-        std::function<void(int32_t, int32_t, bool)> mLink;
+        std::function<HandlerFunctionType> mHandler;
     };
 
 }

@@ -33,6 +33,7 @@ namespace l::ui {
         bool TryScale(const ImVec2& scalePos, float scroll);
         ImVec2 Transform(ImVec2 p, bool toWorld = true);
         void Show();
+        void SetBgColor(ImVec4 bgColor);
     protected:
         ImGuiWindow* mWindowPtr;
         bool mOpened;
@@ -40,6 +41,8 @@ namespace l::ui {
         std::function<void()> mWindowFunction;
         float mContentScale;
         bool mMoving;
+
+        ImVec4 mBgColor = ImVec4(0.01f, 0.01f, 0.01f, 1.0f);
 
         ImVec2 mContentPan;
     };

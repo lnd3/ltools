@@ -93,6 +93,7 @@ namespace l::ui {
 
     void UIWindow::Show() {
         if (mOpened) {
+            ImGui::PushStyleColor(ImGuiCol_WindowBg, mBgColor);
             if (ImGui::Begin("Test primitive rendering", &mOpened)) {
                 if (mOpened) {
                     mWindowPtr = ImGui::GetCurrentWindowRead();
@@ -109,7 +110,13 @@ namespace l::ui {
                 }
             }
             ImGui::End();
+            ImGui::PopStyleColor();
         }
     }
+
+    void UIWindow::SetBgColor(ImVec4 bgColor) {
+        mBgColor = bgColor;
+    }
+
 
 }

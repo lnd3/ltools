@@ -17,6 +17,7 @@ namespace l::nodegraph {
     };
 
     enum class InputType {
+        INPUT_EMPTY,
         INPUT_NODE,
         INPUT_CONSTANT,
         INPUT_VALUE,
@@ -42,9 +43,10 @@ namespace l::nodegraph {
 
     struct NodeGraphInput {
         Input mInput;
-        InputType mInputType = InputType::INPUT_NODE;
+        InputType mInputType = InputType::INPUT_EMPTY;
         int8_t mInputFromOutputChannel = 0;
 
+        bool HasInput();
         float Get();
     };
 
@@ -54,6 +56,8 @@ namespace l::nodegraph {
         virtual ~NodeGraphBase() = default;
 
         virtual void Reset();
+        void SetId(int32_t id) { mId = id; }
+        int32_t GetId() const { return mId; }
 
         void Update();
 
@@ -62,10 +66,12 @@ namespace l::nodegraph {
 
         virtual float Get(int8_t outputChannel);
 
-        virtual void SetInput(int8_t inputChannel, NodeGraphBase& source, int8_t sourceOutputChannel = 0);
-        virtual void SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel = 0, bool useSourceInternalInput = true);
-        virtual void SetInput(int8_t inputChannel, float constant);
-        virtual void SetInput(int8_t inputChannel, float* floatPtr);
+        virtual bool ClearInput(int8_t inputChannel);
+
+        virtual bool SetInput(int8_t inputChannel, NodeGraphBase& source, int8_t sourceOutputChannel = 0);
+        virtual bool SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel = 0, bool useSourceInternalInput = true);
+        virtual bool SetInput(int8_t inputChannel, float constant);
+        virtual bool SetInput(int8_t inputChannel, float* floatPtr);
     protected:
         void PreUpdate();
         virtual void ProcessOperation();
@@ -74,6 +80,7 @@ namespace l::nodegraph {
         std::vector<NodeGraphInput> mInputs;
         std::vector<NodeGraphOutput> mOutputs;
 
+        int32_t mId;
         std::string mName;
     };
 
@@ -164,6 +171,10 @@ namespace l::nodegraph {
         float Get(int8_t outputChannel);
         NodeGraphBase& GetInputNode();
         NodeGraphBase& GetOutputNode();
+
+        NodeGraphBase* GetNode(int32_t id);
+
+        void AddNode();
 
         void Update();
     protected:

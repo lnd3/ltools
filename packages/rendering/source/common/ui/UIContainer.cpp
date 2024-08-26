@@ -7,21 +7,25 @@ namespace l::ui {
     UIHandle<UIContainer> UICreator::CreateContainer(uint32_t flags, UIRenderType renderType, UIAlignH alignH, UIAlignV alignV, UILayoutH layoutH, UILayoutV layoutV) {
         std::unique_ptr<UIContainer> container = std::make_unique<UIContainer>(flags, renderType, alignH, alignV, layoutH, layoutV);
 
-        std::string id = CreateUniqueId<UIContainer>();
+        auto id = CreateUniqueId();
+        auto stringId = CreateUniqueStringId<UIContainer>();
         container->SetId(id);
+        container->SetStringId(stringId);
         mContainers.insert({ id, std::move(container) });
 
-        return UIHandle<UIContainer>{ id, mContainers.at(id).get() };
+        return UIHandle<UIContainer>{ id, stringId, mContainers.at(id).get() };
     }
 
-    UIHandle<UISplit> UICreator::CreateSplit(uint32_t flags, UISplitMode splitMode, UILayoutH layoutH, UILayoutV layoutV) {
-        std::unique_ptr<UISplit> container = std::make_unique<UISplit>(flags, splitMode, layoutH, layoutV);
+    UIHandle<UISplit> UICreator::CreateSplit(uint32_t flags, UIRenderType renderType, UISplitMode splitMode, UILayoutH layoutH, UILayoutV layoutV) {
+        std::unique_ptr<UISplit> container = std::make_unique<UISplit>(flags, renderType, splitMode, layoutH, layoutV);
 
-        std::string id = CreateUniqueId<UISplit>();
+        auto id = CreateUniqueId();
+        auto stringId = CreateUniqueStringId<UIContainer>();
         container->SetId(id);
+        container->SetStringId(stringId);
         mContainers.insert({ id, std::move(container) });
 
-        return UIHandle<UISplit>{ id, mContainers.at(id).get() };
+        return UIHandle<UISplit>{ id, stringId, mContainers.at(id).get() };
     }
 
     ImVec2 DragMovement(const ImVec2& prevPos, const ImVec2& curPos, float curScale) {
@@ -91,78 +95,6 @@ namespace l::ui {
         }
     }
 
-    void UIContainer::Rescale(float localChange) {
-        mDisplayArea.mScale *= localChange;
-    }
-
-    void UIContainer::ClearNotifications() {
-        mNotificationFlags = 0;
-    }
-
-    void UIContainer::Notification(uint32_t flag) {
-        mNotificationFlags |= flag;
-    }
-
-    bool UIContainer::HasNotification(uint32_t flag) {
-        return (mNotificationFlags & flag) == flag;
-    }
-
-    bool UIContainer::HasConfigFlag(uint32_t flag) {
-        return (mConfigFlags & flag) == flag;
-    }
-
-    void UIContainer::SetScale(float scale) {
-        mDisplayArea.mScale = scale;
-    }
-
-    void UIContainer::SetPosition(ImVec2 p) {
-        mDisplayArea.mPosition = p;
-    }
-
-    void UIContainer::SetSize(ImVec2 s) {
-        mDisplayArea.mSize = s;
-    }
-
-    void UIContainer::SetLayoutPosition(ImVec2 s) {
-        mLayoutArea.mPosition = s;
-    }
-
-    void UIContainer::SetLayoutSize(ImVec2 s) {
-        mLayoutArea.mSize = s;
-    }
-
-    void UIContainer::SetDisplayName(std::string_view displayName) {
-        mDisplayName = displayName;
-    }
-
-    void UIContainer::SetId(std::string_view id) {
-        mId = id;
-    }
-
-    void UIContainer::SetContainerArea(const ContainerArea& area) {
-        mDisplayArea = area;
-    }
-
-    void UIContainer::SetLayoutArea(const ContainerArea& transformedLayoutArea) {
-        mLayoutArea = transformedLayoutArea;
-    }
-
-    UIContainer* UIContainer::GetParent() {
-        return mParent;
-    }
-
-    void UIContainer::SetParent(UIContainer* parent) {
-        mParent = parent;
-    }
-
-    void UIContainer::SetCoParent(UIContainer* coParent) {
-        mCoParent = coParent;
-    }
-
-    UIContainer* UIContainer::GetCoParent() {
-        return mCoParent;
-    }
-
     ImVec2 UIContainer::GetPosition(bool untransformed) const {
         if (untransformed) {
             return mDisplayArea.mPosition;
@@ -189,22 +121,6 @@ namespace l::ui {
             return mDisplayArea.mSize;
         }
         return ImVec2(mDisplayArea.mSize.x * mDisplayArea.mScale, mDisplayArea.mSize.y * mDisplayArea.mScale);
-    }
-
-    float UIContainer::GetScale() {
-        return mDisplayArea.mScale;
-    }
-
-    ContainerArea& UIContainer::GetContainerArea() {
-        return mDisplayArea;
-    }
-
-    const ContainerArea& UIContainer::GetLayoutArea() const {
-        return mLayoutArea;
-    }
-
-    void UIContainer::DebugLog() {
-        LOG(LogDebug) << "UIContainer: " << mDisplayName << ", [" << mDisplayArea.mScale << "][" << mDisplayArea.mPosition.x << ", " << mDisplayArea.mPosition.y << "][" << mDisplayArea.mSize.x << ", " << mDisplayArea.mSize.y << "]";
     }
 
     bool UIContainer::Accept(UIVisitor& visitor, const InputState& input, UITraversalMode mode) {
@@ -353,6 +269,11 @@ namespace l::ui {
             return visitor.Visit(*this, input);
         }
         return false;
+    }
+
+    int32_t CreateUniqueId() {
+        static int32_t mId = 0;
+        return mId++;
     }
 
 }

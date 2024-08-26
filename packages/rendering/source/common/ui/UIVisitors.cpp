@@ -58,7 +58,7 @@ namespace l::ui {
 
             ImVec2 move = DragMovement(input.mPrevPos, input.mCurPos, layoutArea.mScale * container.GetScale());
             container.Move(move);
-            container.Notification(UIContainer_DragFlag);
+            container.SetNotification(UIContainer_DragFlag);
 
             if (input.mStopped) {
                 mDragging = false;
@@ -88,7 +88,7 @@ namespace l::ui {
             auto& layoutArea = container.GetLayoutArea();
             ImVec2 move = DragMovement(input.mPrevPos, input.mCurPos, layoutArea.mScale);
             container.Move(move);
-            container.Notification(UIContainer_MoveFlag);
+            container.SetNotification(UIContainer_MoveFlag);
 
             if (input.mStopped) {
                 mMoving = false;
@@ -109,7 +109,7 @@ namespace l::ui {
             float size = 3.0f * layoutArea.mScale;
             if (OverlapScreenRect(input.GetLocalPos(), p, ImVec2(size, size), layoutArea)) {
                 mSourceContainer = &container;
-                container.Notification(UIContainer_ResizeFlag);
+                container.SetNotification(UIContainer_ResizeFlag);
 
                 if (input.mStarted) {
                     mResizing = true;
@@ -235,10 +235,10 @@ namespace l::ui {
             break;
         }
 
-        if (mDebug && !container.GetId().empty()) {
+        if (mDebug && !container.GetStringId().empty()) {
             // also render name if it is non empty as debug text
-            nameStart = container.GetId().data();
-            nameEnd = container.GetId().data() + container.GetId().size();
+            nameStart = container.GetStringId().data();
+            nameEnd = container.GetStringId().data() + container.GetStringId().size();
             mDrawList->AddText(p1, color, nameStart, nameEnd);
         }
 
@@ -315,10 +315,18 @@ namespace l::ui {
             ImVec2 pT = layoutArea.Transform(pCenter);
 
             if (OverlapCircle(input.mCurPos, pT, size.x * layoutArea.mScale)) {
-                mLinkContainer->Notification(UIContainer_LinkFlag);
-                mLinkContainer->SetCoParent(&container);
+                if (!mHandler || mHandler(container.GetId(), mLinkContainer->GetParent()->GetId(), 0, 0, true)) {
+                    mLinkContainer->SetNotification(UIContainer_LinkFlag);
+                    mLinkContainer->SetCoParent(&container);
+                }
+                else {
+                    // Failed to connect link
+                }
             }
             else if (mLinkContainer->GetCoParent() == &container){
+                if (mHandler) {
+                    mHandler(container.GetId(), mLinkContainer->GetParent()->GetId(), 0, 0, false);
+                }
                 mLinkContainer->SetCoParent(nullptr);
                 mLinkContainer->ClearNotifications();
             }
