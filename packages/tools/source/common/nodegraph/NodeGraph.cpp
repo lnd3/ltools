@@ -101,9 +101,9 @@ namespace l::nodegraph {
         return true;
     }
 
-    bool NodeGraphBase::SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel, bool useSourceInternalInput) {
+    bool NodeGraphBase::SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceChannel, bool nodeIsInsideGroup) {
         Input newInput;
-        if (useSourceInternalInput) {
+        if (nodeIsInsideGroup) {
             newInput.mInputNode = &source.GetInputNode();
         }
         else {
@@ -111,13 +111,17 @@ namespace l::nodegraph {
         }
 
         auto& input = mInputs.at(inputChannel);
-        if (!IsValidInOutNum(sourceOutputChannel, newInput.mInputNode->mOutputs.size()) ||
+        if (!IsValidInOutNum(sourceChannel, newInput.mInputNode->mOutputs.size()) ||
             !IsValidInOutNum(inputChannel, mInputs.size()) || 
             input.HasInput()){
             return false;
         }
 
-        input = NodeGraphInput{ std::move(newInput), InputType::INPUT_NODE, sourceOutputChannel };
+        if (nodeIsInsideGroup) {
+            source.GetInputNode().SetInputName(sourceChannel, input.mName);
+        }
+
+        input = NodeGraphInput{ std::move(newInput), InputType::INPUT_NODE, sourceChannel };
         return true;
     }
 
@@ -143,6 +147,22 @@ namespace l::nodegraph {
         newInput.mInputFloat = floatPtr;
         input = NodeGraphInput{ std::move(newInput), InputType::INPUT_VALUE, 0 };
         return true;
+    }
+
+    std::string_view NodeGraphBase::GetInputName(int8_t inputChannel) {
+        return mInputs.at(inputChannel).mName;
+    }
+
+    std::string_view NodeGraphBase::GetOutputName(int8_t outputChannel) {
+        return mOutputs.at(outputChannel).mName;
+    }
+
+    void NodeGraphBase::SetInputName(int8_t inputChannel, std::string_view name) {
+        mInputs.at(inputChannel).mName = name;
+    }
+
+    void NodeGraphBase::SetOutputName(int8_t outputChannel, std::string_view name) {
+        mOutputs.at(outputChannel).mName = name;
     }
 
     void NodeGraphOp::SetNumInputs(int8_t numInputs) {
@@ -173,13 +193,10 @@ namespace l::nodegraph {
             if (mInput.mInputNode != nullptr) {
                 return true;
             }
-            break;
         case InputType::INPUT_CONSTANT:
             return true;
-            break;
         case InputType::INPUT_VALUE:
             return mInput.mInputFloat != nullptr;
-            break;
         case InputType::INPUT_EMPTY:
             break;
         }
@@ -233,10 +250,12 @@ namespace l::nodegraph {
 
     void NodeGraphGroup::SetOutput(int8_t outputChannel, NodeGraphBase& source, int8_t sourceOutputChannel) {
         mOutputNode.SetInput(outputChannel, source, sourceOutputChannel);
+        mOutputNode.SetOutputName(outputChannel, source.GetOutputName(sourceOutputChannel));
     }
 
     void NodeGraphGroup::SetOutput(int8_t outputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel) {
         mOutputNode.SetInput(outputChannel, source, sourceOutputChannel, false);
+        mOutputNode.SetOutputName(outputChannel, source.GetOutputNode().GetOutputName(sourceOutputChannel));
     }
 
     float NodeGraphGroup::Get(int8_t outputChannel) {

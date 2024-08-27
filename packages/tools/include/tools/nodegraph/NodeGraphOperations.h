@@ -101,6 +101,9 @@ namespace l::nodegraph {
 
     class GraphFilterLowpass : public NodeGraphOp {
     public:
+        std::string defaultInStrings[3] = { "Cutoff", "Resonance", "Data"};
+        std::string defaultOutStrings[1] = { "Out" };
+
         GraphFilterLowpass() :
             NodeGraphOp(3, 1)
         {}
@@ -108,6 +111,14 @@ namespace l::nodegraph {
         virtual ~GraphFilterLowpass() = default;
         void Reset() override;
         void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+
+        std::string_view GetInputName(int8_t inputChannel) {
+            return defaultInStrings[inputChannel];
+        }
+
+        std::string_view GetOutputName(int8_t outputChannel) {
+            return defaultOutStrings[outputChannel];
+        }
 
     protected:
         float mState0 = 0.0f;

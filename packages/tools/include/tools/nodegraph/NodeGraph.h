@@ -29,6 +29,7 @@ namespace l::nodegraph {
 
     struct NodeGraphOutput {
         float mOutput = 0.0f;
+        std::string mName;
     };
 
     class NodeGraphBase;
@@ -46,6 +47,7 @@ namespace l::nodegraph {
         Input mInput;
         InputType mInputType = InputType::INPUT_EMPTY;
         int8_t mInputFromOutputChannel = 0;
+        std::string mName;
 
         bool HasInput();
         float Get();
@@ -70,10 +72,15 @@ namespace l::nodegraph {
 
         virtual float Get(int8_t outputChannel);
 
+        virtual std::string_view GetInputName(int8_t inputChannel);
+        virtual std::string_view GetOutputName(int8_t outputChannel);
+        virtual void SetInputName(int8_t inputChannel, std::string_view name);
+        virtual void SetOutputName(int8_t outputChannel, std::string_view name);
+
         virtual bool ClearInput(int8_t inputChannel);
 
-        virtual bool SetInput(int8_t inputChannel, NodeGraphBase& source, int8_t sourceOutputChannel = 0);
-        virtual bool SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel = 0, bool useSourceInternalInput = true);
+        virtual bool SetInput(int8_t inputChannel, NodeGraphBase& source, int8_t sourceOutputChannel);
+        virtual bool SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel, bool nodeIsInsideGroup);
         virtual bool SetInput(int8_t inputChannel, float constant);
         virtual bool SetInput(int8_t inputChannel, float* floatPtr);
     protected:
@@ -95,6 +102,9 @@ namespace l::nodegraph {
             mNumOutputs(numOutputs) 
         {}
 
+        std::string defaultInStrings[3] = { "In 1", "In 2", "In 3" };
+        std::string defaultOutStrings[3] = { "Out 1", "Out 2", "Out 3" };
+
         virtual ~NodeGraphOp() = default;
         virtual void Reset() {}
         virtual void Process(std::vector<NodeGraphInput>& mInputs, std::vector<NodeGraphOutput>& outputs) = 0;
@@ -103,6 +113,14 @@ namespace l::nodegraph {
         virtual void SetNumOutputs(int8_t numOutputs);
         int8_t GetNumInputs();
         int8_t GetNumOutputs();
+        
+        virtual std::string_view GetInputName(int8_t inputChannel) {
+            return defaultInStrings[inputChannel];
+        };
+        virtual std::string_view GetOutputName(int8_t outputChannel) {
+            return defaultOutStrings[outputChannel];
+        }
+
     protected:
         int8_t mNumInputs;
         int8_t mNumOutputs;
@@ -146,6 +164,22 @@ namespace l::nodegraph {
         virtual void ProcessOperation() override {
             NodeGraphBase::ProcessOperation();
             mOperation.Process(mInputs, mOutputs);
+        }
+
+        virtual std::string_view GetInputName(int8_t inputChannel) {
+            auto& customName = mInputs.at(inputChannel).mName;
+            if (!customName.empty()) {
+                return customName;
+            }
+            return mOperation.GetInputName(inputChannel);
+        }
+
+        virtual std::string_view GetOutputName(int8_t outputChannel) {
+            auto& customName = mOutputs.at(outputChannel).mName;
+            if (!customName.empty()) {
+                return customName;
+            }
+            return mOperation.GetOutputName(outputChannel);
         }
 
     protected:

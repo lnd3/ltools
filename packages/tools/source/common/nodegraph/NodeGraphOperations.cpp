@@ -90,6 +90,4 @@ namespace l::nodegraph {
         outputs.at(0).mOutput = -mState1;
     }
 
-
-
 }

@@ -59,13 +59,13 @@ TEST(NodeGraph, BasicMathematicalOperations) {
 	node1.SetInput(0, &in1);
 	node1.SetInput(1, 2.3f);
 
-	node2.SetInput(0, node1);
+	node2.SetInput(0, node1, 0);
 	node2.SetInput(1, &in3); // (in1 + in2) * in3
 
-	node3.SetInput(0, node2);
+	node3.SetInput(0, node2, 0);
 	node3.SetInput(1, &in4); // (in1 + in2) * in3 - in4
 
-	nodeOutput.SetInput(0, node3); // - (in1 + in2) * in3 - in4
+	nodeOutput.SetInput(0, node3, 0); // - (in1 + in2) * in3 - in4
 
 	nodeOutput.Update();
 	TEST_FUZZY(nodeOutput.Get(0), -6.9f, 0.0001f, "");
@@ -136,16 +136,16 @@ TEST(NodeGraph, GraphGroups) {
 		group.SetInput(3, &input2);
 
 		// cutoff
-		nodeLowpass1.SetInput(0, group, 0);
-		nodeLowpass2.SetInput(0, group, 0);
+		nodeLowpass1.SetInput(0, group, 0, true);
+		nodeLowpass2.SetInput(0, group, 0, true);
 
 		// resonance
-		nodeLowpass1.SetInput(1, group, 1);
-		nodeLowpass2.SetInput(1, group, 1);
+		nodeLowpass1.SetInput(1, group, 1, true);
+		nodeLowpass2.SetInput(1, group, 1, true);
 
 		// left, right
-		nodeLowpass1.SetInput(2, group, 2);
-		nodeLowpass2.SetInput(2, group, 3);
+		nodeLowpass1.SetInput(2, group, 2, true);
+		nodeLowpass2.SetInput(2, group, 3, true);
 
 		group.SetOutput(0, nodeLowpass1, 0);
 		group.SetOutput(1, nodeLowpass2, 0);
@@ -162,8 +162,8 @@ TEST(NodeGraph, GraphGroups) {
 
 		copyNode.SetNumInputs(2);
 		copyNode.SetNumOutputs(2);
-		copyNode.SetInput(0, group2, 0);
-		copyNode.SetInput(1, group2, 1);
+		copyNode.SetInput(0, group2, 0, true);
+		copyNode.SetInput(1, group2, 1, true);
 
 		group2.SetOutput(0, copyNode, 0);
 		group2.SetOutput(1, copyNode, 1);
