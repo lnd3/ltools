@@ -97,7 +97,7 @@ namespace l::nodegraph {
 
         Input newInput;
         newInput.mInputNode = &source;
-        input = NodeGraphInput{ std::move(newInput), InputType::INPUT_NODE, sourceOutputChannel };
+        input = NodeGraphInput{ std::move(newInput), InputType::INPUT_NODE, sourceOutputChannel, ""};
         return true;
     }
 
@@ -121,7 +121,7 @@ namespace l::nodegraph {
             source.GetInputNode().SetInputName(sourceChannel, input.mName);
         }
 
-        input = NodeGraphInput{ std::move(newInput), InputType::INPUT_NODE, sourceChannel };
+        input = NodeGraphInput{ std::move(newInput), InputType::INPUT_NODE, sourceChannel, "" };
         return true;
     }
 
@@ -133,7 +133,7 @@ namespace l::nodegraph {
 
         Input newInput;
         newInput.mInputFloatConstant = constant;
-        input = NodeGraphInput{ std::move(newInput), InputType::INPUT_CONSTANT, 0 };
+        input = NodeGraphInput{ std::move(newInput), InputType::INPUT_CONSTANT, 0, "" };
         return true;
     }
 
@@ -145,7 +145,7 @@ namespace l::nodegraph {
 
         Input newInput;
         newInput.mInputFloat = floatPtr;
-        input = NodeGraphInput{ std::move(newInput), InputType::INPUT_VALUE, 0 };
+        input = NodeGraphInput{ std::move(newInput), InputType::INPUT_VALUE, 0, "" };
         return true;
     }
 
@@ -197,6 +197,7 @@ namespace l::nodegraph {
             if (mInput.mInputNode != nullptr) {
                 return true;
             }
+            break;
         case InputType::INPUT_CONSTANT:
             return true;
         case InputType::INPUT_VALUE:
