@@ -233,20 +233,5 @@ namespace l::nodegraph {
         std::vector<std::unique_ptr<NodeGraphBase>> mNodes;
     };
 
-    class NodeGraphSchema {
-    public:
-        NodeGraphSchema() = default;
-        ~NodeGraphSchema() = default;
-
-        template<class T, class = std::enable_if<std::is_base_of_v<NodeGraphBase, T>>>
-        void NewNode(std::string_view name = "") {
-            mNodes.emplace_back(std::make_unique<NodeGraph<T>>(name));
-        }
-
-    protected:
-        std::vector<std::unique_ptr<NodeGraphBase>> mNodes;
-
-    };
-
 }
 
