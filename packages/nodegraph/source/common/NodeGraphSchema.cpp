@@ -40,6 +40,7 @@ namespace l::nodegraph {
             break;
         default:
             ASSERT(type < 1000) << "Custom node id's begin at id 1000";
+            ASSERT(mCreateCustomNode != nullptr) << "Custom nodes needs a handler to create them. It's missing.";
             node = mCreateCustomNode(type, mMainNodeGraph);
             break;
         };

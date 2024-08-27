@@ -76,10 +76,6 @@ namespace l::ui {
 
         virtual bool Visit(UIContainer& container, const InputState& input);
 
-        void SetHandler(std::function<HandlerFunctionType> handler) {
-            mHandler = std::move(handler);
-        }
-
         bool LinkHandler(int32_t linkInputId, int32_t linkOutputId, int32_t inputChannel, int32_t outputChannel, bool connected) {
             auto inputNode = mNGSchema.GetNode(linkInputId);
             if (inputNode == nullptr) {
@@ -97,8 +93,6 @@ namespace l::ui {
         UIHandle mLinkContainer;
         UIStorage& mUIStorage;
         l::nodegraph::NodeGraphSchema& mNGSchema;
-
-        std::function<HandlerFunctionType> mHandler;
     };
 
 
