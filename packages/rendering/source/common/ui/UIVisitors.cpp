@@ -315,7 +315,7 @@ namespace l::ui {
             ImVec2 pT = layoutArea.Transform(pCenter);
 
             if (OverlapCircle(input.mCurPos, pT, size.x * layoutArea.mScale)) {
-                if (!mHandler || mHandler(container.GetId(), mLinkContainer->GetParent()->GetId(), container.GetSubId(), mLinkContainer->GetParent()->GetSubId(), true)) {
+                if (LinkHandler(container.GetId(), mLinkContainer->GetParent()->GetId(), container.GetSubId(), mLinkContainer->GetParent()->GetSubId(), true)) {
                     mLinkContainer->SetNotification(UIContainer_LinkFlag);
                     mLinkContainer->SetCoParent(&container);
                 }
@@ -324,9 +324,7 @@ namespace l::ui {
                 }
             }
             else if (mLinkContainer->GetCoParent() == &container) {
-                if (mHandler) {
-                    mHandler(container.GetId(), mLinkContainer->GetParent()->GetId(), container.GetSubId(), mLinkContainer->GetParent()->GetSubId(), false);
-                }
+                LinkHandler(container.GetId(), mLinkContainer->GetParent()->GetId(), container.GetSubId(), mLinkContainer->GetParent()->GetSubId(), false);
                 mLinkContainer->SetCoParent(nullptr);
                 mLinkContainer->ClearNotifications();
             }

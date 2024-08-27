@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rendering/ui/UIContainer.h"
+#include "nodegraph/NodeGraphSchema.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -70,7 +71,7 @@ namespace l::ui {
 
         virtual bool Active(UIContainer& container, const InputState& input);
 
-        UILinkIO(UIStorage& uiStorage, std::function<HandlerFunctionType> handler = nullptr) : mUIStorage(uiStorage), mHandler(std::move(handler)) {}
+        UILinkIO(UIStorage& uiStorage, l::nodegraph::NodeGraphSchema& ngSchema) : mUIStorage(uiStorage), mNGSchema(ngSchema) {}
         ~UILinkIO() = default;
 
         virtual bool Visit(UIContainer& container, const InputState& input);
@@ -79,10 +80,23 @@ namespace l::ui {
             mHandler = std::move(handler);
         }
 
+        bool LinkHandler(int32_t linkInputId, int32_t linkOutputId, int32_t inputChannel, int32_t outputChannel, bool connected) {
+            auto inputNode = mNGSchema.GetNode(linkInputId);
+            if (inputNode == nullptr) {
+                return false;
+            }
+            if (connected) {
+                auto outputNode = mNGSchema.GetNode(linkOutputId);
+                return outputNode != nullptr && inputNode->SetInput(static_cast<int8_t>(inputChannel), *outputNode, static_cast<int8_t>(outputChannel));
+            }
+            return inputNode->ClearInput(static_cast<int8_t>(inputChannel));
+        }
+
     protected:
         bool mDragging = false;
         UIHandle mLinkContainer;
         UIStorage& mUIStorage;
+        l::nodegraph::NodeGraphSchema& mNGSchema;
 
         std::function<HandlerFunctionType> mHandler;
     };
