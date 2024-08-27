@@ -20,6 +20,9 @@ namespace l::nodegraph {
         {}
         virtual ~GraphNumericAdd() = default;
         void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        std::string_view GetName() override {
+            return "Add";
+        }
     };
 
     class GraphNumericMultiply : public NodeGraphOp {
@@ -30,6 +33,9 @@ namespace l::nodegraph {
 
         virtual ~GraphNumericMultiply() = default;
         void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        std::string_view GetName() override {
+            return "Multiply";
+        }
     };
 
     class GraphNumericSubtract : public NodeGraphOp {
@@ -39,6 +45,9 @@ namespace l::nodegraph {
         {}
         virtual ~GraphNumericSubtract() = default;
         void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        std::string_view GetName() override {
+            return "Subtract";
+        }
     };
 
     class GraphNumericNegate : public NodeGraphOp {
@@ -49,6 +58,9 @@ namespace l::nodegraph {
 
         virtual ~GraphNumericNegate() = default;
         void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        std::string_view GetName() override {
+            return "Negate";
+        }
     };
 
     class GraphNumericIntegral : public NodeGraphOp {
@@ -60,6 +72,9 @@ namespace l::nodegraph {
         virtual ~GraphNumericIntegral() = default;
         void Reset() override;
         void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        std::string_view GetName() override {
+            return "Integral";
+        }
 
     protected:
         float mOutput = 0.0f;
@@ -75,6 +90,9 @@ namespace l::nodegraph {
 
         virtual ~GraphLogicalAnd() = default;
         void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        std::string_view GetName() override {
+            return "And";
+        }
     };
 
     class GraphLogicalOr : public NodeGraphOp {
@@ -85,6 +103,9 @@ namespace l::nodegraph {
 
         virtual ~GraphLogicalOr() = default;
         void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        std::string_view GetName() override {
+            return "Or";
+        }
     };
 
     class GraphLogicalXor : public NodeGraphOp {
@@ -95,6 +116,9 @@ namespace l::nodegraph {
 
         virtual ~GraphLogicalXor() = default;
         void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        std::string_view GetName() override {
+            return "Xor";
+        }
     };
 
     /* Stateful filtering operations */
@@ -119,7 +143,9 @@ namespace l::nodegraph {
         std::string_view GetOutputName(int8_t outputChannel) {
             return defaultOutStrings[outputChannel];
         }
-
+        std::string_view GetName() override {
+            return "Lowpass";
+        }
     protected:
         float mState0 = 0.0f;
         float mState1 = 0.0f;

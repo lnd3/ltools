@@ -72,6 +72,7 @@ namespace l::nodegraph {
 
         virtual float Get(int8_t outputChannel);
 
+        virtual std::string_view GetName();
         virtual std::string_view GetInputName(int8_t inputChannel);
         virtual std::string_view GetOutputName(int8_t outputChannel);
         virtual void SetInputName(int8_t inputChannel, std::string_view name);
@@ -119,6 +120,9 @@ namespace l::nodegraph {
         };
         virtual std::string_view GetOutputName(int8_t outputChannel) {
             return defaultOutStrings[outputChannel];
+        }
+        virtual std::string_view GetName() {
+            return "";
         }
 
     protected:
@@ -180,6 +184,10 @@ namespace l::nodegraph {
                 return customName;
             }
             return mOperation.GetOutputName(outputChannel);
+        }
+
+        virtual std::string_view GetName() {
+            return mOperation.GetName();
         }
 
     protected:

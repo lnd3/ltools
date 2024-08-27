@@ -149,6 +149,10 @@ namespace l::nodegraph {
         return true;
     }
 
+    std::string_view NodeGraphBase::GetName() {
+        return mName;
+    }
+
     std::string_view NodeGraphBase::GetInputName(int8_t inputChannel) {
         return mInputs.at(inputChannel).mName;
     }
