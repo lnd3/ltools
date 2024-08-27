@@ -23,6 +23,7 @@ else()
 		testing
 		meta
 		memory
+		nodegraph
 
 		concurrency
 		filesystem
