@@ -1,4 +1,4 @@
-#include "tools/nodegraph/NodeGraphOperations.h"
+#include "nodegraph/NodeGraphOperations.h"
 
 #include "logging/Log.h"
 

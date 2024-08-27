@@ -4,30 +4,6 @@
 
 namespace l::ui {
 
-    UIHandle UICreator::CreateContainer(uint32_t flags, UIRenderType renderType, UIAlignH alignH, UIAlignV alignV, UILayoutH layoutH, UILayoutV layoutV) {
-        std::unique_ptr<UIContainer> container = std::make_unique<UIContainer>(flags, renderType, alignH, alignV, layoutH, layoutV);
-
-        auto id = CreateUniqueId();
-        auto stringId = CreateUniqueStringId<UIContainer>();
-        container->SetId(id);
-        container->SetStringId(stringId);
-        mContainers.insert({ id, std::move(container) });
-
-        return UIHandle{ id, stringId, mContainers.at(id).get() };
-    }
-
-    UIHandle UICreator::CreateSplit(uint32_t flags, UIRenderType renderType, UISplitMode splitMode, UILayoutH layoutH, UILayoutV layoutV) {
-        std::unique_ptr<UISplit> container = std::make_unique<UISplit>(flags, renderType, splitMode, layoutH, layoutV);
-
-        auto id = CreateUniqueId();
-        auto stringId = CreateUniqueStringId<UIContainer>();
-        container->SetId(id);
-        container->SetStringId(stringId);
-        mContainers.insert({ id, std::move(container) });
-
-        return UIHandle{ id, stringId, mContainers.at(id).get() };
-    }
-
     ImVec2 DragMovement(const ImVec2& prevPos, const ImVec2& curPos, float curScale) {
         ImVec2 move = curPos;
         move.x -= prevPos.x;
@@ -286,4 +262,36 @@ namespace l::ui {
         return mId++;
     }
 
+    UIHandle UIStorage::Add(std::unique_ptr<UIContainer> container) {
+        auto id = container->GetId();
+        auto stringId = container->GetStringId();
+        mContainers.insert({ id, std::move(container) });
+        return UIHandle{ id, stringId, mContainers.at(id).get() };
+    }
+
+    void UIStorage::Remove(int32_t id) {
+        mContainers.erase(id);
+    }
+
+    UIHandle CreateContainer(UIStorage& uiStorage, uint32_t flags, UIRenderType renderType, UIAlignH alignH, UIAlignV alignV, UILayoutH layoutH, UILayoutV layoutV) {
+        std::unique_ptr<UIContainer> container = std::make_unique<UIContainer>(flags, renderType, alignH, alignV, layoutH, layoutV);
+
+        auto id = CreateUniqueId();
+        auto stringId = CreateUniqueStringId<UIContainer>();
+        container->SetId(id);
+        container->SetStringId(stringId);
+
+        return uiStorage.Add(std::move(container));
+    }
+
+    UIHandle CreateSplit(UIStorage& uiStorage, uint32_t flags, UIRenderType renderType, UISplitMode splitMode, UILayoutH layoutH, UILayoutV layoutV) {
+        std::unique_ptr<UISplit> container = std::make_unique<UISplit>(flags, renderType, splitMode, layoutH, layoutV);
+
+        auto id = CreateUniqueId();
+        auto stringId = CreateUniqueStringId<UIContainer>();
+        container->SetId(id);
+        container->SetStringId(stringId);
+
+        return uiStorage.Add(std::move(container));
+    }
 }

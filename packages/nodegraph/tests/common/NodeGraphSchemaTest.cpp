@@ -1,8 +1,9 @@
 #include "testing/Test.h"
 #include "logging/Log.h"
 
-#include "tools/nodegraph/NodeGraph.h"
-#include "tools/nodegraph/NodeGraphOperations.h"
+#include "nodegraph/NodeGraph.h"
+#include "nodegraph/NodeGraphOperations.h"
+#include "nodegraph/NodeGraphSchema.h"
 
 using namespace l;
 using namespace l::nodegraph;
@@ -182,9 +183,6 @@ TEST(NodeGraph, GraphGroups) {
 }
 
 TEST(NodeGraph, SchemaBasic) {
-
-	NodeGraphSchema schema;
-	schema.NewNode<GraphDataCopy>();
 
 	return 0;
 }

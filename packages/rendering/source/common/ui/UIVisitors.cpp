@@ -283,7 +283,7 @@ namespace l::ui {
             ImVec2 pT = layoutArea.Transform(pCenter);
             if (OverlapCircle(input.mCurPos, pT, size.x * layoutArea.mScale)) {
                 mDragging = true;
-                mLinkContainer = mCreator->CreateContainer(UIContainer_LinkFlag | UIContainer_DrawFlag, UIRenderType::LinkH);
+                mLinkContainer = CreateContainer(mUIStorage, UIContainer_LinkFlag | UIContainer_DrawFlag, UIRenderType::LinkH);
                 container.Add(mLinkContainer);
                 return true;
             }

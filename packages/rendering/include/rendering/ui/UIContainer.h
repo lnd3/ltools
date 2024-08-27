@@ -395,16 +395,18 @@ namespace l::ui {
         UISplitMode mSplitMode;
     };
 
-    class UICreator {
+    class UIStorage {
     public:
-        UICreator() = default;
-        ~UICreator() = default;
+        UIStorage() = default;
+        ~UIStorage() = default;
 
-        UIHandle CreateContainer(uint32_t flags, UIRenderType renderType = UIRenderType::Rect, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed);
-        UIHandle CreateSplit(uint32_t flags, UIRenderType renderType, UISplitMode splitMode = UISplitMode::AppendV, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed);
-
+        UIHandle Add(std::unique_ptr<UIContainer> container);
+        void Remove(int32_t id);
     protected:
         std::unordered_map<uint32_t, std::unique_ptr<UIContainer>> mContainers;
-
     };
+
+    UIHandle CreateContainer(UIStorage& uiStorage, uint32_t flags, UIRenderType renderType = UIRenderType::Rect, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed);
+    UIHandle CreateSplit(UIStorage& uiStorage, uint32_t flags, UIRenderType renderType, UISplitMode splitMode = UISplitMode::AppendV, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed);
+
 }

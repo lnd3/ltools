@@ -1,10 +1,14 @@
-#include "tools/nodegraph/NodeGraphSchema.h"
+#include "nodegraph/NodeGraphSchema.h"
 
 #include "logging/Log.h"
 
 namespace l::nodegraph {
 
-    void NodeGraphSchema::NewNode(int32_t type, std::function<void(NodeGraphBase*)> createHandler) {
+    void NodeGraphSchema::SetCustomCreator(std::function<CustomCreateFunctionType> customCreator) {
+        mCreateCustomNode = customCreator;
+    }
+
+    int32_t NodeGraphSchema::NewNode(int32_t type) {
         l::nodegraph::NodeGraphBase* node = nullptr;
         switch (type) {
         case 0:
@@ -35,9 +39,12 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterLowpass>();
             break;
         default:
+            ASSERT(type < 1000) << "Custom node id's begin at id 1000";
+            node = mCreateCustomNode(type, mMainNodeGraph);
             break;
         };
-        createHandler(node);
+
+        return node == nullptr ? 0 : node->GetId();
     }
 
     NodeGraphBase* NodeGraphSchema::GetNode(int32_t id) {

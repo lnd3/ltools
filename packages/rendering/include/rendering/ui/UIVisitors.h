@@ -70,7 +70,7 @@ namespace l::ui {
 
         virtual bool Active(UIContainer& container, const InputState& input);
 
-        UILinkIO(UICreator* creator, std::function<HandlerFunctionType> handler = nullptr) : mCreator(creator), mHandler(std::move(handler)) {}
+        UILinkIO(UIStorage& uiStorage, std::function<HandlerFunctionType> handler = nullptr) : mUIStorage(uiStorage), mHandler(std::move(handler)) {}
         ~UILinkIO() = default;
 
         virtual bool Visit(UIContainer& container, const InputState& input);
@@ -82,7 +82,7 @@ namespace l::ui {
     protected:
         bool mDragging = false;
         UIHandle mLinkContainer;
-        UICreator* mCreator = nullptr;
+        UIStorage& mUIStorage;
 
         std::function<HandlerFunctionType> mHandler;
     };

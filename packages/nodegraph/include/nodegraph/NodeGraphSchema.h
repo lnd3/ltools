@@ -2,8 +2,8 @@
 
 #include "logging/LoggingAll.h"
 
-#include "tools/nodegraph/NodeGraph.h"
-#include "tools/nodegraph/NodeGraphOperations.h"
+#include "nodegraph/NodeGraph.h"
+#include "nodegraph/NodeGraphOperations.h"
 
 #include <string>
 #include <vector>
@@ -16,14 +16,20 @@ namespace l::nodegraph {
 
     class NodeGraphSchema {
     public:
+
+        using CustomCreateFunctionType = NodeGraphBase * (int32_t type, NodeGraphGroup&);
+
         NodeGraphSchema() = default;
         ~NodeGraphSchema() = default;
 
-        void NewNode(int32_t type, std::function<void(NodeGraphBase*)> createHandler);
+        void SetCustomCreator(std::function<CustomCreateFunctionType> customCreator);
+        int32_t NewNode(int32_t type);
         NodeGraphBase* GetNode(int32_t id);
 
     protected:
         NodeGraphGroup mMainNodeGraph;
+
+        std::function<CustomCreateFunctionType> mCreateCustomNode;
 
     };
 

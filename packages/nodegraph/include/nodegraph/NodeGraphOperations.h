@@ -1,5 +1,5 @@
 #pragma once
-#include "NodeGraph.h"
+#include "nodegraph/NodeGraph.h"
 
 #include "logging/LoggingAll.h"
 

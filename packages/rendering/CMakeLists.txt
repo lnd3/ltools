@@ -8,9 +8,11 @@ set(deps
 	logging
 
 	testing
+	memory
+	nodegraph
 
 	filesystem
-	memory
+	tools
 
 	physics
 
