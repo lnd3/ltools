@@ -65,6 +65,9 @@ namespace l::nodegraph {
         virtual void SetNumInputs(int8_t numInputs);
         virtual void SetNumOutputs(int8_t outputCount);
 
+        virtual int8_t GetNumInputs();
+        virtual int8_t GetNumOutputs();
+
         virtual float Get(int8_t outputChannel);
 
         virtual bool ClearInput(int8_t inputChannel);

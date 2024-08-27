@@ -29,6 +29,14 @@ namespace l::nodegraph {
         mOutputs.resize(outputCount);
     }
 
+    int8_t NodeGraphBase::GetNumInputs() {
+        return static_cast<int8_t>(mInputs.size());
+    }
+
+    int8_t NodeGraphBase::GetNumOutputs() {
+        return static_cast<int8_t>(mOutputs.size());
+    }
+
     void NodeGraphBase::Reset() {
         for (auto& link : mInputs) {
             if (link.mInputType == InputType::INPUT_NODE && link.mInput.mInputNode != nullptr) {
