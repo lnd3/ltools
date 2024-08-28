@@ -183,8 +183,6 @@ namespace l::ui {
     class UIContainer;
     class UISplit;
 
-    int32_t CreateUniqueId();
-
     template<class T, class = std::enable_if_t<std::is_base_of_v<UIContainer, T>>>
     std::string CreateUniqueStringId() {
         static uint32_t mStringId = 0;
@@ -286,7 +284,8 @@ namespace l::ui {
     public:
         UIContainer(uint32_t flags = 0, UIRenderType renderType = UIRenderType::Rect, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed) : 
             mId(0),
-            mSubId(0),
+            mNodeId(0),
+            mChannelId(0),
             mConfigFlags(flags),
             mNotificationFlags(0),
             mParent(nullptr),
@@ -336,7 +335,8 @@ namespace l::ui {
         std::string_view GetDisplayName() { return mDisplayName; }
         std::string_view GetStringId() { return mStringId; }
         int32_t GetId() { return mId; }
-        int32_t GetSubId() { return mSubId; }
+        int32_t GetNodeId() { return mNodeId; }
+        int32_t GetChannelId() { return mChannelId; }
 
         void SetColor(ImVec4 color) { mDisplayArea.mRender.mColor = ImColor(color); }
         void SetScale(float scale) {mDisplayArea.mScale = scale;}
@@ -346,7 +346,9 @@ namespace l::ui {
         void SetLayoutSize(ImVec2 s) {mLayoutArea.mSize = s;}
         void SetDisplayName(std::string_view displayName) {mDisplayName = displayName;}
         void SetStringId(std::string_view id) {mStringId = id;}
-        void SetId(int32_t id, int32_t subId = 0) { mId = id; mSubId = subId; }
+        void SetId(int32_t id) { mId = id; }
+        void SetNodeId(int32_t nodeId) { mNodeId = nodeId; }
+        void SetChannelId(int32_t channelId) { mChannelId = channelId; }
 
         void SetContainerArea(const ContainerArea& area) {mDisplayArea = area;}
         void SetLayoutArea(const ContainerArea& transformedLayoutArea) {mLayoutArea = transformedLayoutArea;}
@@ -356,7 +358,8 @@ namespace l::ui {
         void DebugLog() { LOG(LogDebug) << "UIContainer: " << mDisplayName << ", [" << mDisplayArea.mScale << "][" << mDisplayArea.mPosition.x << ", " << mDisplayArea.mPosition.y << "][" << mDisplayArea.mSize.x << ", " << mDisplayArea.mSize.y << "]"; }
     protected:
         int32_t mId = 0;
-        int32_t mSubId = 0;
+        int32_t mNodeId = 0;
+        int32_t mChannelId = 0;
         std::string mStringId;
         std::string mDisplayName;
         uint32_t mConfigFlags = 0; // Active visitor flags
@@ -404,6 +407,7 @@ namespace l::ui {
         void Remove(int32_t id);
     protected:
         std::unordered_map<uint32_t, std::unique_ptr<UIContainer>> mContainers;
+        int32_t mIdCounter = 1;
     };
 
     UIHandle CreateContainer(UIStorage& uiStorage, uint32_t flags, UIRenderType renderType = UIRenderType::Rect, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed);

@@ -257,14 +257,10 @@ namespace l::ui {
         return false;
     }
 
-    int32_t CreateUniqueId() {
-        static int32_t mId = 1;
-        return mId++;
-    }
-
     UIHandle UIStorage::Add(std::unique_ptr<UIContainer> container) {
-        auto id = container->GetId();
+        auto id = mIdCounter++;
         auto stringId = container->GetStringId();
+        container->SetId(id);
         mContainers.insert({ id, std::move(container) });
         return UIHandle{ id, stringId, mContainers.at(id).get() };
     }
@@ -276,9 +272,7 @@ namespace l::ui {
     UIHandle CreateContainer(UIStorage& uiStorage, uint32_t flags, UIRenderType renderType, UIAlignH alignH, UIAlignV alignV, UILayoutH layoutH, UILayoutV layoutV) {
         std::unique_ptr<UIContainer> container = std::make_unique<UIContainer>(flags, renderType, alignH, alignV, layoutH, layoutV);
 
-        auto id = CreateUniqueId();
         auto stringId = CreateUniqueStringId<UIContainer>();
-        container->SetId(id);
         container->SetStringId(stringId);
 
         return uiStorage.Add(std::move(container));
@@ -287,9 +281,7 @@ namespace l::ui {
     UIHandle CreateSplit(UIStorage& uiStorage, uint32_t flags, UIRenderType renderType, UISplitMode splitMode, UILayoutH layoutH, UILayoutV layoutV) {
         std::unique_ptr<UISplit> container = std::make_unique<UISplit>(flags, renderType, splitMode, layoutH, layoutV);
 
-        auto id = CreateUniqueId();
         auto stringId = CreateUniqueStringId<UIContainer>();
-        container->SetId(id);
         container->SetStringId(stringId);
 
         return uiStorage.Add(std::move(container));

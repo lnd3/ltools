@@ -3,16 +3,6 @@
 #include "rendering/ui/UIContainer.h"
 #include "nodegraph/NodeGraphSchema.h"
 
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
-
-#include "imgui/imgui.h"
-#include "imgui/imgui_internal.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
-#include "implot/implot.h"
-#include "implot/implot_internal.h"
-
 namespace l::ui {
 
     class UIUpdate : public UIVisitor {

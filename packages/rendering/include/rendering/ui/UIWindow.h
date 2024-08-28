@@ -16,34 +16,42 @@
 
 namespace l::ui {
 
-    class UIWindow {
+    class UIBase {
     public:
-        UIWindow() : mWindowPtr(nullptr), mOpened(false), mIsHovered(false), mWindowFunction(nullptr), mContentScale(1.0f), mMoving(false) {}
+        UIBase() = default;
+        virtual ~UIBase() = default;
+
+        virtual void Show() = 0;
+        virtual bool IsShowing() = 0;
+    };
+
+    class UIWindow final : public UIBase {
+    public:
+        UIWindow(std::string_view windowName) : mWindowName(windowName) {}
         ~UIWindow() = default;
+
+        void Show() override;
+        bool IsShowing() override;
 
         void SetContentWindow(std::function<void()> action);
         void SetPointerPopup(std::function<void()> popup);
 
         void Open();
-        bool IsShowing();
+        void Close();
         bool IsHovered();
         ImVec2 GetPosition();
         ImVec2 GetSize();
-        void Show();
         void SetBgColor(ImVec4 bgColor);
     protected:
-        ImGuiWindow* mWindowPtr;
-        bool mOpened;
-        bool mIsHovered;
-        std::function<void()> mWindowFunction;
-        std::function<void()> mPointerPopupMenu;
-        float mContentScale;
-        bool mMoving;
+        std::string mWindowName;
+        ImGuiWindow* mWindowPtr = nullptr;
+        bool mOpened = false;
+        bool mIsHovered = false;
+        std::function<void()> mWindowFunction = nullptr;
+        std::function<void()> mPointerPopupMenu = nullptr;
         bool mPointerPopupOpen = false;
 
         ImVec4 mBgColor = ImVec4(0.01f, 0.01f, 0.01f, 1.0f);
-
-        ImVec2 mContentPan;
     };
 
 }

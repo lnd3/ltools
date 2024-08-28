@@ -41,7 +41,8 @@ namespace l::ui {
                         in->SetPosition(ImVec2(-ioSize, ioSize * ioOffsetV));
                         in->SetSize(ImVec2(ioSize, ioSize));
                         in->GetContainerArea().mMargin = 0.0f;
-                        in->SetId(node.GetId(), i);
+                        in->SetNodeId(node.GetId());
+                        in->SetChannelId(i);
                         row->Add(in);
                         auto inText = CreateContainer(uiStorage, l::ui::UIContainer_DrawFlag, l::ui::UIRenderType::Text, l::ui::UIAlignH::Left);
                         inText->SetPosition(ImVec2(0.0f, 0.0f));
@@ -54,7 +55,8 @@ namespace l::ui {
                         out->SetPosition(ImVec2(ioSize * 2.0f, ioSize * ioOffsetV));
                         out->SetSize(ImVec2(ioSize, ioSize));
                         out->GetContainerArea().mMargin = 0.0f;
-                        out->SetId(node.GetId(), i);
+                        out->SetNodeId(node.GetId());
+                        out->SetChannelId(i);
                         row->Add(out);
                         auto outText = CreateContainer(uiStorage, l::ui::UIContainer_DrawFlag, l::ui::UIRenderType::Text, l::ui::UIAlignH::Right);
                         outText->SetPosition(ImVec2(0.0f, 0.0f));

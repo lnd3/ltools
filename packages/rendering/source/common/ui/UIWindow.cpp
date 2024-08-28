@@ -4,6 +4,10 @@
 
 namespace l::ui {
 
+    bool UIWindow::IsShowing() {
+        return mWindowPtr && mOpened;
+    }
+
     void UIWindow::SetContentWindow(std::function<void()> action) {
         mWindowFunction = action;
     }
@@ -16,8 +20,8 @@ namespace l::ui {
         mOpened = true;
     }
 
-    bool UIWindow::IsShowing() {
-        return mWindowPtr && mOpened;
+    void UIWindow::Close() {
+        mOpened = false;
     }
 
     bool UIWindow::IsHovered() {
@@ -35,7 +39,7 @@ namespace l::ui {
     void UIWindow::Show() {
         if (mOpened) {
             ImGui::PushStyleColor(ImGuiCol_WindowBg, mBgColor);
-            if (ImGui::Begin("Test primitive rendering", &mOpened)) {
+            if (ImGui::Begin(mWindowName.c_str(), &mOpened, ImGuiWindowFlags_MenuBar)) {
                 if (mOpened) {
                     mWindowPtr = ImGui::GetCurrentWindowRead();
                     mIsHovered = ImGui::IsWindowHovered();;

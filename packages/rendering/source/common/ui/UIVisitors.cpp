@@ -48,7 +48,18 @@ namespace l::ui {
             return false;
         }
         if (input.mStarted && !mDragging) {
-            if (input.GetLocalPos().x >= 0.0f && input.GetLocalPos().y >= 0.0f) {
+            auto& layoutArea = container.GetLayoutArea();
+            ImVec2 layoutPosition = layoutArea.mPosition;
+            ImVec2 layoutSize = layoutArea.mSize;
+            layoutPosition.x -= 6.0f;
+            layoutPosition.y -= 8.0f;
+            layoutSize.x -= 14.0f;
+            layoutSize.y -= 14.0f;
+
+            ImVec2 localMousePos = input.GetLocalPos();
+            localMousePos.x -= layoutPosition.x;
+            localMousePos.y -= layoutPosition.y;
+            if (Overlap(localMousePos, ImVec2(), layoutSize)) {
                 mDragging = true;
                 mSourceContainer = &container;
             }
@@ -315,7 +326,7 @@ namespace l::ui {
             ImVec2 pT = layoutArea.Transform(pCenter);
 
             if (OverlapCircle(input.mCurPos, pT, size.x * layoutArea.mScale)) {
-                if (LinkHandler(container.GetId(), mLinkContainer->GetParent()->GetId(), container.GetSubId(), mLinkContainer->GetParent()->GetSubId(), true)) {
+                if (LinkHandler(container.GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), container.GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), true)) {
                     mLinkContainer->SetNotification(UIContainer_LinkFlag);
                     mLinkContainer->SetCoParent(&container);
                 }
@@ -324,7 +335,7 @@ namespace l::ui {
                 }
             }
             else if (mLinkContainer->GetCoParent() == &container) {
-                LinkHandler(container.GetId(), mLinkContainer->GetParent()->GetId(), container.GetSubId(), mLinkContainer->GetParent()->GetSubId(), false);
+                LinkHandler(container.GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), container.GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), false);
                 mLinkContainer->SetCoParent(nullptr);
                 mLinkContainer->ClearNotifications();
             }
