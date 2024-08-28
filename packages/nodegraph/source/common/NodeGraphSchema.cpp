@@ -2,6 +2,8 @@
 
 #include "logging/Log.h"
 
+#include <set>
+
 namespace l::nodegraph {
 
     void NodeGraphSchema::SetCustomCreator(std::function<CustomCreateFunctionType> customCreator) {
@@ -50,6 +52,12 @@ namespace l::nodegraph {
 
     NodeGraphBase* NodeGraphSchema::GetNode(int32_t id) {
         return mMainNodeGraph.GetNode(id);
+    }
+
+    void NodeGraphSchema::ForEachNodeType(std::function<void(std::string_view, const std::vector<UINodeDesc>&)> cb) const {
+        for (auto it : mRegisteredNodeTypes) {
+            cb(it.first, it.second);
+        }
     }
 
 }
