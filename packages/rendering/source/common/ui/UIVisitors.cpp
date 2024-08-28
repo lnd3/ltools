@@ -149,6 +149,44 @@ namespace l::ui {
         return false;
     }
 
+    bool UISelect::Visit(UIContainer& container, const InputState& input) {
+        if (!container.HasConfigFlag(UIContainer_SelectFlag)) {
+            return false;
+        }
+        if (input.mStarted) {
+            if (ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftShift)) {
+                auto& layoutArea = container.GetLayoutArea();
+                if (Overlap(input.GetLocalPos(), container.GetPosition(), container.GetPositionAtSize(), layoutArea)) {
+                    if (!mSelectedContainers.contains(&container)) {
+                        mSelectedContainers.emplace(&container);
+                        container.SetNotification(UIContainer_SelectFlag);
+                    }
+                    else {
+                        mSelectedContainers.erase(&container);
+                        container.ClearNotifications();
+                    }
+                }
+            }
+            else if (!mSelectedContainers.empty()) {
+                for (auto it : mSelectedContainers) {
+                    it->ClearNotifications();
+                }
+                mSelectedContainers.clear();
+                return true;
+            }
+        }
+        if (!mSelectedContainers.empty()) {
+            if (ImGui::IsKeyDown(ImGuiKey::ImGuiKey_Delete)) {
+                for (auto it : mSelectedContainers) {
+                    DeleteContainer(mUIStorage, it);
+                }
+                mSelectedContainers.clear();
+                return true;
+            }
+        }
+        return false;
+    }
+
     bool UIDraw::Visit(UIContainer& container, const InputState& input) {
         if (!mDebug && !container.HasConfigFlag(UIContainer_DrawFlag)) {
             return false;
@@ -258,8 +296,8 @@ namespace l::ui {
         case l::ui::UIRenderType::RectFilled:
         case l::ui::UIRenderType::Texture:
         case l::ui::UIRenderType::LinkH:
-            if (container.HasConfigFlag(UIContainer_InputFlag)) {
-
+            if (container.HasConfigFlag(UIContainer_SelectFlag) && container.HasNotification(UIContainer_SelectFlag)) {
+                mDrawList->AddRect(p1, p2, ImColor(ImVec4(0.9f, 1.0f, 1.0f, 1.0f)), 0.0f, 0, 2.0f);
             }
             if (container.HasConfigFlag(ui::UIContainer_ResizeFlag)) {
                 float size = 3.0f * layoutArea.mScale;
@@ -348,6 +386,7 @@ namespace l::ui {
                 }
                 else {
                     mLinkContainer->GetParent()->Remove(mLinkContainer);
+                    mUIStorage.Remove(mLinkContainer);
                     mDragging = false;
                     mLinkContainer.Reset();
                 }

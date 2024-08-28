@@ -27,7 +27,7 @@ namespace l::ui {
 
     class UIWindow final : public UIBase {
     public:
-        UIWindow(std::string_view windowName) : mWindowName(windowName) {}
+        UIWindow(std::string_view windowName) : mWindowName(windowName), mPopupName(mWindowName + "Popup") {}
         ~UIWindow() = default;
 
         void Show() override;
@@ -44,12 +44,14 @@ namespace l::ui {
         void SetBgColor(ImVec4 bgColor);
     protected:
         std::string mWindowName;
+        std::string mPopupName;
         ImGuiWindow* mWindowPtr = nullptr;
-        bool mOpened = false;
+        bool mOpened = false; 
         bool mIsHovered = false;
+        bool mIsFocused = false;
         std::function<void()> mWindowFunction = nullptr;
         std::function<void()> mPointerPopupMenu = nullptr;
-        bool mPointerPopupOpen = false;
+        bool mPopupOpen = false;
 
         ImVec4 mBgColor = ImVec4(0.01f, 0.01f, 0.01f, 1.0f);
     };

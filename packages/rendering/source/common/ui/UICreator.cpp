@@ -10,7 +10,7 @@ namespace l::ui {
         auto numInputChannels = node.GetNumInputs();
         auto numOutputChannels = node.GetNumOutputs();
 
-        auto node4 = CreateSplit(uiStorage, l::ui::UIContainer_MoveFlag | l::ui::UIContainer_DrawFlag, l::ui::UIRenderType::RectFilled, l::ui::UISplitMode::AppendV);
+        auto node4 = CreateSplit(uiStorage, l::ui::UIContainer_MoveFlag | l::ui::UIContainer_DrawFlag | UIContainer_SelectFlag, l::ui::UIRenderType::RectFilled, l::ui::UISplitMode::AppendV);
         node4->SetPosition(p);
         node4->GetContainerArea().mMargin = 0.0f;
         ImVec2 titleSize = ImGui::CalcTextSize(node.GetName().data());

@@ -3,6 +3,8 @@
 #include "rendering/ui/UIContainer.h"
 #include "nodegraph/NodeGraphSchema.h"
 
+#include <unordered_set>
+
 namespace l::ui {
 
     class UIUpdate : public UIVisitor {
@@ -45,6 +47,16 @@ namespace l::ui {
         UIContainer* mSourceContainer = nullptr;
     };
 
+    class UISelect : public UIVisitor {
+    public:
+        UISelect(UIStorage& uiStorage) : mUIStorage(uiStorage) {}
+
+        virtual bool Visit(UIContainer& container, const InputState& input);
+    protected:
+        std::unordered_set<UIContainer*> mSelectedContainers;
+        UIStorage& mUIStorage;
+    };
+
     class UIDraw : public UIVisitor {
     public:
         UIDraw(ImDrawList* drawList) : mDrawList(drawList) {}
@@ -59,30 +71,37 @@ namespace l::ui {
     public:
         using HandlerFunctionType = bool(int32_t, int32_t, int32_t, int32_t, bool);
 
-        virtual bool Active(UIContainer& container, const InputState& input);
-
-        UILinkIO(UIStorage& uiStorage, l::nodegraph::NodeGraphSchema& ngSchema) : mUIStorage(uiStorage), mNGSchema(ngSchema) {}
+        UILinkIO(UIStorage& uiStorage, l::nodegraph::NodeGraphSchema* ngSchema = nullptr) : mUIStorage(uiStorage), mNGSchema(ngSchema) {}
         ~UILinkIO() = default;
 
+        virtual bool Active(UIContainer& container, const InputState& input);
         virtual bool Visit(UIContainer& container, const InputState& input);
 
         bool LinkHandler(int32_t linkInputId, int32_t linkOutputId, int32_t inputChannel, int32_t outputChannel, bool connected) {
-            auto inputNode = mNGSchema.GetNode(linkInputId);
+            if (mNGSchema == nullptr) {
+                return false;
+            }
+
+            auto inputNode = mNGSchema->GetNode(linkInputId);
             if (inputNode == nullptr) {
                 return false;
             }
             if (connected) {
-                auto outputNode = mNGSchema.GetNode(linkOutputId);
+                auto outputNode = mNGSchema->GetNode(linkOutputId);
                 return outputNode != nullptr && inputNode->SetInput(static_cast<int8_t>(inputChannel), *outputNode, static_cast<int8_t>(outputChannel));
             }
             return inputNode->ClearInput(static_cast<int8_t>(inputChannel));
+        }
+
+        void SetNGSchema(l::nodegraph::NodeGraphSchema* ngSchema) {
+            mNGSchema = ngSchema;
         }
 
     protected:
         bool mDragging = false;
         UIHandle mLinkContainer;
         UIStorage& mUIStorage;
-        l::nodegraph::NodeGraphSchema& mNGSchema;
+        l::nodegraph::NodeGraphSchema* mNGSchema;
     };
 
 

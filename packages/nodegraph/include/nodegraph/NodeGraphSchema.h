@@ -50,6 +50,8 @@ namespace l::nodegraph {
         NodeGraphBase* GetNode(int32_t nodeId);
         void ForEachNodeType(std::function<void(std::string_view, const std::vector<UINodeDesc>&)> cb) const;
         void RegisterNodeType(const std::string& typeGroup, int32_t uniqueTypeId, std::string_view typeName);
+
+        void AddInput();
     protected:
         NodeGraphGroup mMainNodeGraph;
 

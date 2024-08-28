@@ -37,44 +37,34 @@ namespace l::ui {
     }
 
     void UIWindow::Show() {
-        if (mOpened) {
-            ImGui::PushStyleColor(ImGuiCol_WindowBg, mBgColor);
-            if (ImGui::Begin(mWindowName.c_str(), &mOpened, ImGuiWindowFlags_MenuBar)) {
-                if (mOpened) {
-                    mWindowPtr = ImGui::GetCurrentWindowRead();
-                    mIsHovered = ImGui::IsWindowHovered();;
-                }
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, mBgColor);
+        if (ImGui::Begin(mWindowName.c_str(), &mOpened, ImGuiWindowFlags_MenuBar)) {
+            mWindowPtr = ImGui::GetCurrentWindowRead();
+            mIsHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup);
+            mIsFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_NoPopupHierarchy);
 
-                if (mWindowPtr && mWindowFunction) {
-                    mWindowFunction();
-                }
+            if (mWindowPtr && mWindowFunction) {
+                mWindowFunction();
+            }
 
-                if (mPointerPopupMenu) {
-                    if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-                        ImGui::OpenPopup("PointerPopupMenu");
-                        mPointerPopupOpen = true;
-                    }
-                    if (mPointerPopupOpen) {
-                        ImGuiIO& io = ImGui::GetIO();
-                        ImGui::SetNextWindowPos(io.MousePos, ImGuiCond_Appearing, ImVec2(0.0f, 0.0f));
-                    }
-                    if (ImGui::BeginPopup("PointerPopupMenu", ImGuiWindowFlags_AlwaysAutoResize)) {
-                        mPointerPopupMenu();
-                        ImGui::EndPopup();
-                    }
-                    else {
-                        mPointerPopupOpen = false;
-                    }
+            if (mPointerPopupMenu) {
+                if (mIsHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+                    ImGui::OpenPopup(mPopupName.c_str(), ImGuiPopupFlags_NoOpenOverExistingPopup);
+                    ImGuiIO& io = ImGui::GetIO();
+                    ImGui::SetNextWindowPos(io.MousePos, ImGuiCond_Appearing, ImVec2(0.0f, 0.0f));
                 }
-
-                if (!mOpened) {
-                    mWindowPtr = nullptr;
-                    mIsHovered = false;
+                if (ImGui::BeginPopup(mPopupName.c_str(), ImGuiWindowFlags_AlwaysAutoResize)) {
+                    mPointerPopupMenu();
+                    ImGui::EndPopup();
                 }
             }
-            ImGui::End();
-            ImGui::PopStyleColor();
         }
+        if (!mOpened) {
+            mIsHovered = false;
+            mIsFocused = false;
+        }
+        ImGui::End();
+        ImGui::PopStyleColor();
     }
 
     void UIWindow::SetBgColor(ImVec4 bgColor) {

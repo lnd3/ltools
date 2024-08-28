@@ -67,6 +67,27 @@ namespace l::ui {
         }
     }
 
+    void UIContainer::Remove(UIContainer* container) {
+        for (auto it = mContent.begin(); it != mContent.end(); it++) {
+            auto containerPtr = *it;
+            if (containerPtr == container) {
+                mContent.erase(it);
+                break;
+            }
+        }
+    }
+
+    void UIContainer::RemoveAll() {
+        mContent.clear();
+    }
+
+    void UIContainer::ForEachChild(std::function<void(UIContainer*)> cb) {
+        for (auto it : mContent) {
+            it->ForEachChild(cb);
+            cb(it);
+        }
+    }
+
     void UIContainer::Move(ImVec2 localChange) {
         mDisplayArea.mPosition.x += localChange.x;
         mDisplayArea.mPosition.y += localChange.y;
@@ -265,8 +286,15 @@ namespace l::ui {
         return UIHandle{ id, stringId, mContainers.at(id).get() };
     }
 
-    void UIStorage::Remove(int32_t id) {
-        mContainers.erase(id);
+    void UIStorage::Remove(const UIHandle& handle) {
+        //ASSERT(handle.GetId() == handle.Get()->GetId());
+        mContainers.erase(handle.GetId());
+    }
+
+    void UIStorage::Remove(UIContainer* container) {
+        if (container != nullptr) {
+            mContainers.erase(container->GetId());
+        }
     }
 
     UIHandle CreateContainer(UIStorage& uiStorage, uint32_t flags, UIRenderType renderType, UIAlignH alignH, UIAlignV alignV, UILayoutH layoutH, UILayoutV layoutV) {
@@ -285,5 +313,20 @@ namespace l::ui {
         container->SetStringId(stringId);
 
         return uiStorage.Add(std::move(container));
+    }
+
+    void DeleteContainer(UIStorage& uiStorage, UIHandle handle) {
+        handle.Get()->GetParent()->Remove(handle);
+        handle->ForEachChild([&](UIContainer* container) {
+            uiStorage.Remove(container);
+            });
+    }
+
+    void DeleteContainer(UIStorage& uiStorage, UIContainer* container) {
+        container->GetParent()->Remove(container);
+        container->ForEachChild([&](UIContainer* c) {
+            uiStorage.Remove(c);
+            });
+        uiStorage.Remove(container);
     }
 }

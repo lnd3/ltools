@@ -240,6 +240,7 @@ namespace l::ui {
     const uint32_t UIContainer_InputFlag = 0x00000200; // Can be grabbed and dropped on a container with output flag
     const uint32_t UIContainer_OutputFlag = 0x00000400; // Can be dropped a grabbed 
     const uint32_t UIContainer_LinkFlag = 0x00000800; // Can be dropped a grabbed 
+    const uint32_t UIContainer_SelectFlag = 0x00001000; // Can be moved when grabbed
 
     class UIDraw;
 
@@ -252,6 +253,10 @@ namespace l::ui {
         int32_t mId;
         std::string mStringId;
         UIContainer* mContainer = nullptr;
+
+        int32_t GetId() const {
+            return mId;
+        }
 
         std::string_view GetStringId() const {
             return mStringId;
@@ -310,6 +315,10 @@ namespace l::ui {
 
         virtual void Remove(int32_t i);
         virtual void Remove(const UIHandle& handle);
+        virtual void Remove(UIContainer* container);
+        virtual void RemoveAll();
+
+        virtual void ForEachChild(std::function<void(UIContainer*)> cb);
 
         void SetNotification(uint32_t flag) { mNotificationFlags |= flag; }
         void ClearNotifications() { mNotificationFlags = 0; }
@@ -404,7 +413,8 @@ namespace l::ui {
         ~UIStorage() = default;
 
         UIHandle Add(std::unique_ptr<UIContainer> container);
-        void Remove(int32_t id);
+        void Remove(const UIHandle& handle);
+        void Remove(UIContainer* container);
     protected:
         std::unordered_map<uint32_t, std::unique_ptr<UIContainer>> mContainers;
         int32_t mIdCounter = 1;
@@ -412,5 +422,7 @@ namespace l::ui {
 
     UIHandle CreateContainer(UIStorage& uiStorage, uint32_t flags, UIRenderType renderType = UIRenderType::Rect, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed);
     UIHandle CreateSplit(UIStorage& uiStorage, uint32_t flags, UIRenderType renderType, UISplitMode splitMode = UISplitMode::AppendV, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed);
+    void DeleteContainer(UIStorage& uiStorage, UIHandle handle);
+    void DeleteContainer(UIStorage& uiStorage, UIContainer* container);
 
 }
