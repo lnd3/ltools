@@ -29,33 +29,27 @@ namespace l::nodegraph {
     class NodeGraphSchema {
     public:
 
-        using CustomCreateFunctionType = NodeGraphBase * (int32_t type, NodeGraphGroup&);
+        using CustomCreateFunctionType = NodeGraphBase*(int32_t, NodeGraphGroup&);
 
         NodeGraphSchema() {
-            mRegisteredNodeTypes.emplace("Numerical", std::vector<UINodeDesc>{
-                UINodeDesc{ 0, "Add"},
-                UINodeDesc{ 1, "Subtract" },
-                UINodeDesc{ 2, "Negate" },
-                UINodeDesc{ 3, "Multiply}" },
-                UINodeDesc{ 4, "Integral" }
-                });
-            mRegisteredNodeTypes.emplace("Logical", std::vector<UINodeDesc>{
-                UINodeDesc{ 20, "And" },
-                UINodeDesc{ 21, "Or" },
-                UINodeDesc{ 22, "Xor" }
-                });
-            mRegisteredNodeTypes.emplace("", std::vector<UINodeDesc>{
-                UINodeDesc{ 40, "Lowpass Filter" }
-                });
+            RegisterNodeType("Numeric", 0, "Add");
+            RegisterNodeType("Numeric", 1, "Subtract");
+            RegisterNodeType("Numeric", 2, "Negate");
+            RegisterNodeType("Numeric", 3, "Multiply");
+            RegisterNodeType("Numeric", 4, "Integral");
+            RegisterNodeType("Logic", 50, "And");
+            RegisterNodeType("Logic", 51, "Or");
+            RegisterNodeType("Logic", 52, "Xor");
+            RegisterNodeType("Filter", 100, "Lowpass Filter");
         }
 
         ~NodeGraphSchema() = default;
 
         void SetCustomCreator(std::function<CustomCreateFunctionType> customCreator);
-        int32_t NewNode(int32_t type);
-        NodeGraphBase* GetNode(int32_t id);
+        int32_t NewNode(int32_t typeId);
+        NodeGraphBase* GetNode(int32_t nodeId);
         void ForEachNodeType(std::function<void(std::string_view, const std::vector<UINodeDesc>&)> cb) const;
-
+        void RegisterNodeType(const std::string& typeGroup, int32_t uniqueTypeId, std::string_view typeName);
     protected:
         NodeGraphGroup mMainNodeGraph;
 
