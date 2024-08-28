@@ -52,9 +52,14 @@ namespace l::ui {
         UISelect(UIStorage& uiStorage) : mUIStorage(uiStorage) {}
 
         virtual bool Visit(UIContainer& container, const InputState& input);
+
+        void SetNGSchema(l::nodegraph::NodeGraphSchema* ngSchema) {
+            mNGSchema = ngSchema;
+        }
     protected:
         std::unordered_set<UIContainer*> mSelectedContainers;
         UIStorage& mUIStorage;
+        l::nodegraph::NodeGraphSchema* mNGSchema = nullptr;
     };
 
     class UIDraw : public UIVisitor {
@@ -71,7 +76,7 @@ namespace l::ui {
     public:
         using HandlerFunctionType = bool(int32_t, int32_t, int32_t, int32_t, bool);
 
-        UILinkIO(UIStorage& uiStorage, l::nodegraph::NodeGraphSchema* ngSchema = nullptr) : mUIStorage(uiStorage), mNGSchema(ngSchema) {}
+        UILinkIO(UIStorage& uiStorage) : mUIStorage(uiStorage) {}
         ~UILinkIO() = default;
 
         virtual bool Active(UIContainer& container, const InputState& input);
@@ -101,7 +106,7 @@ namespace l::ui {
         bool mDragging = false;
         UIHandle mLinkContainer;
         UIStorage& mUIStorage;
-        l::nodegraph::NodeGraphSchema* mNGSchema;
+        l::nodegraph::NodeGraphSchema* mNGSchema = nullptr;
     };
 
 

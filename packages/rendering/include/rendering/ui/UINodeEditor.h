@@ -83,6 +83,7 @@ namespace l::ui {
         void SetNGSchema(l::nodegraph::NodeGraphSchema* ngSchema) {
             mNGSchema = ngSchema;
             mLinkIOVisitor.SetNGSchema(ngSchema);
+            mSelectVisitor.SetNGSchema(ngSchema);
         }
 
         void Update() {

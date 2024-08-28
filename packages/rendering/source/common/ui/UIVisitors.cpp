@@ -178,6 +178,9 @@ namespace l::ui {
         if (!mSelectedContainers.empty()) {
             if (ImGui::IsKeyDown(ImGuiKey::ImGuiKey_Delete)) {
                 for (auto it : mSelectedContainers) {
+                    if (mNGSchema != nullptr) {
+                        mNGSchema->RemoveNode(it->GetNodeId());
+                    }
                     DeleteContainer(mUIStorage, it);
                 }
                 mSelectedContainers.clear();
@@ -342,8 +345,10 @@ namespace l::ui {
             ImVec2 size = container.GetCoParent()->GetSize();
             ImVec2 pT = container.GetCoParent()->GetLayoutArea().Transform(pCenter);
             if (OverlapCircle(input.mCurPos, pT, size.x * container.GetCoParent()->GetLayoutArea().mScale)) {
-                mDragging = true;
+                DeleteContainer(mUIStorage, mLinkContainer);
                 mLinkContainer.mContainer = &container;
+                LinkHandler(container.GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), container.GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), false);
+                mDragging = true;
                 return true;
             }
         }
@@ -385,8 +390,7 @@ namespace l::ui {
                     mLinkContainer.Reset();
                 }
                 else {
-                    mLinkContainer->GetParent()->Remove(mLinkContainer);
-                    mUIStorage.Remove(mLinkContainer);
+                    DeleteContainer(mUIStorage, mLinkContainer);
                     mDragging = false;
                     mLinkContainer.Reset();
                 }

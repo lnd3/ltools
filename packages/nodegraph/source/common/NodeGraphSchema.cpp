@@ -50,6 +50,10 @@ namespace l::nodegraph {
         return node == nullptr ? 0 : node->GetId();
     }
 
+    bool NodeGraphSchema::RemoveNode(int32_t nodeId) {
+        return mMainNodeGraph.RemoveNode(nodeId);
+    }
+
     NodeGraphBase* NodeGraphSchema::GetNode(int32_t nodeId) {
         return mMainNodeGraph.GetNode(nodeId);
     }

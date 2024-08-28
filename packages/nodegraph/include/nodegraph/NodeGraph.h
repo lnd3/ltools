@@ -49,6 +49,7 @@ namespace l::nodegraph {
         int8_t mInputFromOutputChannel = 0;
         std::string mName;
 
+        void Reset();
         bool HasInput();
         float Get();
     };
@@ -84,6 +85,8 @@ namespace l::nodegraph {
         virtual bool SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel, bool nodeIsInsideGroup);
         virtual bool SetInput(int8_t inputChannel, float constant);
         virtual bool SetInput(int8_t inputChannel, float* floatPtr);
+
+        virtual bool RemoveSource(void* source);
     protected:
         void PreUpdate();
         virtual void ProcessOperation();

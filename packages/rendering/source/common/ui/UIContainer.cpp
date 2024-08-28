@@ -287,8 +287,9 @@ namespace l::ui {
     }
 
     void UIStorage::Remove(const UIHandle& handle) {
-        //ASSERT(handle.GetId() == handle.Get()->GetId());
-        mContainers.erase(handle.GetId());
+        if (handle.IsValid()) {
+            mContainers.erase(handle.GetId());
+        }
     }
 
     void UIStorage::Remove(UIContainer* container) {
@@ -316,17 +317,25 @@ namespace l::ui {
     }
 
     void DeleteContainer(UIStorage& uiStorage, UIHandle handle) {
-        handle.Get()->GetParent()->Remove(handle);
-        handle->ForEachChild([&](UIContainer* container) {
-            uiStorage.Remove(container);
-            });
+        if (handle.IsValid()) {
+            ASSERT(handle.Get()->GetParent() != nullptr);
+            handle.Get()->GetParent()->Remove(handle);
+            handle->ForEachChild([&](UIContainer* container) {
+                uiStorage.Remove(container);
+                });
+            uiStorage.Remove(handle);
+        }
     }
 
     void DeleteContainer(UIStorage& uiStorage, UIContainer* container) {
-        container->GetParent()->Remove(container);
-        container->ForEachChild([&](UIContainer* c) {
-            uiStorage.Remove(c);
-            });
-        uiStorage.Remove(container);
+        if (container != nullptr) {
+            ASSERT(container->GetParent() != nullptr);
+            container->GetParent()->Remove(container);
+            container->ForEachChild([&](UIContainer* c) {
+                uiStorage.Remove(c);
+                });
+
+            uiStorage.Remove(container);
+        }
     }
 }

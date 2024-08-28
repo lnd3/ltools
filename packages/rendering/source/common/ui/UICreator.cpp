@@ -13,6 +13,7 @@ namespace l::ui {
         auto node4 = CreateSplit(uiStorage, l::ui::UIContainer_MoveFlag | l::ui::UIContainer_DrawFlag | UIContainer_SelectFlag, l::ui::UIRenderType::RectFilled, l::ui::UISplitMode::AppendV);
         node4->SetPosition(p);
         node4->GetContainerArea().mMargin = 0.0f;
+        node4->SetNodeId(node.GetId());
         ImVec2 titleSize = ImGui::CalcTextSize(node.GetName().data());
         titleSize.x += node4->GetContainerArea().mMargin * 2 + 2.0f;
         node4->SetSize(ImVec2(titleSize.x < 100.0f ? 100.0f : titleSize.x, 22.0f + 19.0f * (numInputChannels > numOutputChannels ? numInputChannels : numOutputChannels)));

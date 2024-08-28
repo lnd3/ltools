@@ -149,6 +149,18 @@ namespace l::nodegraph {
         return true;
     }
 
+    bool NodeGraphBase::RemoveSource(void* source) {
+        int32_t sourceRemoved = 0;
+        for (auto& it : mInputs) {
+            if (it.mInputType == InputType::INPUT_NODE && it.mInput.mInputNode == source ||
+                it.mInputType == InputType::INPUT_VALUE && it.mInput.mInputFloat == source) {
+                it.Reset();
+                sourceRemoved++;
+            }
+        }
+        return sourceRemoved > 0 ? true : false;
+    }
+
     std::string_view NodeGraphBase::GetName() {
         return mName;
     }
@@ -189,6 +201,12 @@ namespace l::nodegraph {
         for (size_t i = 0; i < inputs.size() && i < outputs.size(); i++) {
             outputs.at(i).mOutput = inputs.at(i).Get();
         }
+    }
+
+    void NodeGraphInput::Reset() {
+        mInput.mInputNode = nullptr;
+        mInputType = InputType::INPUT_EMPTY;
+        mInputFromOutputChannel = 0;
     }
 
     bool NodeGraphInput::HasInput() {
@@ -289,6 +307,13 @@ namespace l::nodegraph {
     }
 
     bool NodeGraphGroup::RemoveNode(int32_t id) {
+        auto node = GetNode(id);
+        int32_t sourceCount = 0;
+        for (auto& it : mNodes) {
+            if (it->RemoveSource(node)) {
+                sourceCount++;
+            }
+        }
         auto count = std::erase_if(mNodes, [&](const std::unique_ptr<NodeGraphBase>& node) {
             if (node->GetId() == id) {
                 return true;
