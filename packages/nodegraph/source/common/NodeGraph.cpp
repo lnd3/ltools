@@ -152,8 +152,8 @@ namespace l::nodegraph {
     bool NodeGraphBase::RemoveSource(void* source) {
         int32_t sourceRemoved = 0;
         for (auto& it : mInputs) {
-            if (it.mInputType == InputType::INPUT_NODE && it.mInput.mInputNode == source ||
-                it.mInputType == InputType::INPUT_VALUE && it.mInput.mInputFloat == source) {
+            if ((it.mInputType == InputType::INPUT_NODE && it.mInput.mInputNode == source) ||
+                (it.mInputType == InputType::INPUT_VALUE && it.mInput.mInputFloat == source)) {
                 it.Reset();
                 sourceRemoved++;
             }
