@@ -29,11 +29,6 @@ namespace l::ui {
         bool IsHovered();
         ImVec2 GetPosition();
         ImVec2 GetSize();
-        float GetScale();
-        bool TryInput(const ImVec2& prevPos, const ImVec2& curPos, float zoom, bool, bool);
-        bool TryPan(const ImVec2& prevPos, const ImVec2& curPos, bool moveStart, bool moveStop);
-        bool TryScale(const ImVec2& scalePos, float scroll);
-        ImVec2 Transform(ImVec2 p, bool toWorld = true);
         void Show();
         void SetBgColor(ImVec4 bgColor);
     protected:
