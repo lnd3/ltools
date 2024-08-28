@@ -4,8 +4,12 @@
 
 namespace l::ui {
 
-    void UIWindow::SetAction(std::function<void()> action) {
+    void UIWindow::SetContentWindow(std::function<void()> action) {
         mWindowFunction = action;
+    }
+
+    void UIWindow::SetPointerPopup(std::function<void()> popup) {
+        mPointerPopupMenu = popup;
     }
 
     void UIWindow::Open() {
@@ -102,6 +106,24 @@ namespace l::ui {
 
                 if (mWindowPtr && mWindowFunction) {
                     mWindowFunction();
+                }
+
+                if (mPointerPopupMenu) {
+                    if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+                        ImGui::OpenPopup("PointerPopupMenu");
+                        mPointerPopupOpen = true;
+                    }
+                    if (mPointerPopupOpen) {
+                        ImGuiIO& io = ImGui::GetIO();
+                        ImGui::SetNextWindowPos(io.MousePos, ImGuiCond_Appearing, ImVec2(0.0f, 0.0f));
+                    }
+                    if (ImGui::BeginPopup("PointerPopupMenu", ImGuiWindowFlags_AlwaysAutoResize)) {
+                        mPointerPopupMenu();
+                        ImGui::EndPopup();
+                    }
+                    else {
+                        mPointerPopupOpen = false;
+                    }
                 }
 
                 if (!mOpened) {

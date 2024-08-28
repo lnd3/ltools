@@ -21,7 +21,9 @@ namespace l::ui {
         UIWindow() : mWindowPtr(nullptr), mOpened(false), mIsHovered(false), mWindowFunction(nullptr), mContentScale(1.0f), mMoving(false) {}
         ~UIWindow() = default;
 
-        void SetAction(std::function<void()> action);
+        void SetContentWindow(std::function<void()> action);
+        void SetPointerPopup(std::function<void()> popup);
+
         void Open();
         bool IsShowing();
         bool IsHovered();
@@ -39,8 +41,10 @@ namespace l::ui {
         bool mOpened;
         bool mIsHovered;
         std::function<void()> mWindowFunction;
+        std::function<void()> mPointerPopupMenu;
         float mContentScale;
         bool mMoving;
+        bool mPointerPopupOpen = false;
 
         ImVec4 mBgColor = ImVec4(0.01f, 0.01f, 0.01f, 1.0f);
 
