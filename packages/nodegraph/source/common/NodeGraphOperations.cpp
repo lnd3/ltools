@@ -2,6 +2,8 @@
 
 #include "logging/Log.h"
 
+#include <math.h>
+
 namespace l::nodegraph {
 
     /* Mathematical operations */

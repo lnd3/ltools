@@ -85,8 +85,8 @@ namespace l::nodegraph {
 
         virtual bool SetInput(int8_t inputChannel, NodeGraphBase& source, int8_t sourceOutputChannel);
         virtual bool SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel, bool nodeIsInsideGroup);
-        virtual bool SetConstant(int8_t inputChannel, float constant);
-        virtual bool SetExternalInput(int8_t inputChannel, float* floatPtr);
+        virtual bool SetInput(int8_t inputChannel, float constant);
+        virtual bool SetInput(int8_t inputChannel, float* floatPtr);
 
         virtual bool RemoveInput(void* source);
     protected:
@@ -174,7 +174,7 @@ namespace l::nodegraph {
             NodeGraphBase::SetNumConstants(numConstants);
             mOperation.SetNumConstants(numConstants);
             for (int8_t i = mInputCount; i < mInputCount + mConstantCount; i++) {
-                SetConstant(i, 1.0f);
+                SetInput(i, 1.0f);
             }
             Update();
         }

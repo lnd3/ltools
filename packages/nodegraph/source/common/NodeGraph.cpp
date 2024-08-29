@@ -137,7 +137,7 @@ namespace l::nodegraph {
         return true;
     }
 
-    bool NodeGraphBase::SetConstant(int8_t inputChannel, float constant) {
+    bool NodeGraphBase::SetInput(int8_t inputChannel, float constant) {
         ASSERT(inputChannel >= mInputCount && inputChannel < mInputCount + mConstantCount);
         auto& input = mInputs.at(inputChannel);
         if (!IsValidInOutNum(inputChannel, mInputs.size())) {
@@ -150,7 +150,7 @@ namespace l::nodegraph {
         return true;
     }
 
-    bool NodeGraphBase::SetExternalInput(int8_t inputChannel, float* floatPtr) {
+    bool NodeGraphBase::SetInput(int8_t inputChannel, float* floatPtr) {
         auto& input = mInputs.at(inputChannel);
         if (!IsValidInOutNum(inputChannel, mInputs.size())) {
             return false;
@@ -287,11 +287,11 @@ namespace l::nodegraph {
     }
 
     void NodeGraphGroup::SetInput(int8_t inputChannel, float constant) {
-        mInputNode.SetConstant(inputChannel, constant);
+        mInputNode.SetInput(inputChannel, constant);
     }
 
     void NodeGraphGroup::SetInput(int8_t inputChannel, float* floatPtr) {
-        mInputNode.SetExternalInput(inputChannel, floatPtr);
+        mInputNode.SetInput(inputChannel, floatPtr);
     }
 
     void NodeGraphGroup::SetOutput(int8_t outputChannel, NodeGraphBase& source, int8_t sourceOutputChannel) {
