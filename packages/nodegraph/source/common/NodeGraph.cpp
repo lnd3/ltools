@@ -36,7 +36,7 @@ namespace l::nodegraph {
     }
 
     int8_t NodeGraphBase::GetNumInputs() {
-        ASSERT(mInputs.size() == mInputCount + mConstantCount);
+        ASSERT(mInputs.size() == static_cast<size_t>(mInputCount + mConstantCount));
         return static_cast<int8_t>(mInputCount);
     }
 
@@ -45,7 +45,7 @@ namespace l::nodegraph {
     }
 
     int8_t NodeGraphBase::GetNumConstants() {
-        ASSERT(mInputs.size() == mInputCount + mConstantCount);
+        ASSERT(mInputs.size() == static_cast<size_t>(mInputCount + mConstantCount));
         return static_cast<int8_t>(mConstantCount);
     }
 
