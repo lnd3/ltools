@@ -14,30 +14,45 @@ namespace l::nodegraph {
         l::nodegraph::NodeGraphBase* node = nullptr;
         switch (typeId) {
         case 0:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericAdd>();
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(0);
             break;
         case 1:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericSubtract>();
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(1);
             break;
         case 2:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericNegate>();
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(2);
             break;
         case 3:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericMultiply>();
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(3);
             break;
         case 4:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericIntegral>();
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceSine>();
             break;
         case 50:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalAnd>();
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericAdd>();
             break;
         case 51:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalOr>();
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericSubtract>();
             break;
         case 52:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalXor>();
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericNegate>();
+            break;
+        case 53:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericMultiply>();
+            break;
+        case 54:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericIntegral>();
             break;
         case 100:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalAnd>();
+            break;
+        case 101:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalOr>();
+            break;
+        case 102:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalXor>();
+            break;
+        case 150:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterLowpass>();
             break;
         default:
@@ -69,7 +84,11 @@ namespace l::nodegraph {
         nodeDesc.mId = uniqueTypeId;
         nodeDesc.mName = typeName;
         mRegisteredNodeTypes[typeGroup].push_back(UINodeDesc{ uniqueTypeId, std::string(typeName) });
-
     }
+
+    void NodeGraphSchema::Update() {
+        mMainNodeGraph.Update();
+    }
+
 
 }

@@ -13,9 +13,56 @@ namespace l::nodegraph {
 
     /* Mathematical operations */
 
+    class GraphSourceConstants : public NodeGraphOp {
+    public:
+        GraphSourceConstants(int8_t mode = 0) :
+            NodeGraphOp(0, mode + 1, mode + 1)
+        {}
+
+        virtual ~GraphSourceConstants() = default;
+        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        std::string_view GetName() override {
+            return "Constant";
+        }
+    };
+
+    class GraphSourceSine : public NodeGraphOp {
+    public:
+        GraphSourceSine(int8_t) :
+            NodeGraphOp(4, 2)
+        {}
+
+        std::string defaultInStrings[4] = { "Time", "Freq Hz", "Freq Mod", "Phase Mod"};
+        std::string defaultOutStrings[2] = { "Sine", "Phase"};
+
+        virtual ~GraphSourceSine() = default;
+        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+
+        void Reset() override {
+            mPhase = 0.0f;
+            mPrevTime = 0.0f;
+        }
+
+        std::string_view GetInputName(int8_t inputChannel) {
+            return defaultInStrings[inputChannel];
+        }
+
+        std::string_view GetOutputName(int8_t outputChannel) {
+            return defaultOutStrings[outputChannel];
+        }
+
+        std::string_view GetName() override {
+            return "Sine";
+        }
+
+    protected:
+        float mPhase = 0.0f;
+        float mPrevTime = 0.0f;
+    };
+
     class GraphNumericAdd : public NodeGraphOp {
     public:
-        GraphNumericAdd() :
+        GraphNumericAdd(int8_t) :
             NodeGraphOp(2, 1)
         {}
         virtual ~GraphNumericAdd() = default;
@@ -27,7 +74,7 @@ namespace l::nodegraph {
 
     class GraphNumericMultiply : public NodeGraphOp {
     public:
-        GraphNumericMultiply() : 
+        GraphNumericMultiply(int8_t) :
             NodeGraphOp(2, 1)
         {}
 
@@ -40,7 +87,7 @@ namespace l::nodegraph {
 
     class GraphNumericSubtract : public NodeGraphOp {
     public:
-        GraphNumericSubtract() :
+        GraphNumericSubtract(int8_t) :
             NodeGraphOp(2, 1)
         {}
         virtual ~GraphNumericSubtract() = default;
@@ -52,7 +99,7 @@ namespace l::nodegraph {
 
     class GraphNumericNegate : public NodeGraphOp {
     public:
-        GraphNumericNegate() :
+        GraphNumericNegate(int8_t) :
             NodeGraphOp(1, 1)
         {}
 
@@ -65,7 +112,7 @@ namespace l::nodegraph {
 
     class GraphNumericIntegral : public NodeGraphOp {
     public:
-        GraphNumericIntegral() :
+        GraphNumericIntegral(int8_t) :
             NodeGraphOp(1, 1)
         {}
 
@@ -84,7 +131,7 @@ namespace l::nodegraph {
 
     class GraphLogicalAnd : public NodeGraphOp {
     public:
-        GraphLogicalAnd() :
+        GraphLogicalAnd(int8_t) :
             NodeGraphOp(2, 1)
         {}
 
@@ -97,7 +144,7 @@ namespace l::nodegraph {
 
     class GraphLogicalOr : public NodeGraphOp {
     public:
-        GraphLogicalOr() :
+        GraphLogicalOr(int8_t) :
             NodeGraphOp(2, 1)
         {}
 
@@ -110,7 +157,7 @@ namespace l::nodegraph {
 
     class GraphLogicalXor : public NodeGraphOp {
     public:
-        GraphLogicalXor() :
+        GraphLogicalXor(int8_t) :
             NodeGraphOp(2, 1)
         {}
 
@@ -128,7 +175,7 @@ namespace l::nodegraph {
         std::string defaultInStrings[3] = { "Cutoff", "Resonance", "Data"};
         std::string defaultOutStrings[1] = { "Out" };
 
-        GraphFilterLowpass() :
+        GraphFilterLowpass(int8_t) :
             NodeGraphOp(3, 1)
         {}
 
@@ -143,6 +190,7 @@ namespace l::nodegraph {
         std::string_view GetOutputName(int8_t outputChannel) {
             return defaultOutStrings[outputChannel];
         }
+
         std::string_view GetName() override {
             return "Lowpass";
         }

@@ -64,12 +64,22 @@ namespace l::ui {
 
     class UIDraw : public UIVisitor {
     public:
-        UIDraw(ImDrawList* drawList) : mDrawList(drawList) {}
+        UIDraw(ImDrawList* drawList = nullptr) : mDrawList(drawList) {}
         ~UIDraw() = default;
 
         virtual bool Visit(UIContainer& container, const InputState& input);
+
+        void SetDrawList(ImDrawList* drawList) {
+            mDrawList = drawList;
+        }
+
+        void SetNGSchema(l::nodegraph::NodeGraphSchema* ngSchema) {
+            mNGSchema = ngSchema;
+        }
+
     protected:
         ImDrawList* mDrawList;
+        l::nodegraph::NodeGraphSchema* mNGSchema = nullptr;
     };
 
     class UILinkIO : public UIVisitor {

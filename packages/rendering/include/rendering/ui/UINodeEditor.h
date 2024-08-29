@@ -26,13 +26,12 @@ namespace l::ui {
             mUIWindow.SetContentWindow([&]() {
                 ImGui::PushItemWidth(400);
 
-                UIDraw uiDrawVisitor(ImGui::GetWindowDrawList());
                 UIUpdate updateVisitor;
-
+                mDrawVisitor.SetDrawList(ImGui::GetWindowDrawList());
                 mUIRoot->SetLayoutSize(mUIWindow.GetSize());
                 mUIRoot->SetLayoutPosition(mUIWindow.GetPosition());
                 mUIRoot->Accept(updateVisitor, mUIInput, l::ui::UITraversalMode::BFS);
-                mUIRoot->Accept(uiDrawVisitor, mUIInput, l::ui::UITraversalMode::BFS);
+                mUIRoot->Accept(mDrawVisitor, mUIInput, l::ui::UITraversalMode::BFS);
 
                 ImGui::PopItemWidth();
 
@@ -82,6 +81,7 @@ namespace l::ui {
 
         void SetNGSchema(l::nodegraph::NodeGraphSchema* ngSchema) {
             mNGSchema = ngSchema;
+            mDrawVisitor.SetNGSchema(ngSchema);
             mLinkIOVisitor.SetNGSchema(ngSchema);
             mSelectVisitor.SetNGSchema(ngSchema);
         }
@@ -123,6 +123,7 @@ namespace l::ui {
 
         l::nodegraph::NodeGraphSchema* mNGSchema = nullptr;
 
+        UIDraw mDrawVisitor;
         UILinkIO mLinkIOVisitor;
         UISelect mSelectVisitor;
         UIZoom mZoomVisitor;

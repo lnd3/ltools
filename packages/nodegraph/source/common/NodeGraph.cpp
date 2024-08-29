@@ -22,19 +22,31 @@ namespace l::nodegraph {
     }
 
     void NodeGraphBase::SetNumInputs(int8_t numInputs) {
-        mInputs.resize(numInputs);
+        mInputCount = numInputs;
+        mInputs.resize(mInputCount + mConstantCount);
     }
 
     void NodeGraphBase::SetNumOutputs(int8_t outputCount) {
         mOutputs.resize(outputCount);
     }
 
+    void NodeGraphBase::SetNumConstants(int8_t numConstants) {
+        mConstantCount = numConstants;
+        mInputs.resize(mInputCount + mConstantCount);
+    }
+
     int8_t NodeGraphBase::GetNumInputs() {
-        return static_cast<int8_t>(mInputs.size());
+        ASSERT(mInputs.size() == mInputCount + mConstantCount);
+        return static_cast<int8_t>(mInputCount);
     }
 
     int8_t NodeGraphBase::GetNumOutputs() {
         return static_cast<int8_t>(mOutputs.size());
+    }
+
+    int8_t NodeGraphBase::GetNumConstants() {
+        ASSERT(mInputs.size() == mInputCount + mConstantCount);
+        return static_cast<int8_t>(mConstantCount);
     }
 
     void NodeGraphBase::Reset() {
@@ -71,7 +83,7 @@ namespace l::nodegraph {
         mProcessUpdateHasRun = true;
     }
 
-    float NodeGraphBase::Get(int8_t outputChannel) {
+    float& NodeGraphBase::Get(int8_t outputChannel) {
         ASSERT(IsValidInOutNum(outputChannel, mOutputs.size()));
         return mOutputs.at(outputChannel).mOutput;
     }
@@ -125,9 +137,10 @@ namespace l::nodegraph {
         return true;
     }
 
-    bool NodeGraphBase::SetInput(int8_t inputChannel, float constant) {
+    bool NodeGraphBase::SetConstant(int8_t inputChannel, float constant) {
+        ASSERT(inputChannel >= mInputCount && inputChannel < mInputCount + mConstantCount);
         auto& input = mInputs.at(inputChannel);
-        if (!IsValidInOutNum(inputChannel, mInputs.size()) || input.HasInput()) {
+        if (!IsValidInOutNum(inputChannel, mInputs.size())) {
             return false;
         }
 
@@ -137,9 +150,9 @@ namespace l::nodegraph {
         return true;
     }
 
-    bool NodeGraphBase::SetInput(int8_t inputChannel, float* floatPtr) {
+    bool NodeGraphBase::SetExternalInput(int8_t inputChannel, float* floatPtr) {
         auto& input = mInputs.at(inputChannel);
-        if (!IsValidInOutNum(inputChannel, mInputs.size()) || input.HasInput()) {
+        if (!IsValidInOutNum(inputChannel, mInputs.size())) {
             return false;
         }
 
@@ -149,7 +162,7 @@ namespace l::nodegraph {
         return true;
     }
 
-    bool NodeGraphBase::RemoveSource(void* source) {
+    bool NodeGraphBase::RemoveInput(void* source) {
         int32_t sourceRemoved = 0;
         for (auto& it : mInputs) {
             if ((it.mInputType == InputType::INPUT_NODE && it.mInput.mInputNode == source) ||
@@ -189,12 +202,20 @@ namespace l::nodegraph {
         mNumOutputs = numOutputs;
     }
 
+    void NodeGraphOp::SetNumConstants(int8_t numConstants) {
+        mNumConstants = numConstants;
+    }
+
     int8_t NodeGraphOp::GetNumInputs() {
         return mNumInputs;
     }
 
     int8_t NodeGraphOp::GetNumOutputs() {
         return mNumOutputs;
+    }
+
+    int8_t NodeGraphOp::GetNumConstants() {
+        return mNumConstants;
     }
 
     void GraphDataCopy::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
@@ -204,9 +225,11 @@ namespace l::nodegraph {
     }
 
     void NodeGraphInput::Reset() {
-        mInput.mInputNode = nullptr;
-        mInputType = InputType::INPUT_EMPTY;
-        mInputFromOutputChannel = 0;
+        if (mInputType == InputType::INPUT_NODE || mInputType == InputType::INPUT_VALUE) {
+            mInput.mInputNode = nullptr;
+            mInputType = InputType::INPUT_EMPTY;
+            mInputFromOutputChannel = 0;
+        }
     }
 
     bool NodeGraphInput::HasInput() {
@@ -217,7 +240,7 @@ namespace l::nodegraph {
             }
             break;
         case InputType::INPUT_CONSTANT:
-            return true;
+            break;
         case InputType::INPUT_VALUE:
             return mInput.mInputFloat != nullptr;
         case InputType::INPUT_EMPTY:
@@ -264,11 +287,11 @@ namespace l::nodegraph {
     }
 
     void NodeGraphGroup::SetInput(int8_t inputChannel, float constant) {
-        mInputNode.SetInput(inputChannel, constant);
+        mInputNode.SetConstant(inputChannel, constant);
     }
 
     void NodeGraphGroup::SetInput(int8_t inputChannel, float* floatPtr) {
-        mInputNode.SetInput(inputChannel, floatPtr);
+        mInputNode.SetExternalInput(inputChannel, floatPtr);
     }
 
     void NodeGraphGroup::SetOutput(int8_t outputChannel, NodeGraphBase& source, int8_t sourceOutputChannel) {
@@ -310,7 +333,7 @@ namespace l::nodegraph {
         auto node = GetNode(id);
         int32_t sourceCount = 0;
         for (auto& it : mNodes) {
-            if (it->RemoveSource(node)) {
+            if (it->RemoveInput(node)) {
                 sourceCount++;
             }
         }

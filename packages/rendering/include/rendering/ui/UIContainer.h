@@ -52,7 +52,8 @@ namespace l::ui {
         PolygonFilled = 7,
         LinkH = 8,
         Text = 9,
-        Texture = 10
+        Texture = 10,
+        NodeOutputValue = 11,
     };
 
     enum class UITraversalMode {
@@ -371,6 +372,7 @@ namespace l::ui {
         int32_t mChannelId = 0;
         std::string mStringId;
         std::string mDisplayName;
+
         uint32_t mConfigFlags = 0; // Active visitor flags
         uint32_t mNotificationFlags = 0; // Notification flags for ux feedback (resizing box animation etc)
 

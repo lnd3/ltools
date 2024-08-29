@@ -213,7 +213,8 @@ namespace l::ui {
         const char* nameStart;
         const char* nameEnd;
 
-        switch (container.GetRenderData().mType) {
+        auto renderType = container.GetRenderData().mType;
+        switch (renderType) {
         case l::ui::UIRenderType::Rect:
             mDrawList->AddRect(p1, p2, color, 5.0f, ImDrawFlags_RoundCornersAll, 1.0f * container.GetScale() * layoutArea.mScale);
             break;
@@ -284,6 +285,15 @@ namespace l::ui {
             }
             break;
         case l::ui::UIRenderType::Texture:
+            break;
+
+        case l::ui::UIRenderType::NodeOutputValue:
+            if (mNGSchema) {
+                auto node = mNGSchema->GetNode(container.GetNodeId());
+                auto nodeValue = node->Get(static_cast<int8_t>(container.GetChannelId()));
+                auto nodeString = std::to_string(nodeValue);
+                mDrawList->AddText(ImGui::GetDefaultFont(), 13.0f * container.GetScale() * layoutArea.mScale, p1, color, nodeString.c_str());
+            }
             break;
         }
 

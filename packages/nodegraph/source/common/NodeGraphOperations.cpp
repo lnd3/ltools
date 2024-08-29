@@ -6,6 +6,42 @@ namespace l::nodegraph {
 
     /* Mathematical operations */
 
+    void GraphSourceConstants::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        ASSERT(inputs.size() == static_cast<size_t>(mNumConstants));
+        ASSERT(outputs.size() == static_cast<size_t>(mNumConstants));
+        for (int8_t i = 0; i < mNumConstants; i++) {
+            outputs.at(i).mOutput = inputs.at(i).Get();
+        }
+    }
+
+    void GraphSourceSine::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        ASSERT(inputs.size() == static_cast<size_t>(mNumInputs));
+        ASSERT(outputs.size() == static_cast<size_t>(mNumOutputs));
+
+        float time = inputs.at(0).Get();
+        float freq = inputs.at(1).Get();
+        float freqMod = inputs.at(2).Get();
+        float phaseMod = inputs.at(3).Get();
+
+        if (mPrevTime == 0.0f) {
+            mPrevTime = time;
+        }
+
+        float deltaTime = time - mPrevTime;
+        mPrevTime = time;
+        
+        float phaseDelta = deltaTime * freq;
+
+        mPhase += phaseDelta * freqMod;
+        mPhase -= floorf(mPhase);
+
+        float phase = (mPhase + phaseMod) * 0.5f;
+        phase -= floorf(phase);
+
+        outputs.at(0).mOutput = sinf(2.0f * 3.141529f * phase);
+        outputs.at(1).mOutput = phase;
+    }
+
     void GraphNumericAdd::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         ASSERT(inputs.size() == static_cast<size_t>(mNumInputs));
         ASSERT(outputs.size() == static_cast<size_t>(mNumOutputs));
