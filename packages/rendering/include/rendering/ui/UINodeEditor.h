@@ -84,6 +84,7 @@ namespace l::ui {
             mDrawVisitor.SetNGSchema(ngSchema);
             mLinkIOVisitor.SetNGSchema(ngSchema);
             mSelectVisitor.SetNGSchema(ngSchema);
+            mEditVisitor.SetNGSchema(ngSchema);
         }
 
         void Update() {
@@ -99,6 +100,8 @@ namespace l::ui {
 
                 if (mUIWindow.IsHovered()) {
                     if (mUIRoot->Accept(mLinkIOVisitor, mUIInput, l::ui::UITraversalMode::DFS)) {
+                    }
+                    else if (mUIRoot->Accept(mEditVisitor, mUIInput, l::ui::UITraversalMode::DFS)) {
                     }
                     else if (mUIRoot->Accept(mSelectVisitor, mUIInput, l::ui::UITraversalMode::BFS)) {
                     }
@@ -130,6 +133,7 @@ namespace l::ui {
         UIDrag mDragVisitor;
         UIMove mMoveVisitor;
         UIResize mResizeVisitor;
+        UIEdit mEditVisitor;
 
     };
 

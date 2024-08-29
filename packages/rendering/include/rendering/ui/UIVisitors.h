@@ -62,6 +62,19 @@ namespace l::ui {
         l::nodegraph::NodeGraphSchema* mNGSchema = nullptr;
     };
 
+    class UIEdit : public UIVisitor {
+    public:
+        virtual bool Visit(UIContainer& container, const InputState& input);
+
+        void SetNGSchema(l::nodegraph::NodeGraphSchema* ngSchema) {
+            mNGSchema = ngSchema;
+        }
+    protected:
+        bool mEditing = false;
+        UIContainer* mSourceContainer = nullptr;
+        l::nodegraph::NodeGraphSchema* mNGSchema = nullptr;
+    };
+
     class UIDraw : public UIVisitor {
     public:
         UIDraw(ImDrawList* drawList = nullptr) : mDrawList(drawList) {}

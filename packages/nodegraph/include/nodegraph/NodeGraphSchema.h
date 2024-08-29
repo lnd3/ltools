@@ -32,10 +32,10 @@ namespace l::nodegraph {
         using CustomCreateFunctionType = NodeGraphBase*(int32_t, NodeGraphGroup&);
 
         NodeGraphSchema() {
-            RegisterNodeType("Source", 0, "Constant1");
-            RegisterNodeType("Source", 1, "Constant2");
-            RegisterNodeType("Source", 2, "Constant3");
-            RegisterNodeType("Source", 3, "Constant4");
+            RegisterNodeType("Source", 0, "Value [0,1]");
+            RegisterNodeType("Source", 1, "Value [-1,1]");
+            RegisterNodeType("Source", 2, "Value [0,100]");
+            RegisterNodeType("Source", 3, "Value [-inf,inf]");
             RegisterNodeType("Source", 4, "Sine");
             RegisterNodeType("Numeric", 50, "Add");
             RegisterNodeType("Numeric", 51, "Subtract");

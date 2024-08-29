@@ -239,9 +239,10 @@ namespace l::ui {
     const uint32_t UIContainer_MoveFlag = 0x00000080; // Can be moved when grabbed
     const uint32_t UIContainer_ResizeFlag = 0x00000100; // Can be resized when grabbing bottom right corner
     const uint32_t UIContainer_InputFlag = 0x00000200; // Can be grabbed and dropped on a container with output flag
-    const uint32_t UIContainer_OutputFlag = 0x00000400; // Can be dropped a grabbed 
-    const uint32_t UIContainer_LinkFlag = 0x00000800; // Can be dropped a grabbed 
-    const uint32_t UIContainer_SelectFlag = 0x00001000; // Can be moved when grabbed
+    const uint32_t UIContainer_OutputFlag = 0x00000400;
+    const uint32_t UIContainer_LinkFlag = 0x00000800;
+    const uint32_t UIContainer_SelectFlag = 0x00001000;
+    const uint32_t UIContainer_EditFlag = 0x00002000; 
 
     class UIDraw;
 
@@ -323,6 +324,7 @@ namespace l::ui {
 
         void SetNotification(uint32_t flag) { mNotificationFlags |= flag; }
         void ClearNotifications() { mNotificationFlags = 0; }
+        void ClearNotification(uint32_t flag) { mNotificationFlags = mNotificationFlags & (~flag); }
         bool HasNotification(uint32_t flag) { return (mNotificationFlags & flag) == flag; }
         bool HasConfigFlag(uint32_t flag) { return (mConfigFlags & flag) == flag; }
 

@@ -131,7 +131,7 @@ namespace l::ui {
             }
             else {
                 mSourceContainer = nullptr;
-                container.ClearNotifications();
+                container.ClearNotification(UIContainer_ResizeFlag);
             }
         }
         if (mResizing && mSourceContainer == &container) {
@@ -142,7 +142,7 @@ namespace l::ui {
             if (input.mStopped) {
                 mResizing = false;
                 mSourceContainer = nullptr;
-                container.ClearNotifications();
+                container.ClearNotification(UIContainer_ResizeFlag);
             }
             return mResizing;
         }
@@ -163,13 +163,13 @@ namespace l::ui {
                     }
                     else {
                         mSelectedContainers.erase(&container);
-                        container.ClearNotifications();
+                        container.ClearNotification(UIContainer_SelectFlag);
                     }
                 }
             }
             else if (!mSelectedContainers.empty()) {
                 for (auto it : mSelectedContainers) {
-                    it->ClearNotifications();
+                    it->ClearNotification(UIContainer_SelectFlag);
                 }
                 mSelectedContainers.clear();
                 return true;
@@ -186,6 +186,51 @@ namespace l::ui {
                 mSelectedContainers.clear();
                 return true;
             }
+        }
+        return false;
+    }
+
+    bool UIEdit::Visit(UIContainer& container, const InputState& input) {
+        if (!container.HasConfigFlag(UIContainer_EditFlag)) {
+            return false;
+        }
+        if (input.mStarted && !mEditing) {
+            auto& layoutArea = container.GetLayoutArea();
+            if (Overlap(input.GetLocalPos(), container.GetPosition(), container.GetPositionAtSize(), layoutArea)) {
+                mEditing = true;
+                mSourceContainer = &container;
+            }
+        }
+        if (mEditing && mSourceContainer == &container) {
+            auto& layoutArea = container.GetLayoutArea();
+            ImVec2 move = DragMovement(input.mPrevPos, input.mCurPos, layoutArea.mScale);
+
+            if (mNGSchema) {
+                auto node = mNGSchema->GetNode(container.GetNodeId());
+                auto& nodeValue = node->Get(static_cast<int8_t>(container.GetChannelId()));
+                if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftShift)) {
+                    if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftCtrl)) {
+                        nodeValue -= move.y / 100.0f;
+                    }
+                    else {
+                        nodeValue -= move.y / 10000.0f;
+                    }
+                }
+                else {
+                    if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftCtrl)) {
+                        nodeValue -= move.y;
+                    }
+                    else {
+                        nodeValue -= 1000.0f * move.y;
+                    }
+                }
+            }
+
+            if (input.mStopped) {
+                mEditing = false;
+                mSourceContainer = nullptr;
+            }
+            return mEditing;
         }
         return false;
     }
@@ -390,11 +435,11 @@ namespace l::ui {
             else if (mLinkContainer->GetCoParent() == &container) {
                 LinkHandler(container.GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), container.GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), false);
                 mLinkContainer->SetCoParent(nullptr);
-                mLinkContainer->ClearNotifications();
+                mLinkContainer->ClearNotification(UIContainer_LinkFlag);
             }
 
             if (input.mStopped) {
-                mLinkContainer->ClearNotifications();
+                mLinkContainer->ClearNotification(UIContainer_LinkFlag);
                 if (mLinkContainer->GetCoParent() != nullptr) {
                     mDragging = false;
                     mLinkContainer.Reset();

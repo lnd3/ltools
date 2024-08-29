@@ -12,7 +12,10 @@ namespace l::nodegraph {
         ASSERT(inputs.size() == static_cast<size_t>(mNumConstants));
         ASSERT(outputs.size() == static_cast<size_t>(mNumConstants));
         for (int8_t i = 0; i < mNumConstants; i++) {
-            outputs.at(i).mOutput = inputs.at(i).Get();
+            float val = inputs.at(i).Get();
+            val = val > mMax ? mMax : val < mMin ? mMin : val;
+            inputs.at(i).mInput.mInputFloatConstant = val;
+            outputs.at(i).mOutput = val;
         }
     }
 

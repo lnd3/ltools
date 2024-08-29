@@ -16,14 +16,37 @@ namespace l::nodegraph {
     class GraphSourceConstants : public NodeGraphOp {
     public:
         GraphSourceConstants(int8_t mode = 0) :
-            NodeGraphOp(0, mode + 1, mode + 1)
-        {}
+            NodeGraphOp(0, 1, 1)
+        {
+            switch (mode) {
+            case 0:
+                mMax = 1.0f;
+                mMin = 0.0f;
+                break;
+            case 1:
+                mMax = 1.0f;
+                mMin = -1.0f;
+                break;
+            case 2:
+                mMax = 100.0f;
+                mMin = 0.0f;
+                break;
+            default:
+                mMax = 0.0f;
+                mMin = 0.0f;
+                break;
+            }
+        }
 
         virtual ~GraphSourceConstants() = default;
         void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         std::string_view GetName() override {
             return "Constant";
         }
+
+    protected:
+        float mMax = 1.0f;
+        float mMin = 0.0f;
     };
 
     class GraphSourceSine : public NodeGraphOp {
