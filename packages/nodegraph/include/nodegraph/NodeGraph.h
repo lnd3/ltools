@@ -11,6 +11,8 @@
 
 namespace l::nodegraph {
 
+    int32_t CreateUniqueId();
+
     enum class DataType {
         FLOAT32,
         INT32,
@@ -56,14 +58,20 @@ namespace l::nodegraph {
 
     class NodeGraphBase {
     public:
-        NodeGraphBase(std::string_view name = "");
+        NodeGraphBase() : mId(CreateUniqueId()) {
+            mInputs.resize(1);
+            mOutputs.resize(1);
+        }
+
         virtual ~NodeGraphBase() = default;
 
         virtual void Reset();
         virtual void SetId(int32_t id) { mId = id; }
         virtual int32_t GetId() const { return mId; }
 
-        virtual void Update();
+        void ClearProcessFlags();
+        virtual void ProcessSubGraph(bool recomputeSubGraphCache = true);
+        virtual void Tick(float time);
 
         virtual void SetNumInputs(int8_t numInputs);
         virtual void SetNumOutputs(int8_t outputCount);
@@ -74,6 +82,7 @@ namespace l::nodegraph {
         virtual int8_t GetNumConstants();
 
         virtual float& Get(int8_t outputChannel);
+        virtual float GetInput(int8_t inputChannel);
 
         virtual std::string_view GetName();
         virtual std::string_view GetInputName(int8_t inputChannel);
@@ -89,8 +98,11 @@ namespace l::nodegraph {
         virtual bool SetInput(int8_t inputChannel, float* floatPtr);
 
         virtual bool RemoveInput(void* source);
+
+        virtual bool IsDataVisible(int8_t num);
+        virtual bool IsDataEditable(int8_t num);
+
     protected:
-        void PreUpdate();
         virtual void ProcessOperation();
 
         bool mProcessUpdateHasRun = false;
@@ -105,10 +117,11 @@ namespace l::nodegraph {
 
     class NodeGraphOp {
     public:
-        NodeGraphOp(int8_t numInputs = 1, int8_t numOutputs = 1, int8_t numConstants = 0) : 
-            mNumInputs(numInputs), 
-            mNumOutputs(numOutputs),
-            mNumConstants(numConstants)
+        NodeGraphOp(NodeGraphBase* node, int32_t numInputs = 1, int32_t numOutputs = 1, int32_t numConstants = 0) :
+            mNode(node),
+            mNumInputs(static_cast<int8_t>(numInputs)), 
+            mNumOutputs(static_cast<int8_t>(numOutputs)),
+            mNumConstants(static_cast<int8_t>(numConstants))
         {}
 
         std::string defaultInStrings[4] = { "In 1", "In 2", "In 3", "In 4" };
@@ -116,7 +129,8 @@ namespace l::nodegraph {
 
         virtual ~NodeGraphOp() = default;
         virtual void Reset() {}
-        virtual void Process(std::vector<NodeGraphInput>& mInputs, std::vector<NodeGraphOutput>& outputs) = 0;
+        virtual void ProcessSubGraph(std::vector<NodeGraphInput>& mInputs, std::vector<NodeGraphOutput>& outputs) = 0;
+        virtual void Tick(float) {}
 
         virtual void SetNumInputs(int8_t numInputs);
         virtual void SetNumOutputs(int8_t numOutputs);
@@ -125,17 +139,14 @@ namespace l::nodegraph {
         int8_t GetNumOutputs();
         int8_t GetNumConstants();
 
-        virtual std::string_view GetInputName(int8_t inputChannel) {
-            return defaultInStrings[inputChannel];
-        };
-        virtual std::string_view GetOutputName(int8_t outputChannel) {
-            return defaultOutStrings[outputChannel];
-        }
-        virtual std::string_view GetName() {
-            return "";
-        }
+        virtual bool IsDataVisible(int8_t num);
+        virtual bool IsDataEditable(int8_t num);
+        virtual std::string_view GetInputName(int8_t inputChannel);
+        virtual std::string_view GetOutputName(int8_t outputChannel);
+        virtual std::string_view GetName();
 
     protected:
+        NodeGraphBase* mNode;
         int8_t mNumInputs = 0;
         int8_t mNumOutputs = 0;
         int8_t mNumConstants = 0;
@@ -143,18 +154,21 @@ namespace l::nodegraph {
 
     class GraphDataCopy : public NodeGraphOp {
     public:
-        GraphDataCopy(int8_t) :
-            NodeGraphOp(0)
+        GraphDataCopy(NodeGraphBase* node) :
+            NodeGraphOp(node, 0)
         {}
         virtual ~GraphDataCopy() = default;
 
-        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        void ProcessSubGraph(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     };
 
-    template<class T, class = std::enable_if_t<std::is_base_of_v<NodeGraphOp, T>>>
+    template<class T, class... Params>
     class NodeGraph : public NodeGraphBase {
     public:
-        NodeGraph(int8_t mode = 0) : mOperation(mode) {
+        NodeGraph(Params&&... params) :
+            NodeGraphBase(), 
+            mOperation(this, std::forward<Params>(params)...)
+        {
             SetNumInputs(mOperation.GetNumInputs());
             SetNumOutputs(mOperation.GetNumOutputs());
             SetNumConstants(mOperation.GetNumConstants());
@@ -174,9 +188,17 @@ namespace l::nodegraph {
             NodeGraphBase::SetNumConstants(numConstants);
             mOperation.SetNumConstants(numConstants);
             for (int8_t i = mInputCount; i < mInputCount + mConstantCount; i++) {
-                SetInput(i, 1.0f);
+                SetInput(i, 0.0f);
             }
-            Update();
+            ProcessSubGraph();
+        }
+
+        virtual bool IsDataVisible(int8_t num) override {
+            return mOperation.IsDataVisible(num);
+        }
+
+        virtual bool IsDataEditable(int8_t num) override {
+            return mOperation.IsDataEditable(num);
         }
 
         virtual void Reset() override {
@@ -186,7 +208,12 @@ namespace l::nodegraph {
 
         virtual void ProcessOperation() override {
             NodeGraphBase::ProcessOperation();
-            mOperation.Process(mInputs, mOutputs);
+            mOperation.ProcessSubGraph(mInputs, mOutputs);
+        }
+
+        virtual void Tick(float time) override {
+            NodeGraphBase::Tick(time);
+            mOperation.Tick(time);
         }
 
         virtual std::string_view GetInputName(int8_t inputChannel) {
@@ -236,15 +263,24 @@ namespace l::nodegraph {
         NodeGraphBase& GetOutputNode();
 
         NodeGraphBase* GetNode(int32_t id);
+
+        template<class T, class U = void, class = std::enable_if_t<std::is_base_of_v<NodeGraphOp, T>>>
+        NodeGraph<T, U>* GetTypedNode(int32_t id) {
+            auto p = GetNode(id);
+            return reinterpret_cast<NodeGraph<T, U>*>(p);
+        }
+
         bool RemoveNode(int32_t id);
 
-        template<class T, class = std::enable_if_t<std::is_base_of_v<NodeGraphOp, T>>>
-        l::nodegraph::NodeGraphBase* NewNode(int8_t mode = 0) {
-            mNodes.push_back(std::make_unique<l::nodegraph::NodeGraph<T>>(mode));
+        template<class T, class = std::enable_if_t<std::is_base_of_v<NodeGraphOp, T>>, class... Params>
+        l::nodegraph::NodeGraphBase* NewNode(Params&&... params) {
+            mNodes.push_back(std::make_unique<l::nodegraph::NodeGraph<T, Params...>>(std::forward<Params>(params)...));
             return mNodes.back().get();
         }
 
-        void Update();
+        void ClearProcessFlags();
+        void ProcessSubGraph(bool recomputeSubGraphCache = true);
+        void Tick(float time);
     protected:
         NodeGraph<GraphDataCopy> mInputNode;
         NodeGraph<GraphDataCopy> mOutputNode;

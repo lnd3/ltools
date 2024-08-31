@@ -42,6 +42,7 @@ namespace l::ui {
         ImVec2 GetPosition();
         ImVec2 GetSize();
         void SetBgColor(ImVec4 bgColor);
+
     protected:
         std::string mWindowName;
         std::string mPopupName;

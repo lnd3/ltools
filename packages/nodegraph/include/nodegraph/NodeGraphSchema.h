@@ -36,7 +36,8 @@ namespace l::nodegraph {
             RegisterNodeType("Source", 1, "Value [-1,1]");
             RegisterNodeType("Source", 2, "Value [0,100]");
             RegisterNodeType("Source", 3, "Value [-inf,inf]");
-            RegisterNodeType("Source", 4, "Sine");
+            RegisterNodeType("Source", 4, "Keyboard");
+            RegisterNodeType("Source", 5, "Sine");
             RegisterNodeType("Numeric", 50, "Add");
             RegisterNodeType("Numeric", 51, "Subtract");
             RegisterNodeType("Numeric", 52, "Negate");
@@ -46,21 +47,32 @@ namespace l::nodegraph {
             RegisterNodeType("Logic", 101, "Or");
             RegisterNodeType("Logic", 102, "Xor");
             RegisterNodeType("Filter", 150, "Lowpass Filter");
+            RegisterNodeType("Graphic", 200, "Display");
         }
 
         ~NodeGraphSchema() = default;
 
         void SetCustomCreator(std::function<CustomCreateFunctionType> customCreator);
+        void SetKeyState(l::hid::KeyState* keyState);
+
         int32_t NewNode(int32_t typeId);
         bool RemoveNode(int32_t nodeId);
         NodeGraphBase* GetNode(int32_t nodeId);
+
+        template<class T, class U = void, class = std::enable_if_t<std::is_base_of_v<NodeGraphOp, T>>>
+        NodeGraph<T, U>* GetTypedNode(int32_t id) {
+            return mMainNodeGraph.GetTypedNode<T, U>(id);
+        }
+
         void ForEachNodeType(std::function<void(std::string_view, const std::vector<UINodeDesc>&)> cb) const;
         void RegisterNodeType(const std::string& typeGroup, int32_t uniqueTypeId, std::string_view typeName);
-        void Update();
+        void ProcessSubGraph();
+        void Tick(float time);
     protected:
         NodeGraphGroup mMainNodeGraph;
 
         std::function<CustomCreateFunctionType> mCreateCustomNode;
+        l::hid::KeyState* mKeyState;
 
         std::map<std::string, std::vector<UINodeDesc>> mRegisteredNodeTypes;
     };

@@ -10,6 +10,7 @@ set(deps
 	testing
 	memory
 	nodegraph
+	hid
 
 	filesystem
 	tools

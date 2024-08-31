@@ -1,9 +1,12 @@
 #pragma once
 
 #include "rendering/ui/UIContainer.h"
+#include "rendering/ui/UIWindow.h"
+
 #include "nodegraph/NodeGraphSchema.h"
 
 #include <unordered_set>
+#include <deque>
 
 namespace l::ui {
 
@@ -131,6 +134,5 @@ namespace l::ui {
         UIStorage& mUIStorage;
         l::nodegraph::NodeGraphSchema* mNGSchema = nullptr;
     };
-
 
 }

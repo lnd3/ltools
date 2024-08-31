@@ -17,7 +17,7 @@ TEST(NodeGraph, BasicFunction) {
 	node.SetInput(0, 1.8f);
 	node.SetInput(1, &in2);
 
-	node.Update();
+	node.ProcessSubGraph();
 	TEST_FUZZY(node.Get(0), 4.1f, 0.0001f, "");
 
 	return 0;
@@ -41,7 +41,7 @@ TEST(NodeGraph, SimpleAddNetwork) {
 	nodeFinal.SetInput(0, node1, 0);
 	nodeFinal.SetInput(1, node2, 0);
 
-	nodeFinal.Update();
+	nodeFinal.ProcessSubGraph();
 	TEST_FUZZY(nodeFinal.Get(0), 12.6f, 0.0001f, "");
 
 	return 0;
@@ -68,7 +68,7 @@ TEST(NodeGraph, BasicMathematicalOperations) {
 
 	nodeOutput.SetInput(0, node3, 0); // - (in1 + in2) * in3 - in4
 
-	nodeOutput.Update();
+	nodeOutput.ProcessSubGraph();
 	TEST_FUZZY(nodeOutput.Get(0), -6.9f, 0.0001f, "");
 
 	return 0;
@@ -83,7 +83,7 @@ TEST(NodeGraph, NumericIntegral) {
 	float oneRev = 2.0f * 3.14f / 30.0f;
 	for (int i = 0; i < 30; i++) {
 		input = sinf(2.0f * i * oneRev);
-		nodeIntegral.Update();
+		nodeIntegral.ProcessSubGraph();
 		//LOG(LogInfo) << nodeIntegral.Get(0);
 	}
 
@@ -106,7 +106,7 @@ TEST(NodeGraph, FilterLowpass) {
 	float oneRev = 2.0f * 3.14f / 30.0f;
 	for (int i = 0; i < 30; i++) {
 		input = sinf(2.0f * i * oneRev);
-		nodeLowpass.Update();
+		nodeLowpass.ProcessSubGraph();
 		//LOG(LogInfo) << nodeLowpass.Get(0);
 	}
 
@@ -171,7 +171,7 @@ TEST(NodeGraph, GraphGroups) {
 	}
 
 	// only update the last group/node and all dependent nodes will update in the graph to produce an output
-	group2.Update();
+	group2.Tick(0.0f);
 
 	float output1 = group2.Get(0);
 	float output2 = group2.Get(1);

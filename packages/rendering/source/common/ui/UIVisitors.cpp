@@ -1,4 +1,5 @@
 #include "rendering/ui/UIVisitors.h"
+#include "hid/KeyboardPiano.h"
 
 namespace l::ui {
 
@@ -335,7 +336,13 @@ namespace l::ui {
         case l::ui::UIRenderType::NodeOutputValue:
             if (mNGSchema) {
                 auto node = mNGSchema->GetNode(container.GetNodeId());
-                auto nodeValue = node->Get(static_cast<int8_t>(container.GetChannelId()));
+                float nodeValue = 0.0f;
+                if (node->GetNumOutputs() > 0) {
+                    nodeValue = node->Get(static_cast<int8_t>(container.GetChannelId()));
+                }
+                else {
+                    nodeValue = node->GetInput(static_cast<int8_t>(container.GetChannelId()));
+                }
                 auto nodeString = std::to_string(nodeValue);
                 mDrawList->AddText(ImGui::GetDefaultFont(), 13.0f * container.GetScale() * layoutArea.mScale, p1, color, nodeString.c_str());
             }
@@ -400,9 +407,8 @@ namespace l::ui {
             ImVec2 size = container.GetCoParent()->GetSize();
             ImVec2 pT = container.GetCoParent()->GetLayoutArea().Transform(pCenter);
             if (OverlapCircle(input.mCurPos, pT, size.x * container.GetCoParent()->GetLayoutArea().mScale)) {
-                DeleteContainer(mUIStorage, mLinkContainer);
                 mLinkContainer.mContainer = &container;
-                LinkHandler(container.GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), container.GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), false);
+                LinkHandler(mLinkContainer->GetCoParent()->GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), mLinkContainer->GetCoParent()->GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), false);
                 mDragging = true;
                 return true;
             }
@@ -445,14 +451,14 @@ namespace l::ui {
                     mLinkContainer.Reset();
                 }
                 else {
-                    DeleteContainer(mUIStorage, mLinkContainer);
+                    DeleteContainer(mUIStorage, mLinkContainer.Get());
                     mDragging = false;
                     mLinkContainer.Reset();
+                    return true;
                 }
             }
         }
         return false;
     }
-
 
 }

@@ -88,6 +88,7 @@ namespace l::ui {
         }
 
         void Update() {
+
             if (mUIWindow.IsShowing()) {
                 ImGuiIO& io = ImGui::GetIO();
                 io.ConfigWindowsMoveFromTitleBarOnly = true;

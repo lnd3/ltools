@@ -23,6 +23,7 @@ else()
 		testing
 		meta
 		memory
+		hid
 		nodegraph
 
 		concurrency

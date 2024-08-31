@@ -10,6 +10,10 @@ namespace l::nodegraph {
         mCreateCustomNode = customCreator;
     }
 
+    void NodeGraphSchema::SetKeyState(l::hid::KeyState* keyState) {
+        mKeyState = keyState;
+    }
+
     int32_t NodeGraphSchema::NewNode(int32_t typeId) {
         l::nodegraph::NodeGraphBase* node = nullptr;
         switch (typeId) {
@@ -26,6 +30,9 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(3);
             break;
         case 4:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceKeyboard, l::hid::KeyState>(3, mKeyState);
+            break;
+        case 5:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceSine>();
             break;
         case 50:
@@ -54,6 +61,9 @@ namespace l::nodegraph {
             break;
         case 150:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterLowpass>();
+            break;
+        case 200:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphGraphicDisplay>(3);
             break;
         default:
             ASSERT(typeId < 10000) << "Custom node id's begin at id 1000";
@@ -86,8 +96,12 @@ namespace l::nodegraph {
         mRegisteredNodeTypes[typeGroup].push_back(UINodeDesc{ uniqueTypeId, std::string(typeName) });
     }
 
-    void NodeGraphSchema::Update() {
-        mMainNodeGraph.Update();
+    void NodeGraphSchema::Tick(float time) {
+        mMainNodeGraph.Tick(time);
+    }
+
+    void NodeGraphSchema::ProcessSubGraph() {
+        mMainNodeGraph.ProcessSubGraph(true);
     }
 
 

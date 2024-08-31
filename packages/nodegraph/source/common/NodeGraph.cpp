@@ -13,14 +13,6 @@ namespace l::nodegraph {
         return id++;
     }
 
-    NodeGraphBase::NodeGraphBase(std::string_view name) :
-        mId(CreateUniqueId()),
-        mName(name)
-    {
-        mInputs.resize(1);
-        mOutputs.resize(1);
-    }
-
     void NodeGraphBase::SetNumInputs(int8_t numInputs) {
         mInputCount = numInputs;
         mInputs.resize(mInputCount + mConstantCount);
@@ -57,17 +49,19 @@ namespace l::nodegraph {
         }
     }
 
-    void NodeGraphBase::PreUpdate() {
+    void NodeGraphBase::ClearProcessFlags() {
         mProcessUpdateHasRun = false;
         for (auto& link : mInputs) {
             if (link.mInputType == InputType::INPUT_NODE && link.mInput.mInputNode != nullptr) {
-                link.mInput.mInputNode->PreUpdate();
+                link.mInput.mInputNode->ClearProcessFlags();
             }
         }
     }
 
-    void NodeGraphBase::Update() {
-        PreUpdate();
+    void NodeGraphBase::ProcessSubGraph(bool recomputeSubGraphCache) {
+        if (recomputeSubGraphCache) {
+            ClearProcessFlags();
+        }
         ProcessOperation();
     }
 
@@ -83,9 +77,20 @@ namespace l::nodegraph {
         mProcessUpdateHasRun = true;
     }
 
+    void NodeGraphBase::Tick(float time) {
+        for (auto& link : mInputs) {
+            if (link.mInputType == InputType::INPUT_NODE && link.mInput.mInputNode != nullptr) {
+                link.mInput.mInputNode->Tick(time);
+            }
+        }
+    }
+
     float& NodeGraphBase::Get(int8_t outputChannel) {
-        ASSERT(IsValidInOutNum(outputChannel, mOutputs.size()));
         return mOutputs.at(outputChannel).mOutput;
+    }
+
+    float NodeGraphBase::GetInput(int8_t inputChannel) {
+        return mInputs.at(inputChannel).Get();
     }
 
     bool NodeGraphBase::ClearInput(int8_t inputChannel) {
@@ -174,6 +179,14 @@ namespace l::nodegraph {
         return sourceRemoved > 0 ? true : false;
     }
 
+    bool NodeGraphBase::IsDataVisible(int8_t) {
+        return false;
+    }
+
+    bool NodeGraphBase::IsDataEditable(int8_t) {
+        return false;
+    }
+
     std::string_view NodeGraphBase::GetName() {
         return mName;
     }
@@ -218,7 +231,27 @@ namespace l::nodegraph {
         return mNumConstants;
     }
 
-    void GraphDataCopy::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    bool NodeGraphOp::IsDataVisible(int8_t) {
+        return false;
+    }
+
+    bool NodeGraphOp::IsDataEditable(int8_t) {
+        return false;
+    }
+
+    std::string_view NodeGraphOp::GetInputName(int8_t inputChannel) {
+        return defaultInStrings[inputChannel];
+    }
+
+    std::string_view NodeGraphOp::GetOutputName(int8_t outputChannel) {
+        return defaultOutStrings[outputChannel];
+    }
+
+    std::string_view NodeGraphOp::GetName() {
+        return "";
+    }
+
+    void GraphDataCopy::ProcessSubGraph(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         for (size_t i = 0; i < inputs.size() && i < outputs.size(); i++) {
             outputs.at(i).mOutput = inputs.at(i).Get();
         }
@@ -346,8 +379,20 @@ namespace l::nodegraph {
         return count > 0 ? true : false;
     }
 
-    void NodeGraphGroup::Update() {
-        mOutputNode.Update();
+    void NodeGraphGroup::ClearProcessFlags() {
+        mOutputNode.ClearProcessFlags();
     }
 
+    void NodeGraphGroup::ProcessSubGraph(bool recomputeSubGraphCache) {
+        if (recomputeSubGraphCache) {
+            mOutputNode.ClearProcessFlags();
+        }
+        mOutputNode.ProcessSubGraph(false);
+    }
+
+    void NodeGraphGroup::Tick(float time) {
+        for (auto& it : mNodes) {
+            it->Tick(time);
+        }
+    }
 }
