@@ -31,6 +31,7 @@ else()
 		network
 		storage
 		tools
+		audio
 
 		physics
 		ecs
