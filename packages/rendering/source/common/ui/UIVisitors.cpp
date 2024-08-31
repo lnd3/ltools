@@ -208,22 +208,26 @@ namespace l::ui {
 
             if (mNGSchema) {
                 auto node = mNGSchema->GetNode(container.GetNodeId());
-                auto& nodeValue = node->Get(static_cast<int8_t>(container.GetChannelId()));
-                if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftShift)) {
-                    if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftCtrl)) {
-                        nodeValue -= move.y / 100.0f;
+                auto nodeChannel = static_cast<int8_t>(container.GetChannelId());
+                if (node->IsDataEditable(nodeChannel)) {
+                    auto nodeValue = node->Get(nodeChannel);
+                    if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftShift)) {
+                        if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftCtrl)) {
+                            nodeValue -= move.y / 100.0f;
+                        }
+                        else {
+                            nodeValue -= move.y / 10000.0f;
+                        }
                     }
                     else {
-                        nodeValue -= move.y / 10000.0f;
+                        if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftCtrl)) {
+                            nodeValue -= move.y;
+                        }
+                        else {
+                            nodeValue -= 1000.0f * move.y;
+                        }
                     }
-                }
-                else {
-                    if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftCtrl)) {
-                        nodeValue -= move.y;
-                    }
-                    else {
-                        nodeValue -= 1000.0f * move.y;
-                    }
+                    node->SetInput(nodeChannel, nodeValue);
                 }
             }
 

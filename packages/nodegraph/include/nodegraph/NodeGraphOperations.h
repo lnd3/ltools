@@ -18,7 +18,8 @@ namespace l::nodegraph {
     class GraphSourceConstants : public NodeGraphOp {
     public:
         GraphSourceConstants(NodeGraphBase* node, int32_t mode) :
-            NodeGraphOp(node, 0, 1, 1)
+            NodeGraphOp(node, 0, 1, 1),
+            mMode(mode)
         {
             switch (mode) {
             case 0:
@@ -34,8 +35,8 @@ namespace l::nodegraph {
                 mMin = 0.0f;
                 break;
             default:
-                mMax = 0.0f;
-                mMin = 0.0f;
+                mMax = 3.402823466e+38F;
+                mMin = -3.402823466e+38F;
                 break;
             }
         }
@@ -45,7 +46,17 @@ namespace l::nodegraph {
         virtual void Tick(float) override;
 
         std::string_view GetName() override {
-            return "Constant";
+            switch (mMode) {
+            case 0:
+                return "Constant [0,1]";
+            case 1:
+                return "Constant [-1,1]";
+            case 2:
+                return "Constant [0,100]";
+            case 3:
+                return "Constant [-inf,inf]";
+            };
+            return "";
         }
 
         bool IsDataVisible(int8_t) override {
@@ -57,6 +68,7 @@ namespace l::nodegraph {
         }
 
     protected:
+        int32_t mMode;
         float mMax = 1.0f;
         float mMin = 0.0f;
     };
@@ -158,7 +170,7 @@ namespace l::nodegraph {
             for (size_t i = 0; i < mChannel.size(); i++) {
                 if (mChannel.at(i).first == note) {
                     mChannel.at(i).second = 0;
-                    return i;
+                    return static_cast<int8_t>(i);
                 }
             }
             // It is possible to get a note off for a note not playing because the channel was taken for another newer note
@@ -169,7 +181,7 @@ namespace l::nodegraph {
             for (size_t i = 0; i < mChannel.size(); i++) {
                 if (mChannel.at(i).first == note) {
                     mChannel.at(i).second = mNoteCounter++;
-                    return i;
+                    return static_cast<int8_t>(i);
                 }
             }
 
@@ -177,7 +189,7 @@ namespace l::nodegraph {
                 if (mChannel.at(i).first == 0) {
                     mChannel.at(i).first = note;
                     mChannel.at(i).second = mNoteCounter++;
-                    return i;
+                    return static_cast<int8_t>(i);
                 }
             }
 
@@ -186,7 +198,7 @@ namespace l::nodegraph {
             for (size_t i = 0; i < mChannel.size(); i++) {
                 if (lowestCount > mChannel.at(i).second) {
                     lowestCount = mChannel.at(i).second;
-                    lowestCountIndex = i;
+                    lowestCountIndex = static_cast<int8_t>(i);
                 }
             }
             mChannel.at(lowestCountIndex).first = note;
