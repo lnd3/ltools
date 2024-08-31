@@ -143,7 +143,7 @@ namespace l::nodegraph {
     }
 
     bool NodeGraphBase::SetInput(int8_t inputChannel, float constant) {
-        ASSERT(inputChannel >= mInputCount && inputChannel < mInputCount + mConstantCount);
+        ASSERT(inputChannel >= 0 && inputChannel < mInputCount + mConstantCount);
         auto& input = mInputs.at(inputChannel);
         if (!IsValidInOutNum(inputChannel, mInputs.size())) {
             return false;
@@ -156,6 +156,7 @@ namespace l::nodegraph {
     }
 
     bool NodeGraphBase::SetInput(int8_t inputChannel, float* floatPtr) {
+        ASSERT(inputChannel >= 0 && inputChannel < mInputCount);
         auto& input = mInputs.at(inputChannel);
         if (!IsValidInOutNum(inputChannel, mInputs.size())) {
             return false;

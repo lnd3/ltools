@@ -9,7 +9,7 @@
 #include <map>
 #include <typeinfo>
 #include <type_traits>
-#include <deque>
+#include <math.h>
 
 namespace l::nodegraph {
 
@@ -155,7 +155,7 @@ namespace l::nodegraph {
         }
     protected:
         int8_t ResetNoteChannel(int32_t note) {
-            for (int8_t i = 0; i < mChannel.size(); i++) {
+            for (size_t i = 0; i < mChannel.size(); i++) {
                 if (mChannel.at(i).first == note) {
                     mChannel.at(i).second = 0;
                     return i;
@@ -166,14 +166,14 @@ namespace l::nodegraph {
         }
 
         int8_t GetNextNoteChannel(int32_t note) {
-            for (int8_t i = 0; i < mChannel.size(); i++) {
+            for (size_t i = 0; i < mChannel.size(); i++) {
                 if (mChannel.at(i).first == note) {
                     mChannel.at(i).second = mNoteCounter++;
                     return i;
                 }
             }
 
-            for (int8_t i = 0; i < mChannel.size(); i++) {
+            for (size_t i = 0; i < mChannel.size(); i++) {
                 if (mChannel.at(i).first == 0) {
                     mChannel.at(i).first = note;
                     mChannel.at(i).second = mNoteCounter++;
@@ -183,7 +183,7 @@ namespace l::nodegraph {
 
             int32_t lowestCount = INT32_MAX;
             int8_t lowestCountIndex = 0;
-            for (int8_t i = 0; i < mChannel.size(); i++) {
+            for (size_t i = 0; i < mChannel.size(); i++) {
                 if (lowestCount > mChannel.at(i).second) {
                     lowestCount = mChannel.at(i).second;
                     lowestCountIndex = i;

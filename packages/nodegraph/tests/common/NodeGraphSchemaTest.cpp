@@ -171,7 +171,7 @@ TEST(NodeGraph, GraphGroups) {
 	}
 
 	// only update the last group/node and all dependent nodes will update in the graph to produce an output
-	group2.Tick(0.0f);
+	group2.ProcessSubGraph();
 
 	float output1 = group2.Get(0);
 	float output2 = group2.Get(1);
