@@ -51,8 +51,8 @@ namespace l::nodegraph {
 
         float time = inputs.at(0).Get();
         float freq = inputs.at(1).Get();
-        float freqMod = inputs.at(2).Get();
-        float phaseMod = inputs.at(3).Get();
+        float fMod = 1.0f + inputs.at(2).Get();
+        float pMod = inputs.at(3).Get();
         float reset = inputs.at(4).Get();
 
         if (reset > 0.5f) {
@@ -69,14 +69,15 @@ namespace l::nodegraph {
         
         float phaseDelta = deltaTime * freq;
 
-        mPhase += phaseDelta * freqMod;
+        mPhase += phaseDelta * fMod;
         mPhase -= floorf(mPhase);
 
-        float phase = (mPhase + phaseMod) * 0.5f;
-        phase -= floorf(phase);
+        float phaseMod = mPhase + pMod;
+        phaseMod -= floorf(phaseMod);
 
-        outputs.at(0).mOutput = sinf(2.0f * 3.141529f * phase);
-        outputs.at(1).mOutput = phase;
+        outputs.at(0).mOutput = sinf(3.141529f * (mPhase + phaseMod));
+        outputs.at(1).mOutput = mPhase;
+        outputs.at(2).mOutput = phaseMod;
     }
 
     void GraphSourceSine::Reset() {

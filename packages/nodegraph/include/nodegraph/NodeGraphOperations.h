@@ -58,11 +58,11 @@ namespace l::nodegraph {
     class GraphSourceSine : public NodeGraphOp {
     public:
         GraphSourceSine(NodeGraphBase* node) :
-            NodeGraphOp(node, 5, 2)
+            NodeGraphOp(node, 5, 3)
         {}
 
         std::string defaultInStrings[5] = { "Time", "Freq Hz", "Freq Mod", "Phase Mod", "Reset"};
-        std::string defaultOutStrings[2] = { "Sine", "Phase"};
+        std::string defaultOutStrings[3] = { "Sine", "Phase", "Phase Mod"};
 
         virtual ~GraphSourceSine() = default;
         void ProcessSubGraph(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
