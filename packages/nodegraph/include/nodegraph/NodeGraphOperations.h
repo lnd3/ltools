@@ -18,7 +18,7 @@ namespace l::nodegraph {
     class GraphSourceConstants : public NodeGraphOp {
     public:
         GraphSourceConstants(NodeGraphBase* node, int32_t mode) :
-            NodeGraphOp(node, 0, 1, 1),
+            NodeGraphOp(node, 0, 4, 4),
             mMode(mode)
         {
             switch (mode) {
@@ -45,27 +45,9 @@ namespace l::nodegraph {
         void ProcessSubGraph(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(float) override;
 
-        std::string_view GetName() override {
-            switch (mMode) {
-            case 0:
-                return "Constant [0,1]";
-            case 1:
-                return "Constant [-1,1]";
-            case 2:
-                return "Constant [0,100]";
-            case 3:
-                return "Constant [-inf,inf]";
-            };
-            return "";
-        }
-
-        bool IsDataVisible(int8_t) override {
-            return true;
-        }
-
-        bool IsDataEditable(int8_t) override {
-            return true;
-        }
+        std::string_view GetName() override;
+        bool IsDataVisible(int8_t) override;
+        bool IsDataEditable(int8_t) override;
 
     protected:
         int32_t mMode;
@@ -85,22 +67,10 @@ namespace l::nodegraph {
         virtual ~GraphSourceSine() = default;
         void ProcessSubGraph(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
 
-        void Reset() override {
-            mPhase = 0.0f;
-            mPrevTime = 0.0f;
-        }
-
-        std::string_view GetInputName(int8_t inputChannel) {
-            return defaultInStrings[inputChannel];
-        }
-
-        std::string_view GetOutputName(int8_t outputChannel) {
-            return defaultOutStrings[outputChannel];
-        }
-
-        std::string_view GetName() override {
-            return "Sine";
-        }
+        void Reset() override;
+        std::string_view GetInputName(int8_t inputChannel);
+        std::string_view GetOutputName(int8_t outputChannel);
+        std::string_view GetName() override;
 
     protected:
         float mPhase = 0.0f;
@@ -128,83 +98,16 @@ namespace l::nodegraph {
         virtual ~GraphSourceKeyboard() = default;
         void ProcessSubGraph(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         void Tick(float time) override;
-
-        void Reset() override {
-            for (int8_t i = 0; i < GetNumInputs(); i++) {
-                mNode->SetInput(i, 0.0f);
-            }
-            mNode->ProcessSubGraph();
-        }
-
-        virtual std::string_view GetOutputName(int8_t outputChannel) override {
-            return defaultOutStrings[outputChannel];
-        }
-
-        virtual std::string_view GetName() override {
-            return "Keyboard";
-        }
-
-        virtual bool IsDataVisible(int8_t) override {
-            return true;
-        }
-
-        virtual void NoteOn(int32_t note) override {
-            float frequency = GetFrequencyFromNote(static_cast<float>(note));
-            int8_t channel = GetNextNoteChannel(note);
-            mNode->SetInput(static_cast<int8_t>(channel), frequency);
-            mNode->ProcessSubGraph();
-        }
-        virtual void NoteOff() override {
-            Reset();
-        }
-
-        virtual void NoteOff(int32_t note) override {
-            int8_t channel = ResetNoteChannel(note);
-            if (channel >= 0) {
-                mNode->SetInput(channel, 0.0f);
-                mNode->ProcessSubGraph();
-            }
-        }
+        void Reset() override;
+        virtual std::string_view GetOutputName(int8_t outputChannel) override;
+        virtual std::string_view GetName() override;
+        virtual bool IsDataVisible(int8_t) override;
+        virtual void NoteOn(int32_t note) override;
+        virtual void NoteOff() override;
+        virtual void NoteOff(int32_t note) override;
     protected:
-        int8_t ResetNoteChannel(int32_t note) {
-            for (size_t i = 0; i < mChannel.size(); i++) {
-                if (mChannel.at(i).first == note) {
-                    mChannel.at(i).second = 0;
-                    return static_cast<int8_t>(i);
-                }
-            }
-            // It is possible to get a note off for a note not playing because the channel was taken for another newer note
-            return -1;
-        }
-
-        int8_t GetNextNoteChannel(int32_t note) {
-            for (size_t i = 0; i < mChannel.size(); i++) {
-                if (mChannel.at(i).first == note) {
-                    mChannel.at(i).second = mNoteCounter++;
-                    return static_cast<int8_t>(i);
-                }
-            }
-
-            for (size_t i = 0; i < mChannel.size(); i++) {
-                if (mChannel.at(i).first == 0) {
-                    mChannel.at(i).first = note;
-                    mChannel.at(i).second = mNoteCounter++;
-                    return static_cast<int8_t>(i);
-                }
-            }
-
-            int32_t lowestCount = INT32_MAX;
-            int8_t lowestCountIndex = 0;
-            for (size_t i = 0; i < mChannel.size(); i++) {
-                if (lowestCount > mChannel.at(i).second) {
-                    lowestCount = mChannel.at(i).second;
-                    lowestCountIndex = static_cast<int8_t>(i);
-                }
-            }
-            mChannel.at(lowestCountIndex).first = note;
-            mChannel.at(lowestCountIndex).second = mNoteCounter++;
-            return lowestCountIndex;
-        }
+        int8_t ResetNoteChannel(int32_t note);
+        int8_t GetNextNoteChannel(int32_t note);
 
         int8_t mNoteCounter = 0;
         std::vector<std::pair<int32_t, int32_t>> mChannel;

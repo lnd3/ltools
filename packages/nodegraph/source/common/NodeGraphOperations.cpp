@@ -23,6 +23,28 @@ namespace l::nodegraph {
         mNode->ProcessSubGraph();
     }
 
+    std::string_view GraphSourceConstants::GetName() {
+        switch (mMode) {
+        case 0:
+            return "Constant [0,1]";
+        case 1:
+            return "Constant [-1,1]";
+        case 2:
+            return "Constant [0,100]";
+        case 3:
+            return "Constant [-inf,inf]";
+        };
+        return "";
+    }
+
+    bool GraphSourceConstants::IsDataVisible(int8_t) {
+        return true;
+    }
+
+    bool GraphSourceConstants::IsDataEditable(int8_t) {
+        return true;
+    }
+
     void GraphSourceSine::ProcessSubGraph(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         ASSERT(inputs.size() == static_cast<size_t>(mNumInputs));
         ASSERT(outputs.size() == static_cast<size_t>(mNumOutputs));
@@ -37,11 +59,12 @@ namespace l::nodegraph {
             Reset();
         }
 
+        float deltaTime = time - mPrevTime;
         if (mPrevTime == 0.0f) {
             mPrevTime = time;
+            deltaTime = time - mPrevTime;
         }
 
-        float deltaTime = time - mPrevTime;
         mPrevTime = time;
         
         float phaseDelta = deltaTime * freq;
@@ -56,6 +79,23 @@ namespace l::nodegraph {
         outputs.at(1).mOutput = phase;
     }
 
+    void GraphSourceSine::Reset() {
+        mPhase = 0.0f;
+        mPrevTime = 0.0f;
+    }
+
+    std::string_view GraphSourceSine::GetInputName(int8_t inputChannel) {
+        return defaultInStrings[inputChannel];
+    }
+
+    std::string_view GraphSourceSine::GetOutputName(int8_t outputChannel) {
+        return defaultOutStrings[outputChannel];
+    }
+
+    std::string_view GraphSourceSine::GetName() {
+        return "Sine";
+    }
+
     void GraphSourceKeyboard::ProcessSubGraph(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         ASSERT(inputs.size() == static_cast<size_t>(mNumConstants));
         ASSERT(outputs.size() == static_cast<size_t>(mNumConstants));
@@ -67,6 +107,84 @@ namespace l::nodegraph {
     void GraphSourceKeyboard::Tick(float) {
         mKeyboard.Update();
     }
+
+    void GraphSourceKeyboard::Reset() {
+        for (int8_t i = 0; i < GetNumInputs(); i++) {
+            mNode->SetInput(i, 0.0f);
+        }
+        mNode->ProcessSubGraph();
+    }
+
+    std::string_view GraphSourceKeyboard::GetOutputName(int8_t outputChannel) {
+        return defaultOutStrings[outputChannel];
+    }
+
+    std::string_view GraphSourceKeyboard::GetName() {
+        return "Keyboard";
+    }
+
+    bool GraphSourceKeyboard::IsDataVisible(int8_t) {
+        return true;
+    }
+
+    void GraphSourceKeyboard::NoteOn(int32_t note) {
+        float frequency = GetFrequencyFromNote(static_cast<float>(note));
+        int8_t channel = GetNextNoteChannel(note);
+        mNode->SetInput(static_cast<int8_t>(channel), frequency);
+        mNode->ProcessSubGraph();
+    }
+    void GraphSourceKeyboard::NoteOff() {
+        Reset();
+    }
+
+    void GraphSourceKeyboard::NoteOff(int32_t note) {
+        int8_t channel = ResetNoteChannel(note);
+        if (channel >= 0) {
+            mNode->SetInput(channel, 0.0f);
+            mNode->ProcessSubGraph();
+        }
+    }
+
+    int8_t GraphSourceKeyboard::ResetNoteChannel(int32_t note) {
+        for (size_t i = 0; i < mChannel.size(); i++) {
+            if (mChannel.at(i).first == note) {
+                mChannel.at(i).second = 0;
+                return static_cast<int8_t>(i);
+            }
+        }
+        // It is possible to get a note off for a note not playing because the channel was taken for another newer note
+        return -1;
+    }
+
+    int8_t GraphSourceKeyboard::GetNextNoteChannel(int32_t note) {
+        for (size_t i = 0; i < mChannel.size(); i++) {
+            if (mChannel.at(i).first == note) {
+                mChannel.at(i).second = mNoteCounter++;
+                return static_cast<int8_t>(i);
+            }
+        }
+
+        for (size_t i = 0; i < mChannel.size(); i++) {
+            if (mChannel.at(i).first == 0) {
+                mChannel.at(i).first = note;
+                mChannel.at(i).second = mNoteCounter++;
+                return static_cast<int8_t>(i);
+            }
+        }
+
+        int32_t lowestCount = INT32_MAX;
+        int8_t lowestCountIndex = 0;
+        for (size_t i = 0; i < mChannel.size(); i++) {
+            if (lowestCount > mChannel.at(i).second) {
+                lowestCount = mChannel.at(i).second;
+                lowestCountIndex = static_cast<int8_t>(i);
+            }
+        }
+        mChannel.at(lowestCountIndex).first = note;
+        mChannel.at(lowestCountIndex).second = mNoteCounter++;
+        return lowestCountIndex;
+    }
+
 
     void GraphNumericAdd::ProcessSubGraph(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         ASSERT(inputs.size() == static_cast<size_t>(mNumInputs));

@@ -30,7 +30,7 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(3);
             break;
         case 4:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceKeyboard, l::hid::KeyState>(3, mKeyState);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceKeyboard, l::hid::KeyState>(4, mKeyState);
             break;
         case 5:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceSine>();
@@ -63,7 +63,7 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterLowpass>();
             break;
         case 200:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphGraphicDisplay>(3);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphGraphicDisplay>(4);
             break;
         default:
             ASSERT(typeId < 10000) << "Custom node id's begin at id 1000";
