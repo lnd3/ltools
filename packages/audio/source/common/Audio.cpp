@@ -1,5 +1,8 @@
 #include "audio/Audio.h"
 
+#include <math.h>
+
+#ifdef USE_AUDIO_MA
 #define MA_NO_DECODING
 #define MA_NO_ENCODING
 #define MINIAUDIO_IMPLEMENTATION
@@ -67,4 +70,25 @@ namespace l::audio {
         ma_device_uninit(&device);
     }
 }
+
+#else
+
+
+namespace l::audio {
+    float GetFrequencyFromNote(float note) {
+        return 440.0f * powf(2.0f, (note - 49.0f) / 12.0f);
+    }
+
+    bool Init() {
+
+
+        return true;
+    }
+
+    void Deinit() {
+
+    }
+
+}
+#endif
 
