@@ -1,5 +1,7 @@
 #include "audio/Audio.h"
 
+__pragma(warning(push, 0))
+
 #define MA_NO_DECODING
 #define MA_NO_ENCODING
 #define MINIAUDIO_IMPLEMENTATION
@@ -14,3 +16,5 @@ namespace l::audio {
 
 
 }
+
+__pragma(warning(pop))
