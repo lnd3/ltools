@@ -6,4 +6,4 @@ set(deps
 	memory
 )
 
-bs_generate_package(audio "tier1" "${deps}" "various")
+bs_generate_package(audio "tier1" "${deps}" "PortAudio")
