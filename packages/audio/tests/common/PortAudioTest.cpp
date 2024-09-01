@@ -5,21 +5,20 @@
 #include <thread>
 
 
-TEST(PortAudio, Setup0) {
-
+TEST(PortAudio, Setup) {
 
     l::audio::AudioManager manager;
     if (!manager.Init()) {
-        return 1;
+        return 0;
     }
 
     auto stream = manager.GetStream("speaker");
 
     if (!stream->OpenStream(2048, 20.0f)) {
-        return 1;
+        return 0;
     }
     if (!stream->StartStream()) {
-        return 1;
+        return 0;
     }
 
     std::vector<float> buffer;
