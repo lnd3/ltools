@@ -77,12 +77,6 @@ namespace l::nodegraph {
         float mPrevTime = 0.0f;
     };
 
-    namespace {
-        float GetFrequencyFromNote(float note) {
-            return 440.0f * powf(2.0f, (note - 49.0f) / 12.0f);
-        }
-    }
-
     class GraphSourceKeyboard : public NodeGraphOp, public l::hid::INoteProcessor {
     public:
         GraphSourceKeyboard(NodeGraphBase* node, int32_t polyphony, l::hid::KeyState* keyState) :

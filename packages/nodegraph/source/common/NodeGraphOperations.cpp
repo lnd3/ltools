@@ -1,6 +1,7 @@
 #include "nodegraph/NodeGraphOperations.h"
 
 #include "logging/Log.h"
+#include "audio/Audio.h"
 
 #include <math.h>
 
@@ -129,7 +130,7 @@ namespace l::nodegraph {
     }
 
     void GraphSourceKeyboard::NoteOn(int32_t note) {
-        float frequency = GetFrequencyFromNote(static_cast<float>(note));
+        float frequency = l::audio::GetFrequencyFromNote(static_cast<float>(note));
         int8_t channel = GetNextNoteChannel(note);
         mNode->SetInput(static_cast<int8_t>(channel), frequency);
         mNode->ProcessSubGraph();

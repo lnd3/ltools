@@ -24,6 +24,7 @@ else()
 		meta
 		memory
 		hid
+		audio
 		nodegraph
 
 		concurrency
@@ -31,7 +32,6 @@ else()
 		network
 		storage
 		tools
-		audio
 
 		physics
 		ecs
