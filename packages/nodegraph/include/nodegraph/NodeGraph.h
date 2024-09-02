@@ -250,6 +250,7 @@ namespace l::nodegraph {
         NodeGraphGroup() {
             SetNumInputs(1);
             SetNumOutputs(1);
+            mOutputNodes.push_back(&mOutputNode);
         }
         ~NodeGraphGroup() = default;
 

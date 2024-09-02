@@ -287,6 +287,8 @@ namespace l::nodegraph {
 
     class GraphOutputSpeaker : public NodeGraphOp {
     public:
+        std::string defaultOutStrings[2] = { "Left", "Right"};
+
         GraphOutputSpeaker(NodeGraphBase* node, l::audio::AudioStream* stream = nullptr) :
             NodeGraphOp(node, 2, 0, 0),
             mAudioStream(stream),
@@ -300,6 +302,10 @@ namespace l::nodegraph {
         virtual ~GraphOutputSpeaker() = default;
         void ProcessSubGraph(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(float time, float elapsed) override;
+
+        std::string_view GetOutputName(int8_t outputChannel) {
+            return defaultOutStrings[outputChannel];
+        }
 
         std::string_view GetName() override {
             return "Speaker";
