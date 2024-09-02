@@ -71,24 +71,22 @@ namespace l::nodegraph {
     }
 
     void GraphSourceSine::ProcessSubGraph(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        float time = inputs.at(0).Get();
+        //float time = inputs.at(0).Get();
         float freq = inputs.at(1).Get();
         float fMod = 1.0f + inputs.at(2).Get();
         float pMod = inputs.at(3).Get();
         float reset = inputs.at(4).Get();
 
+        if (freq == 0.0f) {
+            Reset();
+            outputs.at(0).mOutput = 0.0f;
+            return;
+        }
         if (reset > 0.5f) {
             Reset();
         }
 
-        float deltaTime = time - mPrevTime;
-        if (mPrevTime == 0.0f) {
-            mPrevTime = time;
-            deltaTime = time - mPrevTime;
-        }
-
-        mPrevTime = time;
-        
+        float deltaTime = 1.0f / 44100.0f;
         float phaseDelta = deltaTime * freq;
 
         mPhase += phaseDelta * fMod;
@@ -104,7 +102,6 @@ namespace l::nodegraph {
 
     void GraphSourceSine::Reset() {
         mPhase = 0.0f;
-        mPrevTime = 0.0f;
     }
 
     std::string_view GraphSourceSine::GetInputName(int8_t inputChannel) {
@@ -133,7 +130,6 @@ namespace l::nodegraph {
         for (int8_t i = 0; i < GetNumInputs(); i++) {
             mNode->SetInput(i, 0.0f);
         }
-        mNode->ProcessSubGraph();
     }
 
     std::string_view GraphSourceKeyboard::GetOutputName(int8_t outputChannel) {
@@ -152,7 +148,6 @@ namespace l::nodegraph {
         float frequency = l::audio::GetFrequencyFromNote(static_cast<float>(note));
         int8_t channel = GetNextNoteChannel(note);
         mNode->SetInput(static_cast<int8_t>(channel), frequency);
-        mNode->ProcessSubGraph();
     }
     void GraphSourceKeyboard::NoteOff() {
         Reset();
@@ -162,7 +157,6 @@ namespace l::nodegraph {
         int8_t channel = ResetNoteChannel(note);
         if (channel >= 0) {
             mNode->SetInput(channel, 0.0f);
-            mNode->ProcessSubGraph();
         }
     }
 

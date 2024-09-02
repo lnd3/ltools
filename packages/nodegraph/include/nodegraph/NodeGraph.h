@@ -190,7 +190,6 @@ namespace l::nodegraph {
             for (int8_t i = mInputCount; i < mInputCount + mConstantCount; i++) {
                 SetInput(i, 0.0f);
             }
-            ProcessSubGraph();
         }
 
         virtual bool IsDataVisible(int8_t num) override {
@@ -207,8 +206,14 @@ namespace l::nodegraph {
         }
 
         virtual void ProcessOperation() override {
+            if (mProcessUpdateHasRun) {
+                return;
+            }
+
             NodeGraphBase::ProcessOperation();
             mOperation.ProcessSubGraph(mInputs, mOutputs);
+
+            mProcessUpdateHasRun = true;
         }
 
         virtual void Tick(float time, float elapsed) override {

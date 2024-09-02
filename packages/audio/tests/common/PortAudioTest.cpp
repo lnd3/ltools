@@ -14,7 +14,7 @@ TEST(PortAudio, Setup) {
 
     auto stream = manager.GetStream("speaker");
 
-    if (!stream->OpenStream(2048, 20.0f)) {
+    if (!stream->OpenStream(2048, 20.0f, l::audio::BufferingMode::TRIPLE_BUFFERING)) {
         return 0;
     }
     if (!stream->StartStream()) {

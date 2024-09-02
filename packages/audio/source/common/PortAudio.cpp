@@ -133,7 +133,7 @@ namespace l::audio {
             return false;
         }
 
-        auto bufferSize = GetPartTotalSize();
+        auto bufferSize = static_cast<size_t>(GetPartTotalSize());
         if (mWriteBuffer.size() != bufferSize) {
             mWriteBuffer.resize(bufferSize);
         }

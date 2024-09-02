@@ -34,7 +34,7 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(false, 3);
             break;
         case 4:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceKeyboard, l::hid::KeyState>(false, 4, mKeyState);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceKeyboard, l::hid::KeyState>(false, 1, mKeyState);
             break;
         case 5:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceTime>(false);
@@ -70,7 +70,7 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterLowpass>(false);
             break;
         case 200:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputDebug>(true, 4);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputDebug>(true, 1);
             break;
         case 201:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputSpeaker>(true, mAudioOutput);

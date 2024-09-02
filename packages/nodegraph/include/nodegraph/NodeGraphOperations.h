@@ -96,7 +96,6 @@ namespace l::nodegraph {
 
     protected:
         float mPhase = 0.0f;
-        float mPrevTime = 0.0f;
     };
 
     class GraphSourceKeyboard : public NodeGraphOp, public l::hid::INoteProcessor {
