@@ -315,5 +315,83 @@ namespace l::nodegraph {
         l::audio::AudioStream* mAudioStream;
         int32_t mCurrentStereoPosition;
     };
+
+    class GraphEffectReverb : public NodeGraphOp {
+    public:
+        std::string defaultInStrings[11] = { "In 1", "In 2", "Mix", "Attenuation", "Room Size", "Delay 1", "Feedback 1", "Delay 2", "Feedback 2", "Delay 3", "Feedback 3" };
+        std::string defaultOutStrings[2] = { "Out 1", "Out 2" };
+
+        uint32_t GetFramesPerRoomSize(float roomSize) {
+            const float metersPerFrame = 334.0f / 44100.0f; // (m/s)/(frames/s) = m/frames;
+            const float metersToWallPerFrame = metersPerFrame / 2.0f; // half the distance to wall for the bounced distance
+            const float framesPerRoom = roomSize / metersToWallPerFrame;
+            return static_cast<uint32_t>(framesPerRoom);
+        }
+
+        const float maxRoomSizeInMeters = 334.0f; // 334 meters large is 2 seconds of reverbation
+
+        GraphEffectReverb(NodeGraphBase* node) :
+            NodeGraphOp(node, 5, 2, 6)
+        {
+            //node->SetInput(2, 0.1f); // mix
+            //node->SetInput(3, 0.7f); // attenuation
+            //node->SetInput(4, 30.0f); // room size
+
+            //node->SetInput(5, 0.2f); // delay 1
+            //node->SetInput(6, 0.5f); // feedback 1
+
+            //node->SetInput(7, 2.3f); // delay 2
+            //node->SetInput(8, 0.79f); // feedback 2
+
+            //node->SetInput(9, 0.5f); // delay 3
+            //node->SetInput(10, 0.96f); // feedback 3
+
+            uint32_t bufferSize = GetFramesPerRoomSize(maxRoomSizeInMeters);
+            buf0.resize(bufferSize);
+            buf1.resize(bufferSize);
+        }
+
+        virtual ~GraphEffectReverb() = default;
+        void ProcessSubGraph(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+
+        virtual bool IsDataVisible(int8_t num) override {
+            return num >= 2 ? true : false;
+        }
+        virtual bool IsDataEditable(int8_t num) override {
+            return num >= 2 ? true : false;
+        }
+
+        std::string_view GetInputName(int8_t inputChannel) {
+            return defaultInStrings[inputChannel];
+        }
+        std::string_view GetOutputName(int8_t outputChannel) {
+            return defaultOutStrings[outputChannel];
+        }
+
+        std::string_view GetName() override {
+            return "Reverb";
+        }
+        float max(float value, float max) {
+            return value > max ? value : max;
+        }
+        float min(float value, float min) {
+            return value < min ? value : min;
+        }
+
+    protected:
+        std::vector<float> buf0;
+        std::vector<float> buf1;
+        uint32_t bufIndex = 0;
+
+        float mix = 0.0f;
+        float fb = 0.0f;
+        float fb0 = 0.0f;
+        float fb1 = 0.0f;
+        float fb2 = 0.0f;
+        float d0 = 0.0f;
+        float d1 = 0.0f;
+        float d2 = 0.0f;
+    };
+
 }
 

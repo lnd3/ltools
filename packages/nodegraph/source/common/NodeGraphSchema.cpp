@@ -75,6 +75,9 @@ namespace l::nodegraph {
         case 201:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputSpeaker>(true, mAudioOutput);
             break;
+        case 250:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectReverb>(false);
+            break;
         default:
             ASSERT(typeId < 10000) << "Custom node id's begin at id 1000";
             ASSERT(mCreateCustomNode != nullptr) << "Custom nodes needs a handler to create them. It's missing.";

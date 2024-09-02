@@ -341,7 +341,7 @@ namespace l::ui {
             if (mNGSchema) {
                 auto node = mNGSchema->GetNode(container.GetNodeId());
                 float nodeValue = 0.0f;
-                if (node->GetNumOutputs() > 0) {
+                if (node->GetNumOutputs() > 0 && container.GetChannelId() < node->GetNumOutputs()) {
                     nodeValue = node->Get(static_cast<int8_t>(container.GetChannelId()));
                 }
                 else {
