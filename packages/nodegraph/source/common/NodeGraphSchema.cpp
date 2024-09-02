@@ -14,56 +14,66 @@ namespace l::nodegraph {
         mKeyState = keyState;
     }
 
+    void NodeGraphSchema::SetAudioOutput(l::audio::AudioStream* audioOutput) {
+        mAudioOutput = audioOutput;
+    }
+
     int32_t NodeGraphSchema::NewNode(int32_t typeId) {
         l::nodegraph::NodeGraphBase* node = nullptr;
         switch (typeId) {
         case 0:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(0);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(false, 0);
             break;
         case 1:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(1);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(false, 1);
             break;
         case 2:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(2);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(false, 2);
             break;
         case 3:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(3);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(false, 3);
             break;
         case 4:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceKeyboard, l::hid::KeyState>(4, mKeyState);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceKeyboard, l::hid::KeyState>(false, 4, mKeyState);
             break;
         case 5:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceSine>();
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceTime>(false);
+            break;
+        case 6:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceSine>(false);
             break;
         case 50:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericAdd>();
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericAdd>(false);
             break;
         case 51:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericSubtract>();
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericSubtract>(false);
             break;
         case 52:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericNegate>();
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericNegate>(false);
             break;
         case 53:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericMultiply>();
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericMultiply>(false);
             break;
         case 54:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericIntegral>();
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericIntegral>(false);
             break;
         case 100:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalAnd>();
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalAnd>(false);
             break;
         case 101:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalOr>();
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalOr>(false);
             break;
         case 102:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalXor>();
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalXor>(false);
             break;
         case 150:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterLowpass>();
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterLowpass>(false);
             break;
         case 200:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphGraphicDisplay>(4);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputDebug>(true, 4);
+            break;
+        case 201:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputSpeaker>(true, mAudioOutput);
             break;
         default:
             ASSERT(typeId < 10000) << "Custom node id's begin at id 1000";
@@ -96,8 +106,8 @@ namespace l::nodegraph {
         mRegisteredNodeTypes[typeGroup].push_back(UINodeDesc{ uniqueTypeId, std::string(typeName) });
     }
 
-    void NodeGraphSchema::Tick(float time) {
-        mMainNodeGraph.Tick(time);
+    void NodeGraphSchema::Tick(float time, float deltaTime) {
+        mMainNodeGraph.Tick(time, deltaTime);
     }
 
     void NodeGraphSchema::ProcessSubGraph() {

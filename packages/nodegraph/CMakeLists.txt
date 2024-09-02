@@ -11,4 +11,4 @@ set(deps
 	audio
 )
 
-bs_generate_package(nodegraph "tier1" "${deps}" "")
+bs_generate_package(nodegraph "tier1" "${deps}" "PortAudio")

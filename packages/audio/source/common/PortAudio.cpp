@@ -105,8 +105,8 @@ namespace l::audio {
         mAudioStreamData.mTotalBufferSize = totalNumFrames * mOutputParameters.channelCount;
         mAudioStreamData.mNumChannels = static_cast<int32_t>(mOutputParameters.channelCount);
 
-        mBufferInterleaved.resize(mAudioStreamData.mTotalBufferSize);
-        mAudioStreamData.mBuffer = mBufferInterleaved.data();
+        mOutputBufferInterleaved.resize(mAudioStreamData.mTotalBufferSize);
+        mAudioStreamData.mBuffer = mOutputBufferInterleaved.data();
 
         auto err = Pa_OpenStream(
             &mPaStream,
@@ -132,17 +132,27 @@ namespace l::audio {
             LOG(LogError) << "Failed to start stream: " << err;
             return false;
         }
+
+        auto bufferSize = GetPartTotalSize();
+        if (mWriteBuffer.size() != bufferSize) {
+            mWriteBuffer.resize(bufferSize);
+        }
+
         return true;
+    }
+
+    std::vector<float>& AudioStream::GetWriteBuffer() {
+        return mWriteBuffer;
     }
 
     bool AudioStream::CanWrite() {
         return mAudioStreamData.mDacWriteReady.try_acquire();
     }
 
-    void AudioStream::Write(std::vector<float>& out) {
+    void AudioStream::Write() {
         float* buffer = mAudioStreamData.GetCurrentBufferPosition();
 
-        float* outPtr = out.data();
+        float* outPtr = mWriteBuffer.data();
         for (int i = 0; i < mAudioStreamData.mDacFramesPerBufferPart; i++) {
             *buffer++ = *outPtr++;
             *buffer++ = *outPtr++;

@@ -21,7 +21,6 @@ TEST(PortAudio, Setup) {
         return 0;
     }
 
-    std::vector<float> buffer;
     float sinePhase = 0.0f;
     float freq = 300.0f;
     float fMod = 1.0f;
@@ -30,7 +29,7 @@ TEST(PortAudio, Setup) {
 
     float pModPhase = 0.0f;
 
-    buffer.resize(stream->GetPartTotalSize());
+    auto& buffer = stream->GetWriteBuffer();
 
     float deltaTime = 1.0f / static_cast<float>(stream->GetSampleRate());
     int32_t loops = 10;
@@ -52,7 +51,7 @@ TEST(PortAudio, Setup) {
                 buffer.at(2 * i + 0) = 0.5f * sinf(3.141529f * (mPhase + phaseMod));
                 buffer.at(2 * i + 1) = 0.5f * sinf(3.141529f * (mPhase + phaseMod));
             }
-            stream->Write(buffer);
+            stream->Write();
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     } while (loops-- > 0);

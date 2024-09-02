@@ -3,6 +3,7 @@
 
 #include "logging/LoggingAll.h"
 #include "hid/KeyboardPiano.h"
+#include "audio/PortAudio.h"
 
 #include <string>
 #include <vector>
@@ -42,8 +43,8 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphSourceConstants() = default;
-        void ProcessSubGraph(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        virtual void Tick(float) override;
+        virtual void ProcessSubGraph(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Tick(float, float) override;
 
         std::string_view GetName() override;
         bool IsDataVisible(int8_t) override;
@@ -53,6 +54,27 @@ namespace l::nodegraph {
         int32_t mMode;
         float mMax = 1.0f;
         float mMin = 0.0f;
+    };
+
+    class GraphSourceTime : public NodeGraphOp {
+    public:
+        GraphSourceTime(NodeGraphBase* node) :
+            NodeGraphOp(node, 0, 2, 0)
+        {}
+
+        std::string defaultOutStrings[2] = { "Audio Time", "Frame Time"};
+
+        virtual ~GraphSourceTime() = default;
+        virtual void ProcessSubGraph(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Tick(float, float) override;
+
+        void Reset() override;
+        std::string_view GetOutputName(int8_t outputChannel);
+        std::string_view GetName() override;
+
+    protected:
+        float mAudioTime = 0.0f;
+        float mFrameTime = 0.0f;
     };
 
     class GraphSourceSine : public NodeGraphOp {
@@ -91,7 +113,7 @@ namespace l::nodegraph {
 
         virtual ~GraphSourceKeyboard() = default;
         void ProcessSubGraph(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        void Tick(float time) override;
+        void Tick(float time, float elapsed) override;
         void Reset() override;
         virtual std::string_view GetOutputName(int8_t outputChannel) override;
         virtual std::string_view GetName() override;
@@ -247,9 +269,9 @@ namespace l::nodegraph {
         float mState1 = 0.0f;
     };
 
-    class GraphGraphicDisplay : public NodeGraphOp {
+    class GraphOutputDebug : public NodeGraphOp {
     public:
-        GraphGraphicDisplay(NodeGraphBase* node, int32_t numValueDisplays) :
+        GraphOutputDebug(NodeGraphBase* node, int32_t numValueDisplays) :
             NodeGraphOp(node, numValueDisplays, 0, 0)
         {}
 
@@ -257,13 +279,36 @@ namespace l::nodegraph {
             return true;
         }
 
-        virtual ~GraphGraphicDisplay() = default;
-        void ProcessSubGraph(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        virtual void Tick(float time) override;
+        virtual ~GraphOutputDebug() = default;
 
         std::string_view GetName() override {
-            return "Display";
+            return "Debug";
         }
+    };
+
+    class GraphOutputSpeaker : public NodeGraphOp {
+    public:
+        GraphOutputSpeaker(NodeGraphBase* node, l::audio::AudioStream* stream = nullptr) :
+            NodeGraphOp(node, 2, 0, 0),
+            mAudioStream(stream),
+            mCurrentStereoPosition(0)
+        {}
+
+        bool IsDataVisible(int8_t) override {
+            return true;
+        }
+
+        virtual ~GraphOutputSpeaker() = default;
+        void ProcessSubGraph(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Tick(float time, float elapsed) override;
+
+        std::string_view GetName() override {
+            return "Speaker";
+        }
+
+    protected:
+        l::audio::AudioStream* mAudioStream;
+        int32_t mCurrentStereoPosition;
     };
 }
 

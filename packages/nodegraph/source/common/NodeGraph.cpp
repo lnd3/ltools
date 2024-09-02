@@ -77,10 +77,10 @@ namespace l::nodegraph {
         mProcessUpdateHasRun = true;
     }
 
-    void NodeGraphBase::Tick(float time) {
+    void NodeGraphBase::Tick(float time, float elapsed) {
         for (auto& link : mInputs) {
             if (link.mInputType == InputType::INPUT_NODE && link.mInput.mInputNode != nullptr) {
-                link.mInput.mInputNode->Tick(time);
+                link.mInput.mInputNode->Tick(time, elapsed);
             }
         }
     }
@@ -371,6 +371,12 @@ namespace l::nodegraph {
                 sourceCount++;
             }
         }
+        std::erase_if(mOutputNodes, [&](NodeGraphBase* nodePtr) {
+            if (nodePtr == node) {
+                return true;
+            }
+            return false;
+            });
         auto count = std::erase_if(mNodes, [&](const std::unique_ptr<NodeGraphBase>& node) {
             if (node->GetId() == id) {
                 return true;
@@ -384,16 +390,18 @@ namespace l::nodegraph {
         mOutputNode.ClearProcessFlags();
     }
 
-    void NodeGraphGroup::ProcessSubGraph(bool recomputeSubGraphCache) {
-        if (recomputeSubGraphCache) {
-            mOutputNode.ClearProcessFlags();
+    void NodeGraphGroup::ProcessSubGraph(bool) {
+        for (auto& it : mOutputNodes) {
+            it->ClearProcessFlags();
         }
-        mOutputNode.ProcessSubGraph(false);
+        for (auto& it : mOutputNodes) {
+            it->ProcessSubGraph(false);
+        }
     }
 
-    void NodeGraphGroup::Tick(float time) {
+    void NodeGraphGroup::Tick(float time, float elapsed) {
         for (auto& it : mNodes) {
-            it->Tick(time);
+            it->Tick(time, elapsed);
         }
     }
 }

@@ -71,7 +71,7 @@ namespace l::nodegraph {
 
         void ClearProcessFlags();
         virtual void ProcessSubGraph(bool recomputeSubGraphCache = true);
-        virtual void Tick(float time);
+        virtual void Tick(float time, float elapsed);
 
         virtual void SetNumInputs(int8_t numInputs);
         virtual void SetNumOutputs(int8_t outputCount);
@@ -129,8 +129,8 @@ namespace l::nodegraph {
 
         virtual ~NodeGraphOp() = default;
         virtual void Reset() {}
-        virtual void ProcessSubGraph(std::vector<NodeGraphInput>& mInputs, std::vector<NodeGraphOutput>& outputs) = 0;
-        virtual void Tick(float) {}
+        virtual void ProcessSubGraph(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
+        virtual void Tick(float, float) {}
 
         virtual void SetNumInputs(int8_t numInputs);
         virtual void SetNumOutputs(int8_t numOutputs);
@@ -211,9 +211,9 @@ namespace l::nodegraph {
             mOperation.ProcessSubGraph(mInputs, mOutputs);
         }
 
-        virtual void Tick(float time) override {
-            NodeGraphBase::Tick(time);
-            mOperation.Tick(time);
+        virtual void Tick(float time, float elapsed) override {
+            NodeGraphBase::Tick(time, elapsed);
+            mOperation.Tick(time, elapsed);
         }
 
         virtual std::string_view GetInputName(int8_t inputChannel) {
@@ -273,19 +273,24 @@ namespace l::nodegraph {
         bool RemoveNode(int32_t id);
 
         template<class T, class = std::enable_if_t<std::is_base_of_v<NodeGraphOp, T>>, class... Params>
-        l::nodegraph::NodeGraphBase* NewNode(Params&&... params) {
+        l::nodegraph::NodeGraphBase* NewNode(bool outputNode, Params&&... params) {
             mNodes.push_back(std::make_unique<l::nodegraph::NodeGraph<T, Params...>>(std::forward<Params>(params)...));
-            return mNodes.back().get();
+            auto nodePtr = mNodes.back().get();
+            if (outputNode) {
+                mOutputNodes.push_back(nodePtr);
+            }
+            return nodePtr;
         }
 
         void ClearProcessFlags();
         void ProcessSubGraph(bool recomputeSubGraphCache = true);
-        void Tick(float time);
+        void Tick(float time, float elapsed);
     protected:
         NodeGraph<GraphDataCopy> mInputNode;
         NodeGraph<GraphDataCopy> mOutputNode;
 
         std::vector<std::unique_ptr<NodeGraphBase>> mNodes;
+        std::vector<NodeGraphBase*> mOutputNodes;
     };
 
 }

@@ -9,6 +9,7 @@ set(deps
 
 	testing
 	memory
+	audio
 	nodegraph
 	hid
 
@@ -16,28 +17,29 @@ set(deps
 	tools
 
 	physics
+)
 
+set(deps_external
 	various
 	pugixml
 	openfbx
 	ufbx
 	bc7enc
+	PortAudio
 )
 
-set(deps_includes)
-
 if(TARGET glfw)
-	list(APPEND deps glfw glad)
+	list(APPEND deps_external glfw glad)
 endif()
 
 if(TARGET imgui)
-	list(APPEND deps imgui implot)
+	list(APPEND deps_external imgui implot)
 endif()
 
 find_package(Vulkan)
 if(TARGET Vulkan::Vulkan)
 	list(APPEND deps Vulkan::Vulkan)
-	list(APPEND deps_includes "${Vulkan_INCLUDE_DIRS}")
+	list(APPEND deps_external "${Vulkan_INCLUDE_DIRS}")
 endif()
 
-bs_generate_package(rendering "tier3" "${deps}" "${deps_includes}")
+bs_generate_package(rendering "tier3" "${deps}" "${deps_external}")

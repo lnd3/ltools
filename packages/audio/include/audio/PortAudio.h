@@ -71,8 +71,9 @@ namespace l::audio {
 
         bool OpenStream(int32_t dacBufferFrames, float latency = 0.0f, BufferingMode mode = BufferingMode::DOUBLE_BUFFERING, ChannelMode channel = ChannelMode::STEREO);
         bool StartStream();
+        std::vector<float>& GetWriteBuffer();
         bool CanWrite();
-        void Write(std::vector<float>& out);
+        void Write();
         bool StopStream();
         int32_t GetPartTotalSize();
         int32_t GetNumFramesPerPart();
@@ -82,7 +83,8 @@ namespace l::audio {
         PaStream* mPaStream;
 
         AudioStreamData mAudioStreamData;
-        std::vector<float> mBufferInterleaved;
+        std::vector<float> mOutputBufferInterleaved;
+        std::vector<float> mWriteBuffer;
     };
 
     class AudioManager {
