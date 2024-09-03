@@ -255,11 +255,11 @@ namespace l::nodegraph {
 
     void GraphFilterLowpass::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float cutoff = inputs.at(0).Get();
-        float resonance = inputs.at(1).Get();
+        float resonance = 1.0f - inputs.at(1).Get();
         float inputValue = inputs.at(2).Get();
 
         cutoff *= cutoff;
-        float rc = resonance * cutoff;
+        float rc = 1.0f - resonance * cutoff;
 
         mState0 = rc * mState0 - cutoff * (mState1 + inputValue);
         mState1 = rc * mState1 + cutoff * mState0;

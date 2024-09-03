@@ -96,7 +96,7 @@ TEST(NodeGraph, FilterLowpass) {
 	NodeGraph<GraphFilterLowpass> nodeLowpass;
 
 	float cutoff = 0.8f;
-	float resonance = 0.1f;
+	float resonance = 0.9f;
 	float input = 1.3f;
 
 	nodeLowpass.SetInput(0, &cutoff);
