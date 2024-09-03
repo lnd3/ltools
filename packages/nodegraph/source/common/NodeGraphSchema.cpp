@@ -22,61 +22,64 @@ namespace l::nodegraph {
         l::nodegraph::NodeGraphBase* node = nullptr;
         switch (typeId) {
         case 0:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(false, 0);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(OutputType::Default, 0);
             break;
         case 1:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(false, 1);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(OutputType::Default, 1);
             break;
         case 2:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(false, 2);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(OutputType::Default, 2);
             break;
         case 3:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(false, 3);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(OutputType::Default, 3);
             break;
         case 4:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceKeyboard, l::hid::KeyState>(false, 1, mKeyState);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceKeyboard, l::hid::KeyState>(OutputType::Default, 1, mKeyState);
             break;
         case 5:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceTime>(false);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceTime>(OutputType::Default);
             break;
         case 6:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceSine>(false);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceSine>(OutputType::Default);
             break;
         case 50:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericAdd>(false);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericAdd>(OutputType::Default);
             break;
         case 51:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericSubtract>(false);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericSubtract>(OutputType::Default);
             break;
         case 52:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericNegate>(false);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericNegate>(OutputType::Default);
             break;
         case 53:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericMultiply>(false);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericMultiply>(OutputType::Default);
             break;
         case 54:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericIntegral>(false);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericIntegral>(OutputType::Default);
             break;
         case 100:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalAnd>(false);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalAnd>(OutputType::Default);
             break;
         case 101:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalOr>(false);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalOr>(OutputType::Default);
             break;
         case 102:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalXor>(false);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalXor>(OutputType::Default);
             break;
         case 150:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterLowpass>(false);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterLowpass>(OutputType::Default);
+            break;
+        case 151:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterEnvelope>(OutputType::Default);
             break;
         case 200:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputDebug>(true, 1);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputDebug>(OutputType::ExternalOutput, 1);
             break;
         case 201:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputSpeaker>(true, mAudioOutput);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputSpeaker>(OutputType::ExternalOutput, mAudioOutput);
             break;
         case 250:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectReverb>(false);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectReverb>(OutputType::Default);
             break;
         default:
             ASSERT(typeId < 10000) << "Custom node id's begin at id 1000";

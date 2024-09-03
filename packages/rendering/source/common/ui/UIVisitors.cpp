@@ -210,7 +210,8 @@ namespace l::ui {
                 auto node = mNGSchema->GetNode(container.GetNodeId());
                 auto nodeChannel = static_cast<int8_t>(container.GetChannelId());
                 if (node->IsDataEditable(nodeChannel)) {
-                    auto nodeValue = node->Get(nodeChannel);
+                    //auto nodeValue = node->Get(nodeChannel);
+                    auto nodeValue = node->GetInput(nodeChannel);
                     if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftShift)) {
                         if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftCtrl)) {
                             nodeValue -= move.y / 100.0f;
@@ -341,11 +342,11 @@ namespace l::ui {
             if (mNGSchema) {
                 auto node = mNGSchema->GetNode(container.GetNodeId());
                 float nodeValue = 0.0f;
-                if (node->GetNumOutputs() > 0 && container.GetChannelId() < node->GetNumOutputs()) {
-                    nodeValue = node->Get(static_cast<int8_t>(container.GetChannelId()));
+                if (container.GetChannelId() < node->GetNumInputs()) {
+                    nodeValue = node->GetInput(static_cast<int8_t>(container.GetChannelId()));
                 }
                 else {
-                    nodeValue = node->GetInput(static_cast<int8_t>(container.GetChannelId()));
+                    nodeValue = node->Get(static_cast<int8_t>(container.GetChannelId()));
                 }
                 auto nodeString = std::to_string(nodeValue);
                 mDrawList->AddText(ImGui::GetDefaultFont(), 13.0f * container.GetScale() * layoutArea.mScale, p1, color, nodeString.c_str());

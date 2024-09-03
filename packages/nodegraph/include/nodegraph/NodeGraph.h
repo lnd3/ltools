@@ -27,6 +27,13 @@ namespace l::nodegraph {
         //INPUT_ARRAY // TODO: is it possible  to process batches for example for audio processing?
     };
 
+    enum class InputBound {
+        INPUT_UNBOUNDED,
+        INPUT_0_TO_1,
+        INPUT_NEG_1_POS_1,
+        INPUT_0_100
+    };
+
     bool IsValidInOutNum(int8_t inoutNum, size_t inoutSize);
 
     struct NodeGraphOutput {
@@ -48,6 +55,8 @@ namespace l::nodegraph {
     struct NodeGraphInput {
         Input mInput;
         InputType mInputType = InputType::INPUT_EMPTY;
+        InputBound mInputBound = InputBound::INPUT_UNBOUNDED;
+
         int8_t mInputFromOutputChannel = 0;
         std::string mName;
 
@@ -93,7 +102,7 @@ namespace l::nodegraph {
         virtual bool ClearInput(int8_t inputChannel);
 
         virtual bool SetInput(int8_t inputChannel, NodeGraphBase& source, int8_t sourceOutputChannel);
-        virtual bool SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel, bool nodeIsInsideGroup);
+        virtual bool SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel);
         virtual bool SetInput(int8_t inputChannel, float constant);
         virtual bool SetInput(int8_t inputChannel, float* floatPtr);
 
@@ -129,7 +138,7 @@ namespace l::nodegraph {
 
         virtual ~NodeGraphOp() = default;
         virtual void Reset() {}
-        virtual void ProcessSubGraph(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
+        virtual void Process(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
         virtual void Tick(float, float) {}
 
         virtual void SetNumInputs(int8_t numInputs);
@@ -159,7 +168,7 @@ namespace l::nodegraph {
         {}
         virtual ~GraphDataCopy() = default;
 
-        void ProcessSubGraph(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     };
 
     template<class T, class... Params>
@@ -211,7 +220,7 @@ namespace l::nodegraph {
             }
 
             NodeGraphBase::ProcessOperation();
-            mOperation.ProcessSubGraph(mInputs, mOutputs);
+            mOperation.Process(mInputs, mOutputs);
 
             mProcessUpdateHasRun = true;
         }
@@ -245,6 +254,11 @@ namespace l::nodegraph {
         T mOperation;
     };
 
+    enum class OutputType {
+        Default, // node will be processed if it is connected to the groups output by some route
+        ExternalOutput, // node does not have meaningful output for other nodes but should still be processed (ex speaker output only has input)
+    };
+
     class NodeGraphGroup {
     public:
         NodeGraphGroup() {
@@ -257,7 +271,7 @@ namespace l::nodegraph {
         void SetNumInputs(int8_t numInputs);
         void SetNumOutputs(int8_t outputCount);
         void SetInput(int8_t inputChannel, NodeGraphBase& source, int8_t sourceOutputChannel);
-        void SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel, bool useSourceInternalInput = false);
+        void SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel);
         void SetInput(int8_t inputChannel, float constant);
         void SetInput(int8_t inputChannel, float* floatPtr);
 
@@ -268,6 +282,7 @@ namespace l::nodegraph {
         NodeGraphBase& GetInputNode();
         NodeGraphBase& GetOutputNode();
 
+        bool ContainsNode(int32_t id);
         NodeGraphBase* GetNode(int32_t id);
 
         template<class T, class U = void, class = std::enable_if_t<std::is_base_of_v<NodeGraphOp, T>>>
@@ -279,10 +294,10 @@ namespace l::nodegraph {
         bool RemoveNode(int32_t id);
 
         template<class T, class = std::enable_if_t<std::is_base_of_v<NodeGraphOp, T>>, class... Params>
-        l::nodegraph::NodeGraphBase* NewNode(bool outputNode, Params&&... params) {
+        l::nodegraph::NodeGraphBase* NewNode(OutputType nodeType, Params&&... params) {
             mNodes.push_back(std::make_unique<l::nodegraph::NodeGraph<T, Params...>>(std::forward<Params>(params)...));
             auto nodePtr = mNodes.back().get();
-            if (outputNode) {
+            if (nodeType == OutputType::ExternalOutput) {
                 mOutputNodes.push_back(nodePtr);
             }
             return nodePtr;

@@ -106,39 +106,38 @@ namespace l::nodegraph {
 
     bool NodeGraphBase::SetInput(int8_t inputChannel, NodeGraphBase& source, int8_t sourceOutputChannel) {
         auto& input = mInputs.at(inputChannel);
-        if (!IsValidInOutNum(sourceOutputChannel, source.mOutputs.size()) || 
-            !IsValidInOutNum(inputChannel, mInputs.size()) || 
+        if (!IsValidInOutNum(sourceOutputChannel, source.mOutputs.size()) ||
+            !IsValidInOutNum(inputChannel, mInputs.size()) ||
             input.HasInput()) {
             return false;
         }
-
-        Input newInput;
-        newInput.mInputNode = &source;
-        input = NodeGraphInput{ std::move(newInput), InputType::INPUT_NODE, sourceOutputChannel, ""};
+        input.mInput.mInputNode = &source;
+        input.mInputType = InputType::INPUT_NODE;
+        input.mInputFromOutputChannel = sourceOutputChannel;
         return true;
     }
 
-    bool NodeGraphBase::SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceChannel, bool nodeIsInsideGroup) {
-        Input newInput;
-        if (nodeIsInsideGroup) {
-            newInput.mInputNode = &source.GetInputNode();
-        }
-        else {
-            newInput.mInputNode = &source.GetOutputNode();
-        }
-
+    bool NodeGraphBase::SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceChannel) {
         auto& input = mInputs.at(inputChannel);
-        if (!IsValidInOutNum(sourceChannel, newInput.mInputNode->mOutputs.size()) ||
-            !IsValidInOutNum(inputChannel, mInputs.size()) || 
-            input.HasInput()){
-            return false;
-        }
-
-        if (nodeIsInsideGroup) {
+        if (source.ContainsNode(GetId())) {
+            if (!IsValidInOutNum(sourceChannel, source.GetInputNode().GetNumOutputs()) ||
+                !IsValidInOutNum(inputChannel, mInputs.size()) ||
+                input.HasInput()) {
+                return false;
+            }
+            input.mInput.mInputNode = &source.GetInputNode();
             source.GetInputNode().SetInputName(sourceChannel, input.mName);
         }
-
-        input = NodeGraphInput{ std::move(newInput), InputType::INPUT_NODE, sourceChannel, "" };
+        else {
+            if (!IsValidInOutNum(sourceChannel, source.GetOutputNode().GetNumOutputs()) ||
+                !IsValidInOutNum(inputChannel, mInputs.size()) ||
+                input.HasInput()) {
+                return false;
+            }
+            input.mInput.mInputNode = &source.GetOutputNode();
+        }
+        input.mInputType = InputType::INPUT_NODE;
+        input.mInputFromOutputChannel = sourceChannel;
         return true;
     }
 
@@ -149,9 +148,9 @@ namespace l::nodegraph {
             return false;
         }
 
-        Input newInput;
-        newInput.mInputFloatConstant = constant;
-        input = NodeGraphInput{ std::move(newInput), InputType::INPUT_CONSTANT, 0, "" };
+        input.mInput.mInputFloatConstant = constant;
+        input.mInputType = InputType::INPUT_CONSTANT;
+        input.mInputFromOutputChannel = 0;
         return true;
     }
 
@@ -162,9 +161,9 @@ namespace l::nodegraph {
             return false;
         }
 
-        Input newInput;
-        newInput.mInputFloat = floatPtr;
-        input = NodeGraphInput{ std::move(newInput), InputType::INPUT_VALUE, 0, "" };
+        input.mInput.mInputFloat = floatPtr;
+        input.mInputType = InputType::INPUT_VALUE;
+        input.mInputFromOutputChannel = 0;
         return true;
     }
 
@@ -252,7 +251,7 @@ namespace l::nodegraph {
         return "";
     }
 
-    void GraphDataCopy::ProcessSubGraph(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphDataCopy::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         for (size_t i = 0; i < inputs.size() && i < outputs.size(); i++) {
             outputs.at(i).mOutput = inputs.at(i).Get();
         }
@@ -316,8 +315,8 @@ namespace l::nodegraph {
         mInputNode.SetInput(inputChannel, source, sourceOutputChannel);
     }
 
-    void NodeGraphGroup::SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel, bool useSourceInternalInput) {
-        mInputNode.SetInput(inputChannel, source, sourceOutputChannel, useSourceInternalInput);
+    void NodeGraphGroup::SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel) {
+        mInputNode.SetInput(inputChannel, source, sourceOutputChannel);
     }
 
     void NodeGraphGroup::SetInput(int8_t inputChannel, float constant) {
@@ -334,7 +333,7 @@ namespace l::nodegraph {
     }
 
     void NodeGraphGroup::SetOutput(int8_t outputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel) {
-        mOutputNode.SetInput(outputChannel, source, sourceOutputChannel, false);
+        mOutputNode.SetInput(outputChannel, source, sourceOutputChannel);
         mOutputNode.SetOutputName(outputChannel, source.GetOutputNode().GetOutputName(sourceOutputChannel));
     }
 
@@ -348,6 +347,19 @@ namespace l::nodegraph {
 
     NodeGraphBase& NodeGraphGroup::GetOutputNode() {
         return mOutputNode;
+    }
+
+    bool NodeGraphGroup::ContainsNode(int32_t id) {
+        auto it = std::find_if(mNodes.begin(), mNodes.end(), [&](const std::unique_ptr<NodeGraphBase>& node) {
+            if (node->GetId() == id) {
+                return true;
+            }
+            return false;
+            });
+        if (it != mNodes.end()) {
+            return true;
+        }
+        return false;
     }
 
     NodeGraphBase* NodeGraphGroup::GetNode(int32_t id) {

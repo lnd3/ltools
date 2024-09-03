@@ -119,9 +119,6 @@ TEST(NodeGraph, GraphGroups) {
 
 	NodeGraphGroup group;
 
-	NodeGraph<GraphFilterLowpass> nodeLowpass1;
-	NodeGraph<GraphFilterLowpass> nodeLowpass2;
-
 	float cutoff = 0.8f;
 	float resonance = 0.0001f;
 	float input1 = 0.3f;
@@ -136,24 +133,25 @@ TEST(NodeGraph, GraphGroups) {
 		group.SetInput(2, &input1);
 		group.SetInput(3, &input2);
 
+		auto nodeLowpass1 = group.NewNode<GraphFilterLowpass>(OutputType::Default);
+		auto nodeLowpass2 = group.NewNode<GraphFilterLowpass>(OutputType::Default);
 		// cutoff
-		nodeLowpass1.SetInput(0, group, 0, true);
-		nodeLowpass2.SetInput(0, group, 0, true);
+		nodeLowpass1->SetInput(0, group, 0);
+		nodeLowpass2->SetInput(0, group, 0);
 
 		// resonance
-		nodeLowpass1.SetInput(1, group, 1, true);
-		nodeLowpass2.SetInput(1, group, 1, true);
+		nodeLowpass1->SetInput(1, group, 1);
+		nodeLowpass2->SetInput(1, group, 1);
 
 		// left, right
-		nodeLowpass1.SetInput(2, group, 2, true);
-		nodeLowpass2.SetInput(2, group, 3, true);
+		nodeLowpass1->SetInput(2, group, 2);
+		nodeLowpass2->SetInput(2, group, 3);
 
-		group.SetOutput(0, nodeLowpass1, 0);
-		group.SetOutput(1, nodeLowpass2, 0);
+		group.SetOutput(0, *nodeLowpass1, 0);
+		group.SetOutput(1, *nodeLowpass2, 0);
 	}
 
 	NodeGraphGroup group2;
-	NodeGraph<GraphDataCopy> copyNode;
 
 	{ // wire sequential group with a simple copy node
 		group2.SetNumInputs(2);
@@ -161,13 +159,14 @@ TEST(NodeGraph, GraphGroups) {
 		group2.SetInput(0, group, 0);
 		group2.SetInput(1, group, 1);
 
-		copyNode.SetNumInputs(2);
-		copyNode.SetNumOutputs(2);
-		copyNode.SetInput(0, group2, 0, true);
-		copyNode.SetInput(1, group2, 1, true);
+		auto copyNode = group2.NewNode<GraphDataCopy>(OutputType::Default);
+		copyNode->SetNumInputs(2);
+		copyNode->SetNumOutputs(2);
+		copyNode->SetInput(0, group2, 0);
+		copyNode->SetInput(1, group2, 1);
 
-		group2.SetOutput(0, copyNode, 0);
-		group2.SetOutput(1, copyNode, 1);
+		group2.SetOutput(0, *copyNode, 0);
+		group2.SetOutput(1, *copyNode, 1);
 	}
 
 	// only update the last group/node and all dependent nodes will update in the graph to produce an output

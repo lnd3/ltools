@@ -48,6 +48,7 @@ namespace l::nodegraph {
             RegisterNodeType("Logic", 101, "Or");
             RegisterNodeType("Logic", 102, "Xor");
             RegisterNodeType("Filter", 150, "Lowpass Filter");
+            RegisterNodeType("Filter", 151, "Envelope");
             RegisterNodeType("Output", 200, "Value Debug");
             RegisterNodeType("Output", 201, "Speaker");
             RegisterNodeType("Effect", 250, "Reverb");
