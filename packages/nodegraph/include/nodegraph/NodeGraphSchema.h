@@ -51,7 +51,8 @@ namespace l::nodegraph {
             RegisterNodeType("Filter", 151, "Envelope");
             RegisterNodeType("Output", 200, "Value Debug");
             RegisterNodeType("Output", 201, "Speaker");
-            RegisterNodeType("Effect", 250, "Reverb");
+            RegisterNodeType("Effect", 250, "Reverb1");
+            RegisterNodeType("Effect", 251, "Reverb2");
         }
 
         ~NodeGraphSchema() = default;

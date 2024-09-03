@@ -281,6 +281,14 @@ namespace l::nodegraph {
         virtual ~GraphFilterEnvelope() = default;
         void Reset() override;
         void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Tick(float, float) {
+            if (!mInited) {
+                mNode->SetInput(1, 50.0f);
+                mNode->SetInput(2, 50.0f);
+                mNode->SetInput(3, 0.1f);
+                mInited = true;
+            }
+        }
 
         std::string_view GetInputName(int8_t inputChannel) {
             return defaultInStrings[inputChannel];
@@ -302,7 +310,8 @@ namespace l::nodegraph {
             return "Envelope";
         }
     protected:
-        uint32_t mFrameCount;
+        bool mInited = false;
+        uint32_t mFrameCount = 0;
         float mEnvelopeTarget = 0.0f;
         float mNote = 0.0f;
         float mEnvelope = 0.0f;
@@ -355,7 +364,77 @@ namespace l::nodegraph {
         int32_t mCurrentStereoPosition;
     };
 
-    class GraphEffectReverb : public NodeGraphOp {
+    class GraphEffectReverb1 : public NodeGraphOp {
+    public:
+        std::string defaultInStrings[11] = { "In 1", "In 2", "Mix", "Attenuation", "Room Size", "Delay 1", "Feedback 1", "Delay 2", "Feedback 2", "Delay 3", "Feedback 3" };
+        std::string defaultOutStrings[2] = { "Out 1", "Out 2" };
+        
+        uint32_t GetFramesPerRoomSize(float roomSize) {
+            const float metersPerFrame = 334.0f / 44100.0f; // (m/s)/(frames/s) = m/frames;
+            const float metersToWallPerFrame = metersPerFrame / 2.0f; // half the distance to wall for the bounced distance
+            const float framesPerRoom = roomSize / metersToWallPerFrame;
+            return static_cast<uint32_t>(framesPerRoom);
+        }
+
+        const float maxRoomSizeInMeters = 334.0f; // 334 meters large is 2 seconds of reverbation
+
+        GraphEffectReverb1(NodeGraphBase * node) :
+            NodeGraphOp(node, 11, 2, 0) {
+                uint32_t bufferSize = GetFramesPerRoomSize(maxRoomSizeInMeters);
+                buf0.resize(bufferSize);
+                buf1.resize(bufferSize);
+            }
+            
+        virtual ~GraphEffectReverb1() = default;
+
+        void Process(std::vector<NodeGraphInput>&inputs, std::vector<NodeGraphOutput>&outputs) override;
+        virtual void Tick(float time, float elapsed) override;
+
+        virtual bool IsDataVisible(int8_t num) override {
+            return num >= 2 ? true : false;
+        
+        }
+        
+        virtual bool IsDataEditable(int8_t num) override {
+            return num >= 2 ? true : false;
+        }
+        
+        std::string_view GetInputName(int8_t inputChannel) {
+            return defaultInStrings[inputChannel];
+        }
+
+        std::string_view GetOutputName(int8_t outputChannel) {
+            return defaultOutStrings[outputChannel];
+        }
+        
+        std::string_view GetName() override {
+            return "Reverb";
+        }
+
+        float max(float value, float max) {
+            return value > max ? value : max;
+        }
+
+        float min(float value, float min) {
+            return value < min ? value : min;
+        }
+    protected:
+        bool mInited = false;
+        std::vector<float> buf0;
+        std::vector<float> buf1;
+        uint32_t bufIndex = 0;
+        float mix = 0.0f;
+        float fb = 0.0f;
+        float fb0 = 0.0f;
+        float fb1 = 0.0f;
+        float fb2 = 0.0f;
+        float d0 = 0.0f;
+        float d1 = 0.0f;
+        float d2 = 0.0f;
+        
+    };
+
+    class GraphEffectReverb2 : public NodeGraphOp {
     public:
         std::string defaultInStrings[12] = { "In 1", "In 2", "Mix", "Feedback", "Room Size", "Width", "First tap", "Longest tap", "Num taps", "Tap bulge", "Filter cutoff", "Filter res"};
         std::string defaultOutStrings[4] = { "Rev 1", "Rev 2", "Tap 1", "Tap 2"};
@@ -369,7 +448,7 @@ namespace l::nodegraph {
 
         const float maxRoomSizeInMeters = 334.0f; // 334 meters large is 2 seconds of reverbation
 
-        GraphEffectReverb(NodeGraphBase* node) :
+        GraphEffectReverb2(NodeGraphBase* node) :
             NodeGraphOp(node, 12, 4, 0)
         {
             uint32_t bufferSize = GetFramesPerRoomSize(maxRoomSizeInMeters);
@@ -379,7 +458,7 @@ namespace l::nodegraph {
             bufEarlyTap1.resize(bufferSize);
         }
 
-        virtual ~GraphEffectReverb() = default;
+        virtual ~GraphEffectReverb2() = default;
         virtual void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(float time, float elapsed) override;
 

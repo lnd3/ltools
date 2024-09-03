@@ -325,7 +325,70 @@ namespace l::nodegraph {
     void GraphOutputSpeaker::Tick(float, float) {
     }
 
-    void GraphEffectReverb::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphEffectReverb1::Process(std::vector<NodeGraphInput>&inputs, std::vector<NodeGraphOutput>&outputs) {
+        float wet = inputs.at(2).Get();
+        
+        fb = 0.33f * min(1.0f - inputs.at(3).Get(), 0.0f);
+
+        float roomSize = inputs.at(4).Get();
+
+        if (roomSize > maxRoomSizeInMeters) {
+            roomSize = maxRoomSizeInMeters;
+            mNode->SetInput(3, maxRoomSizeInMeters);
+        }
+        else if (roomSize < 0.1f) {
+            roomSize = 0.1f;
+            mNode->SetInput(3, 0.1f);
+        }
+
+        uint32_t bufSizeLimit = GetFramesPerRoomSize(roomSize);
+
+        d0 = inputs.at(5).Get();
+        fb0 = 0.5f * 0.45f * max(inputs.at(6).Get(), 1);
+        d1 = inputs.at(7).Get();
+        fb1 = 0.5f * 0.45f * max(inputs.at(8).Get(), 1);
+        d2 = inputs.at(9).Get();
+        fb2 = 0.5f * 0.45f * max(inputs.at(10).Get(), 1);
+
+        float dry = 1.0f - wet;
+
+        uint32_t delay0 = (int(bufIndex + d0 * bufSizeLimit)) % bufSizeLimit;
+        uint32_t delay1 = (int(bufIndex + d1 * bufSizeLimit)) % bufSizeLimit;
+        uint32_t delay2 = (int(bufIndex + d2 * bufSizeLimit)) % bufSizeLimit;
+        float in0 = inputs.at(0).Get();
+        float in1 = inputs.at(1).Get();
+
+        float out0 = fb0 * buf0[delay0] + fb1 * buf1[delay1] + fb2 * buf0[delay2];
+        outputs[0].mOutput = in0 * dry + out0 * wet;
+        buf0[bufIndex] = (fb)*buf1[bufIndex] + in0 - out0;
+
+        float out1 = fb0 * buf1[delay0] + fb1 * buf0[delay1] + fb2 * buf1[delay2];
+        outputs[1].mOutput = in1 * dry + out1 * wet;
+        buf1[bufIndex] = (fb)*buf0[bufIndex] + in1 - out1;
+
+        bufIndex = (bufIndex + 1) % bufSizeLimit;
+
+        delay0 = (delay0 + 1) % bufSizeLimit;
+        delay1 = (delay1 + 1) % bufSizeLimit;
+        delay2 = (delay2 + 1) % bufSizeLimit;
+    }
+
+    void GraphEffectReverb1::Tick(float, float) {
+        if (!mInited) {
+            mNode->SetInput(2, 0.75f);
+            mNode->SetInput(3, 0.5f);
+            mNode->SetInput(4, 30.0f);
+            mNode->SetInput(5, 0.5f);
+            mNode->SetInput(6, 0.9f);
+            mNode->SetInput(7, 0.8f);
+            mNode->SetInput(8, 0.9f);
+            mNode->SetInput(9, 0.7f);
+            mNode->SetInput(10, 0.9f);
+            mInited = true;
+        }
+    }
+
+    void GraphEffectReverb2::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float wet = inputs.at(2).Get();
         float reverbFeedback = min(inputs.at(3).Get(), 1.0f);
         float roomSize = inputs.at(4).Get();
@@ -442,7 +505,7 @@ namespace l::nodegraph {
 
     }
 
-    void GraphEffectReverb::Tick(float, float) {
+    void GraphEffectReverb2::Tick(float, float) {
         if (!mInited) {
             mNode->SetInput(2, 0.3f);
             mNode->SetInput(3, 0.5f);

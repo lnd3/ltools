@@ -79,7 +79,10 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputSpeaker>(OutputType::ExternalOutput, mAudioOutput);
             break;
         case 250:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectReverb>(OutputType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectReverb1>(OutputType::Default);
+            break;
+        case 251:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectReverb2>(OutputType::Default);
             break;
         default:
             ASSERT(typeId < 10000) << "Custom node id's begin at id 1000";
