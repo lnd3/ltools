@@ -101,7 +101,7 @@ namespace l::nodegraph {
 
         void ClearProcessFlags();
         virtual void ProcessSubGraph(int32_t numSamples = 1, bool recomputeSubGraphCache = true);
-        virtual void Tick(float time, float elapsed);
+        virtual void Tick(int32_t tickCount, float elapsed);
 
         virtual void SetNumInputs(int8_t numInputs);
         virtual void SetNumOutputs(int8_t outputCount);
@@ -137,6 +137,7 @@ namespace l::nodegraph {
         virtual void ProcessOperation(int32_t numSamples = 1);
 
         bool mProcessUpdateHasRun = false;
+        int32_t mLastTickCount = 0;
         std::vector<NodeGraphInput> mInputs;
         std::vector<NodeGraphOutput> mOutputs;
 
@@ -161,7 +162,7 @@ namespace l::nodegraph {
         virtual ~NodeGraphOp() = default;
         virtual void Reset() {}
         virtual void Process(int32_t, std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
-        virtual void Tick(float, float) {}
+        virtual void Tick(int32_t, float) {}
 
         virtual void SetNumInputs(int8_t numInputs);
         virtual void SetNumOutputs(int8_t numOutputs);
@@ -247,9 +248,13 @@ namespace l::nodegraph {
             mProcessUpdateHasRun = true;
         }
 
-        virtual void Tick(float time, float elapsed) override {
-            NodeGraphBase::Tick(time, elapsed);
-            mOperation.Tick(time, elapsed);
+        virtual void Tick(int32_t tickCount, float elapsed) override {
+            if (tickCount <= mLastTickCount) {
+                return;
+            }
+            NodeGraphBase::Tick(tickCount, elapsed);
+            mOperation.Tick(tickCount, elapsed);
+            mLastTickCount = tickCount;
         }
 
         virtual std::string_view GetInputName(int8_t inputChannel) {
@@ -327,13 +332,15 @@ namespace l::nodegraph {
 
         void ClearProcessFlags();
         void ProcessSubGraph(int32_t numSamples, bool recomputeSubGraphCache = true);
-        void Tick(float time, float elapsed);
+        void Tick(int32_t tickCount, float elapsed);
     protected:
         NodeGraph<GraphDataCopy> mInputNode;
         NodeGraph<GraphDataCopy> mOutputNode;
 
         std::vector<std::unique_ptr<NodeGraphBase>> mNodes;
         std::vector<NodeGraphBase*> mOutputNodes;
+
+        int32_t mLastTickCount = 0;
     };
 
 }

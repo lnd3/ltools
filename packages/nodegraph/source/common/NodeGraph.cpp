@@ -79,12 +79,16 @@ namespace l::nodegraph {
         mProcessUpdateHasRun = true;
     }
 
-    void NodeGraphBase::Tick(float time, float elapsed) {
+    void NodeGraphBase::Tick(int32_t tickCount, float elapsed) {
+        if (tickCount <= mLastTickCount) {
+            return;
+        }
         for (auto& link : mInputs) {
             if (link.mInputType == InputType::INPUT_NODE && link.mInput.mInputNode != nullptr) {
-                link.mInput.mInputNode->Tick(time, elapsed);
+                link.mInput.mInputNode->Tick(tickCount, elapsed);
             }
         }
+        mLastTickCount = tickCount;
     }
 
     float& NodeGraphBase::GetOutput(int8_t outputChannel) {
@@ -461,9 +465,13 @@ namespace l::nodegraph {
         }
     }
 
-    void NodeGraphGroup::Tick(float time, float elapsed) {
-        for (auto& it : mNodes) {
-            it->Tick(time, elapsed);
+    void NodeGraphGroup::Tick(int32_t tickCount, float elapsed) {
+        if (tickCount <= mLastTickCount) {
+            return;
         }
+        for (auto& it : mNodes) {
+            it->Tick(tickCount, elapsed);
+        }
+        mLastTickCount = tickCount;
     }
 }

@@ -43,7 +43,7 @@ namespace l::nodegraph {
         }
     }
 
-    void GraphSourceConstants::Tick(float, float) {
+    void GraphSourceConstants::Tick(int32_t, float) {
         mNode->ProcessSubGraph(1);
     }
 
@@ -79,8 +79,8 @@ namespace l::nodegraph {
         outputs.at(1).mOutput = mFrameTime;
     }
 
-    void GraphSourceTime::Tick(float time, float) {
-        mFrameTime = time;
+    void GraphSourceTime::Tick(int32_t, float deltaTime) {
+        mFrameTime += deltaTime;
     }
 
     void GraphSourceTime::Reset() {
@@ -166,7 +166,7 @@ namespace l::nodegraph {
         }
     }
 
-    void GraphSourceKeyboard::Tick(float, float) {
+    void GraphSourceKeyboard::Tick(int32_t, float) {
         mKeyboard.Update();
     }
 
@@ -517,7 +517,7 @@ namespace l::nodegraph {
     void GraphEffectReverb1::Process(int32_t, std::vector<NodeGraphInput>&inputs, std::vector<NodeGraphOutput>&outputs) {
         float wet = inputs.at(2).Get();
         
-        fb = 0.33f * (1.0f - inputs.at(3).Get());
+        fb = 0.2f * (1.0f - inputs.at(3).Get());
 
         float roomSize = inputs.at(4).Get();
         uint32_t bufSizeLimit = GetFramesPerRoomSize(roomSize);

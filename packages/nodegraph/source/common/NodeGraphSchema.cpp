@@ -133,8 +133,8 @@ namespace l::nodegraph {
         mRegisteredNodeTypes[typeGroup].push_back(UINodeDesc{ uniqueTypeId, std::string(typeName) });
     }
 
-    void NodeGraphSchema::Tick(float time, float deltaTime) {
-        mMainNodeGraph.Tick(time, deltaTime);
+    void NodeGraphSchema::Tick(int32_t tickCount, float deltaTime) {
+        mMainNodeGraph.Tick(tickCount, deltaTime);
     }
 
     void NodeGraphSchema::ProcessSubGraph(int32_t numSamples) {

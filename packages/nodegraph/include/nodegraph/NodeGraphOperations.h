@@ -28,7 +28,7 @@ namespace l::nodegraph {
         virtual ~GraphSourceConstants() = default;
         virtual void Reset();
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        virtual void Tick(float, float) override;
+        virtual void Tick(int32_t, float) override;
 
         virtual std::string_view GetName() override;
         virtual bool IsDataVisible(int8_t) override;
@@ -51,7 +51,7 @@ namespace l::nodegraph {
 
         virtual ~GraphSourceTime() = default;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        virtual void Tick(float, float) override;
+        virtual void Tick(int32_t, float) override;
 
         virtual void Reset() override;
         virtual std::string_view GetOutputName(int8_t outputChannel);
@@ -100,7 +100,7 @@ namespace l::nodegraph {
 
         virtual ~GraphSourceKeyboard() = default;
         void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        void Tick(float time, float elapsed) override;
+        void Tick(int32_t tickCount, float elapsed) override;
         void Reset() override;
         virtual std::string_view GetOutputName(int8_t outputChannel) override;
         virtual std::string_view GetName() override;
@@ -313,7 +313,7 @@ namespace l::nodegraph {
         virtual ~GraphFilterEnvelope() = default;
         virtual void Reset() override;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        virtual void Tick(float, float) {}
+        virtual void Tick(int32_t, float) {}
 
         std::string_view GetInputName(int8_t inputChannel) {
             return defaultInStrings[inputChannel];
