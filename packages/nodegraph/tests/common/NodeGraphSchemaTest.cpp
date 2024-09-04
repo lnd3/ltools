@@ -99,9 +99,9 @@ TEST(NodeGraph, FilterLowpass) {
 	float resonance = 0.9f;
 	float input = 1.3f;
 
-	nodeLowpass.SetInput(0, &cutoff);
-	nodeLowpass.SetInput(1, &resonance);
-	nodeLowpass.SetInput(2, &input);
+	nodeLowpass.SetInput(0, &input);
+	nodeLowpass.SetInput(1, &cutoff);
+	nodeLowpass.SetInput(2, &resonance);
 
 	float oneRev = 2.0f * 3.14f / 30.0f;
 	for (int i = 0; i < 30; i++) {
@@ -135,17 +135,18 @@ TEST(NodeGraph, GraphGroups) {
 
 		auto nodeLowpass1 = group.NewNode<GraphFilterLowpass>(OutputType::Default);
 		auto nodeLowpass2 = group.NewNode<GraphFilterLowpass>(OutputType::Default);
-		// cutoff
-		nodeLowpass1->SetInput(0, group, 0);
-		nodeLowpass2->SetInput(0, group, 0);
-
-		// resonance
-		nodeLowpass1->SetInput(1, group, 1);
-		nodeLowpass2->SetInput(1, group, 1);
 
 		// left, right
-		nodeLowpass1->SetInput(2, group, 2);
-		nodeLowpass2->SetInput(2, group, 3);
+		nodeLowpass1->SetInput(0, group, 2);
+		nodeLowpass2->SetInput(0, group, 3);
+
+		// cutoff
+		nodeLowpass1->SetInput(1, group, 0);
+		nodeLowpass2->SetInput(1, group, 0);
+
+		// resonance
+		nodeLowpass1->SetInput(2, group, 1);
+		nodeLowpass2->SetInput(2, group, 1);
 
 		group.SetOutput(0, *nodeLowpass1, 0);
 		group.SetOutput(1, *nodeLowpass2, 0);

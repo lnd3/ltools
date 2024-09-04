@@ -273,7 +273,7 @@ namespace l::nodegraph {
     /*********************************************************************/
     class GraphFilterLowpass : public NodeGraphOp {
     public:
-        std::string defaultInStrings[3] = { "Cutoff", "Resonance", "Data"};
+        std::string defaultInStrings[3] = { "Data", "Cutoff", "Resonance"};
         std::string defaultOutStrings[1] = { "Out" };
 
         GraphFilterLowpass(NodeGraphBase* node) :
