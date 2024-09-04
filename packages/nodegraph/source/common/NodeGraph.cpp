@@ -2,6 +2,8 @@
 
 #include "logging/Log.h"
 
+#include "math/MathFunc.h"
+
 namespace l::nodegraph {
 
     bool IsValidInOutNum(int8_t inoutNum, size_t inoutSize) {
@@ -85,7 +87,7 @@ namespace l::nodegraph {
         }
     }
 
-    float& NodeGraphBase::Get(int8_t outputChannel) {
+    float& NodeGraphBase::GetOutput(int8_t outputChannel) {
         return mOutputs.at(outputChannel).mOutput;
     }
 
@@ -94,8 +96,12 @@ namespace l::nodegraph {
     }
 
     bool NodeGraphBase::ClearInput(int8_t inputChannel) {
+        ASSERT(inputChannel >= 0 && inputChannel < mInputs.size());
+        if (!IsValidInOutNum(inputChannel, mInputs.size())) {
+            return false;
+        }
         auto& input = mInputs.at(inputChannel);
-        if (!IsValidInOutNum(inputChannel, mInputs.size()) || !input.HasInput()) {
+        if (!input.HasInput()) {
             return false;
         }
         input.mInputType = InputType::INPUT_EMPTY;
@@ -105,6 +111,10 @@ namespace l::nodegraph {
     }
 
     bool NodeGraphBase::SetInput(int8_t inputChannel, NodeGraphBase& source, int8_t sourceOutputChannel) {
+        ASSERT(inputChannel >= 0 && inputChannel < mInputs.size());
+        if (!IsValidInOutNum(inputChannel, mInputs.size())) {
+            return false;
+        }
         auto& input = mInputs.at(inputChannel);
         if (!IsValidInOutNum(sourceOutputChannel, source.mOutputs.size()) ||
             !IsValidInOutNum(inputChannel, mInputs.size()) ||
@@ -118,6 +128,10 @@ namespace l::nodegraph {
     }
 
     bool NodeGraphBase::SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceChannel) {
+        ASSERT(inputChannel >= 0 && inputChannel < mInputs.size());
+        if (!IsValidInOutNum(inputChannel, mInputs.size())) {
+            return false;
+        }
         auto& input = mInputs.at(inputChannel);
         if (source.ContainsNode(GetId())) {
             if (!IsValidInOutNum(sourceChannel, source.GetInputNode().GetNumOutputs()) ||
@@ -142,30 +156,64 @@ namespace l::nodegraph {
     }
 
     bool NodeGraphBase::SetInput(int8_t inputChannel, float constant) {
-        ASSERT(inputChannel >= 0 && inputChannel < mInputCount + mConstantCount);
-        auto& input = mInputs.at(inputChannel);
+        ASSERT(inputChannel >= 0 && inputChannel < mInputs.size());
         if (!IsValidInOutNum(inputChannel, mInputs.size())) {
             return false;
         }
-
+        auto& input = mInputs.at(inputChannel);
         input.mInput.mInputFloatConstant = constant;
         input.mInputType = InputType::INPUT_CONSTANT;
         input.mInputFromOutputChannel = 0;
+
         return true;
     }
 
     bool NodeGraphBase::SetInput(int8_t inputChannel, float* floatPtr) {
-        ASSERT(inputChannel >= 0 && inputChannel < mInputCount);
-        auto& input = mInputs.at(inputChannel);
+        ASSERT(inputChannel >= 0 && inputChannel < mInputs.size());
         if (!IsValidInOutNum(inputChannel, mInputs.size())) {
             return false;
         }
-
+        auto& input = mInputs.at(inputChannel);
         input.mInput.mInputFloat = floatPtr;
         input.mInputType = InputType::INPUT_VALUE;
         input.mInputFromOutputChannel = 0;
         return true;
     }
+
+    bool NodeGraphBase::SetInputBound(int8_t inputChannel, InputBound bound, float boundMin, float boundMax) {
+        ASSERT(inputChannel >= 0 && inputChannel < mInputs.size());
+        if (!IsValidInOutNum(inputChannel, mInputs.size())) {
+            return false;
+        }
+        auto& input = mInputs.at(inputChannel);
+        input.mInputBound = bound;
+        switch (bound) {
+        case InputBound::INPUT_0_TO_1:
+            input.mBoundMin = 0.0f;
+            input.mBoundMax = 1.0f;
+            break;
+        case InputBound::INPUT_NEG_1_POS_1:
+            input.mBoundMin = -1.0f;
+            input.mBoundMax = 1.0f;
+            break;
+        case InputBound::INPUT_0_100:
+            input.mBoundMin = 0.0f;
+            input.mBoundMax = 100.0f;
+            break;
+        case InputBound::INPUT_CUSTOM:
+            input.mBoundMin = boundMin;
+            input.mBoundMax = boundMax;
+            break;
+        case InputBound::INPUT_UNBOUNDED:
+            input.mBoundMin = -FLT_MAX;
+            input.mBoundMax = FLT_MAX;
+            break;
+        case InputBound::INPUT_DONTCHANGE:
+            break;
+        }
+        return true;
+    }
+
 
     bool NodeGraphBase::RemoveInput(void* source) {
         int32_t sourceRemoved = 0;
@@ -206,6 +254,7 @@ namespace l::nodegraph {
     void NodeGraphBase::SetOutputName(int8_t outputChannel, std::string_view name) {
         mOutputs.at(outputChannel).mName = name;
     }
+
 
     void NodeGraphOp::SetNumInputs(int8_t numInputs) {
         mNumInputs = numInputs;
@@ -283,22 +332,23 @@ namespace l::nodegraph {
     }
 
     float NodeGraphInput::Get() {
+        float value = 0.0f;
         switch (mInputType) {
         case InputType::INPUT_NODE:
             if (mInput.mInputNode != nullptr) {
-                return mInput.mInputNode->Get(mInputFromOutputChannel);
+                value = mInput.mInputNode->GetOutput(mInputFromOutputChannel);
             }
             break;
         case InputType::INPUT_CONSTANT:
-            return mInput.mInputFloatConstant;
+            value = mInput.mInputFloatConstant;
             break;
         case InputType::INPUT_VALUE:
-            return *mInput.mInputFloat;
+            value = *mInput.mInputFloat;
             break;
         case InputType::INPUT_EMPTY:
             break;
         }
-        return 0.0f;
+        return l::math::functions::clamp(value, mBoundMin, mBoundMax);
     }
 
     void NodeGraphGroup::SetNumInputs(int8_t numInputs) {
@@ -337,8 +387,8 @@ namespace l::nodegraph {
         mOutputNode.SetOutputName(outputChannel, source.GetOutputNode().GetOutputName(sourceOutputChannel));
     }
 
-    float NodeGraphGroup::Get(int8_t outputChannel) {
-        return mOutputNode.Get(outputChannel);
+    float NodeGraphGroup::GetOutput(int8_t outputChannel) {
+        return mOutputNode.GetOutput(outputChannel);
     }
 
     NodeGraphBase& NodeGraphGroup::GetInputNode() {

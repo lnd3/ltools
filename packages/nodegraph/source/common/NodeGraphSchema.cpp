@@ -69,9 +69,6 @@ namespace l::nodegraph {
         case 150:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterLowpass>(OutputType::Default);
             break;
-        case 151:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterEnvelope>(OutputType::Default);
-            break;
         case 200:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputDebug>(OutputType::ExternalOutput, 1);
             break;
@@ -79,9 +76,12 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputSpeaker>(OutputType::ExternalOutput, mAudioOutput);
             break;
         case 250:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectReverb1>(OutputType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterEnvelope>(OutputType::Default);
             break;
         case 251:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectReverb1>(OutputType::Default);
+            break;
+        case 252:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectReverb2>(OutputType::Default);
             break;
         default:
@@ -91,6 +91,9 @@ namespace l::nodegraph {
             break;
         };
 
+        if (node != nullptr) {
+            node->Reset();
+        }
         return node == nullptr ? 0 : node->GetId();
     }
 

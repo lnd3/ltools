@@ -12,6 +12,13 @@
 namespace l::math::functions {
 
 	template<class T>
+	void swap(T& val1, T& val2) {
+		T tmp = std::move(val1);
+		val1 = std::move(val2);
+		val2 = std::move(tmp);
+	}
+
+	template<class T>
 	T min(T val1, T val2) {
 		return val1 < val2 ? val1 : val2;
 	}

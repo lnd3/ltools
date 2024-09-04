@@ -17,39 +17,22 @@ namespace l::nodegraph {
 
     /* Mathematical operations */
 
+    /*********************************************************************/
     class GraphSourceConstants : public NodeGraphOp {
     public:
         GraphSourceConstants(NodeGraphBase* node, int32_t mode) :
             NodeGraphOp(node, 0, 4, 4),
             mMode(mode)
-        {
-            switch (mode) {
-            case 0:
-                mMax = 1.0f;
-                mMin = 0.0f;
-                break;
-            case 1:
-                mMax = 1.0f;
-                mMin = -1.0f;
-                break;
-            case 2:
-                mMax = 100.0f;
-                mMin = 0.0f;
-                break;
-            default:
-                mMax = 3.402823466e+38F;
-                mMin = -3.402823466e+38F;
-                break;
-            }
-        }
+        {}
 
         virtual ~GraphSourceConstants() = default;
+        virtual void Reset();
         virtual void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(float, float) override;
 
-        std::string_view GetName() override;
-        bool IsDataVisible(int8_t) override;
-        bool IsDataEditable(int8_t) override;
+        virtual std::string_view GetName() override;
+        virtual bool IsDataVisible(int8_t) override;
+        virtual bool IsDataEditable(int8_t) override;
 
     protected:
         int32_t mMode;
@@ -57,6 +40,7 @@ namespace l::nodegraph {
         float mMin = 0.0f;
     };
 
+    /*********************************************************************/
     class GraphSourceTime : public NodeGraphOp {
     public:
         GraphSourceTime(NodeGraphBase* node) :
@@ -69,36 +53,39 @@ namespace l::nodegraph {
         virtual void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(float, float) override;
 
-        void Reset() override;
-        std::string_view GetOutputName(int8_t outputChannel);
-        std::string_view GetName() override;
+        virtual void Reset() override;
+        virtual std::string_view GetOutputName(int8_t outputChannel);
+        virtual std::string_view GetName() override;
 
     protected:
         float mAudioTime = 0.0f;
         float mFrameTime = 0.0f;
     };
 
+    /*********************************************************************/
     class GraphSourceSine : public NodeGraphOp {
     public:
         GraphSourceSine(NodeGraphBase* node) :
             NodeGraphOp(node, 5, 3)
         {}
 
-        std::string defaultInStrings[5] = { "Time", "Freq Hz", "Freq Mod", "Phase Mod", "Reset"};
-        std::string defaultOutStrings[3] = { "Sine", "Phase", "Phase Mod"};
+        std::string defaultInStrings[5] = { "Note", "Vol", "Vib", "Mod", "Reset"};
+        std::string defaultOutStrings[3] = { "Sine", "Phase", "Ph. Mod"};
 
         virtual ~GraphSourceSine() = default;
-        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
 
-        void Reset() override;
-        std::string_view GetInputName(int8_t inputChannel);
-        std::string_view GetOutputName(int8_t outputChannel);
-        std::string_view GetName() override;
+        virtual void Reset() override;
+        virtual void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+
+        virtual std::string_view GetInputName(int8_t inputChannel);
+        virtual std::string_view GetOutputName(int8_t outputChannel);
+        virtual std::string_view GetName() override;
 
     protected:
         float mPhase = 0.0f;
     };
 
+    /*********************************************************************/
     class GraphSourceKeyboard : public NodeGraphOp, public l::hid::INoteProcessor {
     public:
         GraphSourceKeyboard(NodeGraphBase* node, int32_t polyphony, l::hid::KeyState* keyState) :
@@ -130,6 +117,7 @@ namespace l::nodegraph {
         l::hid::KeyboardPiano mKeyboard;
     };
 
+    /*********************************************************************/
     class GraphNumericAdd : public NodeGraphOp {
     public:
         GraphNumericAdd(NodeGraphBase* node) :
@@ -137,11 +125,12 @@ namespace l::nodegraph {
         {}
         virtual ~GraphNumericAdd() = default;
         void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        std::string_view GetName() override {
+        virtual std::string_view GetName() override {
             return "Add";
         }
     };
 
+    /*********************************************************************/
     class GraphNumericMultiply : public NodeGraphOp {
     public:
         GraphNumericMultiply(NodeGraphBase* node) :
@@ -150,11 +139,12 @@ namespace l::nodegraph {
 
         virtual ~GraphNumericMultiply() = default;
         void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        std::string_view GetName() override {
+        virtual std::string_view GetName() override {
             return "Multiply";
         }
     };
 
+    /*********************************************************************/
     class GraphNumericSubtract : public NodeGraphOp {
     public:
         GraphNumericSubtract(NodeGraphBase* node) :
@@ -162,11 +152,12 @@ namespace l::nodegraph {
         {}
         virtual ~GraphNumericSubtract() = default;
         void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        std::string_view GetName() override {
+        virtual std::string_view GetName() override {
             return "Subtract";
         }
     };
 
+    /*********************************************************************/
     class GraphNumericNegate : public NodeGraphOp {
     public:
         GraphNumericNegate(NodeGraphBase* node) :
@@ -175,11 +166,12 @@ namespace l::nodegraph {
 
         virtual ~GraphNumericNegate() = default;
         void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        std::string_view GetName() override {
+        virtual std::string_view GetName() override {
             return "Negate";
         }
     };
 
+    /*********************************************************************/
     class GraphNumericIntegral : public NodeGraphOp {
     public:
         GraphNumericIntegral(NodeGraphBase* node) :
@@ -189,7 +181,7 @@ namespace l::nodegraph {
         virtual ~GraphNumericIntegral() = default;
         void Reset() override;
         void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        std::string_view GetName() override {
+        virtual std::string_view GetName() override {
             return "Integral";
         }
 
@@ -197,8 +189,44 @@ namespace l::nodegraph {
         float mOutput = 0.0f;
     };
 
+    /*********************************************************************/
+    class GraphNumericMultiply3 : public NodeGraphOp {
+    public:
+        GraphNumericMultiply3(NodeGraphBase* node) :
+            NodeGraphOp(node, 3, 1)
+        {}
+
+        virtual ~GraphNumericMultiply3() = default;
+        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual std::string_view GetName() override {
+            return "Multiply3";
+        }
+    };
+
+    /*********************************************************************/
+    class GraphNumericMultiplyAndAdd : public NodeGraphOp {
+    public:
+        GraphNumericMultiplyAndAdd(NodeGraphBase* node) :
+            NodeGraphOp(node, 3, 1)
+        {}
+
+        std::string defaultInStrings[3] = { "Factor 1", "Factor 2", "Term 1" };
+
+        virtual ~GraphNumericMultiplyAndAdd() = default;
+        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual std::string_view GetName() override {
+            return "Multiply & Add";
+        }
+
+        virtual std::string_view GetInputName(int8_t inputChannel) {
+            return defaultInStrings[inputChannel];
+        }
+    };
+
+
     /* Logical operations */
 
+    /*********************************************************************/
     class GraphLogicalAnd : public NodeGraphOp {
     public:
         GraphLogicalAnd(NodeGraphBase* node) :
@@ -206,12 +234,13 @@ namespace l::nodegraph {
         {}
 
         virtual ~GraphLogicalAnd() = default;
-        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         std::string_view GetName() override {
             return "And";
         }
     };
 
+    /*********************************************************************/
     class GraphLogicalOr : public NodeGraphOp {
     public:
         GraphLogicalOr(NodeGraphBase* node) :
@@ -219,12 +248,13 @@ namespace l::nodegraph {
         {}
 
         virtual ~GraphLogicalOr() = default;
-        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         std::string_view GetName() override {
             return "Or";
         }
     };
 
+    /*********************************************************************/
     class GraphLogicalXor : public NodeGraphOp {
     public:
         GraphLogicalXor(NodeGraphBase* node) :
@@ -232,14 +262,15 @@ namespace l::nodegraph {
         {}
 
         virtual ~GraphLogicalXor() = default;
-        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        std::string_view GetName() override {
+        virtual void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual std::string_view GetName() override {
             return "Xor";
         }
     };
 
     /* Stateful filtering operations */
 
+    /*********************************************************************/
     class GraphFilterLowpass : public NodeGraphOp {
     public:
         std::string defaultInStrings[3] = { "Cutoff", "Resonance", "Data"};
@@ -250,18 +281,18 @@ namespace l::nodegraph {
         {}
 
         virtual ~GraphFilterLowpass() = default;
-        void Reset() override;
-        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Reset() override;
+        virtual void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
 
-        std::string_view GetInputName(int8_t inputChannel) {
+        virtual std::string_view GetInputName(int8_t inputChannel) {
             return defaultInStrings[inputChannel];
         }
 
-        std::string_view GetOutputName(int8_t outputChannel) {
+        virtual std::string_view GetOutputName(int8_t outputChannel) {
             return defaultOutStrings[outputChannel];
         }
 
-        std::string_view GetName() override {
+        virtual std::string_view GetName() override {
             return "Lowpass";
         }
     protected:
@@ -269,26 +300,20 @@ namespace l::nodegraph {
         float mState1 = 0.0f;
     };
 
+    /*********************************************************************/
     class GraphFilterEnvelope : public NodeGraphOp {
     public:
-        std::string defaultInStrings[5] = { "Note", "Attack ms", "Release ms", "Note Fade"};
-        std::string defaultOutStrings[2] = { "Note", "Gain"};
+        std::string defaultInStrings[5] = { "Note", "Attack", "Release", "Fade"};
+        std::string defaultOutStrings[2] = { "Note", "Volume"};
 
         GraphFilterEnvelope(NodeGraphBase* node) :
             NodeGraphOp(node, 4, 2)
         {}
 
         virtual ~GraphFilterEnvelope() = default;
-        void Reset() override;
-        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        virtual void Tick(float, float) {
-            if (!mInited) {
-                mNode->SetInput(1, 50.0f);
-                mNode->SetInput(2, 50.0f);
-                mNode->SetInput(3, 0.1f);
-                mInited = true;
-            }
-        }
+        virtual void Reset() override;
+        virtual void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Tick(float, float) {}
 
         std::string_view GetInputName(int8_t inputChannel) {
             return defaultInStrings[inputChannel];
@@ -310,12 +335,13 @@ namespace l::nodegraph {
             return "Envelope";
         }
     protected:
-        bool mInited = false;
         uint32_t mFrameCount = 0;
         float mEnvelopeTarget = 0.0f;
         float mNote = 0.0f;
         float mEnvelope = 0.0f;
     };
+
+    /*********************************************************************/
     class GraphOutputDebug : public NodeGraphOp {
     public:
         GraphOutputDebug(NodeGraphBase* node, int32_t numValueDisplays) :
@@ -333,6 +359,7 @@ namespace l::nodegraph {
         }
     };
 
+    /*********************************************************************/
     class GraphOutputSpeaker : public NodeGraphOp {
     public:
         std::string defaultOutStrings[2] = { "Left", "Right"};
@@ -349,7 +376,6 @@ namespace l::nodegraph {
 
         virtual ~GraphOutputSpeaker() = default;
         void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        virtual void Tick(float time, float elapsed) override;
 
         std::string_view GetOutputName(int8_t outputChannel) {
             return defaultOutStrings[outputChannel];
@@ -364,6 +390,7 @@ namespace l::nodegraph {
         int32_t mCurrentStereoPosition;
     };
 
+    /*********************************************************************/
     class GraphEffectReverb1 : public NodeGraphOp {
     public:
         std::string defaultInStrings[11] = { "In 1", "In 2", "Mix", "Attenuation", "Room Size", "Delay 1", "Feedback 1", "Delay 2", "Feedback 2", "Delay 3", "Feedback 3" };
@@ -387,8 +414,8 @@ namespace l::nodegraph {
             
         virtual ~GraphEffectReverb1() = default;
 
-        void Process(std::vector<NodeGraphInput>&inputs, std::vector<NodeGraphOutput>&outputs) override;
-        virtual void Tick(float time, float elapsed) override;
+        virtual void Reset() override;
+        virtual void Process(std::vector<NodeGraphInput>&inputs, std::vector<NodeGraphOutput>&outputs) override;
 
         virtual bool IsDataVisible(int8_t num) override {
             return num >= 2 ? true : false;
@@ -411,13 +438,6 @@ namespace l::nodegraph {
             return "Reverb";
         }
 
-        float max(float value, float max) {
-            return value > max ? value : max;
-        }
-
-        float min(float value, float min) {
-            return value < min ? value : min;
-        }
     protected:
         bool mInited = false;
         std::vector<float> buf0;
@@ -434,6 +454,7 @@ namespace l::nodegraph {
         
     };
 
+    /*********************************************************************/
     class GraphEffectReverb2 : public NodeGraphOp {
     public:
         std::string defaultInStrings[12] = { "In 1", "In 2", "Mix", "Feedback", "Room Size", "Width", "First tap", "Longest tap", "Num taps", "Tap bulge", "Filter cutoff", "Filter res"};
@@ -459,8 +480,8 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphEffectReverb2() = default;
+        virtual void Reset() override;
         virtual void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        virtual void Tick(float time, float elapsed) override;
 
         virtual bool IsDataVisible(int8_t num) override {
             return num >= 2 ? true : false;
@@ -478,12 +499,6 @@ namespace l::nodegraph {
 
         std::string_view GetName() override {
             return "Reverb";
-        }
-        float max(float value, float max) {
-            return value > max ? value : max;
-        }
-        float min(float value, float min) {
-            return value < min ? value : min;
         }
 
     protected:

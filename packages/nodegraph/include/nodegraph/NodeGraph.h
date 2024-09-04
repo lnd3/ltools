@@ -28,10 +28,12 @@ namespace l::nodegraph {
     };
 
     enum class InputBound {
+        INPUT_DONTCHANGE,
         INPUT_UNBOUNDED,
         INPUT_0_TO_1,
         INPUT_NEG_1_POS_1,
-        INPUT_0_100
+        INPUT_0_100,
+        INPUT_CUSTOM,
     };
 
     bool IsValidInOutNum(int8_t inoutNum, size_t inoutSize);
@@ -55,6 +57,9 @@ namespace l::nodegraph {
     struct NodeGraphInput {
         Input mInput;
         InputType mInputType = InputType::INPUT_EMPTY;
+
+        float mBoundMin = -FLT_MAX;
+        float mBoundMax = FLT_MAX;
         InputBound mInputBound = InputBound::INPUT_UNBOUNDED;
 
         int8_t mInputFromOutputChannel = 0;
@@ -90,7 +95,7 @@ namespace l::nodegraph {
         virtual int8_t GetNumOutputs();
         virtual int8_t GetNumConstants();
 
-        virtual float& Get(int8_t outputChannel);
+        virtual float& GetOutput(int8_t outputChannel);
         virtual float GetInput(int8_t inputChannel);
 
         virtual std::string_view GetName();
@@ -106,6 +111,7 @@ namespace l::nodegraph {
         virtual bool SetInput(int8_t inputChannel, float constant);
         virtual bool SetInput(int8_t inputChannel, float* floatPtr);
 
+        virtual bool SetInputBound(int8_t inputChannel, InputBound bound = InputBound::INPUT_DONTCHANGE, float boundMin = 0.0f, float boundMax = 0.0f);
         virtual bool RemoveInput(void* source);
 
         virtual bool IsDataVisible(int8_t num);
@@ -278,7 +284,7 @@ namespace l::nodegraph {
         void SetOutput(int8_t outputChannel, NodeGraphBase& source, int8_t sourceOutputChannel);
         void SetOutput(int8_t outputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel);
 
-        float Get(int8_t outputChannel);
+        float GetOutput(int8_t outputChannel);
         NodeGraphBase& GetInputNode();
         NodeGraphBase& GetOutputNode();
 

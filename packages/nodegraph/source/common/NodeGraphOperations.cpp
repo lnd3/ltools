@@ -3,18 +3,43 @@
 #include "logging/Log.h"
 #include "audio/AudioUtils.h"
 
+#include "math/MathFunc.h"
+
 #include <math.h>
 
 namespace l::nodegraph {
 
     /* Mathematical operations */
 
+    /*********************************************************************/
+    void GraphSourceConstants::Reset() {
+        switch (mMode) {
+        case 0:
+            for (int8_t i = 0; i < 4; i++) {
+                mNode->SetInputBound(i, InputBound::INPUT_0_TO_1);
+            }
+            break;
+        case 1:
+            for (int8_t i = 0; i < 4; i++) {
+                mNode->SetInputBound(i, InputBound::INPUT_NEG_1_POS_1);
+            }
+            break;
+        case 2:
+            for (int8_t i = 0; i < 4; i++) {
+                mNode->SetInputBound(i, InputBound::INPUT_0_100);
+            }
+            break;
+        default:
+            for (int8_t i = 0; i < 4; i++) {
+                mNode->SetInputBound(i, InputBound::INPUT_UNBOUNDED);
+            }
+            break;
+        }
+    }
+
     void GraphSourceConstants::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         for (int8_t i = 0; i < mNumOutputs; i++) {
-            float val = inputs.at(i).Get();
-            val = val > mMax ? mMax : val < mMin ? mMin : val;
-            inputs.at(i).mInput.mInputFloatConstant = val;
-            outputs.at(i).mOutput = val;
+            outputs.at(i).mOutput = inputs.at(i).Get();
         }
     }
 
@@ -44,6 +69,7 @@ namespace l::nodegraph {
         return true;
     }
 
+    /*********************************************************************/
     void GraphSourceTime::Process(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>& outputs) {
         float rate = 44100.0f;
         float phaseChange = 1.0f / rate;
@@ -70,20 +96,37 @@ namespace l::nodegraph {
         return "Time";
     }
 
+    /*********************************************************************/
+    void GraphSourceSine::Reset() {
+        // { "Freq Hz", "Freq Mod", "Phase Mod", "Reset"};
+        mPhase = 0.0f;
+        mNode->SetInput(0, 0.0f);
+        mNode->SetInput(1, 0.0f);
+        mNode->SetInput(2, 0.0f);
+        mNode->SetInput(3, 0.0f);
+        mNode->SetInput(4, 0.0f);
+        mNode->SetInputBound(0, InputBound::INPUT_UNBOUNDED);
+        mNode->SetInputBound(1, InputBound::INPUT_0_TO_1);
+        mNode->SetInputBound(2, InputBound::INPUT_UNBOUNDED);
+        mNode->SetInputBound(3, InputBound::INPUT_UNBOUNDED);
+        mNode->SetInputBound(4, InputBound::INPUT_0_TO_1);
+    }
+
+
     void GraphSourceSine::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        //float time = inputs.at(0).Get();
-        float freq = inputs.at(1).Get();
+        float freq = inputs.at(0).Get();
+        float volume = inputs.at(1).Get();
         float fMod = 1.0f + inputs.at(2).Get();
         float pMod = inputs.at(3).Get();
         float reset = inputs.at(4).Get();
 
         if (freq == 0.0f) {
-            Reset();
+            mPhase = 0.0f;
             outputs.at(0).mOutput = 0.0f;
             return;
         }
         if (reset > 0.5f) {
-            Reset();
+            mPhase = 0.0f;
         }
 
         float deltaTime = 1.0f / 44100.0f;
@@ -95,13 +138,9 @@ namespace l::nodegraph {
         float phaseMod = mPhase + pMod;
         phaseMod -= floorf(phaseMod);
 
-        outputs.at(0).mOutput = sinf(3.141529f * (mPhase + phaseMod));
+        outputs.at(0).mOutput = volume * sinf(3.141529f * (mPhase + phaseMod));
         outputs.at(1).mOutput = mPhase;
         outputs.at(2).mOutput = phaseMod;
-    }
-
-    void GraphSourceSine::Reset() {
-        mPhase = 0.0f;
     }
 
     std::string_view GraphSourceSine::GetInputName(int8_t inputChannel) {
@@ -116,6 +155,7 @@ namespace l::nodegraph {
         return "Sine";
     }
 
+    /*********************************************************************/
     void GraphSourceKeyboard::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         for (size_t i = 0; i < inputs.size();i++) {
             outputs.at(i).mOutput = inputs.at(i).Get();
@@ -200,23 +240,27 @@ namespace l::nodegraph {
         return lowestCountIndex;
     }
 
-
+    /*********************************************************************/
     void GraphNumericAdd::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         outputs.at(0).mOutput = inputs.at(0).Get() + inputs.at(1).Get();
     }
 
+    /*********************************************************************/
     void GraphNumericMultiply::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         outputs.at(0).mOutput = inputs.at(0).Get() * inputs.at(1).Get();
     }
 
+    /*********************************************************************/
     void GraphNumericSubtract::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         outputs.at(0).mOutput = inputs.at(0).Get() - inputs.at(1).Get();
     }
 
+    /*********************************************************************/
     void GraphNumericNegate::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         outputs.at(0).mOutput = -inputs.at(0).Get();
     }
 
+    /*********************************************************************/
     void GraphNumericIntegral::Reset() {
         mOutput = 0.0f;
     }
@@ -226,20 +270,33 @@ namespace l::nodegraph {
         outputs.at(0).mOutput = mOutput;
     }
 
+    /*********************************************************************/
+    void GraphNumericMultiply3::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        outputs.at(0).mOutput = inputs.at(0).Get() * inputs.at(1).Get() * inputs.at(2).Get();
+    }
+
+    /*********************************************************************/
+    void GraphNumericMultiplyAndAdd::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        outputs.at(0).mOutput = inputs.at(0).Get() * inputs.at(1).Get() + inputs.at(2).Get();
+    }
+
     /* Logical operations */
 
+    /*********************************************************************/
     void GraphLogicalAnd::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         bool input1 = inputs.at(0).Get() != 0.0f;
         bool input2 = inputs.at(1).Get() != 0.0f;
         outputs.at(0).mOutput = (input1 && input2) ? 1.0f : 0.0f;
     }
 
+    /*********************************************************************/
     void GraphLogicalOr::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         bool input1 = inputs.at(0).Get() != 0.0f;
         bool input2 = inputs.at(1).Get() != 0.0f;
         outputs.at(0).mOutput = (input1 || input2) ? 1.0f : 0.0f;
     }
 
+    /*********************************************************************/
     void GraphLogicalXor::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         bool input1 = inputs.at(0).Get() != 0.0f;
         bool input2 = inputs.at(1).Get() != 0.0f;
@@ -248,15 +305,20 @@ namespace l::nodegraph {
 
     /* Stateful filtering operations */
 
+    /*********************************************************************/
     void GraphFilterLowpass::Reset() {
         mState0 = 0.0f;
         mState1 = 0.0f;
+        mNode->SetInput(1, 0.99f);
+        mNode->SetInput(2, 0.01f);
+        mNode->SetInputBound(1, InputBound::INPUT_0_TO_1);
+        mNode->SetInputBound(2, InputBound::INPUT_0_TO_1);
     }
 
     void GraphFilterLowpass::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        float cutoff = inputs.at(0).Get();
-        float resonance = 1.0f - inputs.at(1).Get();
-        float inputValue = inputs.at(2).Get();
+        float inputValue = inputs.at(0).Get();
+        float cutoff = inputs.at(1).Get();
+        float resonance = 1.0f - inputs.at(2).Get();
 
         cutoff *= cutoff;
         float rc = 1.0f - resonance * cutoff;
@@ -267,8 +329,15 @@ namespace l::nodegraph {
         outputs.at(0).mOutput = -mState1;
     }
 
+    /*********************************************************************/
     void GraphFilterEnvelope::Reset() {
         mEnvelope = 0.0f;
+        mNode->SetInput(1, 50.0f);
+        mNode->SetInput(2, 50.0f);
+        mNode->SetInput(3, 0.1f);
+        mNode->SetInputBound(1, InputBound::INPUT_CUSTOM, 1.0f, 100000.0f);
+        mNode->SetInputBound(2, InputBound::INPUT_CUSTOM, 1.0f, 100000.0f);
+        mNode->SetInputBound(3, InputBound::INPUT_CUSTOM, 0.0001f, 1.0f);
     }
 
     void GraphFilterEnvelope::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
@@ -315,6 +384,7 @@ namespace l::nodegraph {
         outputs.at(1).mOutput = mEnvelope * mEnvelope;
     }
 
+    /*********************************************************************/
     void GraphOutputSpeaker::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
         auto& buffer = mAudioStream->GetWriteBuffer();
         buffer[mCurrentStereoPosition++] = inputs.at(0).Get();
@@ -322,33 +392,44 @@ namespace l::nodegraph {
         mCurrentStereoPosition %= mAudioStream->GetPartTotalSize();
     }
 
-    void GraphOutputSpeaker::Tick(float, float) {
+    /*********************************************************************/
+    void GraphEffectReverb1::Reset() {
+        // { "In 1", "In 2", "Mix", "Attenuation", "Room Size", "Delay 1", "Feedback 1", "Delay 2", "Feedback 2", "Delay 3", "Feedback 3" };
+
+        mNode->SetInput(2, 0.75f);
+        mNode->SetInput(3, 0.5f);
+        mNode->SetInput(4, 30.0f);
+        mNode->SetInput(5, 0.5f);
+        mNode->SetInput(6, 0.9f);
+        mNode->SetInput(7, 0.8f);
+        mNode->SetInput(8, 0.9f);
+        mNode->SetInput(9, 0.7f);
+        mNode->SetInput(10, 0.9f);
+        mNode->SetInputBound(2, InputBound::INPUT_0_TO_1);
+        mNode->SetInputBound(3, InputBound::INPUT_0_TO_1);
+        mNode->SetInputBound(4, InputBound::INPUT_CUSTOM, 0.2f, maxRoomSizeInMeters);
+        mNode->SetInputBound(5, InputBound::INPUT_0_TO_1);
+        mNode->SetInputBound(6, InputBound::INPUT_0_TO_1);
+        mNode->SetInputBound(7, InputBound::INPUT_0_TO_1);
+        mNode->SetInputBound(8, InputBound::INPUT_0_TO_1);
+        mNode->SetInputBound(9, InputBound::INPUT_0_TO_1);
+        mNode->SetInputBound(10, InputBound::INPUT_0_TO_1);
     }
 
     void GraphEffectReverb1::Process(std::vector<NodeGraphInput>&inputs, std::vector<NodeGraphOutput>&outputs) {
         float wet = inputs.at(2).Get();
         
-        fb = 0.33f * min(1.0f - inputs.at(3).Get(), 0.0f);
+        fb = 0.33f * (1.0f - inputs.at(3).Get());
 
         float roomSize = inputs.at(4).Get();
-
-        if (roomSize > maxRoomSizeInMeters) {
-            roomSize = maxRoomSizeInMeters;
-            mNode->SetInput(3, maxRoomSizeInMeters);
-        }
-        else if (roomSize < 0.1f) {
-            roomSize = 0.1f;
-            mNode->SetInput(3, 0.1f);
-        }
-
         uint32_t bufSizeLimit = GetFramesPerRoomSize(roomSize);
 
         d0 = inputs.at(5).Get();
-        fb0 = 0.5f * 0.45f * max(inputs.at(6).Get(), 1);
+        fb0 = 0.5f * 0.5f * math::functions::max(inputs.at(6).Get(), 1.0f);
         d1 = inputs.at(7).Get();
-        fb1 = 0.5f * 0.45f * max(inputs.at(8).Get(), 1);
+        fb1 = 0.5f * 0.5f * math::functions::max(inputs.at(8).Get(), 1.0f);
         d2 = inputs.at(9).Get();
-        fb2 = 0.5f * 0.45f * max(inputs.at(10).Get(), 1);
+        fb2 = 0.5f * 0.5f * math::functions::max(inputs.at(10).Get(), 1.0f);
 
         float dry = 1.0f - wet;
 
@@ -358,13 +439,11 @@ namespace l::nodegraph {
         float in0 = inputs.at(0).Get();
         float in1 = inputs.at(1).Get();
 
-        float out0 = fb0 * buf0[delay0] + fb1 * buf1[delay1] + fb2 * buf0[delay2];
-        outputs[0].mOutput = in0 * dry + out0 * wet;
-        buf0[bufIndex] = (fb)*buf1[bufIndex] + in0 - out0;
+        outputs[0].mOutput = in0 * dry + (fb1 * buf1[delay1] + fb0 * buf0[delay0] + fb2 * buf0[delay2]) * wet;
+        outputs[1].mOutput = in1 * dry + (fb1 * buf0[delay1] + fb0 * buf1[delay0] + fb2 * buf1[delay2]) * wet;
 
-        float out1 = fb0 * buf1[delay0] + fb1 * buf0[delay1] + fb2 * buf1[delay2];
-        outputs[1].mOutput = in1 * dry + out1 * wet;
-        buf1[bufIndex] = (fb)*buf0[bufIndex] + in1 - out1;
+        buf0[bufIndex] = fb * buf1[bufIndex] - fb1 * buf1[delay1] - fb0 * buf0[delay0] - fb2 * buf0[delay2] + in0;
+        buf1[bufIndex] = fb * buf0[bufIndex] - fb1 * buf0[delay1] - fb0 * buf1[delay0] - fb2 * buf1[delay2] + in1;
 
         bufIndex = (bufIndex + 1) % bufSizeLimit;
 
@@ -373,32 +452,44 @@ namespace l::nodegraph {
         delay2 = (delay2 + 1) % bufSizeLimit;
     }
 
-    void GraphEffectReverb1::Tick(float, float) {
-        if (!mInited) {
-            mNode->SetInput(2, 0.75f);
-            mNode->SetInput(3, 0.5f);
-            mNode->SetInput(4, 30.0f);
-            mNode->SetInput(5, 0.5f);
-            mNode->SetInput(6, 0.9f);
-            mNode->SetInput(7, 0.8f);
-            mNode->SetInput(8, 0.9f);
-            mNode->SetInput(9, 0.7f);
-            mNode->SetInput(10, 0.9f);
-            mInited = true;
-        }
+    /*********************************************************************/
+
+    void GraphEffectReverb2::Reset() {
+        // { "In 1", "In 2", "Mix", "Feedback", "Room Size", "Width", "First tap", "Longest tap", "Num taps", "Tap bulge", "Filter cutoff", "Filter res"};
+
+        mNode->SetInput(2, 0.3f);
+        mNode->SetInput(3, 0.5f);
+        mNode->SetInput(4, 30.0f);
+        mNode->SetInput(5, 0.5f);
+        mNode->SetInput(6, 0.1f);
+        mNode->SetInput(7, 0.8f);
+        mNode->SetInput(8, 5.0f);
+        mNode->SetInput(9, 0.7f);
+        mNode->SetInput(10, 0.95f);
+        mNode->SetInput(11, 0.01f);
+        mNode->SetInputBound(2, InputBound::INPUT_0_TO_1);
+        mNode->SetInputBound(3, InputBound::INPUT_0_TO_1);
+        mNode->SetInputBound(4, InputBound::INPUT_CUSTOM, 1.0f, 334.0f);
+        mNode->SetInputBound(5, InputBound::INPUT_0_TO_1);
+        mNode->SetInputBound(6, InputBound::INPUT_CUSTOM, 0.0f, 10.0f);
+        mNode->SetInputBound(7, InputBound::INPUT_CUSTOM, 0.0f, 10.0f);
+        mNode->SetInputBound(8, InputBound::INPUT_CUSTOM, 1.0f, 30.0f);
+        mNode->SetInputBound(9, InputBound::INPUT_CUSTOM, 1.0f, 10.0f);
+        mNode->SetInputBound(10, InputBound::INPUT_CUSTOM, 0.001f, 0.999f);
+        mNode->SetInputBound(11, InputBound::INPUT_CUSTOM, 0.001f, 0.999f);
     }
 
     void GraphEffectReverb2::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float wet = inputs.at(2).Get();
-        float reverbFeedback = min(inputs.at(3).Get(), 1.0f);
+        float reverbFeedback = inputs.at(3).Get();
         float roomSize = inputs.at(4).Get();
-        float stereoWidth = min(inputs.at(5).Get(), 1.0f);
-        float earliestDelay = min(inputs.at(6).Get(), 5.0f);
-        float longestDelay = min(inputs.at(7).Get(), 5.0f);
-        float numDelays = max(inputs.at(8).Get(), 1.0f);
-        float tapBulge = 1.0f + 9.0f * min(inputs.at(9).Get(), 1.0f);
-        //float cutoff = min(inputs.at(10).Get(), 1.0f);
-        //float res = min(inputs.at(11).Get(), 1.0f);
+        float stereoWidth = inputs.at(5).Get();
+        float earliestDelay = inputs.at(6).Get();
+        float longestDelay = inputs.at(7).Get();
+        float numDelays = inputs.at(8).Get();
+        float tapBulge = inputs.at(9).Get();
+        float cutoff = inputs.at(10).Get();
+        float res = inputs.at(11).Get();
 
         if (roomSize > maxRoomSizeInMeters) {
             roomSize = maxRoomSizeInMeters;
@@ -473,7 +564,7 @@ namespace l::nodegraph {
 
         // buffer blur of oldest sample plus next oldest sample with global attenuation and new input
         auto [reverb0, reverb1] = sample(bufRev0.data(), bufRev1.data(), earliestDelay, longestDelay, numDelays, reverbFeedback, stereoWidth);
-        /*
+
         cutoff *= cutoff;
         float rc = 1.0f - res * cutoff;
 
@@ -481,11 +572,9 @@ namespace l::nodegraph {
         mLP1 = rc * mLP1 + cutoff * mLP0;
         mLP2 = rc * mLP2 - cutoff * (mLP3 + reverb1);
         mLP3 = rc * mLP3 + cutoff * mLP2;
-        float lp0 = mLP1;
-        float lp1 = mLP3;
-        */
-        bufRev0[bufIndex] = reverbFeedback * (bufRev0[bufIndex] + reverb0);
-        bufRev1[bufIndex] = reverbFeedback * (bufRev1[bufIndex] + reverb1);
+
+        bufRev0[bufIndex] = reverbFeedback * (bufRev0[bufIndex] + mLP1);
+        bufRev1[bufIndex] = reverbFeedback * (bufRev1[bufIndex] + mLP3);
 
         bufIndex = (bufIndex + 1) % bufSizeLimit;
 
@@ -505,34 +594,7 @@ namespace l::nodegraph {
 
     }
 
-    void GraphEffectReverb2::Tick(float, float) {
-        if (!mInited) {
-            mNode->SetInput(2, 0.3f);
-            mNode->SetInput(3, 0.5f);
-            mNode->SetInput(4, 30.0f);
-            mNode->SetInput(5, 0.5f);
-            mNode->SetInput(6, 0.1f);
-            mNode->SetInput(7, 0.8f);
-            mNode->SetInput(8, 5.0f);
-            mNode->SetInput(9, 0.7f);
-            mNode->SetInput(10, 0.95f);
-            mNode->SetInput(11, 0.01f);
-
-            /*
-        float wet = inputs.at(2).Get();
-        float reverbFeedback = min(inputs.at(3).Get(), 1.0f);
-        float roomSize = inputs.at(4).Get();
-        float stereoWidth = min(inputs.at(5).Get(), 1.0f);
-        float earliestDelay = min(inputs.at(6).Get(), 1.0f);
-        float longestDelay = min(inputs.at(7).Get(), 1.0f);
-        float numDelays = max(inputs.at(8).Get(), 1.0f);
-        float tapBulge = 1.0f + 9.0f * min(inputs.at(9).Get(), 1.0f);
-        float cutoff = min(inputs.at(10).Get(), 1.0f);
-        float res = min(inputs.at(11).Get(), 1.0f);
-            */
-            mInited = true;
-        }
-    }
+    /*********************************************************************/
 
 
 }
