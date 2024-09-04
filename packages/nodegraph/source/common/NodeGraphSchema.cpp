@@ -57,6 +57,12 @@ namespace l::nodegraph {
         case 54:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericIntegral>(OutputType::Default);
             break;
+        case 55:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericMultiply3>(OutputType::Default);
+            break;
+        case 56:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericMultiplyAndAdd>(OutputType::Default);
+            break;
         case 100:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalAnd>(OutputType::Default);
             break;
@@ -70,7 +76,7 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterLowpass>(OutputType::Default);
             break;
         case 200:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputDebug>(OutputType::ExternalOutput, 1);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputDebug>(OutputType::ExternalOutput);
             break;
         case 201:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputSpeaker>(OutputType::ExternalOutput, mAudioOutput);
@@ -83,6 +89,15 @@ namespace l::nodegraph {
             break;
         case 252:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectReverb2>(OutputType::Default);
+            break;
+        case 253:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectLimiter>(OutputType::Default);
+            break;
+        case 254:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectEnvelopeFollower>(OutputType::Default);
+            break;
+        case 255:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectSaturator>(OutputType::Default);
             break;
         default:
             ASSERT(typeId < 10000) << "Custom node id's begin at id 1000";

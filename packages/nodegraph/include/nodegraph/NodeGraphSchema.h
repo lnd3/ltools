@@ -44,15 +44,20 @@ namespace l::nodegraph {
             RegisterNodeType("Numeric", 52, "Negate");
             RegisterNodeType("Numeric", 53, "Multiply");
             RegisterNodeType("Numeric", 54, "Integral");
+            RegisterNodeType("Numeric", 55, "Multiply3");
+            RegisterNodeType("Numeric", 56, "Multiply & Add");
             RegisterNodeType("Logic", 100, "And");
             RegisterNodeType("Logic", 101, "Or");
             RegisterNodeType("Logic", 102, "Xor");
-            RegisterNodeType("Filter", 150, "Lowpass Filter");
-            RegisterNodeType("Output", 200, "Value Debug");
+            RegisterNodeType("Filter", 150, "Lowpass");
+            RegisterNodeType("Output", 200, "Debug");
             RegisterNodeType("Output", 201, "Speaker");
             RegisterNodeType("Effect", 250, "Envelope");
             RegisterNodeType("Effect", 251, "Reverb1");
             RegisterNodeType("Effect", 252, "Reverb2");
+            RegisterNodeType("Effect", 253, "Limiter");
+            RegisterNodeType("Effect", 254, "Envelope Follower");
+            RegisterNodeType("Effect", 255, "Saturator");
         }
 
         ~NodeGraphSchema() = default;

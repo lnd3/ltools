@@ -66,11 +66,11 @@ namespace l::nodegraph {
     class GraphSourceSine : public NodeGraphOp {
     public:
         GraphSourceSine(NodeGraphBase* node) :
-            NodeGraphOp(node, 5, 3)
+            NodeGraphOp(node, 5, 2)
         {}
 
-        std::string defaultInStrings[5] = { "Note", "Vol", "Vib", "Mod", "Reset"};
-        std::string defaultOutStrings[3] = { "Sine", "Phase", "Ph. Mod"};
+        std::string defaultInStrings[5] = { "Note", "Volume", "Fmod", "Phase", "Reset"};
+        std::string defaultOutStrings[2] = { "Sine", "Phase"};
 
         virtual ~GraphSourceSine() = default;
 
@@ -344,19 +344,28 @@ namespace l::nodegraph {
     /*********************************************************************/
     class GraphOutputDebug : public NodeGraphOp {
     public:
-        GraphOutputDebug(NodeGraphBase* node, int32_t numValueDisplays) :
-            NodeGraphOp(node, numValueDisplays, 0, 0)
+        std::string defaultInStrings[2] = { "Debug", "Smooth" };
+        GraphOutputDebug(NodeGraphBase* node) :
+            NodeGraphOp(node, 1, 0, 2)
         {}
-
-        bool IsDataVisible(int8_t) override {
-            return true;
-        }
-
         virtual ~GraphOutputDebug() = default;
 
-        std::string_view GetName() override {
+        virtual void Reset() override;
+        virtual void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual bool IsDataVisible(int8_t) override {
+            return true;
+        }
+        virtual bool IsDataEditable(int8_t channel) override {
+            return channel == 1;
+        }
+        virtual std::string_view GetOutputName(int8_t outputChannel) {
+            return defaultInStrings[outputChannel];
+        }
+        virtual std::string_view GetName() override {
             return "Debug";
         }
+    protected:
+        float mValue = 0.0F;
     };
 
     /*********************************************************************/
@@ -369,14 +378,13 @@ namespace l::nodegraph {
             mAudioStream(stream),
             mCurrentStereoPosition(0)
         {}
+        virtual ~GraphOutputSpeaker() = default;
+
+        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
 
         bool IsDataVisible(int8_t) override {
             return true;
         }
-
-        virtual ~GraphOutputSpeaker() = default;
-        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-
         std::string_view GetOutputName(int8_t outputChannel) {
             return defaultOutStrings[outputChannel];
         }
@@ -519,5 +527,106 @@ namespace l::nodegraph {
         float mLP3 = 0.0f;
     };
 
+    /*********************************************************************/
+    class GraphEffectLimiter : public NodeGraphOp {
+    public:
+        std::string defaultInStrings[6] = { "In 1", "In 2", "Attack", "Release", "Preamp", "Limit" };
+        std::string defaultOutStrings[3] = { "Out 1", "Out 2", "Envelope"};
+
+        GraphEffectLimiter(NodeGraphBase* node) :
+            NodeGraphOp(node, 6, 3, 0)
+        {}
+
+        virtual ~GraphEffectLimiter() = default;
+        virtual void Reset() override;
+        virtual void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+
+        virtual bool IsDataVisible(int8_t num) override {
+            return num >= 2 ? true : false;
+        }
+        virtual bool IsDataEditable(int8_t num) override {
+            return num >= 2 ? true : false;
+        }
+        std::string_view GetInputName(int8_t inputChannel) {
+            return defaultInStrings[inputChannel];
+        }
+        std::string_view GetOutputName(int8_t outputChannel) {
+            return defaultOutStrings[outputChannel];
+        }
+        std::string_view GetName() override {
+            return "Limiter";
+        }
+
+    protected:
+        float mEnvelope = 0.0f;
+    };
+
+    /*********************************************************************/
+    class GraphEffectEnvelopeFollower : public NodeGraphOp {
+    public:
+        std::string defaultInStrings[6] = { "In 1", "In 2", "Attack", "Release" };
+        std::string defaultOutStrings[3] = { "Envelope" };
+
+        GraphEffectEnvelopeFollower(NodeGraphBase* node) :
+            NodeGraphOp(node, 4, 1, 0)
+        {}
+
+        virtual ~GraphEffectEnvelopeFollower() = default;
+        virtual void Reset() override;
+        virtual void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+
+        virtual bool IsDataVisible(int8_t num) override {
+            return num >= 2 ? true : false;
+        }
+        virtual bool IsDataEditable(int8_t num) override {
+            return num >= 2 ? true : false;
+        }
+        std::string_view GetInputName(int8_t inputChannel) {
+            return defaultInStrings[inputChannel];
+        }
+        std::string_view GetOutputName(int8_t outputChannel) {
+            return defaultOutStrings[outputChannel];
+        }
+        std::string_view GetName() override {
+            return "Envelope Follower";
+        }
+
+    protected:
+        float mEnvelope = 0.0f;
+    };
+
+    /*********************************************************************/
+    class GraphEffectSaturator : public NodeGraphOp {
+    public:
+        std::string defaultInStrings[6] = { "In 1", "In 2", "Wet", "Preamp", "Limit", "Postamp"};
+        std::string defaultOutStrings[3] = { "Out 1", "Out 2"};
+
+        GraphEffectSaturator(NodeGraphBase* node) :
+            NodeGraphOp(node, 6, 2, 0)
+        {}
+
+        virtual ~GraphEffectSaturator() = default;
+        virtual void Reset() override;
+        virtual void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+
+        virtual bool IsDataVisible(int8_t num) override {
+            return num >= 2 ? true : false;
+        }
+        virtual bool IsDataEditable(int8_t num) override {
+            return num >= 2 ? true : false;
+        }
+        std::string_view GetInputName(int8_t inputChannel) {
+            return defaultInStrings[inputChannel];
+        }
+        std::string_view GetOutputName(int8_t outputChannel) {
+            return defaultOutStrings[outputChannel];
+        }
+        std::string_view GetName() override {
+            return "Saturator";
+        }
+
+    protected:
+        float mEnvelope = 0.0f;
+    };
 }
 

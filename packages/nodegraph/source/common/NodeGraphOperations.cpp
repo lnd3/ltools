@@ -139,8 +139,7 @@ namespace l::nodegraph {
         phaseMod -= floorf(phaseMod);
 
         outputs.at(0).mOutput = volume * sinf(3.141529f * (mPhase + phaseMod));
-        outputs.at(1).mOutput = mPhase;
-        outputs.at(2).mOutput = phaseMod;
+        outputs.at(1).mOutput = 0.5f * phaseMod;
     }
 
     std::string_view GraphSourceSine::GetInputName(int8_t inputChannel) {
@@ -345,6 +344,7 @@ namespace l::nodegraph {
         float attackFrames = inputs.at(1).Get() * 44100.0f / 1000.0f;
         float releaseFrames = inputs.at(2).Get() * 44100.0f / 1000.0f;
         float noteFade = inputs.at(3).Get();
+        //noteFade = l::math::functions::pow(0.01f, 1.0f / (1000.0f * inputs.at(3).Get() * 44100.0f * 0.001f));
 
         if (noteTarget != 0.0f && mFrameCount < attackFrames) {
             if (mFrameCount == 0) {
@@ -363,6 +363,7 @@ namespace l::nodegraph {
                 mEnvelopeTarget = 1.0f;
             }
             mNote += noteFade * noteFade * (noteTarget - mNote);
+            //mNote = noteFade * (mEnvelope - noteTarget) + noteTarget;
         }
         else {
             // release
@@ -382,6 +383,20 @@ namespace l::nodegraph {
         mEnvelope += 0.1f * (mEnvelopeTarget - mEnvelope);
         outputs.at(0).mOutput = mNote;
         outputs.at(1).mOutput = mEnvelope * mEnvelope;
+    }
+
+    /*********************************************************************/
+    void GraphOutputDebug::Reset() {
+        mValue = 0.0;
+        mNode->SetInput(1, 0.5f);
+        mNode->SetInputBound(1, InputBound::INPUT_0_TO_1);
+    }
+
+    void GraphOutputDebug::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
+        float value = inputs.at(0).Get();
+        float friction = inputs.at(1).Get();
+        mValue += friction * friction * (value - mValue);
+        inputs.at(2).mInput.mInputFloatConstant = mValue;
     }
 
     /*********************************************************************/
@@ -456,7 +471,6 @@ namespace l::nodegraph {
 
     void GraphEffectReverb2::Reset() {
         // { "In 1", "In 2", "Mix", "Feedback", "Room Size", "Width", "First tap", "Longest tap", "Num taps", "Tap bulge", "Filter cutoff", "Filter res"};
-
         mNode->SetInput(2, 0.3f);
         mNode->SetInput(3, 0.5f);
         mNode->SetInput(4, 30.0f);
@@ -591,10 +605,147 @@ namespace l::nodegraph {
         //buf1[bufIndex] += centralDelay;
 
         // 
-
     }
 
     /*********************************************************************/
+    void GraphEffectLimiter::Reset() {
+        // { "In 1", "In 2", "Attack", "Release", "Preamp", "Limit"};
+        mEnvelope = 0.0f;
+        mNode->SetInput(2, 5.0f);
+        mNode->SetInput(3, 100.0f);
+        mNode->SetInput(4, 1.0f);
+        mNode->SetInput(5, 0.95f);
+        mNode->SetInputBound(2, InputBound::INPUT_CUSTOM, 1.0f, 10000.0f);
+        mNode->SetInputBound(3, InputBound::INPUT_CUSTOM, 1.0f, 10000.0f);
+        mNode->SetInputBound(4, InputBound::INPUT_CUSTOM, 0.0f, 10.0f);
+        mNode->SetInputBound(5, InputBound::INPUT_CUSTOM, 0.0f, 10.0f);
+    }
 
+    void GraphEffectLimiter::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        float attackMs = inputs .at(2).Get();
+        float releaseMs = inputs.at(3).Get();
+        float attack = l::math::functions::pow(0.01f, 1.0f / (attackMs * 44100.0f * 0.001f));
+        float release = l::math::functions::pow(0.01f, 1.0f / (releaseMs * 44100.0f * 0.001f));
+        float preamp = inputs.at(4).Get();
+        float limit = inputs.at(5).Get();
+
+        float in0 = inputs.at(0).Get();
+        float in1 = inputs.at(1).Get();
+
+        float inVal0 = preamp * in0;
+        float inVal1 = preamp * in1;
+        float inVal = 0.5f * (inVal0 + inVal1);
+        if (inVal > mEnvelope) {
+            mEnvelope = attack * (mEnvelope - inVal) + inVal;
+        }
+        else {
+            mEnvelope = release * (mEnvelope - inVal) + inVal;
+        }
+
+        float envelopeAbs = l::math::functions::abs(mEnvelope);
+        if (envelopeAbs > limit) {
+            if (envelopeAbs > 1.0f) {
+                outputs.at(0).mOutput = inVal0 / mEnvelope;
+                outputs.at(1).mOutput = inVal1 / mEnvelope;
+            }
+            else {
+                outputs.at(0).mOutput = inVal0 / (1.0f + mEnvelope - limit);
+                outputs.at(1).mOutput = inVal1 / (1.0f + mEnvelope - limit);
+            }
+        }
+        else {
+            outputs.at(0).mOutput = in0;
+            outputs.at(1).mOutput = in1;
+        }
+        outputs.at(2).mOutput = envelopeAbs;
+    }
+
+    /*********************************************************************/
+    void GraphEffectEnvelopeFollower::Reset() {
+        mEnvelope = 0.0f;
+        mNode->SetInput(2, 5.0f);
+        mNode->SetInput(3, 100.0f);
+        mNode->SetInputBound(2, InputBound::INPUT_CUSTOM, 1.0f, 10000.0f);
+        mNode->SetInputBound(3, InputBound::INPUT_CUSTOM, 1.0f, 10000.0f);
+    }
+
+    void GraphEffectEnvelopeFollower::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        float attackMs = inputs.at(2).Get();
+        float releaseMs = inputs.at(3).Get();
+        float attack = l::math::functions::pow(0.01f, 1.0f / (attackMs * 44100.0f * 0.001f));
+        float release = l::math::functions::pow(0.01f, 1.0f / (releaseMs * 44100.0f * 0.001f));
+
+        float in0 = inputs.at(0).Get();
+        float in1 = inputs.at(1).Get();
+
+        float inVal = 0.5f * (in0 + in1);
+        if (inVal > mEnvelope) {
+            mEnvelope = attack * (mEnvelope - inVal) + inVal;
+        }
+        else {
+            mEnvelope = release * (mEnvelope - inVal) + inVal;
+        }
+
+        float envelopeAbs = l::math::functions::abs(mEnvelope);
+        outputs.at(0).mOutput = envelopeAbs;
+    }
+
+    /*********************************************************************/
+    void GraphEffectSaturator::Reset() {
+        // { "In 1", "In 2", "Wet", "Preamp", "Limit", "Postamp"};
+        mEnvelope = 0.0f;
+        mNode->SetInput(2, 0.5f);
+        mNode->SetInput(3, 1.5f);
+        mNode->SetInput(4, 0.6f);
+        mNode->SetInput(5, 1.4f);
+        mNode->SetInputBound(2, InputBound::INPUT_0_TO_1);
+        mNode->SetInputBound(3, InputBound::INPUT_CUSTOM, 0.0f, 10.0f);
+        mNode->SetInputBound(4, InputBound::INPUT_CUSTOM, 0.0f, 10.0f);
+        mNode->SetInputBound(5, InputBound::INPUT_CUSTOM, 0.0f, 10.0f);
+    }
+
+    void GraphEffectSaturator::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        float wet = inputs.at(2).Get();
+        float preamp = inputs.at(3).Get();
+        float limit = inputs.at(4).Get();
+        float postamp = inputs.at(5).Get();
+        wet = postamp * wet;
+        float dry = postamp * (1.0f - wet);
+
+        float in0 = inputs.at(0).Get();
+        float in1 = inputs.at(1).Get();
+
+        auto sigmoid = [](float x) {
+            if (x < 1.0f && x > -1.0f) {
+                return x * (1.5f - 0.5f * x * x);
+            }
+            else {
+                return x > 0 ? 1.0f : -1.0f;
+            }
+            };
+
+        float inPreamp0 = in0 * preamp;
+        float inPreamp1 = in1 * preamp;
+
+        if (inPreamp0 >= limit || inPreamp0 <= -limit) {
+            if (inPreamp0 > 0.0f) {
+                inPreamp0 = limit + (1.0f - limit) * sigmoid((inPreamp0 - limit) / ((1.0f - limit) * 1.5f));
+            }
+            else {
+                inPreamp0 = -(limit + (1.0f - limit) * sigmoid((-inPreamp0 - limit) / ((1.0f - limit) * 1.5f)));
+            }
+        }
+        if (inPreamp1 >= limit || inPreamp1 <= -limit) {
+            if (inPreamp1 > 0.0f) {
+                inPreamp1 = limit + (1.0f - limit) * sigmoid((inPreamp1 - limit) / ((1.0f - limit) * 1.5f));
+            }
+            else {
+                inPreamp1 = -(limit + (1.0f - limit) * sigmoid((-inPreamp1 - limit) / ((1.0f - limit) * 1.5f)));
+            }
+        }
+
+        outputs.at(0).mOutput = dry * in0 + wet * inPreamp0;
+        outputs.at(1).mOutput = dry * in1 + wet * inPreamp1;
+    }
 
 }

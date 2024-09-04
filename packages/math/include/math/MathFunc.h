@@ -51,7 +51,6 @@ namespace l::math::functions {
 				return llabs(val);
 			}
 		}
-		return static_cast<T>(0);
 	}
 
 
@@ -92,7 +91,6 @@ namespace l::math::functions {
 				return ::pow(val, exp);
 			}
 		}
-		return static_cast<T>(0);
 	}
 
 	template<class T>
