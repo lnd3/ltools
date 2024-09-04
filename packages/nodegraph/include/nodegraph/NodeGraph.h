@@ -9,6 +9,8 @@
 #include <type_traits>
 #include <memory>
 
+#include "math/MathConstants.h"
+
 namespace l::nodegraph {
 
     int32_t CreateUniqueId();
@@ -58,8 +60,8 @@ namespace l::nodegraph {
         Input mInput;
         InputType mInputType = InputType::INPUT_EMPTY;
 
-        float mBoundMin = -FLT_MAX;
-        float mBoundMax = FLT_MAX;
+        float mBoundMin = -l::math::constants::FLTMAX;
+        float mBoundMax = l::math::constants::FLTMAX;
         InputBound mInputBound = InputBound::INPUT_UNBOUNDED;
 
         int8_t mInputFromOutputChannel = 0;
