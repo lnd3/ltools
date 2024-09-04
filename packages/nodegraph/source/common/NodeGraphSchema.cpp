@@ -137,8 +137,8 @@ namespace l::nodegraph {
         mMainNodeGraph.Tick(time, deltaTime);
     }
 
-    void NodeGraphSchema::ProcessSubGraph() {
-        mMainNodeGraph.ProcessSubGraph(true);
+    void NodeGraphSchema::ProcessSubGraph(int32_t numSamples) {
+        mMainNodeGraph.ProcessSubGraph(numSamples, true);
     }
 
 

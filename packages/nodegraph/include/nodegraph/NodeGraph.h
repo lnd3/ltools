@@ -42,7 +42,21 @@ namespace l::nodegraph {
 
     struct NodeGraphOutput {
         float mOutput = 0.0f;
+        std::vector<float> mOutputBuf;
         std::string mName;
+
+        float& GetOutput(int32_t numSamples) {
+            if(numSamples <= 1) {
+                return mOutput;
+            }
+            else {
+                if (static_cast<int32_t>(mOutputBuf.size()) < numSamples) {
+                    mOutputBuf.resize(numSamples);
+                }
+                return *mOutputBuf.data();
+            }
+        }
+
     };
 
     class NodeGraphBase;
@@ -86,7 +100,7 @@ namespace l::nodegraph {
         virtual int32_t GetId() const { return mId; }
 
         void ClearProcessFlags();
-        virtual void ProcessSubGraph(bool recomputeSubGraphCache = true);
+        virtual void ProcessSubGraph(int32_t numSamples = 1, bool recomputeSubGraphCache = true);
         virtual void Tick(float time, float elapsed);
 
         virtual void SetNumInputs(int8_t numInputs);
@@ -120,7 +134,7 @@ namespace l::nodegraph {
         virtual bool IsDataEditable(int8_t num);
 
     protected:
-        virtual void ProcessOperation();
+        virtual void ProcessOperation(int32_t numSamples = 1);
 
         bool mProcessUpdateHasRun = false;
         std::vector<NodeGraphInput> mInputs;
@@ -146,7 +160,7 @@ namespace l::nodegraph {
 
         virtual ~NodeGraphOp() = default;
         virtual void Reset() {}
-        virtual void Process(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
+        virtual void Process(int32_t, std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
         virtual void Tick(float, float) {}
 
         virtual void SetNumInputs(int8_t numInputs);
@@ -176,7 +190,7 @@ namespace l::nodegraph {
         {}
         virtual ~GraphDataCopy() = default;
 
-        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     };
 
     template<class T, class... Params>
@@ -222,13 +236,13 @@ namespace l::nodegraph {
             mOperation.Reset();
         }
 
-        virtual void ProcessOperation() override {
+        virtual void ProcessOperation(int32_t numSamples = 1) override {
             if (mProcessUpdateHasRun) {
                 return;
             }
 
-            NodeGraphBase::ProcessOperation();
-            mOperation.Process(mInputs, mOutputs);
+            NodeGraphBase::ProcessOperation(numSamples);
+            mOperation.Process(numSamples, mInputs, mOutputs);
 
             mProcessUpdateHasRun = true;
         }
@@ -312,7 +326,7 @@ namespace l::nodegraph {
         }
 
         void ClearProcessFlags();
-        void ProcessSubGraph(bool recomputeSubGraphCache = true);
+        void ProcessSubGraph(int32_t numSamples, bool recomputeSubGraphCache = true);
         void Tick(float time, float elapsed);
     protected:
         NodeGraph<GraphDataCopy> mInputNode;

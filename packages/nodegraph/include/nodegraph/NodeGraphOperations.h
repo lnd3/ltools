@@ -27,7 +27,7 @@ namespace l::nodegraph {
 
         virtual ~GraphSourceConstants() = default;
         virtual void Reset();
-        virtual void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(float, float) override;
 
         virtual std::string_view GetName() override;
@@ -50,7 +50,7 @@ namespace l::nodegraph {
         std::string defaultOutStrings[2] = { "Audio Time", "Frame Time"};
 
         virtual ~GraphSourceTime() = default;
-        virtual void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(float, float) override;
 
         virtual void Reset() override;
@@ -75,7 +75,7 @@ namespace l::nodegraph {
         virtual ~GraphSourceSine() = default;
 
         virtual void Reset() override;
-        virtual void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
 
         virtual std::string_view GetInputName(int8_t inputChannel);
         virtual std::string_view GetOutputName(int8_t outputChannel);
@@ -99,7 +99,7 @@ namespace l::nodegraph {
         std::string defaultOutStrings[8] = { "Note 1", "Note 2", "Note 3", "Note 4", "Note 5", "Note 6", "Note 7", "Note 8" };
 
         virtual ~GraphSourceKeyboard() = default;
-        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         void Tick(float time, float elapsed) override;
         void Reset() override;
         virtual std::string_view GetOutputName(int8_t outputChannel) override;
@@ -124,7 +124,7 @@ namespace l::nodegraph {
             NodeGraphOp(node, 2, 1)
         {}
         virtual ~GraphNumericAdd() = default;
-        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual std::string_view GetName() override {
             return "Add";
         }
@@ -138,7 +138,7 @@ namespace l::nodegraph {
         {}
 
         virtual ~GraphNumericMultiply() = default;
-        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual std::string_view GetName() override {
             return "Multiply";
         }
@@ -151,7 +151,7 @@ namespace l::nodegraph {
             NodeGraphOp(node, 2, 1)
         {}
         virtual ~GraphNumericSubtract() = default;
-        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual std::string_view GetName() override {
             return "Subtract";
         }
@@ -165,7 +165,7 @@ namespace l::nodegraph {
         {}
 
         virtual ~GraphNumericNegate() = default;
-        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual std::string_view GetName() override {
             return "Negate";
         }
@@ -180,7 +180,7 @@ namespace l::nodegraph {
 
         virtual ~GraphNumericIntegral() = default;
         void Reset() override;
-        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual std::string_view GetName() override {
             return "Integral";
         }
@@ -197,7 +197,7 @@ namespace l::nodegraph {
         {}
 
         virtual ~GraphNumericMultiply3() = default;
-        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual std::string_view GetName() override {
             return "Multiply3";
         }
@@ -213,7 +213,7 @@ namespace l::nodegraph {
         std::string defaultInStrings[3] = { "Factor 1", "Factor 2", "Term 1" };
 
         virtual ~GraphNumericMultiplyAndAdd() = default;
-        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual std::string_view GetName() override {
             return "Multiply & Add";
         }
@@ -234,7 +234,7 @@ namespace l::nodegraph {
         {}
 
         virtual ~GraphLogicalAnd() = default;
-        virtual void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         std::string_view GetName() override {
             return "And";
         }
@@ -248,7 +248,7 @@ namespace l::nodegraph {
         {}
 
         virtual ~GraphLogicalOr() = default;
-        virtual void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         std::string_view GetName() override {
             return "Or";
         }
@@ -262,7 +262,7 @@ namespace l::nodegraph {
         {}
 
         virtual ~GraphLogicalXor() = default;
-        virtual void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual std::string_view GetName() override {
             return "Xor";
         }
@@ -282,7 +282,7 @@ namespace l::nodegraph {
 
         virtual ~GraphFilterLowpass() = default;
         virtual void Reset() override;
-        virtual void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
 
         virtual std::string_view GetInputName(int8_t inputChannel) {
             return defaultInStrings[inputChannel];
@@ -312,7 +312,7 @@ namespace l::nodegraph {
 
         virtual ~GraphFilterEnvelope() = default;
         virtual void Reset() override;
-        virtual void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(float, float) {}
 
         std::string_view GetInputName(int8_t inputChannel) {
@@ -351,7 +351,7 @@ namespace l::nodegraph {
         virtual ~GraphOutputDebug() = default;
 
         virtual void Reset() override;
-        virtual void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual bool IsDataVisible(int8_t) override {
             return true;
         }
@@ -371,22 +371,26 @@ namespace l::nodegraph {
     /*********************************************************************/
     class GraphOutputSpeaker : public NodeGraphOp {
     public:
-        std::string defaultOutStrings[2] = { "Left", "Right"};
+        std::string defaultInStrings[3] = { "Left", "Right", "Volume"};
 
         GraphOutputSpeaker(NodeGraphBase* node, l::audio::AudioStream* stream = nullptr) :
-            NodeGraphOp(node, 2, 0, 0),
+            NodeGraphOp(node, 3, 0, 0),
             mAudioStream(stream),
             mCurrentStereoPosition(0)
         {}
         virtual ~GraphOutputSpeaker() = default;
 
-        void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        void Reset() override;
+        void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
 
         bool IsDataVisible(int8_t) override {
             return true;
         }
-        std::string_view GetOutputName(int8_t outputChannel) {
-            return defaultOutStrings[outputChannel];
+        bool IsDataEditable(int8_t channel) override {
+            return channel == 2 ? true : false;
+        }
+        std::string_view GetInputName(int8_t outputChannel) {
+            return defaultInStrings[outputChannel];
         }
 
         std::string_view GetName() override {
@@ -396,6 +400,7 @@ namespace l::nodegraph {
     protected:
         l::audio::AudioStream* mAudioStream;
         int32_t mCurrentStereoPosition;
+        float mEnvelope = 0.0f;
     };
 
     /*********************************************************************/
@@ -423,7 +428,7 @@ namespace l::nodegraph {
         virtual ~GraphEffectReverb1() = default;
 
         virtual void Reset() override;
-        virtual void Process(std::vector<NodeGraphInput>&inputs, std::vector<NodeGraphOutput>&outputs) override;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>&inputs, std::vector<NodeGraphOutput>&outputs) override;
 
         virtual bool IsDataVisible(int8_t num) override {
             return num >= 2 ? true : false;
@@ -443,7 +448,7 @@ namespace l::nodegraph {
         }
         
         std::string_view GetName() override {
-            return "Reverb";
+            return "Reverb 1";
         }
 
     protected:
@@ -489,7 +494,7 @@ namespace l::nodegraph {
 
         virtual ~GraphEffectReverb2() = default;
         virtual void Reset() override;
-        virtual void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
 
         virtual bool IsDataVisible(int8_t num) override {
             return num >= 2 ? true : false;
@@ -506,7 +511,7 @@ namespace l::nodegraph {
         }
 
         std::string_view GetName() override {
-            return "Reverb";
+            return "Reverb 2";
         }
 
     protected:
@@ -539,7 +544,7 @@ namespace l::nodegraph {
 
         virtual ~GraphEffectLimiter() = default;
         virtual void Reset() override;
-        virtual void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
 
         virtual bool IsDataVisible(int8_t num) override {
             return num >= 2 ? true : false;
@@ -573,7 +578,7 @@ namespace l::nodegraph {
 
         virtual ~GraphEffectEnvelopeFollower() = default;
         virtual void Reset() override;
-        virtual void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
 
         virtual bool IsDataVisible(int8_t num) override {
             return num >= 2 ? true : false;
@@ -607,7 +612,7 @@ namespace l::nodegraph {
 
         virtual ~GraphEffectSaturator() = default;
         virtual void Reset() override;
-        virtual void Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
 
         virtual bool IsDataVisible(int8_t num) override {
             return num >= 2 ? true : false;

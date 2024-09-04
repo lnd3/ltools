@@ -60,20 +60,20 @@ namespace l::nodegraph {
         }
     }
 
-    void NodeGraphBase::ProcessSubGraph(bool recomputeSubGraphCache) {
+    void NodeGraphBase::ProcessSubGraph(int32_t numSamples, bool recomputeSubGraphCache) {
         if (recomputeSubGraphCache) {
             ClearProcessFlags();
         }
-        ProcessOperation();
+        ProcessOperation(numSamples);
     }
 
-    void NodeGraphBase::ProcessOperation() {
+    void NodeGraphBase::ProcessOperation(int32_t numSamples) {
         if (mProcessUpdateHasRun) {
             return;
         }
         for (auto& link : mInputs) {
             if (link.mInputType == InputType::INPUT_NODE && link.mInput.mInputNode != nullptr) {
-                link.mInput.mInputNode->ProcessOperation();
+                link.mInput.mInputNode->ProcessOperation(numSamples);
             }
         }
         mProcessUpdateHasRun = true;
@@ -300,7 +300,7 @@ namespace l::nodegraph {
         return "";
     }
 
-    void GraphDataCopy::Process(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphDataCopy::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         for (size_t i = 0; i < inputs.size() && i < outputs.size(); i++) {
             outputs.at(i).mOutput = inputs.at(i).Get();
         }
@@ -452,12 +452,12 @@ namespace l::nodegraph {
         mOutputNode.ClearProcessFlags();
     }
 
-    void NodeGraphGroup::ProcessSubGraph(bool) {
+    void NodeGraphGroup::ProcessSubGraph(int32_t numSamples, bool) {
         for (auto& it : mOutputNodes) {
             it->ClearProcessFlags();
         }
         for (auto& it : mOutputNodes) {
-            it->ProcessSubGraph(false);
+            it->ProcessSubGraph(numSamples, false);
         }
     }
 

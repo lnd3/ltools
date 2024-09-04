@@ -65,7 +65,6 @@ namespace l::math::functions {
 				return ::floor(val);
 			}
 		}
-		return static_cast<T>(0);
 	}
 
 	template<class T>
@@ -78,7 +77,6 @@ namespace l::math::functions {
 				return ::sqrt(val);
 			}
 		}
-		return static_cast<T>(0);
 	}
 
 	template<class T>
@@ -103,7 +101,18 @@ namespace l::math::functions {
 				return ::exp(val);
 			}
 		}
-		return static_cast<T>(0);
+	}
+
+	template<class T>
+	T sin(T val) {
+		if constexpr (std::is_floating_point_v<T>) {
+			if constexpr (sizeof(T) == 4) {
+				return sinf(val);
+			}
+			else if constexpr (sizeof(T) == 8) {
+				return ::sin(val);
+			}
+		}
 	}
 
 	// Almost Identity(I)
@@ -124,7 +133,7 @@ namespace l::math::functions {
 	template<class T>
 	T almostIdentity2(T x, T n)
 	{
-		return sqrt(x * x + n);
+		return functions::sqrt(x * x + n);
 	}
 
 	// Almost Unit Identity
@@ -151,7 +160,7 @@ namespace l::math::functions {
 	T expImpulse(T x, T k)
 	{
 		const T h = k * x;
-		return h * exp(1.0 - h);
+		return h * functions::exp(1.0 - h);
 	}
 
 	// Polynomial Impulse
@@ -159,14 +168,14 @@ namespace l::math::functions {
 	template<class T>
 	T quaImpulse(T k, T x)
 	{
-		return 2.0 * sqrt(k) * x / (1.0 + k * x * x);
+		return 2.0 * functions::sqrt(k) * x / (1.0 + k * x * x);
 	}
 
 	// You can easily generalize it to other powers to get different falloff shapes, where n is the degree of the polynomial :
 	template<class T>
 	T polyImpulse(T k, T n, T x)
 	{
-		return (n / (n - 1.0)) * pow((n - 1.0) * k, 1.0 / n) * x / (1.0 + k * pow(x, n));
+		return (n / (n - 1.0)) * functions::pow((n - 1.0) * k, 1.0 / n) * x / (1.0 + k * functions::pow(x, n));
 	}
 
 	// Sustained Impulse
@@ -174,8 +183,8 @@ namespace l::math::functions {
 	template<class T>
 	T expSustainedImpulse(T x, T f, T k)
 	{
-		T s = std::max(x - f, 0.0);
-		return std::min(x * x / (f * f), 1 + (2.0 / f) * s * exp(-k * s));
+		T s = functions::max(x - f, 0.0);
+		return functions::min(x * x / (f * f), 1 + (2.0 / f) * s * functions::exp(-k * s));
 	}
 
 	// Cubic Pulse
@@ -183,7 +192,7 @@ namespace l::math::functions {
 	template<class T>
 	T cubicPulse(T c, T w, T x)
 	{
-		x = abs(x - c);
+		x = functions::abs(x - c);
 		if (x > w) return 0.0;
 		x /= w;
 		return 1.0 - x * x * (3.0 - 2.0 * x);
@@ -194,7 +203,7 @@ namespace l::math::functions {
 	template<class T>
 	T expStep(T x, T k, T n)
 	{
-		return exp(-k * pow(x, n));
+		return functions::exp(-k * functions::pow(x, n));
 	}
 
 	// Gain
@@ -202,7 +211,7 @@ namespace l::math::functions {
 	template<class T>
 	T gain(T x, T k)
 	{
-		const T a = 0.5 * pow(2.0 * ((x < 0.5) ? x : 1.0 - x), k);
+		const T a = 0.5 * functions::pow(2.0 * ((x < 0.5) ? x : 1.0 - x), k);
 		return (x < 0.5) ? a : 1.0 - a;
 	}
 
@@ -211,7 +220,7 @@ namespace l::math::functions {
 	template<class T>
 	T parabola(T x, T k)
 	{
-		return pow(4.0 * x * (1.0 - x), k);
+		return functions::pow(4.0 * x * (1.0 - x), k);
 	}
 
 	// Power curve
@@ -219,8 +228,8 @@ namespace l::math::functions {
 	template<class T>
 	T pcurve(T x, T a, T b)
 	{
-		const T k = pow(a + b, a + b) / (pow(a, a) * pow(b, b));
-		return k * pow(x, a) * pow(1.0 - x, b);
+		const T k = functions::pow(a + b, a + b) / (functions::pow(a, a) * functions::pow(b, b));
+		return k * functions::pow(x, a) * functions::pow(1.0 - x, b);
 	}
 
 	// Sinc curve
@@ -229,7 +238,21 @@ namespace l::math::functions {
 	T sinc(T x, T k)
 	{
 		const T a = math::constants::PI * (k * x - 1.0);
-		return sin(a) / a;
+		return functions::sin(a) / a;
 	}
 
+	template<class T>
+	T sigmoid(T x) {
+		return static_cast<T>(1.0 / (1.0 + functions::exp(-x)));
+	}
+
+	template<class T>
+	T sigmoidFast(T x) {
+		if (x < 1.0 && x > -1.0) {
+			return static_cast<T>(x * (1.5 - 0.5 * x * x));
+		}
+		else {
+			return static_cast<T>(x > 0.0 ? 1.0 : -1.0);
+		}
+	}
 }
