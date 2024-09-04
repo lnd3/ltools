@@ -5,6 +5,7 @@ set(deps
 
 	logging
 	testing
+	math
 	tools
 )
 

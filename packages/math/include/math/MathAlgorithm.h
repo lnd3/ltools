@@ -12,15 +12,22 @@
 #include "logging/LoggingAll.h"
 #include <math.h>
 
-#include "physics/MathFunc.h"
+#include "math/MathFunc.h"
 
-namespace l {
-namespace algorithm {
+namespace l::math::algorithm {
 
 	uint64_t pairIndex32(uint32_t i, uint32_t j);
 	uint32_t pairIndex16(uint16_t i, uint16_t j);
 	uint32_t encodeFloat(const float newPos);
 	float decodeFloat(uint32_t ir);
+
+	template<class T, class U>
+	T convert(U data) {
+		const char* srcPtr = reinterpret_cast<const char*>(&data);
+		T dst;
+		memcpy(&dst, srcPtr, sizeof(T));
+		return dst;
+	}
 
 	template <class T>
 	bool samesign(T a, T b) {
@@ -150,5 +157,4 @@ namespace algorithm {
 		}
 
 	}
-}
 }

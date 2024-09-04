@@ -1,8 +1,8 @@
 
-#include "physics/Algorithm.h"
+#include "math/MathAlgorithm.h"
+#include "math/MathFunc.h"
 
-namespace l {
-namespace algorithm {
+namespace l::math::algorithm {
 
 	uint64_t pairIndex32(uint32_t i, uint32_t j) {
 		/// Make sure index is order invariant
@@ -45,5 +45,4 @@ namespace algorithm {
 
 		return convert<float>(rv);
 	}
-}
 }

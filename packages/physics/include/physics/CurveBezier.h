@@ -2,8 +2,6 @@
 
 #include <cmath>
 #include "VecX.h"
-#include "MathSmooth.h"
-
 
 namespace l {
 namespace curves {

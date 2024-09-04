@@ -1,7 +1,8 @@
 #include "physics/Integration.h"
 
 #include "physics/VecX.h"
-#include "physics/Algorithm.h"
+
+#include "math/MathAlgorithm.h"
 
 #include "testing/Test.h"
 
@@ -11,7 +12,7 @@ using namespace l;
 
 TEST(Integration, Bisect) {
 
-	double x = algorithm::bisect<double>(0.2, 5.0, EPSILON, 10, [](double x) -> double {
+	double x = math::algorithm::bisect<double>(0.2, 5.0, EPSILON, 10, [](double x) -> double {
 		return -1.0 + (x - 1.0) * (x - 1.0);
 		});
 

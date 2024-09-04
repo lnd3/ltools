@@ -5,6 +5,7 @@
 #include "physics/GridMap.h"
 #include "rendering/GeometryManip.h"
 #include "rendering/DataConversion.h"
+#include "math/MathAlgorithm.h"
 
 #include "ufbx/ufbx.h"
 #include "openfbx/src/ofbx.h"
@@ -327,7 +328,7 @@ namespace l {
 
             l::rendering::FindMergableIndices<3>(vertices2, 0.000001f, 
                 [&](uint32_t i, uint32_t j) {
-                    auto id = l::algorithm::pairIndex32(i, j);
+                    auto id = l::math::algorithm::pairIndex32(i, j);
                     verticePairs.emplace(id);
                 });
 

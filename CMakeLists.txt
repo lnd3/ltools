@@ -23,6 +23,7 @@ else()
 		testing
 		meta
 		memory
+		math
 		hid
 		audio
 		nodegraph

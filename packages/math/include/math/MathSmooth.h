@@ -6,8 +6,7 @@
 #include <optional>
 #include <string>
 
-namespace l {
-namespace algorithm {
+namespace l::math::smooth {
 
 	// Quintic Polynomial - C2 continuity
 	template <class V>
@@ -49,5 +48,4 @@ namespace algorithm {
 		return x * x * x / (3.0 * x * x - 3.0 * x + 1.0);
 	}
 
-}
 }

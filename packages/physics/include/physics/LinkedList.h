@@ -6,7 +6,7 @@
 #include <vector>
 #include <unordered_map>
 
-#include "Algorithm.h"
+#include "math/MathAlgorithm.h"
 
 namespace l::physics {
 
@@ -96,7 +96,7 @@ public:
         LinkedElement<T> e;
         e.mData = id;
 
-        uint32_t index = algorithm::binary_search(mElements, e, fromIndex - 10, fromIndex + 10);
+        uint32_t index = math::algorithm::binary_search(mElements, e, fromIndex - 10, fromIndex + 10);
 
         while (fromIndex < mElementsSize && mElements.at(fromIndex).mId != id) {
             fromIndex++;

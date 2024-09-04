@@ -7,10 +7,24 @@
 #include <string>
 #include <algorithm>
 
-#include "physics/Constants.h"
+#include "math/MathConstants.h"
 
-namespace l {
-namespace algorithm {
+namespace l::math::functions {
+
+	template<class T>
+	T min(T val1, T val2) {
+		return val1 < val2 ? val1 : val2;
+	}
+
+	template<class T>
+	T max(T val1, T val2) {
+		return val1 > val2 ? val1 : val2;
+	}
+
+	template<class T>
+	T clamp(T val, T min, T max) {
+		return val < min ? min : val > max ? max : val;
+	}
 
 	template<class T>
 	T abs(T val) {
@@ -85,14 +99,6 @@ namespace algorithm {
 			}
 		}
 		return static_cast<T>(0);
-	}
-
-	template<class T, class U>
-	T convert(U data) {
-		const char* srcPtr = reinterpret_cast<const char*>(&data);
-		T dst;
-		memcpy(&dst, srcPtr, sizeof(T));
-		return dst;
 	}
 
 	// Almost Identity(I)
@@ -217,9 +223,8 @@ namespace algorithm {
 	template<class T>
 	T sinc(T x, T k)
 	{
-		const T a = l::constants::pi * (k * x - 1.0);
+		const T a = math::constants::PI * (k * x - 1.0);
 		return sin(a) / a;
 	}
 
-}
 }

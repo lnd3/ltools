@@ -3,7 +3,6 @@
 #include "logging/LoggingAll.h"
 #include "physics/GridMap.h"
 #include "physics/VecExt.h"
-#include "physics/Algorithm.h"
 #include "various/linmathext.h"
 
 #include <vector>
