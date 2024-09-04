@@ -38,6 +38,10 @@ namespace l::audio {
             mDacWriteReady.release();
         }
 
+        bool CanWrite() {
+            return mDacWriteReady.try_acquire();
+        }
+
         int32_t GetPartTotalSize() {
             return mDacFramesPerBufferPart * mNumChannels;
         }

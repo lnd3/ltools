@@ -142,7 +142,7 @@ namespace l::nodegraph {
             float phaseMod = mPhase + pMod;
             phaseMod -= l::math::functions::floor(phaseMod);
 
-            *output0++ = volume * sinf(3.141529f * (mPhase + phaseMod));
+            *output0++ = volume * sinf(l::math::constants::PI_f * (mPhase + phaseMod));
             *output1++ = 0.5f * phaseMod;
         }
     }

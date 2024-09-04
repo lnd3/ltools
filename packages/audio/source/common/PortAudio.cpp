@@ -146,7 +146,7 @@ namespace l::audio {
     }
 
     bool AudioStream::CanWrite() {
-        return mAudioStreamData.mDacWriteReady.try_acquire();
+        return mAudioStreamData.CanWrite();
     }
 
     void AudioStream::Write() {
