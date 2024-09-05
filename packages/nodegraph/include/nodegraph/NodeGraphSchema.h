@@ -39,6 +39,9 @@ namespace l::nodegraph {
             RegisterNodeType("Source", 4, "Keyboard");
             RegisterNodeType("Source", 5, "Time");
             RegisterNodeType("Source", 6, "Sine");
+            RegisterNodeType("Source", 7, "Sine FM");
+            RegisterNodeType("Source", 8, "Sine FM 2");
+            RegisterNodeType("Source", 9, "Sine FM 3");
             RegisterNodeType("Numeric", 50, "Add");
             RegisterNodeType("Numeric", 51, "Subtract");
             RegisterNodeType("Numeric", 52, "Negate");
@@ -46,6 +49,7 @@ namespace l::nodegraph {
             RegisterNodeType("Numeric", 54, "Integral");
             RegisterNodeType("Numeric", 55, "Multiply3");
             RegisterNodeType("Numeric", 56, "Multiply & Add");
+            RegisterNodeType("Numeric", 57, "Round");
             RegisterNodeType("Logic", 100, "And");
             RegisterNodeType("Logic", 101, "Or");
             RegisterNodeType("Logic", 102, "Xor");

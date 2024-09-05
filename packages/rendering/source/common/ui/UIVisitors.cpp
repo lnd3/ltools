@@ -399,7 +399,7 @@ namespace l::ui {
             auto& layoutArea = container.GetLayoutArea();
 
             ImVec2 pT = layoutArea.Transform(pCenter);
-            if (OverlapCircle(input.mCurPos, pT, size.x * layoutArea.mScale)) {
+            if (OverlapCircle(input.mCurPos, pT, 2.0f * size.x * layoutArea.mScale)) {
                 mDragging = true;
                 mLinkContainer = CreateContainer(mUIStorage, UIContainer_LinkFlag | UIContainer_DrawFlag, UIRenderType::LinkH);
                 container.Add(mLinkContainer);
@@ -410,7 +410,7 @@ namespace l::ui {
             ImVec2 pCenter = container.GetCoParent()->GetPosition();
             ImVec2 size = container.GetCoParent()->GetSize();
             ImVec2 pT = container.GetCoParent()->GetLayoutArea().Transform(pCenter);
-            if (OverlapCircle(input.mCurPos, pT, size.x * container.GetCoParent()->GetLayoutArea().mScale)) {
+            if (OverlapCircle(input.mCurPos, pT, 2.0f * size.x * container.GetCoParent()->GetLayoutArea().mScale)) {
                 mLinkContainer.mContainer = &container;
                 LinkHandler(mLinkContainer->GetCoParent()->GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), mLinkContainer->GetCoParent()->GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), false);
                 mDragging = true;
@@ -433,7 +433,7 @@ namespace l::ui {
 
             ImVec2 pT = layoutArea.Transform(pCenter);
 
-            if (OverlapCircle(input.mCurPos, pT, size.x * layoutArea.mScale)) {
+            if (OverlapCircle(input.mCurPos, pT, 2.0f * size.x * layoutArea.mScale)) {
                 if (LinkHandler(container.GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), container.GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), true)) {
                     mLinkContainer->SetNotification(UIContainer_LinkFlag);
                     mLinkContainer->SetCoParent(&container);

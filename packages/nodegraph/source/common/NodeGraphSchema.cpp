@@ -42,6 +42,15 @@ namespace l::nodegraph {
         case 6:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceSine>(OutputType::Default);
             break;
+        case 7:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceSineFM>(OutputType::Default);
+            break;
+        case 8:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceSineFM2>(OutputType::Default);
+            break;
+        case 9:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceSineFM3>(OutputType::Default);
+            break;
         case 50:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericAdd>(OutputType::Default);
             break;
@@ -62,6 +71,9 @@ namespace l::nodegraph {
             break;
         case 56:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericMultiplyAndAdd>(OutputType::Default);
+            break;
+        case 57:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericRound>(OutputType::Default);
             break;
         case 100:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalAnd>(OutputType::Default);

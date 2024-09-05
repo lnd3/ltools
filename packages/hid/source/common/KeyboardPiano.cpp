@@ -18,25 +18,25 @@ namespace l::hid {
 				if (keyCode == mKeyFunctions[KeyFunctionTypes::OCTAVE_DOWN]) {
 					noteHandler(0, false);
 					mOctave -= 1;
-					mOctave = mOctave < -5 ? -5 : mOctave;
-					mOctave = mOctave > 10 ? 10 : mOctave;
+					mOctave = mOctave < -15 ? -15 : mOctave;
+					mOctave = mOctave > 15 ? 15 : mOctave;
 				}
 				else if (keyCode == mKeyFunctions[KeyFunctionTypes::OCTAVE_UP]) {
 					noteHandler(0, false);
 					mOctave += 1;
-					mOctave = mOctave < -5 ? -5 : mOctave;
-					mOctave = mOctave > 10 ? 10 : mOctave;
+					mOctave = mOctave < -15 ? -15 : mOctave;
+					mOctave = mOctave > 15 ? 15 : mOctave;
 				}
 				else {
 					int32_t note = ConvertKeyCodeToNote(keyCode, mOctave);
-					if (note > 0) {
+					if (note > -INT_MIN) {
 						noteHandler(note, true);
 					}
 				}
 			}
 			if (releasedNow) {
 				int32_t note = ConvertKeyCodeToNote(keyCode, mOctave);
-				if (note > 0) {
+				if (note > -INT_MIN) {
 					noteHandler(note, false);
 				}
 			}
@@ -53,25 +53,25 @@ namespace l::hid {
 				if (keyCode == mKeyFunctions[KeyFunctionTypes::OCTAVE_DOWN]) {
 					mNotePlayer->NoteOff();
 					mOctave -= 1;
-					mOctave = mOctave < -5 ? -5 : mOctave;
-					mOctave = mOctave > 10 ? 10 : mOctave;
+					mOctave = mOctave < -15 ? -15 : mOctave;
+					mOctave = mOctave > 15 ? 15 : mOctave;
 				}
 				else if (keyCode == mKeyFunctions[KeyFunctionTypes::OCTAVE_UP]) {
 					mNotePlayer->NoteOff();
 					mOctave += 1;
-					mOctave = mOctave < -5 ? -5 : mOctave;
-					mOctave = mOctave > 10 ? 10 : mOctave;
+					mOctave = mOctave < -15 ? -15 : mOctave;
+					mOctave = mOctave > 15 ? 15 : mOctave;
 				}
 				else {
 					int32_t note = ConvertKeyCodeToNote(keyCode, mOctave);
-					if (note > 0) {
+					if (note > -INT_MIN) {
 						mNotePlayer->NoteOn(note);
 					}
 				}
 			}
 			if (releasedNow) {
 				int32_t note = ConvertKeyCodeToNote(keyCode, mOctave);
-				if (note > 0) {
+				if (note > -INT_MIN) {
 					mNotePlayer->NoteOff(note);
 				}
 			}
@@ -84,7 +84,7 @@ namespace l::hid {
 		if (key > 0) {
 			return key + octave * 12;
 		}
-		return 0;
+		return -INT_MIN;
 	}
 
 	int32_t KeyboardPiano::ConvertCharCodeToNote(int32_t charCode, int32_t octave) {
@@ -92,7 +92,7 @@ namespace l::hid {
 		if (key > 0) {
 			return key + octave * 12;
 		}
-		return 0;
+		return -INT_MIN;
 	}
 
 	void KeyboardPiano::MapKeyFunctions(KeyFunctionTypes function, int32_t keyCode) {

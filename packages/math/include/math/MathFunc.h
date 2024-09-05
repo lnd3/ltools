@@ -115,6 +115,30 @@ namespace l::math::functions {
 		}
 	}
 
+	template<class T>
+	T mod(T val, T mod) {
+		if constexpr (std::is_floating_point_v<T>) {
+			if constexpr (sizeof(T) == 4) {
+				return modff(val, mod);
+			}
+			else if constexpr (sizeof(T) == 8) {
+				return fmod(val, mod);
+			}
+		}
+	}
+
+	template<class T>
+	T round(T val) {
+		if constexpr (std::is_floating_point_v<T>) {
+			if constexpr (sizeof(T) == 4) {
+				return roundf(val);
+			}
+			else if constexpr (sizeof(T) == 8) {
+				return roundl(val);
+			}
+		}
+	}
+
 	// Almost Identity(I)
 	// Imagine you don't want to modify a signal unless it's drops to zero or close to it, in which case you want to replace the value with a small possitive constant.Then, rather than clamping the valueand introduce a discontinuity, you can smoothly blend the signal into the desired clipped value.So, let m be the threshold(anything above m stays unchanged), and n the value things will take when the signal is zero.Then, the following function does the soft clipping(in a cubic fashion):
 	template<class T>
