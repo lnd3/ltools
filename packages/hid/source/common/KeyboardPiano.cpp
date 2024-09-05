@@ -1,5 +1,7 @@
 #include "hid/KeyboardPiano.h"
 
+#include "math/MathConstants.h"
+
 #include <memory>
 
 namespace l::hid {
@@ -29,14 +31,14 @@ namespace l::hid {
 				}
 				else {
 					int32_t note = ConvertKeyCodeToNote(keyCode, mOctave);
-					if (note > -INT_MIN) {
+					if (note > -l::math::constants::INTMIN) {
 						noteHandler(note, true);
 					}
 				}
 			}
 			if (releasedNow) {
 				int32_t note = ConvertKeyCodeToNote(keyCode, mOctave);
-				if (note > -INT_MIN) {
+				if (note > -l::math::constants::INTMIN) {
 					noteHandler(note, false);
 				}
 			}
@@ -64,14 +66,14 @@ namespace l::hid {
 				}
 				else {
 					int32_t note = ConvertKeyCodeToNote(keyCode, mOctave);
-					if (note > -INT_MIN) {
+					if (note > -l::math::constants::INTMIN) {
 						mNotePlayer->NoteOn(note);
 					}
 				}
 			}
 			if (releasedNow) {
 				int32_t note = ConvertKeyCodeToNote(keyCode, mOctave);
-				if (note > -INT_MIN) {
+				if (note > -l::math::constants::INTMIN) {
 					mNotePlayer->NoteOff(note);
 				}
 			}
@@ -84,7 +86,7 @@ namespace l::hid {
 		if (key > 0) {
 			return key + octave * 12;
 		}
-		return -INT_MIN;
+		return -l::math::constants::INTMIN;
 	}
 
 	int32_t KeyboardPiano::ConvertCharCodeToNote(int32_t charCode, int32_t octave) {
@@ -92,7 +94,7 @@ namespace l::hid {
 		if (key > 0) {
 			return key + octave * 12;
 		}
-		return -INT_MIN;
+		return -l::math::constants::INTMIN;
 	}
 
 	void KeyboardPiano::MapKeyFunctions(KeyFunctionTypes function, int32_t keyCode) {
