@@ -533,7 +533,7 @@ namespace l::nodegraph {
 
         for (int32_t i = 0; i < numSamples; i++) {
             output[mCurIndex] = *value++;
-            mCurIndex = ++mCurIndex % outputSize;
+            mCurIndex = (mCurIndex + 1) % outputSize;
         }
     }
 
