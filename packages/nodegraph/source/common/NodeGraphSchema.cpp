@@ -34,21 +34,18 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(OutputType::Default, 3);
             break;
         case 4:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceKeyboard, l::hid::KeyState>(OutputType::Default, 1, mKeyState);
-            break;
-        case 5:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceTime>(OutputType::Default);
             break;
-        case 6:
+        case 5:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceSine>(OutputType::Default);
             break;
-        case 7:
+        case 6:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceSineFM>(OutputType::Default);
             break;
-        case 8:
+        case 7:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceSineFM2>(OutputType::Default);
             break;
-        case 9:
+        case 8:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceSineFM3>(OutputType::Default);
             break;
         case 50:
@@ -114,6 +111,13 @@ namespace l::nodegraph {
         case 255:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectSaturator>(OutputType::Default);
             break;
+        case 300:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputKeyboardPiano, l::hid::KeyState>(OutputType::Default, 1, mKeyState);
+            break;
+        case 301:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidi, l::hid::KeyState>(OutputType::Default);
+            break;
+
         default:
             ASSERT(typeId < 10000) << "Custom node id's begin at id 1000";
             ASSERT(mCreateCustomNode != nullptr) << "Custom nodes needs a handler to create them. It's missing.";

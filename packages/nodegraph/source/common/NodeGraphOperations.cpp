@@ -336,78 +336,6 @@ namespace l::nodegraph {
             }
         );
     }
-    /*********************************************************************/
-    void GraphSourceKeyboard::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        for (size_t i = 0; i < inputs.size();i++) {
-            outputs.at(i).mOutput = inputs.at(i).Get();
-        }
-    }
-
-    void GraphSourceKeyboard::Tick(int32_t, float) {
-        mKeyboard.Update();
-    }
-
-    void GraphSourceKeyboard::Reset() {
-        for (int8_t i = 0; i < GetNumInputs(); i++) {
-            mNode->SetInput(i, 0.0f);
-        }
-    }
-
-    void GraphSourceKeyboard::NoteOn(int32_t note) {
-        float frequency = l::audio::GetFrequencyFromNote(static_cast<float>(note));
-        int8_t channel = GetNextNoteChannel(note);
-        mNode->SetInput(static_cast<int8_t>(channel), frequency);
-    }
-    void GraphSourceKeyboard::NoteOff() {
-        Reset();
-    }
-
-    void GraphSourceKeyboard::NoteOff(int32_t note) {
-        int8_t channel = ResetNoteChannel(note);
-        if (channel >= 0) {
-            mNode->SetInput(channel, 0.0f);
-        }
-    }
-
-    int8_t GraphSourceKeyboard::ResetNoteChannel(int32_t note) {
-        for (size_t i = 0; i < mChannel.size(); i++) {
-            if (mChannel.at(i).first == note) {
-                mChannel.at(i).second = 0;
-                return static_cast<int8_t>(i);
-            }
-        }
-        // It is possible to get a note off for a note not playing because the channel was taken for another newer note
-        return -1;
-    }
-
-    int8_t GraphSourceKeyboard::GetNextNoteChannel(int32_t note) {
-        for (size_t i = 0; i < mChannel.size(); i++) {
-            if (mChannel.at(i).first == note) {
-                mChannel.at(i).second = mNoteCounter++;
-                return static_cast<int8_t>(i);
-            }
-        }
-
-        for (size_t i = 0; i < mChannel.size(); i++) {
-            if (mChannel.at(i).first == 0) {
-                mChannel.at(i).first = note;
-                mChannel.at(i).second = mNoteCounter++;
-                return static_cast<int8_t>(i);
-            }
-        }
-
-        int32_t lowestCount = INT32_MAX;
-        int8_t lowestCountIndex = 0;
-        for (size_t i = 0; i < mChannel.size(); i++) {
-            if (lowestCount > mChannel.at(i).second) {
-                lowestCount = mChannel.at(i).second;
-                lowestCountIndex = static_cast<int8_t>(i);
-            }
-        }
-        mChannel.at(lowestCountIndex).first = note;
-        mChannel.at(lowestCountIndex).second = mNoteCounter++;
-        return lowestCountIndex;
-    }
 
     /* Stateful filtering operations */
 
@@ -941,4 +869,148 @@ namespace l::nodegraph {
         outputs.at(1).mOutput = dry * in1 + wet * inPreamp1;
     }
 
+    /*********************************************************************/
+    void GraphInputKeyboardPiano::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        for (size_t i = 0; i < inputs.size(); i++) {
+            outputs.at(i).mOutput = inputs.at(i).Get();
+        }
+    }
+
+    void GraphInputKeyboardPiano::Tick(int32_t, float) {
+        mKeyboard.Update();
+    }
+
+    void GraphInputKeyboardPiano::Reset() {
+        for (int8_t i = 0; i < GetNumInputs(); i++) {
+            mNode->SetInput(i, 0.0f);
+        }
+    }
+
+    void GraphInputKeyboardPiano::NoteOn(int32_t note) {
+        float frequency = l::audio::GetFrequencyFromNote(static_cast<float>(note));
+        int8_t channel = GetNextNoteChannel(note);
+        mNode->SetInput(static_cast<int8_t>(channel), frequency);
+    }
+    void GraphInputKeyboardPiano::NoteOff() {
+        Reset();
+    }
+
+    void GraphInputKeyboardPiano::NoteOff(int32_t note) {
+        int8_t channel = ResetNoteChannel(note);
+        if (channel >= 0) {
+            mNode->SetInput(channel, 0.0f);
+        }
+    }
+
+    int8_t GraphInputKeyboardPiano::ResetNoteChannel(int32_t note) {
+        for (size_t i = 0; i < mChannel.size(); i++) {
+            if (mChannel.at(i).first == note) {
+                mChannel.at(i).second = 0;
+                return static_cast<int8_t>(i);
+            }
+        }
+        // It is possible to get a note off for a note not playing because the channel was taken for another newer note
+        return -1;
+    }
+
+    int8_t GraphInputKeyboardPiano::GetNextNoteChannel(int32_t note) {
+        for (size_t i = 0; i < mChannel.size(); i++) {
+            if (mChannel.at(i).first == note) {
+                mChannel.at(i).second = mNoteCounter++;
+                return static_cast<int8_t>(i);
+            }
+        }
+
+        for (size_t i = 0; i < mChannel.size(); i++) {
+            if (mChannel.at(i).first == 0) {
+                mChannel.at(i).first = note;
+                mChannel.at(i).second = mNoteCounter++;
+                return static_cast<int8_t>(i);
+            }
+        }
+
+        int32_t lowestCount = INT32_MAX;
+        int8_t lowestCountIndex = 0;
+        for (size_t i = 0; i < mChannel.size(); i++) {
+            if (lowestCount > mChannel.at(i).second) {
+                lowestCount = mChannel.at(i).second;
+                lowestCountIndex = static_cast<int8_t>(i);
+            }
+        }
+        mChannel.at(lowestCountIndex).first = note;
+        mChannel.at(lowestCountIndex).second = mNoteCounter++;
+        return lowestCountIndex;
+    }
+
+    /*********************************************************************/
+    void GraphInputMidi::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        for (size_t i = 0; i < inputs.size(); i++) {
+            outputs.at(i).mOutput = inputs.at(i).Get();
+        }
+    }
+
+    void GraphInputMidi::Tick(int32_t, float) {
+    }
+
+    void GraphInputMidi::Reset() {
+        for (int8_t i = 0; i < GetNumInputs(); i++) {
+            mNode->SetInput(i, 0.0f);
+        }
+    }
+
+    void GraphInputMidi::NoteOn(int32_t note) {
+        float frequency = l::audio::GetFrequencyFromNote(static_cast<float>(note));
+        int8_t channel = GetNextNoteChannel(note);
+        mNode->SetInput(static_cast<int8_t>(channel), frequency);
+    }
+    void GraphInputMidi::NoteOff() {
+        Reset();
+    }
+
+    void GraphInputMidi::NoteOff(int32_t note) {
+        int8_t channel = ResetNoteChannel(note);
+        if (channel >= 0) {
+            mNode->SetInput(channel, 0.0f);
+        }
+    }
+
+    int8_t GraphInputMidi::ResetNoteChannel(int32_t note) {
+        for (size_t i = 0; i < mChannel.size(); i++) {
+            if (mChannel.at(i).first == note) {
+                mChannel.at(i).second = 0;
+                return static_cast<int8_t>(i);
+            }
+        }
+        // It is possible to get a note off for a note not playing because the channel was taken for another newer note
+        return -1;
+    }
+
+    int8_t GraphInputMidi::GetNextNoteChannel(int32_t note) {
+        for (size_t i = 0; i < mChannel.size(); i++) {
+            if (mChannel.at(i).first == note) {
+                mChannel.at(i).second = mNoteCounter++;
+                return static_cast<int8_t>(i);
+            }
+        }
+
+        for (size_t i = 0; i < mChannel.size(); i++) {
+            if (mChannel.at(i).first == 0) {
+                mChannel.at(i).first = note;
+                mChannel.at(i).second = mNoteCounter++;
+                return static_cast<int8_t>(i);
+            }
+        }
+
+        int32_t lowestCount = INT32_MAX;
+        int8_t lowestCountIndex = 0;
+        for (size_t i = 0; i < mChannel.size(); i++) {
+            if (lowestCount > mChannel.at(i).second) {
+                lowestCount = mChannel.at(i).second;
+                lowestCountIndex = static_cast<int8_t>(i);
+            }
+        }
+        mChannel.at(lowestCountIndex).first = note;
+        mChannel.at(lowestCountIndex).second = mNoteCounter++;
+        return lowestCountIndex;
+    }
 }

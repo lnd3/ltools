@@ -36,12 +36,11 @@ namespace l::nodegraph {
             RegisterNodeType("Source", 1, "Value [-1,1]");
             RegisterNodeType("Source", 2, "Value [0,100]");
             RegisterNodeType("Source", 3, "Value [-inf,inf]");
-            RegisterNodeType("Source", 4, "Keyboard");
-            RegisterNodeType("Source", 5, "Time");
-            RegisterNodeType("Source", 6, "Sine");
-            RegisterNodeType("Source", 7, "Sine FM");
-            RegisterNodeType("Source", 8, "Sine FM 2");
-            RegisterNodeType("Source", 9, "Sine FM 3");
+            RegisterNodeType("Source", 4, "Time");
+            RegisterNodeType("Source", 5, "Sine");
+            RegisterNodeType("Source", 6, "Sine FM");
+            RegisterNodeType("Source", 7, "Sine FM 2");
+            RegisterNodeType("Source", 8, "Sine FM 3");
             RegisterNodeType("Numeric", 50, "Add");
             RegisterNodeType("Numeric", 51, "Subtract");
             RegisterNodeType("Numeric", 52, "Negate");
@@ -63,6 +62,7 @@ namespace l::nodegraph {
             RegisterNodeType("Effect", 253, "Limiter");
             RegisterNodeType("Effect", 254, "Envelope Follower");
             RegisterNodeType("Effect", 255, "Saturator");
+            RegisterNodeType("Input", 300, "Keyboard");
         }
 
         ~NodeGraphSchema() = default;

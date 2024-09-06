@@ -139,6 +139,8 @@ namespace l::math::functions {
 		}
 	}
 
+	// source https://iquilezles.org/articles/functions/
+
 	// Almost Identity(I)
 	// Imagine you don't want to modify a signal unless it's drops to zero or close to it, in which case you want to replace the value with a small possitive constant.Then, rather than clamping the valueand introduce a discontinuity, you can smoothly blend the signal into the desired clipped value.So, let m be the threshold(anything above m stays unchanged), and n the value things will take when the signal is zero.Then, the following function does the soft clipping(in a cubic fashion):
 	template<class T>
@@ -266,8 +268,8 @@ namespace l::math::functions {
 	}
 
 	template<class T>
-	T sigmoid(T x) {
-		return static_cast<T>(1.0 / (1.0 + functions::exp(-x)));
+	T sigmoid(T x, T k) {
+		return static_cast<T>(1.0 / (1.0 + functions::exp(-x * k)));
 	}
 
 	template<class T>

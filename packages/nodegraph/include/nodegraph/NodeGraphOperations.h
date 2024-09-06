@@ -239,43 +239,6 @@ namespace l::nodegraph {
         double mPhase = 0.0;
         float mSamplesUntilUpdate = 0.0f;
     };
-    /*********************************************************************/
-    class GraphSourceKeyboard : public NodeGraphOp, public l::hid::INoteProcessor {
-    public:
-        GraphSourceKeyboard(NodeGraphBase* node, int32_t polyphony, l::hid::KeyState* keyState) :
-            NodeGraphOp(node, 0, polyphony, polyphony)
-        {
-            mChannel.resize(polyphony);
-            mKeyboard.SetKeyState(keyState);
-            mKeyboard.SetNoteProcessor(this);
-        }
-
-        std::string defaultOutStrings[8] = { "Note 1", "Note 2", "Note 3", "Note 4", "Note 5", "Note 6", "Note 7", "Note 8" };
-
-        virtual ~GraphSourceKeyboard() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        virtual void Tick(int32_t tickCount, float elapsed) override;
-        virtual void Reset() override;
-        virtual std::string_view GetOutputName(int8_t outputChannel) override {
-            return defaultOutStrings[outputChannel];
-        }
-        virtual std::string_view GetName() override {
-            return "Keyboard";
-        }
-        virtual bool IsDataVisible(int8_t) override {
-            return true;
-        }
-        virtual void NoteOn(int32_t note) override;
-        virtual void NoteOff() override;
-        virtual void NoteOff(int32_t note) override;
-    protected:
-        int8_t ResetNoteChannel(int32_t note);
-        int8_t GetNextNoteChannel(int32_t note);
-
-        int8_t mNoteCounter = 0;
-        std::vector<std::pair<int32_t, int32_t>> mChannel;
-        l::hid::KeyboardPiano mKeyboard;
-    };
 
     /*********************************************************************/
     class GraphNumericAdd : public NodeGraphOp {
@@ -844,5 +807,78 @@ namespace l::nodegraph {
     protected:
         float mEnvelope = 0.0f;
     };
+
+    /*********************************************************************/
+    class GraphInputKeyboardPiano : public NodeGraphOp, public l::hid::INoteProcessor {
+    public:
+        GraphInputKeyboardPiano(NodeGraphBase* node, int32_t polyphony, l::hid::KeyState* keyState) :
+            NodeGraphOp(node, 0, polyphony, polyphony)
+        {
+            mChannel.resize(polyphony);
+            mKeyboard.SetKeyState(keyState);
+            mKeyboard.SetNoteProcessor(this);
+        }
+
+        std::string defaultOutStrings[8] = { "Note 1", "Note 2", "Note 3", "Note 4", "Note 5", "Note 6", "Note 7", "Note 8" };
+
+        virtual ~GraphInputKeyboardPiano() = default;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Tick(int32_t tickCount, float elapsed) override;
+        virtual void Reset() override;
+        virtual std::string_view GetOutputName(int8_t outputChannel) override {
+            return defaultOutStrings[outputChannel];
+        }
+        virtual std::string_view GetName() override {
+            return "Keyboard";
+        }
+        virtual bool IsDataVisible(int8_t) override {
+            return true;
+        }
+        virtual void NoteOn(int32_t note) override;
+        virtual void NoteOff() override;
+        virtual void NoteOff(int32_t note) override;
+    protected:
+        int8_t ResetNoteChannel(int32_t note);
+        int8_t GetNextNoteChannel(int32_t note);
+
+        int8_t mNoteCounter = 0;
+        std::vector<std::pair<int32_t, int32_t>> mChannel;
+        l::hid::KeyboardPiano mKeyboard;
+    };
+
+    /*********************************************************************/
+    class GraphInputMidi : public NodeGraphOp, public l::hid::INoteProcessor {
+    public:
+        GraphInputMidi(NodeGraphBase* node) :
+            NodeGraphOp(node, 0)
+        {
+        }
+
+        std::string defaultOutStrings[1] = { "In 1" };
+
+        virtual ~GraphInputMidi() = default;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Tick(int32_t tickCount, float elapsed) override;
+        virtual void Reset() override;
+        virtual std::string_view GetOutputName(int8_t outputChannel) override {
+            return defaultOutStrings[outputChannel];
+        }
+        virtual std::string_view GetName() override {
+            return "Midi Device";
+        }
+        virtual bool IsDataVisible(int8_t) override {
+            return true;
+        }
+        virtual void NoteOn(int32_t note) override;
+        virtual void NoteOff() override;
+        virtual void NoteOff(int32_t note) override;
+    protected:
+        int8_t ResetNoteChannel(int32_t note);
+        int8_t GetNextNoteChannel(int32_t note);
+
+        int8_t mNoteCounter = 0;
+        std::vector<std::pair<int32_t, int32_t>> mChannel;
+    };
+
 }
 

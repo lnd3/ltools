@@ -7,6 +7,7 @@
 #include <string>
 
 namespace l::math::smooth {
+	// source https://iquilezles.org/articles/smoothsteps/
 
 	// Quintic Polynomial - C2 continuity
 	template <class V>
