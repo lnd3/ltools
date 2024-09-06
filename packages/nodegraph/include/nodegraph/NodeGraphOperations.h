@@ -602,6 +602,31 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
+    class GraphOutputPlot : public NodeGraphOp {
+    public:
+        std::string defaultInStrings[2] = { "Plot", "Smooth" };
+        GraphOutputPlot(NodeGraphBase* node, int32_t plotSamples) :
+            NodeGraphOp(node, 1, 1, 0),
+            mPlotSamples(plotSamples)
+        {
+            mNode->GetOutput(0, mPlotSamples);
+        }
+        virtual ~GraphOutputPlot() = default;
+
+        virtual void Reset() override;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual std::string_view GetOutputName(int8_t outputChannel) override {
+            return defaultInStrings[outputChannel];
+        }
+        virtual std::string_view GetName() override {
+            return "Plot";
+        }
+    protected:
+        int32_t mPlotSamples = 50;
+        int32_t mCurIndex = 0;
+    };
+
+    /*********************************************************************/
     class GraphEffectReverb1 : public NodeGraphOp {
     public:
         std::string defaultInStrings[11] = { "In 1", "In 2", "Mix", "Attenuation", "Room Size", "Delay 1", "Feedback 1", "Delay 2", "Feedback 2", "Delay 3", "Feedback 3" };

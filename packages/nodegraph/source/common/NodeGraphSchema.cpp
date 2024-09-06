@@ -93,6 +93,9 @@ namespace l::nodegraph {
         case 201:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputSpeaker>(OutputType::ExternalOutput, mAudioOutput);
             break;
+        case 202:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputPlot>(OutputType::ExternalVisualOutput, 100);
+            break;
         case 250:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterEnvelope>(OutputType::Default);
             break;

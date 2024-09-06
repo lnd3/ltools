@@ -38,22 +38,40 @@ namespace l::nodegraph {
         INPUT_CUSTOM,
     };
 
+    enum class OutputType {
+        Default, // node will be processed if it is connected to the groups output by some route
+        ExternalOutput, // node does not have meaningful output for other nodes but should still be processed (ex speaker output only has input)
+        ExternalVisualOutput,
+    };
+
     bool IsValidInOutNum(int8_t inoutNum, size_t inoutSize);
 
     struct NodeGraphOutput {
         float mOutput = 0.0f;
-        std::vector<float> mOutputBuf;
-        std::string mName;
+        std::unique_ptr<std::vector<float>> mOutputBuf = nullptr;
+        std::unique_ptr<std::string> mName = nullptr;
 
-        float& GetOutput(int32_t numSamples) {
-            if(numSamples <= 1) {
-                return mOutput;
+        float& GetOutput(int32_t numSamples = 1) {
+            if (!mOutputBuf) {
+                if (numSamples <= 1) {
+                    return mOutput;
+                }
+                else {
+                    mOutputBuf = std::make_unique<std::vector<float>>();
+                }
+            }
+            if (static_cast<int32_t>(mOutputBuf->size()) < numSamples) {
+                mOutputBuf->resize(numSamples);
+            }
+            return *mOutputBuf->data();
+        }
+
+        int32_t GetOutputSize() {
+            if (!mOutputBuf) {
+                return 1;
             }
             else {
-                if (static_cast<int32_t>(mOutputBuf.size()) < numSamples) {
-                    mOutputBuf.resize(numSamples);
-                }
-                return *mOutputBuf.data();
+                return static_cast<int32_t>(mOutputBuf->size());
             }
         }
 
@@ -79,16 +97,17 @@ namespace l::nodegraph {
         InputBound mInputBound = InputBound::INPUT_UNBOUNDED;
 
         int8_t mInputFromOutputChannel = 0;
-        std::string mName;
+        std::unique_ptr<std::string> mName;
 
         void Reset();
         bool HasInput();
         float Get();
+        float& Get(int32_t numSamples);
     };
 
     class NodeGraphBase {
     public:
-        NodeGraphBase() : mId(CreateUniqueId()) {
+        NodeGraphBase(OutputType outputType) : mId(CreateUniqueId()), mOutputType(outputType) {
             mInputs.resize(1);
             mOutputs.resize(1);
         }
@@ -111,8 +130,10 @@ namespace l::nodegraph {
         virtual int8_t GetNumOutputs();
         virtual int8_t GetNumConstants();
 
-        virtual float& GetOutput(int8_t outputChannel);
+        virtual float& GetOutput(int8_t outputChannel, int32_t numSamples = 1);
         virtual float GetInput(int8_t inputChannel);
+
+        virtual int32_t GetOutputSize(int8_t outputChannel);
 
         virtual std::string_view GetName();
         virtual std::string_view GetInputName(int8_t inputChannel);
@@ -132,6 +153,7 @@ namespace l::nodegraph {
 
         virtual bool IsDataVisible(int8_t num);
         virtual bool IsDataEditable(int8_t num);
+        virtual OutputType GetOutputType();
 
     protected:
         virtual void ProcessOperation(int32_t numSamples = 1);
@@ -142,6 +164,8 @@ namespace l::nodegraph {
         std::vector<NodeGraphOutput> mOutputs;
 
         int32_t mId = -1;
+        OutputType mOutputType;
+
         std::string mName;
         int8_t mInputCount = 0;
         int8_t mConstantCount = 0;
@@ -197,8 +221,8 @@ namespace l::nodegraph {
     template<class T, class... Params>
     class NodeGraph : public NodeGraphBase {
     public:
-        NodeGraph(Params&&... params) :
-            NodeGraphBase(), 
+        NodeGraph(OutputType outputType = OutputType::Default, Params&&... params) :
+            NodeGraphBase(outputType),
             mOperation(this, std::forward<Params>(params)...)
         {
             SetNumInputs(mOperation.GetNumInputs());
@@ -259,16 +283,16 @@ namespace l::nodegraph {
 
         virtual std::string_view GetInputName(int8_t inputChannel) {
             auto& customName = mInputs.at(inputChannel).mName;
-            if (!customName.empty()) {
-                return customName;
+            if (customName && !customName->empty()) {
+                return *customName;
             }
             return mOperation.GetInputName(inputChannel);
         }
 
         virtual std::string_view GetOutputName(int8_t outputChannel) {
             auto& customName = mOutputs.at(outputChannel).mName;
-            if (!customName.empty()) {
-                return customName;
+            if (customName && !customName->empty()) {
+                return *customName;
             }
             return mOperation.GetOutputName(outputChannel);
         }
@@ -281,14 +305,12 @@ namespace l::nodegraph {
         T mOperation;
     };
 
-    enum class OutputType {
-        Default, // node will be processed if it is connected to the groups output by some route
-        ExternalOutput, // node does not have meaningful output for other nodes but should still be processed (ex speaker output only has input)
-    };
-
     class NodeGraphGroup {
     public:
-        NodeGraphGroup() {
+        NodeGraphGroup() :
+            mInputNode(OutputType::Default),
+            mOutputNode(OutputType::Default)
+        {
             SetNumInputs(1);
             SetNumOutputs(1);
             mOutputNodes.push_back(&mOutputNode);
@@ -322,9 +344,9 @@ namespace l::nodegraph {
 
         template<class T, class = std::enable_if_t<std::is_base_of_v<NodeGraphOp, T>>, class... Params>
         l::nodegraph::NodeGraphBase* NewNode(OutputType nodeType, Params&&... params) {
-            mNodes.push_back(std::make_unique<l::nodegraph::NodeGraph<T, Params...>>(std::forward<Params>(params)...));
+            mNodes.push_back(std::make_unique<l::nodegraph::NodeGraph<T, Params...>>(nodeType, std::forward<Params>(params)...));
             auto nodePtr = mNodes.back().get();
-            if (nodeType == OutputType::ExternalOutput) {
+            if (nodeType == OutputType::ExternalOutput || nodeType == OutputType::ExternalVisualOutput) {
                 mOutputNodes.push_back(nodePtr);
             }
             return nodePtr;

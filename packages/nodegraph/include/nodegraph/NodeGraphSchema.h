@@ -56,9 +56,10 @@ namespace l::nodegraph {
             RegisterNodeType("Filter", 150, "Lowpass");
             RegisterNodeType("Output", 200, "Debug");
             RegisterNodeType("Output", 201, "Speaker");
+            RegisterNodeType("Output", 202, "Plot");
             RegisterNodeType("Effect", 250, "Envelope");
             RegisterNodeType("Effect", 251, "Reverb1");
-            RegisterNodeType("Effect", 252, "Reverb2");
+            //RegisterNodeType("Effect", 252, "Reverb2");
             RegisterNodeType("Effect", 253, "Limiter");
             RegisterNodeType("Effect", 254, "Envelope Follower");
             RegisterNodeType("Effect", 255, "Saturator");

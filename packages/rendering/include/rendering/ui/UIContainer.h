@@ -54,6 +54,7 @@ namespace l::ui {
         Text = 9,
         Texture = 10,
         NodeOutputValue = 11,
+        NodeOutputGraph = 12,
     };
 
     enum class UITraversalMode {

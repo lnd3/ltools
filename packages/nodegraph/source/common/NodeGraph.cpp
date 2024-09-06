@@ -91,8 +91,12 @@ namespace l::nodegraph {
         mLastTickCount = tickCount;
     }
 
-    float& NodeGraphBase::GetOutput(int8_t outputChannel) {
-        return mOutputs.at(outputChannel).mOutput;
+    float& NodeGraphBase::GetOutput(int8_t outputChannel, int32_t numSamples) {
+        return mOutputs.at(outputChannel).GetOutput(numSamples);
+    }
+
+    int32_t NodeGraphBase::GetOutputSize(int8_t outputChannel) {
+        return mOutputs.at(outputChannel).GetOutputSize();
     }
 
     float NodeGraphBase::GetInput(int8_t inputChannel) {
@@ -144,7 +148,7 @@ namespace l::nodegraph {
                 return false;
             }
             input.mInput.mInputNode = &source.GetInputNode();
-            source.GetInputNode().SetInputName(sourceChannel, input.mName);
+            source.GetInputNode().SetInputName(sourceChannel, *input.mName);
         }
         else {
             if (!IsValidInOutNum(sourceChannel, source.GetOutputNode().GetNumOutputs()) ||
@@ -239,24 +243,44 @@ namespace l::nodegraph {
         return false;
     }
 
+    OutputType NodeGraphBase::GetOutputType() {
+        return mOutputType;
+    }
+
     std::string_view NodeGraphBase::GetName() {
         return mName;
     }
 
     std::string_view NodeGraphBase::GetInputName(int8_t inputChannel) {
-        return mInputs.at(inputChannel).mName;
+        if (!mInputs.at(inputChannel).mName) {
+            return "";
+        }
+        return *mInputs.at(inputChannel).mName;
     }
 
     std::string_view NodeGraphBase::GetOutputName(int8_t outputChannel) {
-        return mOutputs.at(outputChannel).mName;
+        if (!mOutputs.at(outputChannel).mName) {
+            return "";
+        }
+        return *mOutputs.at(outputChannel).mName;
     }
 
     void NodeGraphBase::SetInputName(int8_t inputChannel, std::string_view name) {
-        mInputs.at(inputChannel).mName = name;
+        if (!mInputs.at(inputChannel).mName) {
+            mInputs.at(inputChannel).mName = std::make_unique<std::string>(name);
+        }
+        else {
+            *mInputs.at(inputChannel).mName = name;
+        }
     }
 
     void NodeGraphBase::SetOutputName(int8_t outputChannel, std::string_view name) {
-        mOutputs.at(outputChannel).mName = name;
+        if (!mOutputs.at(outputChannel).mName) {
+            mOutputs.at(outputChannel).mName = std::make_unique<std::string>(name);
+        }
+        else {
+            *mOutputs.at(outputChannel).mName = name;
+        }
     }
 
 
@@ -353,6 +377,23 @@ namespace l::nodegraph {
             break;
         }
         return l::math::functions::clamp(value, mBoundMin, mBoundMax);
+    }
+
+    float& NodeGraphInput::Get(int32_t numSamples) {
+        switch (mInputType) {
+        case InputType::INPUT_NODE:
+            if (mInput.mInputNode != nullptr) {
+                return mInput.mInputNode->GetOutput(mInputFromOutputChannel, numSamples);
+            }
+            break;
+        case InputType::INPUT_CONSTANT:
+            return mInput.mInputFloatConstant;
+        case InputType::INPUT_VALUE:
+            return *mInput.mInputFloat;
+        case InputType::INPUT_EMPTY:
+            break;
+        }
+        return mInput.mInputFloatConstant;
     }
 
     void NodeGraphGroup::SetNumInputs(int8_t numInputs) {

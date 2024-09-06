@@ -351,6 +351,27 @@ namespace l::ui {
                 mDrawList->AddText(ImGui::GetDefaultFont(), 13.0f * container.GetScale() * layoutArea.mScale, p1, color, nodeString.c_str());
             }
             break;
+        case l::ui::UIRenderType::NodeOutputGraph:
+            if (mNGSchema) {
+                auto node = mNGSchema->GetNode(container.GetNodeId());
+                if (container.GetChannelId() < node->GetNumOutputs()) {
+                    int8_t channel = static_cast<int8_t>(container.GetChannelId());
+                    float* nodeValues = &node->GetOutput(channel);
+                    int32_t nodeValueCount = node->GetOutputSize(channel);
+                    ImVec2 size = container.GetSize();
+                    size.x *= layoutArea.mScale;
+                    size.y *= layoutArea.mScale;
+                    ImVec2 startPos = ImVec2(p1.x, p1.y + 0.5f * size.y);
+                    for (size_t i = 0; i < nodeValueCount - 1; i++) {
+                        float xpart1 = i / static_cast<float>(nodeValueCount);
+                        float xpart2 = (i+1) / static_cast<float>(nodeValueCount);
+                        ImVec2 graphP1 = ImVec2(startPos.x + size.x * xpart1, startPos.y + 0.5f * nodeValues[i] * size.y);
+                        ImVec2 graphP2 = ImVec2(startPos.x + size.x * xpart2, startPos.y + 0.5f * nodeValues[i] * size.y);
+                        mDrawList->AddLine(graphP1, graphP2, color, 2.0f * container.GetScale());
+                    }
+                }
+            }
+            break;
         }
 
         if (mDebug && !container.GetStringId().empty()) {
