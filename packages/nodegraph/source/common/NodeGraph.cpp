@@ -148,7 +148,7 @@ namespace l::nodegraph {
                 return false;
             }
             input.mInput.mInputNode = &source.GetInputNode();
-            source.GetInputNode().SetInputName(sourceChannel, *input.mName);
+            source.GetInputNode().SetInputName(sourceChannel, input.mName ? *input.mName : "");
         }
         else {
             if (!IsValidInOutNum(sourceChannel, source.GetOutputNode().GetNumOutputs()) ||
