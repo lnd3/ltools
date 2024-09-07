@@ -48,8 +48,8 @@ TEST(PortAudio, Setup) {
                 float phaseMod = mPhase + pMod;
                 phaseMod -= floorf(phaseMod);
 
-                buffer.at(2 * i + 0) = 0.5f * sinf(3.141529f * (mPhase + phaseMod));
-                buffer.at(2 * i + 1) = 0.5f * sinf(3.141529f * (mPhase + phaseMod));
+                buffer.at(2 * i + 0) = 0.015f * sinf(3.141529f * (mPhase + phaseMod));
+                buffer.at(2 * i + 1) = 0.015f * sinf(3.141529f * (mPhase + phaseMod));
             }
             stream->Write();
         }
