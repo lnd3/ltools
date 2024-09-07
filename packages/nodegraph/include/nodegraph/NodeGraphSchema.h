@@ -5,6 +5,8 @@
 #include "nodegraph/NodeGraph.h"
 #include "nodegraph/NodeGraphOperations.h"
 
+#include "hid/Midi.h"
+
 #include <string>
 #include <vector>
 #include <map>
@@ -62,7 +64,9 @@ namespace l::nodegraph {
             RegisterNodeType("Effect", 253, "Limiter");
             RegisterNodeType("Effect", 254, "Envelope Follower");
             RegisterNodeType("Effect", 255, "Saturator");
-            RegisterNodeType("Input", 300, "Keyboard");
+            RegisterNodeType("Input", 300, "Keyboard Piano");
+            RegisterNodeType("Input", 301, "Midi Keyboard");
+            RegisterNodeType("Input", 302, "Midi Knobs");
         }
 
         ~NodeGraphSchema() = default;
@@ -70,6 +74,7 @@ namespace l::nodegraph {
         void SetCustomCreator(std::function<CustomCreateFunctionType> customCreator);
         void SetKeyState(l::hid::KeyState* keyState);
         void SetAudioOutput(l::audio::AudioStream* audioStream);
+        void SetMidiManager(l::hid::midi::MidiManager* midiManager);
 
         int32_t NewNode(int32_t typeId);
         bool RemoveNode(int32_t nodeId);
@@ -90,6 +95,7 @@ namespace l::nodegraph {
         std::function<CustomCreateFunctionType> mCreateCustomNode;
         l::hid::KeyState* mKeyState;
         l::audio::AudioStream* mAudioOutput;
+        l::hid::midi::MidiManager* mMidiManager;
 
         std::map<std::string, std::vector<UINodeDesc>> mRegisteredNodeTypes;
     };

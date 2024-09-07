@@ -2,8 +2,12 @@
 #include "nodegraph/NodeGraph.h"
 
 #include "logging/LoggingAll.h"
+
 #include "hid/KeyboardPiano.h"
+#include "hid/Midi.h"
+
 #include "audio/PortAudio.h"
+
 #include "math/MathFunc.h"
 
 #include <string>
@@ -70,6 +74,8 @@ namespace l::nodegraph {
         virtual std::string_view GetName() override {
             return "Time";
         }
+        virtual bool IsDataVisible(int8_t) override { return true; }
+        virtual bool IsDataEditable(int8_t) override { return true; }
     protected:
         float mAudioTime = 0.0f;
         float mFrameTime = 0.0f;
@@ -253,6 +259,8 @@ namespace l::nodegraph {
         virtual std::string_view GetName() override {
             return "Add";
         }
+        virtual bool IsDataVisible(int8_t) override { return true; }
+        virtual bool IsDataEditable(int8_t) override { return true; }
     };
 
     /*********************************************************************/
@@ -269,6 +277,8 @@ namespace l::nodegraph {
         virtual std::string_view GetName() override {
             return "Multiply";
         }
+        virtual bool IsDataVisible(int8_t) override { return true; }
+        virtual bool IsDataEditable(int8_t) override { return true; }
     };
 
     /*********************************************************************/
@@ -284,6 +294,8 @@ namespace l::nodegraph {
         virtual std::string_view GetName() override {
             return "Subtract";
         }
+        virtual bool IsDataVisible(int8_t) override { return true; }
+        virtual bool IsDataEditable(int8_t) override { return true; }
     };
 
     /*********************************************************************/
@@ -300,6 +312,8 @@ namespace l::nodegraph {
         virtual std::string_view GetName() override {
             return "Negate";
         }
+        virtual bool IsDataVisible(int8_t) override { return true; }
+        virtual bool IsDataEditable(int8_t) override { return true; }
     };
 
     /*********************************************************************/
@@ -321,7 +335,8 @@ namespace l::nodegraph {
         virtual std::string_view GetName() override {
             return "Integral";
         }
-
+        virtual bool IsDataVisible(int8_t) override { return true; }
+        virtual bool IsDataEditable(int8_t) override { return true; }
     protected:
         float mOutput = 0.0f;
     };
@@ -340,6 +355,8 @@ namespace l::nodegraph {
         virtual std::string_view GetName() override {
             return "Multiply3";
         }
+        virtual bool IsDataVisible(int8_t) override { return true; }
+        virtual bool IsDataEditable(int8_t) override { return true; }
     };
 
     /*********************************************************************/
@@ -362,6 +379,8 @@ namespace l::nodegraph {
         virtual std::string_view GetInputName(int8_t inputChannel) {
             return defaultInStrings[inputChannel];
         }
+        virtual bool IsDataVisible(int8_t) override { return true; }
+        virtual bool IsDataEditable(int8_t) override { return true; }
     };
 
     /*********************************************************************/
@@ -377,6 +396,8 @@ namespace l::nodegraph {
         virtual std::string_view GetName() override {
             return "Round";
         }
+        virtual bool IsDataVisible(int8_t) override { return true; }
+        virtual bool IsDataEditable(int8_t) override { return true; }
     };
 
     /* Logical operations */
@@ -397,6 +418,8 @@ namespace l::nodegraph {
         std::string_view GetName() override {
             return "And";
         }
+        virtual bool IsDataVisible(int8_t) override { return true; }
+        virtual bool IsDataEditable(int8_t) override { return true; }
     };
 
     /*********************************************************************/
@@ -415,6 +438,8 @@ namespace l::nodegraph {
         std::string_view GetName() override {
             return "Or";
         }
+        virtual bool IsDataVisible(int8_t) override { return true; }
+        virtual bool IsDataEditable(int8_t) override { return true; }
     };
 
     /*********************************************************************/
@@ -433,6 +458,8 @@ namespace l::nodegraph {
         virtual std::string_view GetName() override {
             return "Xor";
         }
+        virtual bool IsDataVisible(int8_t) override { return true; }
+        virtual bool IsDataEditable(int8_t) override { return true; }
     };
 
     /* Stateful filtering operations */
@@ -471,11 +498,11 @@ namespace l::nodegraph {
     /*********************************************************************/
     class GraphFilterEnvelope : public NodeGraphOp {
     public:
-        std::string defaultInStrings[5] = { "Note", "Attack", "Release", "Fade"};
+        std::string defaultInStrings[5] = { "Note", "Velocity", "Attack", "Release", "Fade"};
         std::string defaultOutStrings[2] = { "Note", "Volume"};
 
         GraphFilterEnvelope(NodeGraphBase* node) :
-            NodeGraphOp(node, 4, 2)
+            NodeGraphOp(node, 5, 2)
         {}
 
         virtual ~GraphFilterEnvelope() = default;
@@ -847,18 +874,23 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphInputMidi : public NodeGraphOp, public l::hid::INoteProcessor {
+    class GraphInputMidiKeyboard : public NodeGraphOp {
     public:
-        GraphInputMidi(NodeGraphBase* node) :
-            NodeGraphOp(node, 0)
+        GraphInputMidiKeyboard(NodeGraphBase* node, l::hid::midi::MidiManager* midiManager) :
+            NodeGraphOp(node, 0, 2, 2),
+            mMidiManager(midiManager)
         {
+            mChannel.resize(1);
+
+            mMidiManager->RegisterCallback([&](l::hid::midi::MidiData data) {
+                MidiEvent(data);
+                });
         }
 
-        std::string defaultOutStrings[1] = { "In 1" };
+        std::string defaultOutStrings[2] = { "Note", "Velocity"};
 
-        virtual ~GraphInputMidi() = default;
+        virtual ~GraphInputMidiKeyboard() = default;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        virtual void Tick(int32_t tickCount, float elapsed) override;
         virtual void Reset() override;
         virtual std::string_view GetOutputName(int8_t outputChannel) override {
             return defaultOutStrings[outputChannel];
@@ -869,16 +901,51 @@ namespace l::nodegraph {
         virtual bool IsDataVisible(int8_t) override {
             return true;
         }
-        virtual void NoteOn(int32_t note) override;
-        virtual void NoteOff() override;
-        virtual void NoteOff(int32_t note) override;
+
+        virtual void MidiEvent(const l::hid::midi::MidiData& data);
+        void NoteOn(int32_t note, int32_t velocity);
+        void NoteOff();
+        void NoteOff(int32_t note);
     protected:
         int8_t ResetNoteChannel(int32_t note);
         int8_t GetNextNoteChannel(int32_t note);
+
+        l::hid::midi::MidiManager* mMidiManager = nullptr;
 
         int8_t mNoteCounter = 0;
         std::vector<std::pair<int32_t, int32_t>> mChannel;
     };
 
+    /*********************************************************************/
+    class GraphInputMidiKnobs : public NodeGraphOp {
+    public:
+        GraphInputMidiKnobs(NodeGraphBase* node, l::hid::midi::MidiManager* midiManager) :
+            NodeGraphOp(node, 0, 8, 8),
+            mMidiManager(midiManager)
+        {
+            mMidiManager->RegisterCallback([&](l::hid::midi::MidiData data) {
+                MidiEvent(data);
+                });
+        }
+
+        std::string defaultOutStrings[8] = { "Knob 1", "Knob 2", "Knob 3", "Knob 4", "Knob 5", "Knob 6", "Knob 7", "Knob 8", };
+
+        virtual ~GraphInputMidiKnobs() = default;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Reset() override;
+        virtual std::string_view GetOutputName(int8_t outputChannel) override {
+            return defaultOutStrings[outputChannel];
+        }
+        virtual std::string_view GetName() override {
+            return "Midi Knobs";
+        }
+        virtual bool IsDataVisible(int8_t) override {
+            return true;
+        }
+
+        virtual void MidiEvent(const l::hid::midi::MidiData& data);
+    protected:
+        l::hid::midi::MidiManager* mMidiManager = nullptr;
+    };
 }
 

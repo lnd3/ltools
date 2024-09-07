@@ -28,7 +28,7 @@ namespace l::hid::midi {
 		uint32_t arg2 = (param1 >> 24) & 0xff; // unused?
 		uint32_t time = param2;
 	*/
-	using CallbackFunction = std::function<void(MidiData)>;
+	using CallbackFunction = std::function<void(const MidiData&)>;
 
 	namespace details {
 		extern std::mutex midiCallbackMutex;
@@ -40,7 +40,7 @@ namespace l::hid::midi {
 	class MidiManager {
 	public:
 		MidiManager() {
-			RegisterCallback([](MidiData data) {
+			RegisterCallback([](const MidiData& data) {
 				LOG(LogInfo) << "listener 1: dev" << data.device << " stat " << data.status << " ch " << data.channel << " d1 " << data.data1 << " d2 " << data.data2;
 				});
 		}

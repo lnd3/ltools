@@ -366,19 +366,22 @@ namespace l::nodegraph {
     /*********************************************************************/
     void GraphFilterEnvelope::Reset() {
         mEnvelope = 0.0f;
-        mNode->SetInput(1, 50.0f);
+        mNode->SetInput(1, 0.5f);
         mNode->SetInput(2, 50.0f);
-        mNode->SetInput(3, 0.1f);
-        mNode->SetInputBound(1, InputBound::INPUT_CUSTOM, 1.0f, 100000.0f);
+        mNode->SetInput(3, 50.0f);
+        mNode->SetInput(4, 0.1f);
+        mNode->SetInputBound(1, InputBound::INPUT_0_TO_1);
         mNode->SetInputBound(2, InputBound::INPUT_CUSTOM, 1.0f, 100000.0f);
-        mNode->SetInputBound(3, InputBound::INPUT_CUSTOM, 0.0001f, 1.0f);
+        mNode->SetInputBound(3, InputBound::INPUT_CUSTOM, 1.0f, 100000.0f);
+        mNode->SetInputBound(4, InputBound::INPUT_CUSTOM, 0.0001f, 1.0f);
     }
 
     void GraphFilterEnvelope::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float noteTarget = inputs.at(0).Get();
-        float attackFrames = inputs.at(1).Get() * 44100.0f / 1000.0f;
-        float releaseFrames = inputs.at(2).Get() * 44100.0f / 1000.0f;
-        float noteFade = inputs.at(3).Get();
+        float velocity = l::math::functions::pow(inputs.at(1).Get(), 0.5f);
+        float attackFrames = inputs.at(2).Get() * 44100.0f / 1000.0f;
+        float releaseFrames = inputs.at(3).Get() * 44100.0f / 1000.0f;
+        float noteFade = inputs.at(4).Get();
         //noteFade = l::math::functions::pow(0.01f, 1.0f / (1000.0f * inputs.at(3).Get() * 44100.0f * 0.001f));
 
         if (noteTarget != 0.0f && mFrameCount < attackFrames) {
@@ -391,11 +394,11 @@ namespace l::nodegraph {
         }
 
         if (noteTarget != 0.0f) {
-            if (mEnvelopeTarget < 1.0f) {
-                mEnvelopeTarget += 1.0f / attackFrames;
+            if (mEnvelopeTarget < velocity) {
+                mEnvelopeTarget += velocity / attackFrames;
             }
             else {
-                mEnvelopeTarget = 1.0f;
+                mEnvelopeTarget = velocity;
             }
             mNote += noteFade * noteFade * (noteTarget - mNote);
             //mNote = noteFade * (mEnvelope - noteTarget) + noteTarget;
@@ -403,7 +406,7 @@ namespace l::nodegraph {
         else {
             // release
             if (mFrameCount > 0) {
-                mEnvelopeTarget -= 1.0f / releaseFrames;
+                mEnvelopeTarget -= velocity / releaseFrames;
                 if (mEnvelopeTarget < 0.0f) {
                     mEnvelopeTarget = 0.0f;
                     mFrameCount = 0;
@@ -943,38 +946,49 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphInputMidi::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphInputMidiKeyboard::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         for (size_t i = 0; i < inputs.size(); i++) {
             outputs.at(i).mOutput = inputs.at(i).Get();
         }
     }
 
-    void GraphInputMidi::Tick(int32_t, float) {
-    }
-
-    void GraphInputMidi::Reset() {
+    void GraphInputMidiKeyboard::Reset() {
         for (int8_t i = 0; i < GetNumInputs(); i++) {
             mNode->SetInput(i, 0.0f);
         }
     }
 
-    void GraphInputMidi::NoteOn(int32_t note) {
+    void GraphInputMidiKeyboard::MidiEvent(const l::hid::midi::MidiData& data) {
+        //LOG(LogInfo) << "listener 1: dev" << data.device << " stat " << data.status << " ch " << data.channel << " d1 " << data.data1 << " d2 " << data.data2;
+
+        if (data.status == 9) {
+            // note on
+            NoteOn(data.data1, data.data2);
+        }
+        else if (data.status == 8) {
+            // note off
+            NoteOff(data.data1);
+        }
+    }
+
+    void GraphInputMidiKeyboard::NoteOn(int32_t note, int32_t velocity) {
         float frequency = l::audio::GetFrequencyFromNote(static_cast<float>(note));
         int8_t channel = GetNextNoteChannel(note);
         mNode->SetInput(static_cast<int8_t>(channel), frequency);
+        mNode->SetInput(static_cast<int8_t>(1), velocity / 128.0f);
     }
-    void GraphInputMidi::NoteOff() {
+    void GraphInputMidiKeyboard::NoteOff() {
         Reset();
     }
 
-    void GraphInputMidi::NoteOff(int32_t note) {
+    void GraphInputMidiKeyboard::NoteOff(int32_t note) {
         int8_t channel = ResetNoteChannel(note);
         if (channel >= 0) {
             mNode->SetInput(channel, 0.0f);
         }
     }
 
-    int8_t GraphInputMidi::ResetNoteChannel(int32_t note) {
+    int8_t GraphInputMidiKeyboard::ResetNoteChannel(int32_t note) {
         for (size_t i = 0; i < mChannel.size(); i++) {
             if (mChannel.at(i).first == note) {
                 mChannel.at(i).second = 0;
@@ -985,7 +999,7 @@ namespace l::nodegraph {
         return -1;
     }
 
-    int8_t GraphInputMidi::GetNextNoteChannel(int32_t note) {
+    int8_t GraphInputMidiKeyboard::GetNextNoteChannel(int32_t note) {
         for (size_t i = 0; i < mChannel.size(); i++) {
             if (mChannel.at(i).first == note) {
                 mChannel.at(i).second = mNoteCounter++;
@@ -1013,4 +1027,28 @@ namespace l::nodegraph {
         mChannel.at(lowestCountIndex).second = mNoteCounter++;
         return lowestCountIndex;
     }
+
+    /*********************************************************************/
+    void GraphInputMidiKnobs::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        for (size_t i = 0; i < inputs.size(); i++) {
+            outputs.at(i).mOutput = inputs.at(i).Get();
+        }
+    }
+
+    void GraphInputMidiKnobs::Reset() {
+        for (int8_t i = 0; i < GetNumInputs(); i++) {
+            mNode->SetInput(i, 0.0f);
+        }
+    }
+
+    void GraphInputMidiKnobs::MidiEvent(const l::hid::midi::MidiData& data) {
+        if (data.status == 11) {
+            //LOG(LogInfo) << "listener 1: dev" << data.device << " stat " << data.status << " ch " << data.channel << " d1 " << data.data1 << " d2 " << data.data2;
+
+            if (data.data1 >= 48 && data.data1 <= 55) {
+                mNode->SetInput(static_cast<int8_t>(data.data1 - 48), data.data2 / 128.0f);
+            }
+        }
+    }
+
 }

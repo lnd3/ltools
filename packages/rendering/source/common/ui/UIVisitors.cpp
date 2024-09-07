@@ -209,7 +209,7 @@ namespace l::ui {
             if (mNGSchema) {
                 auto node = mNGSchema->GetNode(container.GetNodeId());
                 auto nodeChannel = static_cast<int8_t>(container.GetChannelId());
-                if (node->IsDataEditable(nodeChannel)) {
+                if (nodeChannel < node->GetNumInputs() && node->IsDataEditable(nodeChannel)) {
                     auto nodeValue = node->GetInput(nodeChannel);
                     if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftShift)) {
                         if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftCtrl)) {

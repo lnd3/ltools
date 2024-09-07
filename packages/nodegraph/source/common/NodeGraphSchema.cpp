@@ -18,6 +18,10 @@ namespace l::nodegraph {
         mAudioOutput = audioOutput;
     }
 
+    void NodeGraphSchema::SetMidiManager(l::hid::midi::MidiManager* midiManager) {
+        mMidiManager = midiManager;
+    }
+
     int32_t NodeGraphSchema::NewNode(int32_t typeId) {
         l::nodegraph::NodeGraphBase* node = nullptr;
         switch (typeId) {
@@ -115,7 +119,10 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputKeyboardPiano, l::hid::KeyState>(OutputType::Default, 1, mKeyState);
             break;
         case 301:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidi, l::hid::KeyState>(OutputType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiKeyboard, l::hid::KeyState>(OutputType::Default, mMidiManager);
+            break;
+        case 302:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiKnobs, l::hid::KeyState>(OutputType::Default, mMidiManager);
             break;
 
         default:
