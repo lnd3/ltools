@@ -984,10 +984,15 @@ namespace l::nodegraph {
         GraphInputMidiButtons(NodeGraphBase* node, l::hid::midi::MidiManager* midiManager, int32_t buttonGroup) :
             NodeGraphOp(node, 0, 8, 8),
             mMidiManager(midiManager),
-            mButtonGroup(static_cast<int8_t>(buttonGroup)),
-            mNodeName("Midi Button Group " + std::to_string(mButtonGroup))
+            mButtonGroup(buttonGroup)
         {
+            mNodeName = "Midi Button Group ";
+            mNodeName += std::to_string(mButtonGroup);
             mButtonStates.resize(8);
+
+            for (int8_t i = 0; i < 8; i++) {
+                defaultOutStrings[i] = std::string("Pad ") + std::to_string(i);
+            }
 
             if (mMidiManager) {
                 mCallbackId = mMidiManager->RegisterCallback([&](l::hid::midi::MidiData data) {
@@ -1001,22 +1006,15 @@ namespace l::nodegraph {
             }
         }
 
-        std::string defaultOutStrings[8] = { 
-            "Button " + std::to_string(mButtonGroup),
-            "Button " + std::to_string(mButtonGroup + 1),
-            "Button " + std::to_string(mButtonGroup + 2),
-            "Button " + std::to_string(mButtonGroup + 3),
-            "Button " + std::to_string(mButtonGroup + 4),
-            "Button " + std::to_string(mButtonGroup + 5),
-            "Button " + std::to_string(mButtonGroup + 6),
-            "Button " + std::to_string(mButtonGroup + 7)
-        };
+        std::string defaultOutStrings[8];
 
         virtual ~GraphInputMidiButtons() {
             // turn off all buttons before destructing
             for (int8_t i = 0; i < 8; i++) {
                 UpdateButton(i, BUTTON_DISCONNECTED);
             }
+
+            std::this_thread::yield();
 
             mMidiManager->UnregisterCallback(mCallbackId);
         }
@@ -1044,7 +1042,7 @@ namespace l::nodegraph {
     protected:
         l::hid::midi::MidiManager* mMidiManager = nullptr;
         int32_t mCallbackId = 0;
-        int8_t mButtonGroup;
+        int32_t mButtonGroup;
         std::string mNodeName;
         bool mMidiShiftState = false;
         std::vector<int8_t> mButtonStates;

@@ -1077,16 +1077,15 @@ namespace l::nodegraph {
     }
 
     void GraphInputMidiButtons::MidiEvent(const l::hid::midi::MidiData& data) {
-        LOG(LogInfo) << "listener 1: dev" << data.device << " stat " << data.status << " ch " << data.channel << " d1 " << data.data1 << " d2 " << data.data2;
-
-
-        int8_t buttonIndex = static_cast<int8_t>(data.data1) - mButtonGroup * 8;
+        //LOG(LogInfo) << "listener 1: dev" << data.device << " stat " << data.status << " ch " << data.channel << " d1 " << data.data1 << " d2 " << data.data2;
 
         if (data.data1 == 98) {
             // shift button event
             mMidiShiftState = data.status == 9 ? true : data.status == 8 ? false : mMidiShiftState;
         }
-        else if (buttonIndex >= 0 && buttonIndex < 8) {
+
+        int8_t buttonIndex = static_cast<int8_t>(data.data1 - mButtonGroup * 8);
+        if (buttonIndex >= 0 && buttonIndex < 8) {
             // pad button event
             if (data.status == 9) {
                 if (mButtonStates.at(buttonIndex) <= BUTTON_ALLOCATED) {

@@ -46,7 +46,10 @@ namespace l::nodegraph {
 
     bool IsValidInOutNum(int8_t inoutNum, size_t inoutSize);
 
-    struct NodeGraphOutput {
+    class NodeGraphOutput {
+    public:
+        NodeGraphOutput() = default;
+
         float mOutput = 0.0f;
         std::unique_ptr<std::vector<float>> mOutputBuf = nullptr;
         std::unique_ptr<std::string> mName = nullptr;
@@ -121,8 +124,9 @@ namespace l::nodegraph {
             mInputs.resize(1);
             mOutputs.resize(1);
         }
-
-        virtual ~NodeGraphBase() = default;
+        virtual ~NodeGraphBase() {
+            LOG(LogInfo) << "Node graph base destroyed";
+        }
 
         virtual void Reset();
         virtual void SetId(int32_t id) { mId = id; }
@@ -191,11 +195,13 @@ namespace l::nodegraph {
             mNumOutputs(static_cast<int8_t>(numOutputs)),
             mNumConstants(static_cast<int8_t>(numConstants))
         {}
+        virtual ~NodeGraphOp() {
+            LOG(LogInfo) << "Node operation destroyed";
+        }
 
         std::string defaultInStrings[4] = { "In 1", "In 2", "In 3", "In 4" };
         std::string defaultOutStrings[4] = { "Out 1", "Out 2", "Out 3", "Out 4" };
 
-        virtual ~NodeGraphOp() = default;
         virtual void Reset() {}
         virtual void Process(int32_t, std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
         virtual void Tick(int32_t, float) {}
@@ -240,6 +246,9 @@ namespace l::nodegraph {
             SetNumInputs(mOperation.GetNumInputs());
             SetNumOutputs(mOperation.GetNumOutputs());
             SetNumConstants(mOperation.GetNumConstants());
+        }
+        virtual ~NodeGraph() {
+            LOG(LogInfo) << "Node destroyed";
         }
 
         virtual void SetNumInputs(int8_t numInputs) {
@@ -327,7 +336,9 @@ namespace l::nodegraph {
             SetNumOutputs(1);
             mOutputNodes.push_back(&mOutputNode);
         }
-        ~NodeGraphGroup() = default;
+        ~NodeGraphGroup() {
+            LOG(LogInfo) << "Node group destroyed";
+        }
 
         void SetNumInputs(int8_t numInputs);
         void SetNumOutputs(int8_t outputCount);
