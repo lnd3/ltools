@@ -293,7 +293,7 @@ namespace l::nodegraph {
     void GraphSourceSineFM3::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float* output0 = &outputs.at(0).GetOutput(numSamples);
 
-        mSamplesUntilUpdate = l::audio::BatchUpdate(256.0f, mSamplesUntilUpdate, 0, numSamples,
+        mSamplesUntilUpdate = l::audio::BatchUpdate(16.0f, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
                 mNote = l::math::functions::max(static_cast<double>(inputs.at(0).Get()), 0.0);
                 mVolume = inputs.at(1).Get();
@@ -318,7 +318,7 @@ namespace l::nodegraph {
 
                 for (int32_t i = start; i < end; i++) {
                     double phaseDelta2 = mDeltaTime * mNote;
-                    mPhaseFmod += 0.25 * phaseDelta2;
+                    mPhaseFmod += phaseDelta2;
                     mPhaseFmod = l::math::functions::mod(mPhaseFmod, 1.0);
                     double modulation = fm * l::math::functions::sin(l::math::constants::PI * mPhaseFmod * 2.0);
 
@@ -959,8 +959,10 @@ namespace l::nodegraph {
     }
 
     void GraphInputMidiKeyboard::MidiEvent(const l::hid::midi::MidiData& data) {
-        LOG(LogInfo) << "listener 1: dev" << data.device << " stat " << data.status << " ch " << data.channel << " d1 " << data.data1 << " d2 " << data.data2;
-
+        //LOG(LogInfo) << "listener 1: dev" << data.device << " stat " << data.status << " ch " << data.channel << " d1 " << data.data1 << " d2 " << data.data2;
+        if (data.channel != 1) {
+            return;
+        }
         if (data.status == 9) {
             // note on
             NoteOn(data.data1, data.data2);
@@ -1042,9 +1044,10 @@ namespace l::nodegraph {
     }
 
     void GraphInputMidiKnobs::MidiEvent(const l::hid::midi::MidiData& data) {
+        if (data.channel != 0) {
+            return;
+        }
         if (data.status == 11) {
-            //LOG(LogInfo) << "listener 1: dev" << data.device << " stat " << data.status << " ch " << data.channel << " d1 " << data.data1 << " d2 " << data.data2;
-
             if (data.data1 >= 48 && data.data1 <= 55) {
                 mNode->SetInput(static_cast<int8_t>(data.data1 - 48), data.data2 / 128.0f);
             }
@@ -1077,8 +1080,9 @@ namespace l::nodegraph {
     }
 
     void GraphInputMidiButtons::MidiEvent(const l::hid::midi::MidiData& data) {
-        //LOG(LogInfo) << "listener 1: dev" << data.device << " stat " << data.status << " ch " << data.channel << " d1 " << data.data1 << " d2 " << data.data2;
-
+        if (data.channel != 0) {
+            return;
+        }
         if (data.data1 == 98) {
             // shift button event
             mMidiShiftState = data.status == 9 ? true : data.status == 8 ? false : mMidiShiftState;
