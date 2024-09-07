@@ -1,5 +1,3 @@
-cmake_minimum_required (VERSION 3.0.2)
-
 project (physics)
 
 set(deps
@@ -7,6 +5,7 @@ set(deps
 
 	logging
 	testing
+	math
 	tools
 )
 

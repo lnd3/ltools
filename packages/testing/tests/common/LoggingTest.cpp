@@ -109,19 +109,59 @@ TEST(Logging, StringComparisons) {
 		TEST_TRUE(l::string::partial_equality(d, e, 2, 0), "");
 		TEST_TRUE(l::string::partial_equality(d, f, 1, 1), "");
 	}
+	{
+		std::string a = "asdgkösd";
+		TEST_TRUE(l::string::cstring_equal(a.c_str(), "asdg34643", 0, 0, 4), "");
+		TEST_FALSE(l::string::cstring_equal(a.c_str(), "asdg34643", 0, 0, 5), "");
+	}
 
 	return 0;
 }
 
 TEST(Logging, TimeConversions) {
-	auto unixtime = l::string::get_unix_timestamp();
+	{ // general time_t/tm conversion
+		for (int i = 0; i < 2; i++) {
+			bool adjustDate = i == 0 ? false : true;
+			auto unixtime = l::string::get_unix_epoch();
+			struct tm timeinfo;
+			l::string::convert_to_tm(unixtime, &timeinfo, adjustDate);
+			auto unixtime2 = l::string::convert_to_time(&timeinfo, adjustDate);
+			TEST_EQ(unixtime, unixtime2, "");
+		}
+	}
+	{ // utc to local time conversions
+		for (int i = 0; i < 2; i++) {
+			bool adjustDate = i == 0 ? false : true;
+			auto unixtime = l::string::get_unix_epoch();
+			struct tm timeinfo;
+			l::string::convert_to_local_tm_from_utc_time(unixtime, &timeinfo, adjustDate);
+			auto unixtime2 = l::string::convert_to_utc_time_from_local_tm(&timeinfo, adjustDate);
+			TEST_EQ(unixtime, unixtime2, "");
+		}
+	}
+	{
+		auto unixtime = l::string::get_unix_epoch();
+		auto localtime = l::string::convert_to_local_time_from_utc_time(unixtime);
+		auto time = l::string::convert_to_utc_time_from_local_time(localtime);
+		TEST_EQ(time, unixtime, "");
+	}
+	{
+		auto unixtime = l::string::get_unix_epoch();
+		auto localtime = l::string::convert_to_local_time_from_utc_time(unixtime);
+		struct tm timeinfolocal;
+		l::string::convert_to_tm(localtime, &timeinfolocal, true);
+		struct tm timeinfo;
+		l::string::convert_to_local_tm_from_utc_time(unixtime, &timeinfo, true);
+		TEST_EQ(timeinfo.tm_hour, timeinfolocal.tm_hour, "");
+	}
 
-	int32_t fullDate[6];
-	l::string::get_time_info(fullDate, unixtime);
-
-	auto unixtime2 = l::string::get_unix_time(fullDate);
-
-	TEST_TRUE(unixtime == unixtime2, "");
+	{
+		auto unixtime = l::string::get_unix_epoch();
+		int32_t fullDate[6];
+		l::string::to_local_time(unixtime, fullDate);
+		auto unixtime2 = l::string::to_unix_time_from_local(fullDate);
+		TEST_EQ(unixtime, unixtime2, "");
+	}
 
 	return 0;
 }

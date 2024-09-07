@@ -14,7 +14,7 @@ namespace l::network {
 		if (mNetworkStatusInterval == 0 || mIsHostResponding) {
 			return true;
 		}
-		auto now = l::string::get_unix_timestamp();
+		auto now = l::string::get_unix_epoch();
 		if (mLastStatusCheck < now) {
 			// every x seconds we allow one connection through to test connectivity
 			mLastStatusCheck = now + mNetworkStatusInterval;
@@ -24,7 +24,7 @@ namespace l::network {
 	}
 
 	void HostInfo::SetStatus(bool isup) {
-		mLastStatusCheck = l::string::get_unix_timestamp() + 20;
+		mLastStatusCheck = l::string::get_unix_epoch() + 20;
 		mIsHostResponding = isup;
 	}
 

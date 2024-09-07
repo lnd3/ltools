@@ -2,7 +2,7 @@
 #include "logging/LoggingAll.h"
 
 #include "memory/Containers.h"
-#include "physics/Constants.h"
+#include "math/MathConstants.h"
 #include "logging/Macro.h"
 
 #include <functional>
@@ -170,7 +170,7 @@ namespace l {
 			if (mWindow) {
 				auto [x, y] = mWindow->GetMouseChange();
 				auto [width, height] = mWindow->GetFrameBufferSize();
-				float f = mSensitivity * 2.0f * constants::pi_f / static_cast<float>(width);
+				float f = mSensitivity * 2.0f * math::constants::PI_f / static_cast<float>(width);
 				mTurnAngle += x * f;
 				mTiltAngle += y * f;
 				if (fabs(x) > 0.0001f && fabs(y) > 0.0001f) {
@@ -178,11 +178,11 @@ namespace l {
 				}
 			}
 
-			if (mTiltAngle < -constants::pi_f / 2.0f + 0.001f) {
-				mTiltAngle = -constants::pi_f / 2.0f + 0.001f;
+			if (mTiltAngle < -math::constants::PI_f / 2.0f + 0.001f) {
+				mTiltAngle = -math::constants::PI_f / 2.0f + 0.001f;
 			}
-			if (mTiltAngle > constants::pi_f / 2.0f - 0.001f) {
-				mTiltAngle = constants::pi_f / 2.0f - 0.001f;
+			if (mTiltAngle > math::constants::PI_f / 2.0f - 0.001f) {
+				mTiltAngle = math::constants::PI_f / 2.0f - 0.001f;
 			}
 
 			// Open Gl resource

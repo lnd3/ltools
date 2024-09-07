@@ -1,8 +1,8 @@
 #pragma once
 
 #include "logging/Log.h"
-#include "Constants.h"
-#include "Algorithm.h"
+
+#include "math/MathAlgorithm.h"
 
 namespace l {
 namespace physics {
@@ -167,10 +167,10 @@ namespace physics {
 		V freq = 2.25;
 
 		V gravity = - 1.0 / (1 + pow(r * freq, power));
-		V modulation = (cos(l::constants::pi * (1 + 2 * r * 0.1 * freq)) * 0.25 + 0.75);
+		V modulation = (cos(l::math::constants::PI * (1 + 2 * r * 0.1 * freq)) * 0.25 + 0.75);
 		V cutoff = (1.0 - exp(-r));
 
-		//V mod = cos(l::constants::pi * (1.0 + 2 * distance * freq)) * 0.5 + 0.5;
+		//V mod = cos(l::constants::PI * (1.0 + 2 * distance * freq)) * 0.5 + 0.5;
 		//return lambda * mod;
 
 		return gravity * modulation * cutoff;
@@ -180,7 +180,7 @@ namespace physics {
 	V computeForceLambda2(V r, V forceConstant, V power) {
 		V freq = 1.0;
 		V gravity = -power * forceConstant / (pow(1 + r, power));
-		V modulation = (cos(l::constants::pi * (1 + 2 * r * freq * power)) * 0.25 + 0.75);
+		V modulation = (cos(l::math::constants::PI * (1 + 2 * r * freq * power)) * 0.25 + 0.75);
 		V cutoff = (1.0 - exp(-r));
 
 		return gravity * modulation * cutoff;
@@ -231,12 +231,12 @@ namespace physics {
 			V f = abs(computeForceLambda(r, rDesired, forceConstant, type));
 
 			if (f >= 0.00001) {
-				auto x1 = l::algorithm::solve_quad_eq(m1 * 2.0 * v1 / f, -2.0 * m1 * s / f);
+				auto x1 = l::math::algorithm::solve_quad_eq(m1 * 2.0 * v1 / f, -2.0 * m1 * s / f);
 				if (x1) {
 					auto dt = x1->first > 0.0 ? x1->first : x1->second;
 					v1 += f * dt / m1;
 				}
-				auto x2 = l::algorithm::solve_quad_eq(m2 * 2.0 * v2 / f, -2.0 * m2 * s / f);
+				auto x2 = l::math::algorithm::solve_quad_eq(m2 * 2.0 * v2 / f, -2.0 * m2 * s / f);
 				if (x2) {
 					auto dt = x2->first > 0.0 ? x2->first : x2->second;
 					v2 += f * dt / m2;

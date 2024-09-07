@@ -3,7 +3,7 @@
 #include "rendering/GLFWWindow.h"
 
 
-TEST(RenderingTest, GLFW) {
+TEST(GLFWWindowTest, GLFW) {
     auto handle = l::rendering::CreateGLFW("GLFW Test window", 1024, 768);
     if (handle) {
 

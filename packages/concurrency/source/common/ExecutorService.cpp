@@ -37,13 +37,13 @@ namespace l::concurrency {
 	}
 
 	void Runnable::Reschedule() {
-		auto time = l::string::get_unix_timestamp_ms();
+		auto time = l::string::get_unix_epoch_ms();
 		mNextTry = time + static_cast<int64_t>(500 + 500 * (rand() / (float)RAND_MAX)); // retry within 1 second
 	}
 
 	void Runnable::Backoff() {
 		mTries++;
-		auto time = l::string::get_unix_timestamp_ms();
+		auto time = l::string::get_unix_epoch_ms();
 		mNextTry = time + static_cast<int64_t>(round(powf(static_cast<float>(mTries), 2.5f))); // 1 sec, 3 sec, 5 sec, 8 sec, 11 sec etc
 	}
 
@@ -186,7 +186,7 @@ namespace l::concurrency {
 					mCondition.wait(lock);
 				}
 				else {
-					auto time = l::string::get_unix_timestamp_ms();
+					auto time = l::string::get_unix_epoch_ms();
 					for (uint32_t i = 0; i < mRunnables.size(); i++) {
 						if (mRunnables.at(i)->CanRun(time)) {
 							runnable = std::move(mRunnables.at(i));

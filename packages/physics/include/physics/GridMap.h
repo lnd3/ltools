@@ -11,14 +11,15 @@
 
 #include "logging/LoggingAll.h"
 #include "physics/VecX.h"
-#include "physics/Constants.h"
+
+#include "math/MathConstants.h"
 
 namespace l::physics {
 
     template<class T>
     auto DistanceFromDegrees(T degree) {
-        auto x = cos((degree / 360.0) * 2.0 * constants::pi);
-        auto y = sin((degree / 360.0) * 2.0 * constants::pi);
+        auto x = cos((degree / 360.0) * 2.0 * math::constants::PI);
+        auto y = sin((degree / 360.0) * 2.0 * math::constants::PI);
 
         return static_cast<T>(sqrt((1.0 - x) * (1.0 - x) + y * y));
     }

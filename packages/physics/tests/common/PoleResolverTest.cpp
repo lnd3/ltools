@@ -1,7 +1,6 @@
 #include "physics/Integration.h"
 
 #include "physics/VecX.h"
-#include "physics/Algorithm.h"
 
 #include "testing/Test.h"
 

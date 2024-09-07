@@ -2,6 +2,7 @@
 
 #include "physics/BoxSweep.h"
 #include "physics/VecX.h"
+#include "math/MathAlgorithm.h"
 
 #include <algorithm>
 
@@ -111,7 +112,7 @@ void BoxSweep::update() {
 	};
 
 	auto updatePair = [&](uint32_t id0, uint32_t id1, bool add) {
-		auto id = l::algorithm::pairIndex32(id0, id1);
+		auto id = l::math::algorithm::pairIndex32(id0, id1);
 		if (add) {
 			if (IsOverlapping(CO_AXIS_Y, mBoxes.at(id0), mBoxes.at(id1))) {
 				mOverlapPairs.emplace(id);

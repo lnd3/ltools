@@ -165,7 +165,7 @@ namespace l::signals {
             T mCutoff = this->mData[0];
             T mResonance = this->mData[1];
             T cutoff = mCutoff * mCutoff;
-            double rc = 1 - mResonance * cutoff;
+            T rc = 1 - mResonance * cutoff;
             mFilterState[0] = rc * mFilterState[0] - cutoff * (mFilterState[1] + inVal);
             mFilterState[1] = rc * mFilterState[1] + cutoff * mFilterState[0];
             return -mFilterState[1];
@@ -223,7 +223,7 @@ namespace l::signals {
         SignalMovingAverage(int32_t filterKernelSize = 50) :
             mFilterStateIndex(0)
         {
-            this->mData[0] = 0.999;
+            this->mData[0] = static_cast<T>(0.999);
             this->mData[1] = static_cast<T>(filterKernelSize);
             mFilterState.resize(filterKernelSize);
             Reset();
@@ -255,12 +255,16 @@ namespace l::signals {
             int32_t width = 1 + static_cast<int32_t>(widthModifier * (kernelSize - 2));
             mFilterStateIndex = (mFilterStateIndex + 1) % width;
             mFilterState[mFilterStateIndex] = inVal;
+            
+            if (width == 1) {
+                return inVal;
+            }
 
             T outVal = 0.0;
             for (int32_t i = 0; i < width; i++) {
                 outVal += mFilterState[i];
             }
-            return outVal / static_cast<double>(width);
+            return outVal / static_cast<T>(width);
         }
 
     protected:

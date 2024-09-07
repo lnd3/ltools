@@ -128,7 +128,7 @@ namespace l::network {
 			bool available = false;
 			if (mCompletedRequest && mOngoingRequest.compare_exchange_strong(available, true)) {
 				mCompletedRequest = false;
-				mStarted = l::string::get_unix_timestamp_ms();
+				mStarted = l::string::get_unix_epoch_ms();
 				return true;
 			}
 			return false;
@@ -197,7 +197,7 @@ namespace l::network {
 
 			curl_easy_setopt(mCurl, CURLOPT_BUFFERSIZE, mDefaultResponseSize);
 
-			mStarted = l::string::get_unix_timestamp_ms();
+			mStarted = l::string::get_unix_epoch_ms();
 			mSuccess = true;
 
 			if (multiHandle != nullptr) {
@@ -265,7 +265,7 @@ namespace l::network {
 
 		bool HasExpired() {
 			if (mOngoingRequest && mTimeout > 0) {
-				auto timeWaitingMs = static_cast<int32_t>(l::string::get_unix_timestamp_ms() - mStarted);
+				auto timeWaitingMs = static_cast<int32_t>(l::string::get_unix_epoch_ms() - mStarted);
 				auto expired = timeWaitingMs > mTimeout * 1000;
 				return expired;
 			}

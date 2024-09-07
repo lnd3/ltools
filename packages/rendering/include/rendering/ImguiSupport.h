@@ -27,10 +27,13 @@ namespace rendering {
         ~GLFWImguiHandle();
 
         void SetGuiBuilder(ImguiHandler builder);
+
+        void NewFrame();
         void Render();
     protected:
         GLFWwindow* mParent;
         ImguiHandler mBuilder;
+        bool mNewFrame;
     };
 
     std::unique_ptr<GLFWImguiHandle> CreateImgui(
