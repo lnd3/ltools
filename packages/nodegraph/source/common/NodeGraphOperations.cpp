@@ -891,10 +891,8 @@ namespace l::nodegraph {
     void GraphEffectTranceGate::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         // "Bpm", "Fmod", "Attack", "Pattern"
 
-
         float bpm = inputs.at(2).Get();
-        //fmod = l::math::functions::pow(l::math::constants::E_f, (1.0f / 10.0f) * fmod); // range 0.1 - 10 with arg -1,1
-
+        float fmod = inputs.at(3).Get();
         float attack = inputs.at(4).Get();
 
         size_t patternsSize = patterns.size();
@@ -902,18 +900,18 @@ namespace l::nodegraph {
         auto& gate = patterns[patternId % patternsSize];
 
         size_t patternSize = gate.size();
-        float fmod = inputs.at(3).Get() / static_cast<float>(patternSize);
-        mGateIndex %= patternSize;
+        float fmodPerPattern = fmod / static_cast<float>(patternSize);
 
         mGateSmoothing = attack * attack;
         mGateSmoothingNeg = mGateSmoothing * 0.25f;
 
         float freq = 44100.0f * 60.0f / bpm;
 
-        mSamplesUntilUpdate = l::audio::BatchUpdate(freq * fmod, mSamplesUntilUpdate, 0, numSamples,
+        mSamplesUntilUpdate = l::audio::BatchUpdate(freq * fmodPerPattern, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
+                mGateIndex %= gate.size();
                 mGainTarget = gate[mGateIndex];
-                mGateIndex = (mGateIndex + 1) % gate.size();
+                mGateIndex++;
             },
             [&](int32_t start, int32_t end, bool) {
                 for (int32_t i = start; i < end; i++) {

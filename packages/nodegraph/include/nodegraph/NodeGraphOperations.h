@@ -880,7 +880,6 @@ namespace l::nodegraph {
     protected:
         float mSamplesUntilUpdate = 0.0f;
         int32_t mGateIndex = 0;
-        std::vector<float> mGate;
         float mGainTarget = 1.0f;
         float mGain = 1.0f;
         float mGateSmoothing = 0.01f;
