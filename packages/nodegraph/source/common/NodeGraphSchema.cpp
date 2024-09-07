@@ -115,6 +115,9 @@ namespace l::nodegraph {
         case 255:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectSaturator>(OutputType::Default);
             break;
+        case 256:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectTranceGate>(OutputType::Default);
+            break;
         case 300:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputKeyboardPiano, l::hid::KeyState>(OutputType::Default, 1, mKeyState);
             break;

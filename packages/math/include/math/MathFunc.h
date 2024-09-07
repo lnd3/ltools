@@ -233,7 +233,7 @@ namespace l::math::functions {
 	}
 
 	// Gain
-	// Remapping the unit interval into the unit interval by expanding the sidesand compressing the center, and keeping 1 / 2 mapped to 1 / 2, that can be done with the gain() function.This was a common function in RSL tutorials(the Renderman Shading Language).k = 1 is the identity curve, k < 1 produces the classic gain() shape, and k>1 produces "s" shaped curces.The curves are symmetric(and inverse) for k = a and k = 1 / a.
+	// Remapping the unit interval into the unit interval by expanding the sides and compressing the center, and keeping 1 / 2 mapped to 1 / 2, that can be done with the gain() function.This was a common function in RSL tutorials(the Renderman Shading Language).k = 1 is the identity curve, k < 1 produces the classic gain() shape, and k>1 produces "s" shaped curces.The curves are symmetric(and inverse) for k = a and k = 1 / a.
 	template<class T>
 	T gain(T x, T k)
 	{

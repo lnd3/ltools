@@ -836,6 +836,59 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
+    class GraphEffectTranceGate : public NodeGraphOp {
+    public:
+        std::string defaultInStrings[6] = { "In 1", "In 2", "Bpm", "Fmod", "Attack", "Pattern" };
+        std::string defaultOutStrings[3] = { "Out 1", "Out 2" };
+
+        const std::vector< std::vector<float>> patterns = {
+            {0.7f, 0.0f, 0.7f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f },
+            {0.5f, 0.0f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f},
+            {0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+            {1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f},
+            {0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f},
+            {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+            {1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f},
+            {1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f},
+            {0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+            {1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f },
+        };
+
+        GraphEffectTranceGate(NodeGraphBase* node) :
+            NodeGraphOp(node, 6, 2, 0)
+        {}
+
+        virtual ~GraphEffectTranceGate() = default;
+        virtual void Reset() override;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual bool IsDataVisible(int8_t num) override {
+            return num >= 2 ? true : false;
+        }
+        virtual bool IsDataEditable(int8_t num) override {
+            return num >= 2 ? true : false;
+        }
+        virtual std::string_view GetInputName(int8_t inputChannel) override {
+            return defaultInStrings[inputChannel];
+        }
+        virtual std::string_view GetOutputName(int8_t outputChannel) override {
+            return defaultOutStrings[outputChannel];
+        }
+        virtual std::string_view GetName() override {
+            return "Trance Gate";
+        }
+
+    protected:
+        float mSamplesUntilUpdate = 0.0f;
+        int32_t mGateIndex = 0;
+        std::vector<float> mGate;
+        float mGainTarget = 1.0f;
+        float mGain = 1.0f;
+        float mGateSmoothing = 0.01f;
+        float mGateSmoothingNeg = 0.01f;
+    };
+
+
+    /*********************************************************************/
     class GraphInputKeyboardPiano : public NodeGraphOp, public l::hid::INoteProcessor {
     public:
         GraphInputKeyboardPiano(NodeGraphBase* node, int32_t polyphony, l::hid::KeyState* keyState) :

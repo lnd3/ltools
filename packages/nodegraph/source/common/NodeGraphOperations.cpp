@@ -873,6 +873,68 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
+    void GraphEffectTranceGate::Reset() {
+        // { "In 1", "In 2", "Bpm", "Fmod", "Attack", "Pattern"};
+
+        mGateIndex = 0;
+
+        mNode->SetInput(2, 60.0f);
+        mNode->SetInput(3, 1.0f);
+        mNode->SetInput(4, 0.001f);
+        mNode->SetInput(5, 0.0f);
+        mNode->SetInputBound(2, InputBound::INPUT_CUSTOM, 1.0f, 1000.0f);
+        mNode->SetInputBound(3, InputBound::INPUT_CUSTOM, 0.01f, 1.0f);
+        mNode->SetInputBound(4, InputBound::INPUT_0_TO_1);
+        mNode->SetInputBound(5, InputBound::INPUT_0_100);
+    }
+
+    void GraphEffectTranceGate::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        // "Bpm", "Fmod", "Attack", "Pattern"
+
+
+        float bpm = inputs.at(2).Get();
+        //fmod = l::math::functions::pow(l::math::constants::E_f, (1.0f / 10.0f) * fmod); // range 0.1 - 10 with arg -1,1
+
+        float attack = inputs.at(4).Get();
+
+        size_t patternsSize = patterns.size();
+        int32_t patternId = static_cast<int32_t>(patternsSize * inputs.at(5).Get());
+        auto& gate = patterns[patternId % patternsSize];
+
+        size_t patternSize = gate.size();
+        float fmod = inputs.at(3).Get() / static_cast<float>(patternSize);
+        mGateIndex %= patternSize;
+
+        mGateSmoothing = attack * attack;
+        mGateSmoothingNeg = mGateSmoothing * 0.25f;
+
+        float freq = 44100.0f * 60.0f / bpm;
+
+        mSamplesUntilUpdate = l::audio::BatchUpdate(freq * fmod, mSamplesUntilUpdate, 0, numSamples,
+            [&]() {
+                mGainTarget = gate[mGateIndex];
+                mGateIndex = (mGateIndex + 1) % gate.size();
+            },
+            [&](int32_t start, int32_t end, bool) {
+                for (int32_t i = start; i < end; i++) {
+                    float in0 = inputs.at(0).Get();
+                    float in1 = inputs.at(1).Get();
+
+                    float delta = mGainTarget - mGain;
+                    if (delta > 0) {
+                        mGain += mGateSmoothing * delta;
+                    }
+                    else {
+                        mGain += mGateSmoothingNeg * delta;
+                    }
+
+                    outputs.at(0).mOutput = mGain * in0;
+                    outputs.at(1).mOutput = mGain * in1;
+                }
+            });
+    }
+
+    /*********************************************************************/
     void GraphInputKeyboardPiano::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         for (size_t i = 0; i < inputs.size(); i++) {
             outputs.at(i).mOutput = inputs.at(i).Get();

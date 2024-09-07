@@ -64,6 +64,7 @@ namespace l::nodegraph {
             RegisterNodeType("Effect", 253, "Limiter");
             RegisterNodeType("Effect", 254, "Envelope Follower");
             RegisterNodeType("Effect", 255, "Saturator");
+            RegisterNodeType("Effect", 256, "Trance Gate");
             RegisterNodeType("Input", 300, "Keyboard Piano");
             RegisterNodeType("Input", 301, "Midi Keyboard");
             RegisterNodeType("Input", 302, "Midi Knobs");
