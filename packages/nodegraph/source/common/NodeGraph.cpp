@@ -243,6 +243,10 @@ namespace l::nodegraph {
         return false;
     }
 
+    bool NodeGraphBase::IsOutputPolled(int8_t outputChannel) {
+        return mOutputs.at(outputChannel).IsOutputPolled();
+    }
+
     OutputType NodeGraphBase::GetOutputType() {
         return mOutputType;
     }

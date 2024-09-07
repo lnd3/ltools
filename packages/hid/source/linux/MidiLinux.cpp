@@ -8,9 +8,6 @@ namespace l::hid::midi {
 		return nullptr;
 	}
 
-	void MidiManagerLinux::RegisterCallback(CallbackFunction) {
-	}
-
 	uint32_t MidiManagerLinux::GetNumDevices() {
 		return 0;
 	}

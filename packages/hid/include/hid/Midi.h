@@ -32,7 +32,8 @@ namespace l::hid::midi {
 
 	namespace details {
 		extern std::mutex midiCallbackMutex;
-		extern std::vector<l::hid::midi::CallbackFunction> midiCallback;
+		extern int32_t midiGuid;
+		extern std::unordered_map<int32_t, l::hid::midi::CallbackFunction> midiCallback;
 
 		void HandleMidiData(uint32_t msg, uint32_t instance, uint32_t param1, uint32_t param2);
 	}
@@ -46,7 +47,8 @@ namespace l::hid::midi {
 		}
 		virtual ~MidiManager() = default;
 
-		virtual void RegisterCallback(CallbackFunction cb);
+		virtual int32_t RegisterCallback(CallbackFunction cb);
+		virtual void UnregisterCallback(int32_t id);
 		virtual uint32_t GetNumDevices();
 		virtual void SendToDevice(uint32_t deviceIndex, uint32_t status, uint32_t channel, uint32_t data1, uint32_t data2);
 	};

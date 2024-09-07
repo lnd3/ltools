@@ -50,10 +50,12 @@ namespace l::nodegraph {
         float mOutput = 0.0f;
         std::unique_ptr<std::vector<float>> mOutputBuf = nullptr;
         std::unique_ptr<std::string> mName = nullptr;
+        bool mOutputPolled = false;
 
         float& GetOutput(int32_t numSamples = 1) {
             if (!mOutputBuf) {
                 if (numSamples <= 1) {
+                    mOutputPolled = true;
                     return mOutput;
                 }
                 else {
@@ -63,6 +65,7 @@ namespace l::nodegraph {
             if (static_cast<int32_t>(mOutputBuf->size()) < numSamples) {
                 mOutputBuf->resize(numSamples);
             }
+            mOutputPolled = true;
             return *mOutputBuf->data();
         }
 
@@ -75,6 +78,13 @@ namespace l::nodegraph {
             }
         }
 
+        bool IsOutputPolled() {
+            return mOutputPolled;
+        }
+
+        void ResetOutputPollState() {
+            mOutputPolled = false;
+        }
     };
 
     class NodeGraphBase;
@@ -153,6 +163,8 @@ namespace l::nodegraph {
 
         virtual bool IsDataVisible(int8_t num);
         virtual bool IsDataEditable(int8_t num);
+        virtual bool IsOutputPolled(int8_t outputChannel);
+
         virtual OutputType GetOutputType();
 
     protected:

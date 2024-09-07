@@ -2,11 +2,14 @@
 
 #include "hid/Midi.h"
 
+#include <unordered_map>
+
 namespace l::hid::midi {
 
 	namespace details {
 		std::mutex midiCallbackMutex;
-		std::vector<l::hid::midi::CallbackFunction> midiCallback;
+		int32_t midiGuid = 0;
+		std::unordered_map<int32_t, l::hid::midi::CallbackFunction> midiCallback;
 
 		void HandleMidiData(uint32_t msg, uint32_t instance, uint32_t param1, uint32_t param2) {
 			switch (msg) {
@@ -49,17 +52,25 @@ namespace l::hid::midi {
 				data.unused = 0;
 
 				for (auto& cb : midiCallback) {
-					if (cb) {
-						(cb)(data);
+					if (cb.second) {
+						cb.second(data);
 					}
 				}
 			}
 		}
 	}
 
-	void MidiManager::RegisterCallback(CallbackFunction) {
+	int32_t MidiManager::RegisterCallback(CallbackFunction f) {
+		std::lock_guard<std::mutex> lock(details::midiCallbackMutex);
+		int32_t id = details::midiGuid++;
+		details::midiCallback.emplace(id, f);
+		return id;
 	}
-	
+
+	void MidiManager::UnregisterCallback(int32_t id) {
+		details::midiCallback.erase(id);
+	}
+
 	uint32_t MidiManager::GetNumDevices() {
 		return 0;
 	}

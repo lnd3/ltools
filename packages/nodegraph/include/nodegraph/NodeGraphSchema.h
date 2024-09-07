@@ -67,6 +67,11 @@ namespace l::nodegraph {
             RegisterNodeType("Input", 300, "Keyboard Piano");
             RegisterNodeType("Input", 301, "Midi Keyboard");
             RegisterNodeType("Input", 302, "Midi Knobs");
+            RegisterNodeType("Input", 303, "Midi Button Group 1");
+            RegisterNodeType("Input", 304, "Midi Button Group 2");
+            RegisterNodeType("Input", 305, "Midi Button Group 3");
+            RegisterNodeType("Input", 306, "Midi Button Group 4");
+            RegisterNodeType("Input", 307, "Midi Button Group 5");
         }
 
         ~NodeGraphSchema() = default;

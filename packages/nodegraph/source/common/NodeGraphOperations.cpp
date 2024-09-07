@@ -959,7 +959,7 @@ namespace l::nodegraph {
     }
 
     void GraphInputMidiKeyboard::MidiEvent(const l::hid::midi::MidiData& data) {
-        //LOG(LogInfo) << "listener 1: dev" << data.device << " stat " << data.status << " ch " << data.channel << " d1 " << data.data1 << " d2 " << data.data2;
+        LOG(LogInfo) << "listener 1: dev" << data.device << " stat " << data.status << " ch " << data.channel << " d1 " << data.data1 << " d2 " << data.data2;
 
         if (data.status == 9) {
             // note on
@@ -1051,4 +1051,56 @@ namespace l::nodegraph {
         }
     }
 
+    /*********************************************************************/
+    void GraphInputMidiButtons::Reset() {
+        for (int8_t i = 0; i < GetNumInputs(); i++) {
+            mNode->SetInput(i, 0.0f);
+        }
+    }
+
+    void GraphInputMidiButtons::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        for (size_t i = 0; i < inputs.size(); i++) {
+            outputs.at(i).mOutput = inputs.at(i).Get();
+        }
+    }
+
+    void GraphInputMidiButtons::Tick(int32_t, float) {
+        if (mInitCounter == 120){
+            for (int8_t i = 0; i < 8; i++) {
+                if (mButtonStates.at(i) == BUTTON_ALLOCATED) {
+                    // Set to off when allocated and output has been polled, i.e been connected and sampled
+                    UpdateButton(i, BUTTON_OFF);
+                }
+            }
+        }
+        mInitCounter++;
+    }
+
+    void GraphInputMidiButtons::MidiEvent(const l::hid::midi::MidiData& data) {
+        LOG(LogInfo) << "listener 1: dev" << data.device << " stat " << data.status << " ch " << data.channel << " d1 " << data.data1 << " d2 " << data.data2;
+
+
+        int8_t buttonIndex = static_cast<int8_t>(data.data1) - mButtonGroup * 8;
+
+        if (data.data1 == 98) {
+            // shift button event
+            mMidiShiftState = data.status == 9 ? true : data.status == 8 ? false : mMidiShiftState;
+        }
+        else if (buttonIndex >= 0 && buttonIndex < 8) {
+            // pad button event
+            if (data.status == 9) {
+                if (mButtonStates.at(buttonIndex) <= BUTTON_ALLOCATED) {
+                    // if button has not been polled before user input, set button to off first time
+                    mButtonStates.at(buttonIndex) = BUTTON_OFF;
+                }else if (!mMidiShiftState && mButtonStates.at(buttonIndex) < BUTTON_ON) {
+                    mButtonStates.at(buttonIndex)++;
+                }else if (mMidiShiftState && mButtonStates.at(buttonIndex) > BUTTON_OFF) {
+                    mButtonStates.at(buttonIndex)--;
+                }
+            }
+            float outputValue = static_cast<float>(mButtonStates.at(buttonIndex) - BUTTON_OFF) / 2.0f;
+            mNode->SetInput(buttonIndex, outputValue);
+            UpdateButton(buttonIndex, mButtonStates.at(buttonIndex));
+        }
+    }
 }

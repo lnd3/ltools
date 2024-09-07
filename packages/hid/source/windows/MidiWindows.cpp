@@ -32,8 +32,6 @@ namespace l::hid::midi {
 		}
 	}
 
-
-
 	Midi::Midi() : mHeader{}, mMidiBuffer{} {
 		UINT nMidiDeviceNum = midiInGetNumDevs();
 		if (nMidiDeviceNum == 0) {
@@ -113,11 +111,6 @@ namespace l::hid::midi {
 			std::lock_guard<std::mutex> lock(details::midiCallbackMutex);
 			details::midiCallback.clear();
 		}
-	}
-
-	void Midi::registerMidiCallback(CallbackFunction f) {
-		std::lock_guard<std::mutex> lock(details::midiCallbackMutex);
-		details::midiCallback.push_back(f);
 	}
 
 	uint32_t Midi::getNumDevices() {
@@ -228,10 +221,6 @@ namespace l::hid::midi {
 		if (rv != MMSYSERR_NOERROR) {
 			LOG(LogError) << "Failed to send to midi out device " << deviceId << ", error " << rv << ", data " << param1;
 		}
-	}
-
-	void MidiManagerWindows::RegisterCallback(CallbackFunction cb) {
-		mMidiDevice.registerMidiCallback(cb);
 	}
 
 	uint32_t MidiManagerWindows::GetNumDevices() {

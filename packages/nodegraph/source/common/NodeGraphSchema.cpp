@@ -124,6 +124,21 @@ namespace l::nodegraph {
         case 302:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiKnobs, l::hid::KeyState>(OutputType::Default, mMidiManager);
             break;
+        case 303:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons, l::hid::KeyState>(OutputType::Default, mMidiManager, 0);
+            break;
+        case 304:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons, l::hid::KeyState>(OutputType::Default, mMidiManager, 1);
+            break;
+        case 305:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons, l::hid::KeyState>(OutputType::Default, mMidiManager, 2);
+            break;
+        case 306:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons, l::hid::KeyState>(OutputType::Default, mMidiManager, 3);
+            break;
+        case 307:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons, l::hid::KeyState>(OutputType::Default, mMidiManager, 4);
+            break;
 
         default:
             ASSERT(typeId < 10000) << "Custom node id's begin at id 1000";
