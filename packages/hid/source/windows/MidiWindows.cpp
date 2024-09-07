@@ -1,5 +1,3 @@
-#pragma once
-
 #include "logging/Log.h"
 
 #include "MidiWindows.h"
