@@ -8,6 +8,7 @@
 #include <math.h>
 
 namespace l::audio {
+	const float gNoNote = -500.0f;
 
     float GetFrequencyFromNote(float note) {
         return 440.0f * l::math::functions::pow(2.0f, (note - 49.0f) / 12.0f);
@@ -16,6 +17,10 @@ namespace l::audio {
 	double GetPhaseModifier(double note, double modifier) {
 		double limit = 1.0 / l::math::functions::max(note / 25.0, 1.0);
 		return 800.0 * modifier * modifier * limit;
+	}
+
+	float GetRCAFactor(float numSamples, float limit) {
+		return limit / l::math::functions::log(static_cast<float>(numSamples));
 	}
 
 	float BatchUpdate(float updateSamples, float samplesLeft, int32_t start, int32_t end, std::function<void()> update, std::function<void(int32_t, int32_t, bool)> process) {

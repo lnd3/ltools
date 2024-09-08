@@ -8,7 +8,6 @@
 #include "rendering/ui/UICreator.h"
 
 #include "nodegraph/NodeGraph.h"
-#include "nodegraph/NodeGraphOperations.h"
 #include "nodegraph/NodeGraphSchema.h"
 
 #include <functional>

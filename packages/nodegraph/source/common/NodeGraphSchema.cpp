@@ -118,8 +118,11 @@ namespace l::nodegraph {
         case 256:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectTranceGate>(OutputType::Default);
             break;
+        case 257:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectArpeggio>(OutputType::Default);
+            break;
         case 300:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputKeyboardPiano, l::hid::KeyState>(OutputType::Default, 1, mKeyState);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputKeyboardPiano, l::hid::KeyState>(OutputType::Default, mKeyState);
             break;
         case 301:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiKeyboard, l::hid::KeyState>(OutputType::Default, mMidiManager);

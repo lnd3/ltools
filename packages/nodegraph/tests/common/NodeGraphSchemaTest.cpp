@@ -2,7 +2,6 @@
 #include "logging/Log.h"
 
 #include "nodegraph/NodeGraph.h"
-#include "nodegraph/NodeGraphOperations.h"
 #include "nodegraph/NodeGraphSchema.h"
 
 using namespace l;

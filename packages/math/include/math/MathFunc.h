@@ -12,6 +12,16 @@
 namespace l::math::functions {
 
 	template<class T>
+	bool equal(T a, T b, T accuracy) {
+		return abs(a - b) < accuracy;
+	}
+
+	template <class T>
+	bool samesign(T a, T b) {
+		return a * b >= 0.0;
+	}
+
+	template<class T>
 	void swap(T& val1, T& val2) {
 		T tmp = std::move(val1);
 		val1 = std::move(val2);
@@ -139,6 +149,18 @@ namespace l::math::functions {
 		}
 	}
 
+	template<class T>
+	T log(T val) {
+		if constexpr (std::is_floating_point_v<T>) {
+			if constexpr (sizeof(T) == 4) {
+				return logf(val);
+			}
+			else if constexpr (sizeof(T) == 8) {
+				return logl(val);
+			}
+		}
+	}
+
 	// source https://iquilezles.org/articles/functions/
 
 	// Almost Identity(I)
@@ -147,8 +169,8 @@ namespace l::math::functions {
 	T almostIdentity(T x, T m, T n)
 	{
 		if (x > m) return x;
-		const T a = 2.0 * n - m;
-		const T b = 2.0 * m - 3.0 * n;
+		const T a = static_cast<T>(2.0) * n - m;
+		const T b = static_cast<T>(2.0) * m - static_cast<T>(3.0) * n;
 		const T t = x / m;
 		return (a * t + b) * t * t + n;
 	}
@@ -167,7 +189,7 @@ namespace l::math::functions {
 	template<class T>
 	T almostUnitIdentity(T x)
 	{
-		return x * x * (2.0 - x);
+		return x * x * (static_cast<T>(2.0) - x);
 	}
 
 	// Smoothstep Integral
@@ -175,9 +197,9 @@ namespace l::math::functions {
 	template<class T>
 	T integralSmoothstep(T x, T t)
 	{
-		if (x >= t) return x - t * 0.5;
+		if (x >= t) return x - t * static_cast<T>(0.5);
 		T f = x / t;
-		return f * f * f * (t - x * 0.5);
+		return f * f * f * (t - x * static_cast<T>(0.5));
 	}
 
 	// Exponential Impulse
@@ -186,7 +208,7 @@ namespace l::math::functions {
 	T expImpulse(T x, T k)
 	{
 		const T h = k * x;
-		return h * functions::exp(1.0 - h);
+		return h * functions::exp(static_cast<T>(1.0) - h);
 	}
 
 	// Polynomial Impulse
@@ -194,14 +216,14 @@ namespace l::math::functions {
 	template<class T>
 	T quaImpulse(T k, T x)
 	{
-		return 2.0 * functions::sqrt(k) * x / (1.0 + k * x * x);
+		return static_cast<T>(1.0) * functions::sqrt(k) * x / (static_cast<T>(1.0) + k * x * x);
 	}
 
 	// You can easily generalize it to other powers to get different falloff shapes, where n is the degree of the polynomial :
 	template<class T>
 	T polyImpulse(T k, T n, T x)
 	{
-		return (n / (n - 1.0)) * functions::pow((n - 1.0) * k, 1.0 / n) * x / (1.0 + k * functions::pow(x, n));
+		return (n / (n - static_cast<T>(1.0))) * functions::pow((n - static_cast<T>(1.0)) * k, static_cast<T>(1.0) / n) * x / (static_cast<T>(1.0) + k * functions::pow(x, n));
 	}
 
 	// Sustained Impulse
@@ -209,8 +231,8 @@ namespace l::math::functions {
 	template<class T>
 	T expSustainedImpulse(T x, T f, T k)
 	{
-		T s = functions::max(x - f, 0.0);
-		return functions::min(x * x / (f * f), 1 + (2.0 / f) * s * functions::exp(-k * s));
+		T s = functions::max(x - f, static_cast<T>(0.0));
+		return functions::min(x * x / (f * f), static_cast<T>(1.0) + (static_cast<T>(2.0) / f) * s * functions::exp(-k * s));
 	}
 
 	// Cubic Pulse
@@ -219,9 +241,9 @@ namespace l::math::functions {
 	T cubicPulse(T c, T w, T x)
 	{
 		x = functions::abs(x - c);
-		if (x > w) return 0.0;
+		if (x > w) return static_cast<T>(0.0);
 		x /= w;
-		return 1.0 - x * x * (3.0 - 2.0 * x);
+		return static_cast<T>(1.0) - x * x * (static_cast<T>(3.0) - static_cast<T>(2.0) * x);
 	}
 
 	// Exponential Step
@@ -237,8 +259,8 @@ namespace l::math::functions {
 	template<class T>
 	T gain(T x, T k)
 	{
-		const T a = 0.5 * functions::pow(2.0 * ((x < 0.5) ? x : 1.0 - x), k);
-		return (x < 0.5) ? a : 1.0 - a;
+		const T a = static_cast<T>(0.5) * functions::pow(static_cast<T>(2.0) * ((x < static_cast<T>(0.5)) ? x : static_cast<T>(1.0) - x), k);
+		return (x < static_cast<T>(0.5)) ? a : static_cast<T>(1.0) - a;
 	}
 
 	// Parabola
@@ -246,7 +268,7 @@ namespace l::math::functions {
 	template<class T>
 	T parabola(T x, T k)
 	{
-		return functions::pow(4.0 * x * (1.0 - x), k);
+		return functions::pow(4.0 * x * (static_cast<T>(1.0) - x), k);
 	}
 
 	// Power curve
@@ -263,22 +285,22 @@ namespace l::math::functions {
 	template<class T>
 	T sinc(T x, T k)
 	{
-		const T a = math::constants::PI * (k * x - 1.0);
+		const T a = math::constants::PI * (k * x - static_cast<T>(1.0));
 		return functions::sin(a) / a;
 	}
 
 	template<class T>
 	T sigmoid(T x, T k) {
-		return static_cast<T>(1.0 / (1.0 + functions::exp(-x * k)));
+		return static_cast<T>(static_cast<T>(1.0) / (static_cast<T>(1.0) + functions::exp(-x * k)));
 	}
 
 	template<class T>
 	T sigmoidFast(T x) {
-		if (x < 1.0 && x > -1.0) {
-			return static_cast<T>(x * (1.5 - 0.5 * x * x));
+		if (x < static_cast<T>(1.0) && x > static_cast<T>(-1.0)) {
+			return static_cast<T>(x * (static_cast<T>(1.5) - static_cast<T>(0.5) * x * x));
 		}
 		else {
-			return static_cast<T>(x > 0.0 ? 1.0 : -1.0);
+			return static_cast<T>(x > static_cast<T>(0.0) ? static_cast<T>(1.0) : static_cast<T>(-1.0));
 		}
 	}
 }

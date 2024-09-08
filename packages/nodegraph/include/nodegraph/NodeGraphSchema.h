@@ -3,7 +3,13 @@
 #include "logging/LoggingAll.h"
 
 #include "nodegraph/NodeGraph.h"
-#include "nodegraph/NodeGraphOperations.h"
+#include "nodegraph/NodeGraphOpEffect.h"
+#include "nodegraph/NodeGraphOpFilter.h"
+#include "nodegraph/NodeGraphOpInput.h"
+#include "nodegraph/NodeGraphOpLogic.h"
+#include "nodegraph/NodeGraphOpNumeric.h"
+#include "nodegraph/NodeGraphOpOutput.h"
+#include "nodegraph/NodeGraphOpSource.h"
 
 #include "hid/Midi.h"
 
@@ -65,6 +71,7 @@ namespace l::nodegraph {
             RegisterNodeType("Effect", 254, "Envelope Follower");
             RegisterNodeType("Effect", 255, "Saturator");
             RegisterNodeType("Effect", 256, "Trance Gate");
+            RegisterNodeType("Effect", 257, "Arpeggio");
             RegisterNodeType("Input", 300, "Keyboard Piano");
             RegisterNodeType("Input", 301, "Midi Keyboard");
             RegisterNodeType("Input", 302, "Midi Knobs");

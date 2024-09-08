@@ -30,11 +30,6 @@ namespace l::math::algorithm {
 	}
 
 	template <class T>
-	bool samesign(T a, T b) {
-		return a * b >= 0.0;
-	}
-
-	template <class T>
 	void reflect(T& d, const T& n) {
 		auto t = d.dot(n) * 2.0;
 		auto v = n * t / n.sqr();
@@ -76,7 +71,7 @@ namespace l::math::algorithm {
 			}
 			n++;
 			T aEval = eval(a);
-			if (samesign(cEval, aEval)) {
+			if (l::math::functions::samesign(cEval, aEval)) {
 				a = c;
 			}
 			else {
