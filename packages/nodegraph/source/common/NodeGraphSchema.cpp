@@ -52,6 +52,9 @@ namespace l::nodegraph {
         case 8:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceSineFM3>(OutputType::Default);
             break;
+        case 9:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceSaw>(OutputType::Default);
+            break;
         case 50:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericAdd>(OutputType::Default);
             break;
@@ -98,7 +101,7 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputPlot>(OutputType::ExternalVisualOutput, 100);
             break;
         case 250:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterEnvelope>(OutputType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectEnvelope>(OutputType::Default);
             break;
         case 251:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectReverb1>(OutputType::Default);

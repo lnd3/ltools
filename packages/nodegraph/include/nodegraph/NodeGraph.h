@@ -33,6 +33,7 @@ namespace l::nodegraph {
         INPUT_DONTCHANGE,
         INPUT_UNBOUNDED,
         INPUT_0_TO_1,
+        INPUT_0_TO_2,
         INPUT_NEG_1_POS_1,
         INPUT_0_100,
         INPUT_CUSTOM,

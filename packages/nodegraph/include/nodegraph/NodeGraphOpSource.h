@@ -105,21 +105,22 @@ namespace l::nodegraph {
             return defaultOutStrings[outputChannel];
         }
         virtual std::string_view GetName() override {
-            return "Sine FM";
+            return "Sine";
         }
     protected:
-        double mFreq = 0.0f;
+        double mFreq = 0.0;
         float mVolume = 0.0f;
-        double mFmod = 0.0f;
-        double mPmod = 0.0f;
+        double mFmod = 0.0;
+        double mPmod = 0.0;
         float mReset = 0.0f;
 
-        double mWave = 0.0f;
-        double mDeltaTime = 0.0f;
+        double mWave = 0.0;
+        double mDeltaTime = 0.0;
         float mVol = 0.0f;
 
-        double mPhase = 0.0f;
-        double mPhaseMod = 0.0f;
+        double mPhase = 0.0;
+        double mPhaseFmod = 0.0;
+
         float mSamplesUntilUpdate = 0.0f;
     };
 
@@ -145,7 +146,7 @@ namespace l::nodegraph {
             return defaultOutStrings[outputChannel];
         }
         virtual std::string_view GetName() override {
-            return "Sine FM";
+            return "Sine FM 1";
         }
     protected:
         double mFreq = 0.0;
@@ -248,5 +249,44 @@ namespace l::nodegraph {
         float mSamplesUntilUpdate = 0.0f;
     };
 
+    /*********************************************************************/
+    class GraphSourceSaw : public NodeGraphOp {
+    public:
+        GraphSourceSaw(NodeGraphBase* node) :
+            NodeGraphOp(node, 5, 1)
+        {}
+
+        std::string defaultInStrings[5] = { "Freq", "Volume", "Fmod", "Phase", "Reset" };
+        std::string defaultOutStrings[1] = { "Out" };
+
+        virtual ~GraphSourceSaw() = default;
+        virtual void Reset() override;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual bool IsDataVisible(int8_t) override { return true; }
+        virtual bool IsDataEditable(int8_t) override { return true; }
+        virtual std::string_view GetInputName(int8_t inputChannel) override {
+            return defaultInStrings[inputChannel];
+        }
+        virtual std::string_view GetOutputName(int8_t outputChannel) override {
+            return defaultOutStrings[outputChannel];
+        }
+        virtual std::string_view GetName() override {
+            return "Saw";
+        }
+    protected:
+        double mFreq = 0.0;
+        float mVolume = 0.0f;
+        double mFmod = 0.0;
+        double mPmod = 0.0;
+        float mReset = 0.0f;
+
+        double mDeltaTime = 0.0;
+        float mVol = 0.0f;
+
+        double mPhase = 0.0;
+        double mPhaseFmod = 0.0;
+        double mWave = 0.0;
+        float mSamplesUntilUpdate = 0.0f;
+    };
 }
 

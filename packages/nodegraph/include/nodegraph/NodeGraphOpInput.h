@@ -55,6 +55,7 @@ namespace l::nodegraph {
         int8_t ResetNoteChannel(int32_t note);
         int8_t GetNextNoteChannel(int32_t note);
 
+        int32_t mLastNote = 0;
         int8_t mNoteCounter = 0;
         std::vector<std::pair<int32_t, int32_t>> mChannel;
         l::hid::KeyboardPiano mKeyboard;
@@ -99,6 +100,7 @@ namespace l::nodegraph {
 
         l::hid::midi::MidiManager* mMidiManager = nullptr;
 
+        int32_t mLastNote = 0;
         int8_t mNoteCounter = 0;
         std::vector<std::pair<int32_t, int32_t>> mChannel;
     };

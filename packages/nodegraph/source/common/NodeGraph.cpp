@@ -214,6 +214,10 @@ namespace l::nodegraph {
             input.mBoundMin = 0.0f;
             input.mBoundMax = 1.0f;
             break;
+        case InputBound::INPUT_0_TO_2:
+            input.mBoundMin = 0.0f;
+            input.mBoundMax = 2.0f;
+            break;
         case InputBound::INPUT_NEG_1_POS_1:
             input.mBoundMin = -1.0f;
             input.mBoundMax = 1.0f;

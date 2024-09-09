@@ -46,9 +46,10 @@ namespace l::nodegraph {
             RegisterNodeType("Source", 3, "Value [-inf,inf]");
             RegisterNodeType("Source", 4, "Time");
             RegisterNodeType("Source", 5, "Sine");
-            RegisterNodeType("Source", 6, "Sine FM");
+            RegisterNodeType("Source", 6, "Sine FM 1");
             RegisterNodeType("Source", 7, "Sine FM 2");
             RegisterNodeType("Source", 8, "Sine FM 3");
+            RegisterNodeType("Source", 9, "Saw");
             RegisterNodeType("Numeric", 50, "Add");
             RegisterNodeType("Numeric", 51, "Subtract");
             RegisterNodeType("Numeric", 52, "Negate");

@@ -55,41 +55,5 @@ namespace l::nodegraph {
         float mState1 = 0.0f;
     };
 
-    /*********************************************************************/
-    class GraphFilterEnvelope : public NodeGraphOp {
-    public:
-        std::string defaultInStrings[5] = { "Freq", "Velocity", "Attack", "Release", "Fade"};
-        std::string defaultOutStrings[2] = { "Freq", "Volume"};
-
-        GraphFilterEnvelope(NodeGraphBase* node) :
-            NodeGraphOp(node, 5, 2)
-        {}
-
-        virtual ~GraphFilterEnvelope() = default;
-        virtual void Reset() override;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        virtual void Tick(int32_t, float) {}
-        virtual std::string_view GetInputName(int8_t inputChannel) override {
-            return defaultInStrings[inputChannel];
-        }
-        virtual std::string_view GetOutputName(int8_t outputChannel) override {
-            return defaultOutStrings[outputChannel];
-        }
-        virtual bool IsDataVisible(int8_t channel) override {
-            return channel >= 1 ? true : false;
-        }
-        virtual bool IsDataEditable(int8_t channel) override {
-            return channel >= 1 ? true : false;
-        }
-        virtual std::string_view GetName() override {
-            return "Envelope";
-        }
-    protected:
-        int32_t mFrameCount = 0;
-        float mEnvelopeTarget = 0.0f;
-        float mFreq = 0.0f;
-        float mEnvelope = 0.0f;
-    };
-
 }
 
