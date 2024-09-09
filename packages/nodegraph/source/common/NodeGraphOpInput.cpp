@@ -14,6 +14,8 @@ namespace l::nodegraph {
         for (size_t i = 0; i < inputs.size(); i++) {
             outputs.at(i).mOutput = inputs.at(i).Get();
         }
+        mNode->SetInput(1, static_cast<float>(l::audio::gNoNote_f));
+        mNode->SetInput(2, static_cast<float>(l::audio::gNoNote_f));
     }
 
     void GraphInputKeyboardPiano::Tick(int32_t, float) {
@@ -22,8 +24,8 @@ namespace l::nodegraph {
 
     void GraphInputKeyboardPiano::Reset() {
         mNode->SetInput(0, 0.0f);
-        mNode->SetInput(1, l::audio::gNoNote);
-        mNode->SetInput(2, l::audio::gNoNote);
+        mNode->SetInput(1, l::audio::gNoNote_f);
+        mNode->SetInput(2, l::audio::gNoNote_f);
     }
 
     void GraphInputKeyboardPiano::NoteOn(int32_t note) {
@@ -81,16 +83,26 @@ namespace l::nodegraph {
 
     /*********************************************************************/
     void GraphInputMidiKeyboard::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        for (size_t i = 0; i < inputs.size(); i++) {
-            outputs.at(i).mOutput = inputs.at(i).Get();
+        outputs.at(0).mOutput = inputs.at(0).Get();
+        outputs.at(1).mOutput = inputs.at(1).Get();
+
+        auto output2 = &outputs.at(2).GetOutput(8);
+        auto output3 = &outputs.at(3).GetOutput(8);
+        auto input2 = &inputs.at(2).Get(8);
+        auto input3 = &inputs.at(3).Get(8);
+        for (int32_t i = 0; i < 8; i++) {
+            *output2++ = *input2;
+            *output3++ = *input3;
+            *input2++ = l::audio::gNoNote_f;
+            *input3++ = l::audio::gNoNote_f;
         }
     }
 
     void GraphInputMidiKeyboard::Reset() {
         mNode->SetInput(0, 0.0f);
         mNode->SetInput(1, 0.0f);
-        mNode->SetInput(2, l::audio::gNoNote);
-        mNode->SetInput(3, l::audio::gNoNote);
+        mNode->SetInput(2, l::audio::gNoNote_f, 8);
+        mNode->SetInput(3, l::audio::gNoNote_f, 8);
     }
 
     void GraphInputMidiKeyboard::MidiEvent(const l::hid::midi::MidiData& data) {
@@ -112,14 +124,29 @@ namespace l::nodegraph {
         float frequency = l::audio::GetFrequencyFromNote(static_cast<float>(note));
         mNode->SetInput(0, frequency);
         mNode->SetInput(1, velocity / 128.0f);
-        mNode->SetInput(2, static_cast<float>(note));
+
+        auto input2 = &mNode->GetInput(2, 8);
+        for (int32_t i = 0; i < 8; i++) {
+            if (l::math::functions::equal(*input2, l::audio::gNoNote_f)) {
+                *input2 = static_cast<float>(note);
+                break;
+            }
+            input2++;
+        }
     }
     void GraphInputMidiKeyboard::NoteOff() {
         Reset();
     }
 
     void GraphInputMidiKeyboard::NoteOff(int32_t note) {
-        mNode->SetInput(3, static_cast<float>(note));
+        auto input3 = &mNode->GetInput(3, 8);
+        for (int32_t i = 0; i < 8; i++) {
+            if (l::math::functions::equal(*input3, l::audio::gNoNote_f)) {
+                *input3 = static_cast<float>(note);
+                break;
+            }
+            input3++;
+        }
     }
 
     int8_t GraphInputMidiKeyboard::ResetNoteChannel(int32_t note) {

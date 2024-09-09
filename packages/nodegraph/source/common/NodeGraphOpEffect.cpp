@@ -4,6 +4,7 @@
 #include "audio/AudioUtils.h"
 
 #include "math/MathFunc.h"
+#include "math/MathSmooth.h"
 
 #include <math.h>
 
@@ -351,10 +352,12 @@ namespace l::nodegraph {
         mNode->SetInput(3, 1.0f);
         mNode->SetInput(4, 0.001f);
         mNode->SetInput(5, 0.0f);
+        mNode->SetInput(6, 0.0f);
         mNode->SetInputBound(2, InputBound::INPUT_CUSTOM, 1.0f, 1000.0f);
         mNode->SetInputBound(3, InputBound::INPUT_CUSTOM, 0.01f, 1.0f);
         mNode->SetInputBound(4, InputBound::INPUT_0_TO_1);
         mNode->SetInputBound(5, InputBound::INPUT_0_100);
+        mNode->SetInputBound(6, InputBound::INPUT_0_TO_1);
     }
 
     void GraphEffectTranceGate::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
@@ -364,6 +367,10 @@ namespace l::nodegraph {
         float fmod = inputs.at(3).Get();
         float attack = inputs.at(4).Get();
 
+        if (inputs.at(6).Get() > 0.5f) {
+            mSamplesUntilUpdate = 0.0f;
+        }
+
         size_t patternsSize = patterns.size();
         int32_t patternId = static_cast<int32_t>(patternsSize * inputs.at(5).Get());
         auto& gate = patterns[patternId % patternsSize];
@@ -372,7 +379,7 @@ namespace l::nodegraph {
         float fmodPerPattern = fmod / static_cast<float>(patternSize);
 
         mGateSmoothing = attack * attack;
-        mGateSmoothingNeg = mGateSmoothing * 0.25f;
+        mGateSmoothingNeg = mGateSmoothing;
 
         float freq = 44100.0f * 60.0f / bpm;
 
@@ -389,10 +396,10 @@ namespace l::nodegraph {
 
                     float delta = mGainTarget - mGain;
                     if (delta > 0) {
-                        mGain += mGateSmoothing * delta;
+                        mGain += mGateSmoothing * l::math::smooth::smootPolyh3(delta);
                     }
                     else {
-                        mGain += mGateSmoothingNeg * delta;
+                        mGain += mGateSmoothingNeg * (-l::math::smooth::smootPolyh3(-delta));
                     }
 
                     outputs.at(0).mOutput = mGain * in0;
@@ -407,59 +414,68 @@ namespace l::nodegraph {
 
         mGainTarget = 0.0f;
 
-        mNode->SetInput(0, l::audio::gNoNote);
-        mNode->SetInput(1, l::audio::gNoNote);
+        mNode->SetInput(0, l::audio::gNoNote_f, 8);
+        mNode->SetInput(1, l::audio::gNoNote_f, 8);
+
         mNode->SetInput(2, 1.0f);
         mNode->SetInput(3, 60.0f);
         mNode->SetInput(4, 1.0f);
         mNode->SetInput(5, 0.01f);
+        mNode->SetInput(6, 0.0f);
 
         mNode->SetInputBound(2, InputBound::INPUT_0_TO_1);
         mNode->SetInputBound(3, InputBound::INPUT_CUSTOM, 1.0f, 1000.0f);
         mNode->SetInputBound(4, InputBound::INPUT_CUSTOM, 0.01f, 1.0f);
         mNode->SetInputBound(5, InputBound::INPUT_0_TO_1);
+        mNode->SetInputBound(6, InputBound::INPUT_0_TO_1);
     }
 
     void GraphEffectArpeggio::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         // "Note On Id", "Note Off Id", "Velocity", "Bpm", "Fmod", "Attack"
 
-        float noteOnId = inputs.at(0).Get();
-        float noteOffId = inputs.at(1).Get();
+        auto noteIdsOn = &inputs.at(0).Get(8);
+        auto noteIdsOff = &inputs.at(1).Get(8);
         float velocity = inputs.at(2).Get();
         float bpm = inputs.at(3).Get();
         float fmod = inputs.at(4).Get();
         float attack = inputs.at(5).Get();
 
-        if (noteOffId > l::audio::gNoNote) {
-            if (!l::math::functions::equal(mNoteOffId, noteOffId, 0.1f) && !mNotes.empty()) {
-                auto it = std::find_if(mNotes.begin(), mNotes.end(), [&](const float& note) {
-                    return l::math::functions::equal(note, noteOffId, 0.1f);
-                    });
+        if (inputs.at(6).Get() > 0.5f) {
+            mSamplesUntilUpdate = 0.0f;
+        }
+
+        if (!mNotes.empty()) {
+            for (int32_t i = 0; i < 8; i++) {
+                if (l::math::functions::equal(*noteIdsOff, l::audio::gNoNote_f)) {
+                    break;
+                }
+                int32_t noteOffId = static_cast<int32_t>(*noteIdsOff + 0.5f);
+                auto it = std::find(mNotes.begin(), mNotes.end(), noteOffId);
                 if (it != mNotes.end()) {
                     mNotes.erase(it);
-                    mNoteOffId = noteOffId;
-                    mNoteOnId = -l::math::constants::FLTMAX;
                 }
-            }
-        }
-        if (noteOnId > l::audio::gNoNote) {
-            if (!l::math::functions::equal(mNoteOnId, noteOnId, 0.1f)) {
-                if (mNotes.empty()) {
-                    mSamplesUntilUpdate = 0.0f;
-                }
-                auto it = std::find_if(mNotes.begin(), mNotes.end(), [&](const float& note) {
-                    return l::math::functions::equal(note, noteOnId, 0.1f);
-                    });
-                if (it == mNotes.end()) {
-                    mNotes.push_back(noteOnId);
-                    mNoteOnId = noteOnId;
-                    mNoteOffId = -l::math::constants::FLTMAX;
-                }
+                noteIdsOff++;
             }
         }
 
+        if (mNotes.empty()) {
+            mSamplesUntilUpdate = 0.0f;
+            mGainTarget = 0.0f;
+        }
+        for (int32_t i = 0; i < 8; i++) {
+            if (l::math::functions::equal(*noteIdsOn, l::audio::gNoNote_f)) {
+                break;
+            }
+            int32_t noteOnId = static_cast<int32_t>(*noteIdsOn + 0.5f);
+            auto it = std::find(mNotes.begin(), mNotes.end(), noteOnId);
+            if (it == mNotes.end()) {
+                mNotes.push_back(noteOnId);
+            }
+            noteIdsOn++;
+        }
+
         mGainSmoothing = attack * attack;
-        mGainSmoothingNeg = mGainSmoothing * 0.25f;
+        mGainSmoothingNeg = mGainSmoothing;
 
         float freq = 44100.0f * 60.0f / bpm;
 
@@ -470,7 +486,7 @@ namespace l::nodegraph {
                 }
                 else {
                     mNoteIndex = mNoteIndex % mNotes.size();
-                    mCurrentNoteFreq = l::audio::GetFrequencyFromNote(mNotes.at(mNoteIndex));
+                    mCurrentNoteFreq = l::audio::GetFrequencyFromNote(static_cast<float>(mNotes.at(mNoteIndex)));
                     mNoteIndex++;
                     mGainTarget = velocity;
                 }
@@ -479,10 +495,10 @@ namespace l::nodegraph {
                 for (int32_t i = start; i < end; i++) {
                     float delta = mGainTarget - mGain;
                     if (delta > 0) {
-                        mGain += mGainSmoothing * delta;
+                        mGain += mGainSmoothing * l::math::smooth::smootPolyh3(delta);
                     }
                     else {
-                        mGain += mGainSmoothingNeg * delta;
+                        mGain += mGainSmoothingNeg * (-l::math::smooth::smootPolyh3(-delta));
                     }
 
                     outputs.at(0).mOutput = mCurrentNoteFreq;

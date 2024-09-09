@@ -3,7 +3,8 @@
 #include <functional>
 
 namespace l::audio {
-    extern const float gNoNote;
+    extern const float gNoNote_f;
+    extern const int32_t gNoNote;
     float GetFrequencyFromNote(float note);
     double GetPhaseModifier(double note, double modifier);
     float GetRCAFactor(float numSamples, float limit = 0.01f);

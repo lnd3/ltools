@@ -8,7 +8,8 @@
 #include <math.h>
 
 namespace l::audio {
-	const float gNoNote = -500.0f;
+	const float gNoNote_f = -500.0f;
+	const int32_t gNoNote = -500;
 
     float GetFrequencyFromNote(float note) {
         return 440.0f * l::math::functions::pow(2.0f, (note - 49.0f) / 12.0f);

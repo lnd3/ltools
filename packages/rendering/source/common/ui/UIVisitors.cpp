@@ -209,25 +209,38 @@ namespace l::ui {
             if (mNGSchema) {
                 auto node = mNGSchema->GetNode(container.GetNodeId());
                 auto nodeChannel = static_cast<int8_t>(container.GetChannelId());
-                if (nodeChannel < node->GetNumInputs() && node->IsDataEditable(nodeChannel)) {
-                    auto nodeValue = node->GetInput(nodeChannel);
-                    if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftShift)) {
-                        if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftCtrl)) {
-                            nodeValue -= move.y / 100.0f;
+                if (node->IsDataEditable(nodeChannel)) {
+                    float* nodeValue = nullptr;
+                    if (nodeChannel < node->GetNumInputs() + node->GetNumConstants()) {
+                        nodeValue = &node->GetInput(nodeChannel, 1);
+                    }
+                    else if (nodeChannel < node->GetNumOutputs()) {
+                        nodeValue = &node->GetOutput(nodeChannel, 1);
+                    }
+                    if (nodeValue != nullptr) {
+                        if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftShift)) {
+                            if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftCtrl)) {
+                                *nodeValue -= move.y / 100.0f;
+                            }
+                            else {
+                                *nodeValue -= move.y / 10000.0f;
+                            }
                         }
                         else {
-                            nodeValue -= move.y / 10000.0f;
+                            if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftCtrl)) {
+                                *nodeValue -= move.y;
+                            }
+                            else {
+                                *nodeValue -= 1000.0f * move.y;
+                            }
+                        }
+                        if (nodeChannel < node->GetNumInputs()) {
+                            node->SetInput(nodeChannel, *nodeValue);
+                        }
+                        else if (nodeChannel < node->GetNumOutputs()) {
+                            node->GetOutput(nodeChannel, 1) = *nodeValue;
                         }
                     }
-                    else {
-                        if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftCtrl)) {
-                            nodeValue -= move.y;
-                        }
-                        else {
-                            nodeValue -= 1000.0f * move.y;
-                        }
-                    }
-                    node->SetInput(nodeChannel, nodeValue);
                 }
             }
 

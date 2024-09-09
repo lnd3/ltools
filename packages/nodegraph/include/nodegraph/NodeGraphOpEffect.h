@@ -244,7 +244,7 @@ namespace l::nodegraph {
     /*********************************************************************/
     class GraphEffectTranceGate : public NodeGraphOp {
     public:
-        std::string defaultInStrings[6] = { "In 1", "In 2", "Bpm", "Fmod", "Attack", "Pattern" };
+        std::string defaultInStrings[7] = { "In 1", "In 2", "Bpm", "Fmod", "Attack", "Pattern", "Drift Sync"};
         std::string defaultOutStrings[3] = { "Out 1", "Out 2" };
 
         const std::vector< std::vector<float>> patterns = {
@@ -261,7 +261,7 @@ namespace l::nodegraph {
         };
 
         GraphEffectTranceGate(NodeGraphBase* node) :
-            NodeGraphOp(node, 6, 2, 0)
+            NodeGraphOp(node, 7, 2, 0)
         {}
 
         virtual ~GraphEffectTranceGate() = default;
@@ -295,11 +295,11 @@ namespace l::nodegraph {
     /*********************************************************************/
     class GraphEffectArpeggio: public NodeGraphOp {
     public:
-        std::string defaultInStrings[6] = { "Note On Id", "Note Off Id", "Velocity", "Bpm", "Fmod", "Attack"};
+        std::string defaultInStrings[7] = { "Note On Id", "Note Off Id", "Velocity", "Bpm", "Fmod", "Attack", "Drift Sync"};
         std::string defaultOutStrings[3] = { "Freq", "Volume" };
 
         GraphEffectArpeggio(NodeGraphBase* node) :
-            NodeGraphOp(node, 6, 2, 0)
+            NodeGraphOp(node, 7, 2, 0)
         {}
 
         virtual ~GraphEffectArpeggio() = default;
@@ -328,11 +328,8 @@ namespace l::nodegraph {
         float mGainSmoothing = 0.01f;
         float mGainSmoothingNeg = 0.01f;
 
-        float mNoteOnId = l::audio::gNoNote;
-        float mNoteOffId = l::audio::gNoNote;
-
         float mCurrentNoteFreq = 0.0f;
-        std::vector<float> mNotes;
+        std::vector<int32_t> mNotes;
         int32_t mNoteIndex = 0;
     };
 }

@@ -26,7 +26,7 @@ namespace l::nodegraph {
         INPUT_NODE,
         INPUT_CONSTANT,
         INPUT_VALUE,
-        //INPUT_ARRAY // TODO: is it possible  to process batches for example for audio processing?
+        INPUT_ARRAY
     };
 
     enum class InputBound {
@@ -55,9 +55,9 @@ namespace l::nodegraph {
         std::unique_ptr<std::string> mName = nullptr;
         bool mOutputPolled = false;
 
-        float& GetOutput(int32_t numSamples = 1) {
+        float& GetOutput(int32_t size = 1) {
             if (!mOutputBuf) {
-                if (numSamples <= 1) {
+                if (size <= 1) {
                     mOutputPolled = true;
                     return mOutput;
                 }
@@ -65,8 +65,8 @@ namespace l::nodegraph {
                     mOutputBuf = std::make_unique<std::vector<float>>();
                 }
             }
-            if (static_cast<int32_t>(mOutputBuf->size()) < numSamples) {
-                mOutputBuf->resize(numSamples);
+            if (static_cast<int32_t>(mOutputBuf->size()) < size) {
+                mOutputBuf->resize(size);
             }
             mOutputPolled = true;
             return *mOutputBuf->data();
@@ -111,9 +111,10 @@ namespace l::nodegraph {
 
         int8_t mInputFromOutputChannel = 0;
         std::unique_ptr<std::string> mName;
+        std::unique_ptr<std::vector<float>> mInputBuf = nullptr;
 
         void Reset();
-        bool HasInput();
+        bool HasInputNode();
         float Get();
         float& Get(int32_t numSamples);
     };
@@ -144,8 +145,9 @@ namespace l::nodegraph {
         virtual int8_t GetNumOutputs();
         virtual int8_t GetNumConstants();
 
-        virtual float& GetOutput(int8_t outputChannel, int32_t numSamples = 1);
+        virtual float& GetOutput(int8_t outputChannel, int32_t size = 1);
         virtual float GetInput(int8_t inputChannel);
+        virtual float& GetInput(int8_t inputChannel, int32_t size);
 
         virtual int32_t GetOutputSize(int8_t outputChannel);
 
@@ -159,7 +161,7 @@ namespace l::nodegraph {
 
         virtual bool SetInput(int8_t inputChannel, NodeGraphBase& source, int8_t sourceOutputChannel);
         virtual bool SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel);
-        virtual bool SetInput(int8_t inputChannel, float constant);
+        virtual bool SetInput(int8_t inputChannel, float constant, int32_t size = -1);
         virtual bool SetInput(int8_t inputChannel, float* floatPtr);
 
         virtual bool SetInputBound(int8_t inputChannel, InputBound bound = InputBound::INPUT_DONTCHANGE, float boundMin = 0.0f, float boundMax = 0.0f);

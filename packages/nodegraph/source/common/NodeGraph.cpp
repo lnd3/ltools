@@ -91,8 +91,8 @@ namespace l::nodegraph {
         mLastTickCount = tickCount;
     }
 
-    float& NodeGraphBase::GetOutput(int8_t outputChannel, int32_t numSamples) {
-        return mOutputs.at(outputChannel).GetOutput(numSamples);
+    float& NodeGraphBase::GetOutput(int8_t outputChannel, int32_t size) {
+        return mOutputs.at(outputChannel).GetOutput(size);
     }
 
     int32_t NodeGraphBase::GetOutputSize(int8_t outputChannel) {
@@ -103,13 +103,17 @@ namespace l::nodegraph {
         return mInputs.at(inputChannel).Get();
     }
 
+    float& NodeGraphBase::GetInput(int8_t inputChannel, int32_t size) {
+        return mInputs.at(inputChannel).Get(size);
+    }
+
     bool NodeGraphBase::ClearInput(int8_t inputChannel) {
         ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
         if (!IsValidInOutNum(inputChannel, mInputs.size())) {
             return false;
         }
         auto& input = mInputs.at(inputChannel);
-        if (!input.HasInput()) {
+        if (!input.HasInputNode()) {
             return false;
         }
         input.mInputType = InputType::INPUT_EMPTY;
@@ -126,7 +130,7 @@ namespace l::nodegraph {
         auto& input = mInputs.at(inputChannel);
         if (!IsValidInOutNum(sourceOutputChannel, source.mOutputs.size()) ||
             !IsValidInOutNum(inputChannel, mInputs.size()) ||
-            input.HasInput()) {
+            input.HasInputNode()) {
             return false;
         }
         input.mInput.mInputNode = &source;
@@ -144,7 +148,7 @@ namespace l::nodegraph {
         if (source.ContainsNode(GetId())) {
             if (!IsValidInOutNum(sourceChannel, source.GetInputNode().GetNumOutputs()) ||
                 !IsValidInOutNum(inputChannel, mInputs.size()) ||
-                input.HasInput()) {
+                input.HasInputNode()) {
                 return false;
             }
             input.mInput.mInputNode = &source.GetInputNode();
@@ -153,7 +157,7 @@ namespace l::nodegraph {
         else {
             if (!IsValidInOutNum(sourceChannel, source.GetOutputNode().GetNumOutputs()) ||
                 !IsValidInOutNum(inputChannel, mInputs.size()) ||
-                input.HasInput()) {
+                input.HasInputNode()) {
                 return false;
             }
             input.mInput.mInputNode = &source.GetOutputNode();
@@ -163,15 +167,25 @@ namespace l::nodegraph {
         return true;
     }
 
-    bool NodeGraphBase::SetInput(int8_t inputChannel, float constant) {
+    bool NodeGraphBase::SetInput(int8_t inputChannel, float constant, int32_t size) {
         ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
         if (!IsValidInOutNum(inputChannel, mInputs.size())) {
             return false;
         }
         auto& input = mInputs.at(inputChannel);
-        input.mInput.mInputFloatConstant = constant;
-        input.mInputType = InputType::INPUT_CONSTANT;
-        input.mInputFromOutputChannel = 0;
+        if (size <= 0) {
+            input.mInput.mInputFloatConstant = constant;
+            input.mInputType = InputType::INPUT_CONSTANT;
+            input.mInputFromOutputChannel = 0;
+        }
+        else {
+            input.mInputType = InputType::INPUT_ARRAY;
+            input.mInputFromOutputChannel = 0;
+            auto inputBuf = &input.Get(size);
+            for (int32_t i = 0; i < size; i++) {
+                *inputBuf++ = constant;
+            }
+        }
 
         return true;
     }
@@ -346,19 +360,9 @@ namespace l::nodegraph {
         }
     }
 
-    bool NodeGraphInput::HasInput() {
-        switch (mInputType) {
-        case InputType::INPUT_NODE:
-            if (mInput.mInputNode != nullptr) {
-                return true;
-            }
-            break;
-        case InputType::INPUT_CONSTANT:
-            break;
-        case InputType::INPUT_VALUE:
-            return mInput.mInputFloat != nullptr;
-        case InputType::INPUT_EMPTY:
-            break;
+    bool NodeGraphInput::HasInputNode() {
+        if (mInputType == InputType::INPUT_NODE) {
+            return true;
         }
         return false;
     }
@@ -374,6 +378,8 @@ namespace l::nodegraph {
         case InputType::INPUT_CONSTANT:
             value = mInput.mInputFloatConstant;
             break;
+        case InputType::INPUT_ARRAY:
+            return *mInputBuf->data();
         case InputType::INPUT_VALUE:
             value = *mInput.mInputFloat;
             break;
@@ -383,13 +389,21 @@ namespace l::nodegraph {
         return l::math::functions::clamp(value, mBoundMin, mBoundMax);
     }
 
-    float& NodeGraphInput::Get(int32_t numSamples) {
+    float& NodeGraphInput::Get(int32_t size) {
         switch (mInputType) {
         case InputType::INPUT_NODE:
             if (mInput.mInputNode != nullptr) {
-                return mInput.mInputNode->GetOutput(mInputFromOutputChannel, numSamples);
+                return mInput.mInputNode->GetOutput(mInputFromOutputChannel, size);
             }
             break;
+        case InputType::INPUT_ARRAY:
+            if (!mInputBuf) {
+                mInputBuf = std::make_unique<std::vector<float>>();
+            }
+            if (static_cast<int32_t>(mInputBuf->size()) < size) {
+                mInputBuf->resize(size);
+            }
+            return *mInputBuf->data();
         case InputType::INPUT_CONSTANT:
             return mInput.mInputFloatConstant;
         case InputType::INPUT_VALUE:
