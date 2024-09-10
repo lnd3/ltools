@@ -8,6 +8,8 @@ namespace l::hid::midi {
 		return nullptr;
 	}
 
+	void MidiManagerLinux::RescanMidiDevices() {}
+
 	uint32_t MidiManagerLinux::GetNumDevices() {
 		return 0;
 	}

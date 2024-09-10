@@ -10,6 +10,7 @@ namespace l::hid::midi {
 	public:
 		MidiManagerLinux() = default;
 
+		virtual void RescanMidiDevices() override;
 		virtual uint32_t GetNumDevices() override;
 		virtual void SendToDevice(uint32_t deviceIndex, uint32_t status, uint32_t channel, uint32_t data1, uint32_t data2) override;
 	protected:

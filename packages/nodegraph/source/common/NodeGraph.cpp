@@ -185,6 +185,7 @@ namespace l::nodegraph {
             for (int32_t i = 0; i < size; i++) {
                 *inputBuf++ = constant;
             }
+            input.mInput.mInputFloatConstant = constant;
         }
 
         return true;
@@ -200,6 +201,13 @@ namespace l::nodegraph {
         input.mInputType = InputType::INPUT_VALUE;
         input.mInputFromOutputChannel = 0;
         return true;
+    }
+
+    void NodeGraphBase::SetDefaultOutput(int8_t outputChannel, float defaultValue, int32_t size) {
+        auto output = &GetOutput(outputChannel, size);
+        for (int32_t i = 0; i < size; i++) {
+            *output++ = defaultValue;
+        }
     }
 
     bool NodeGraphBase::SetInputBound(int8_t inputChannel, InputBound bound, float boundMin, float boundMax) {

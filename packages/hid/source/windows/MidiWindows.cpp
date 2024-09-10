@@ -9,23 +9,29 @@ namespace l::hid::midi {
 	}
 
 	namespace details {
-		void CALLBACK MidiInProc(HMIDIIN, UINT wMsg, DWORD dwInstance, DWORD dwParam1, DWORD dwParam2) {
-			HandleMidiData(static_cast<uint32_t>(wMsg), static_cast<uint32_t>(dwInstance), static_cast<uint32_t>(dwParam1), static_cast<uint32_t>(dwParam2));
+		void CALLBACK MidiInProc(HMIDIIN deviceIn, UINT wMsg, DWORD_PTR dwInstance, DWORD dwParam1, DWORD dwParam2) {
+			auto midiPtr = reinterpret_cast<Midi*>(dwInstance);
+			auto deviceInfo = midiPtr->getDeviceInfo(deviceIn);
+			if (deviceInfo) {
+				HandleMidiData(static_cast<uint32_t>(wMsg), deviceInfo->GetMidiIn(), deviceInfo->GetMidiOut(), static_cast<uint32_t>(dwParam1), static_cast<uint32_t>(dwParam2));
+			}
 		}
 
-		void CALLBACK MidiOutProc(HMIDIIN, UINT wMsg, DWORD, DWORD, DWORD) {
+		void CALLBACK MidiOutProc(HMIDIOUT, UINT wMsg, DWORD_PTR, DWORD, DWORD) {
+			//auto midiPtr = reinterpret_cast<Midi*>(dwInstance);
+			//auto id = midiPtr->getDeviceOutId(deviceOut);
 			switch (wMsg) {
 			case MOM_OPEN:
-				LOG(LogInfo) << "MOM_OPEN";
+				//LOG(LogInfo) << "MOM_OPEN";
 				break;
 			case MOM_CLOSE:
-				LOG(LogInfo) << "MOM_CLOSE";
+				//LOG(LogInfo) << "MOM_CLOSE";
 				break;
 			case MOM_DONE:
-				LOG(LogInfo) << "MOM_DONE";
+				//LOG(LogInfo) << "MOM_DONE";
 				break;
 			default:
-				LOG(LogInfo) << "Something else..";
+				//LOG(LogInfo) << "Something else..";
 				break;
 			}
 
@@ -33,61 +39,6 @@ namespace l::hid::midi {
 	}
 
 	Midi::Midi() : mHeader{}, mMidiBuffer{} {
-		UINT nMidiDeviceNum = midiInGetNumDevs();
-		if (nMidiDeviceNum == 0) {
-			return;
-		}
-
-		UINT nMidiOutDeviceNum = midiOutGetNumDevs();
-
-		LOG(LogInfo) << "Number of midi in devices: " << nMidiDeviceNum;
-		LOG(LogInfo) << "Number of midi out devices: " << nMidiOutDeviceNum;
-
-		for (size_t deviceId = 0; deviceId < nMidiDeviceNum; deviceId++) {
-			MMRESULT rv;
-			HMIDIIN hMidiDevice = NULL;
-
-			rv = midiInOpen(&hMidiDevice, static_cast<UINT>(deviceId), reinterpret_cast<DWORD_PTR>(&details::MidiInProc), 0, CALLBACK_FUNCTION);
-			if (rv == MMSYSERR_ALLOCATED) {
-				return;
-			}
-			if (rv != MMSYSERR_NOERROR) {
-				LOG(LogError) << "Failed to open midi in device " << deviceId;
-				continue;
-			}
-
-			rv = midiInStart(hMidiDevice);
-			if (rv != MMSYSERR_NOERROR) {
-				LOG(LogError) << "Failed to start midi in device" << deviceId;
-				continue;
-			}
-
-			MIDIINCAPS capsIn;
-			rv = midiInGetDevCaps(deviceId, &capsIn, sizeof(MIDIINCAPS));
-			if (rv != MMSYSERR_NOERROR) {
-				LOG(LogError) << "Failed to get midi in caps on device " << deviceId;
-			}
-
-			HMIDIOUT hMidiDeviceOut = nullptr;
-			deviceId++;
-			rv = midiOutOpen(&hMidiDeviceOut, static_cast<UINT>(deviceId), reinterpret_cast<DWORD_PTR>(&details::MidiOutProc), 0, CALLBACK_FUNCTION);
-			if (rv == MMSYSERR_ALLOCATED) {
-				return;
-			}
-			if (rv != MMSYSERR_NOERROR) {
-				LOG(LogError) << "Failed to open midi out device " << deviceId;
-			}
-
-			MIDIOUTCAPS capsOut;
-			rv = midiOutGetDevCaps(deviceId, &capsOut, sizeof(MIDIOUTCAPS));
-			if (rv != MMSYSERR_NOERROR) {
-				LOG(LogError) << "Failed to get midi out caps on device " << deviceId;
-			}
-			deviceId--;
-
-			devices.push_back(std::make_pair(hMidiDevice, hMidiDeviceOut));
-			caps.push_back(std::make_pair(capsIn, capsOut));
-		}
 	}
 
 	Midi::~Midi() {
@@ -110,6 +61,107 @@ namespace l::hid::midi {
 		{
 			std::lock_guard<std::mutex> lock(details::midiCallbackMutex);
 			details::midiCallback.clear();
+		}
+	}
+
+	void Midi::initDevices() {
+		mDeviceInfo.clear();
+		devices.clear();
+		caps.clear();
+
+		UINT nMidiInDeviceInNum = midiInGetNumDevs();
+		if (nMidiInDeviceInNum == 0) {
+			return;
+		}
+
+		UINT nMidiOutDeviceNum = midiOutGetNumDevs();
+
+		LOG(LogInfo) << "Number of midi in devices: " << nMidiInDeviceInNum;
+		LOG(LogInfo) << "Number of midi out devices: " << nMidiOutDeviceNum;
+
+		for (uint32_t deviceId = 0; deviceId < nMidiInDeviceInNum || deviceId < nMidiOutDeviceNum; deviceId++) {
+			MMRESULT rv;
+			HMIDIIN hMidiDeviceIn = nullptr;
+			HMIDIOUT hMidiDeviceOut = nullptr;
+			MIDIINCAPS capsIn = { 0 };
+			MIDIOUTCAPS capsOut = { 0 };
+
+			if (deviceId < nMidiInDeviceInNum) {
+				rv = midiInGetDevCaps(deviceId, &capsIn, sizeof(MIDIINCAPS));
+				if (rv != MMSYSERR_NOERROR) {
+					LOG(LogError) << "Failed to get midi in caps on device " << deviceId;
+				}
+				LOG(LogInfo) << "Midi in device id " << deviceId << " : " << capsIn.szPname << ", support : " << capsIn.dwSupport << ", pid : " << capsIn.wPid;
+
+				rv = midiInOpen(&hMidiDeviceIn, static_cast<UINT>(deviceId), reinterpret_cast<DWORD_PTR>(&details::MidiInProc), (DWORD_PTR)(this), CALLBACK_FUNCTION | MIDI_IO_STATUS);
+				if (rv == MMSYSERR_ALLOCATED) {
+					return;
+				}
+				if (rv != MMSYSERR_NOERROR) {
+					LOG(LogError) << "Failed to open midi in device " << deviceId;
+					continue;
+				}
+
+				rv = midiInStart(hMidiDeviceIn);
+				if (rv != MMSYSERR_NOERROR) {
+					LOG(LogError) << "Failed to start midi in device" << deviceId;
+					continue;
+				}
+			}
+
+			if (deviceId < nMidiOutDeviceNum) {
+				rv = midiOutGetDevCaps(deviceId, &capsOut, sizeof(MIDIOUTCAPS));
+				if (rv != MMSYSERR_NOERROR) {
+					LOG(LogError) << "Failed to get midi out caps on device " << deviceId;
+				}
+				LOG(LogInfo) << "Midi out device id " << deviceId << " : " << capsOut.szPname << ", support : " << capsOut.dwSupport << ", pid : " << capsOut.wPid;
+
+				rv = midiOutOpen(&hMidiDeviceOut, static_cast<UINT>(deviceId), reinterpret_cast<DWORD_PTR>(&details::MidiOutProc), (DWORD_PTR)(this), CALLBACK_FUNCTION);
+				if (rv == MMSYSERR_ALLOCATED) {
+					return;
+				}
+				if (rv != MMSYSERR_NOERROR) {
+					LOG(LogError) << "Failed to open midi out device " << deviceId;
+				}
+			}
+
+			devices.push_back(std::make_pair(hMidiDeviceIn, hMidiDeviceOut));
+			caps.push_back(std::make_pair(capsIn, capsOut));
+
+			if (deviceId + 1 >= mDeviceInfo.size()) {
+				mDeviceInfo.resize(deviceId + 1);
+			}
+			if (hMidiDeviceIn != nullptr) {
+				auto& deviceInfo = mDeviceInfo.at(deviceId);
+				deviceInfo.mInDevice = static_cast<int32_t>(deviceId);
+				if (capsIn.szPname) {
+					deviceInfo.mName = capsIn.szPname;
+
+					if (deviceInfo.mName == "APC Key 25") {
+						deviceInfo.mChannelKeys = 1;
+						deviceInfo.mChannelButtons = 0;
+						deviceInfo.mChannelKnobs = 0;
+					}
+					else if (deviceInfo.mName == "Keystation Mini 32") {
+						deviceInfo.mChannelKeys = 0;
+						deviceInfo.mChannelButtons = 0;
+						deviceInfo.mChannelKnobs = 0;
+					}
+					else {
+						deviceInfo.mChannelKeys = 0;
+						deviceInfo.mChannelButtons = 0;
+						deviceInfo.mChannelKnobs = 0;
+					}
+				}
+			}
+			if (hMidiDeviceOut != nullptr) {
+				for (int32_t i = 0; i < mDeviceInfo.size(); i++) {
+					auto& deviceInfo = mDeviceInfo.at(i);
+					if (std::string(capsOut.szPname) == deviceInfo.GetName()) {
+						deviceInfo.mOutDevice = static_cast<int32_t>(deviceId);
+					}
+				}
+			}
 		}
 	}
 
@@ -223,8 +275,52 @@ namespace l::hid::midi {
 		}
 	}
 
+	DeviceInfo* Midi::getDeviceInfo(HMIDIIN midiIn) {
+		for (int32_t i = 0; i < devices.size() && mDeviceInfo.size(); i++) {
+			if (devices.at(i).first == midiIn) {
+				return &mDeviceInfo.at(i);
+			}
+		}
+		return nullptr;
+	}
+
+	DeviceInfo* Midi::getDeviceInfo(uint32_t deviceId) {
+		for (int32_t i = 0; i < mDeviceInfo.size(); i++) {
+			auto& deviceInfo = mDeviceInfo.at(i);
+			if (deviceInfo.GetMidiIn() == deviceId) {
+				return &deviceInfo;
+			}
+		}
+		return 0;
+	}
+
+	MidiManagerWindows::MidiManagerWindows() {
+		RescanMidiDevices();
+	}
+
+	void MidiManagerWindows::RescanMidiDevices() {
+		ClearCallbacks();
+		mMidiDevice.initDevices();
+
+		RegisterCallback([](const MidiData& data) {
+			LOG(LogInfo) << "midi cb: device in:" << data.deviceIn << " device out:" << data.deviceOut << " stat:" << data.status << " ch:" << data.channel << " d1:" << data.data1 << " d2:" << data.data2;
+			});
+	}
+
 	uint32_t MidiManagerWindows::GetNumDevices() {
 		return mMidiDevice.getNumDevices();
+	}
+
+	std::string_view MidiManagerWindows::GetDeviceName(uint32_t deviceId) {
+		auto deviceInfo = mMidiDevice.getDeviceInfo(deviceId);
+		if (deviceInfo != nullptr) {
+			return deviceInfo->GetName();
+		}
+		return "";
+	}
+
+	DeviceInfo* MidiManagerWindows::GetDeviceInfo(uint32_t deviceId) {
+		return mMidiDevice.getDeviceInfo(deviceId);
 	}
 
 	void MidiManagerWindows::SendToDevice(uint32_t deviceIndex, uint32_t status, uint32_t channel, uint32_t data1, uint32_t data2) {

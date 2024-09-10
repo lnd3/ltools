@@ -112,6 +112,8 @@ namespace l::nodegraph {
 
         int8_t mInputFromOutputChannel = 0;
         std::unique_ptr<std::string> mName;
+
+        // hack to get input buffers working
         std::unique_ptr<std::vector<float>> mInputBuf = nullptr;
 
         void Reset();
@@ -164,6 +166,7 @@ namespace l::nodegraph {
         virtual bool SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel);
         virtual bool SetInput(int8_t inputChannel, float constant, int32_t size = -1);
         virtual bool SetInput(int8_t inputChannel, float* floatPtr);
+        virtual void SetDefaultOutput(int8_t outputChannel, float constant, int32_t size = -1);
 
         virtual bool SetInputBound(int8_t inputChannel, InputBound bound = InputBound::INPUT_DONTCHANGE, float boundMin = 0.0f, float boundMax = 0.0f);
         virtual bool RemoveInput(void* source);

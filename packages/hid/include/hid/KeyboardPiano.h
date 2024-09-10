@@ -13,9 +13,10 @@ namespace l::hid {
 	class INoteProcessor {
 	public:
 		virtual ~INoteProcessor() = default;
-		virtual void NoteOn(int32_t) {}
+		virtual void NoteOn(int32_t, int32_t = 127) {}
 		virtual void NoteOff() {}
 		virtual void NoteOff(int32_t) {}
+		virtual void NoteSustain(bool) {}
 	};
 
 	enum class KeyFunctionTypes {
