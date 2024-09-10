@@ -71,13 +71,13 @@ namespace l::nodegraph {
         {
             mChannel.resize(1);
 
+            SetDevice(0);
+
             mMidiManager->RegisterCallback([&](l::hid::midi::MidiData data) {
                 if (mMidiDeviceInId >= 0 && data.deviceIn == static_cast<uint32_t>(mMidiDeviceInId)) {
                     MidiEvent(data);
                 }
                 });
-
-            SetDevice(0);
         }
 
         std::string defaultOutStrings[5] = { "Freq", "Velocity", "Note On Id", "Note Off Id", "Device Id"};
@@ -139,13 +139,13 @@ namespace l::nodegraph {
             NodeGraphOp(node, 0, 9, 9),
             mMidiManager(midiManager)
         {
+            SetDevice(0);
+
             mMidiManager->RegisterCallback([&](l::hid::midi::MidiData data) {
                 if (mMidiDeviceInId >= 0 && data.deviceIn == static_cast<uint32_t>(mMidiDeviceInId)) {
                     MidiEvent(data);
                 }
                 });
-
-            SetDevice(0);
         }
 
         std::string defaultOutStrings[9] = { "Knob 1", "Knob 2", "Knob 3", "Knob 4", "Knob 5", "Knob 6", "Knob 7", "Knob 8", "Device Id"};
@@ -232,6 +232,8 @@ namespace l::nodegraph {
             }
             defaultOutStrings[8] = "Device Id";
 
+            SetDevice(0);
+
             if (mMidiManager) {
                 mCallbackId = mMidiManager->RegisterCallback([&](l::hid::midi::MidiData data) {
                     if (mMidiDeviceInId >= 0 && data.deviceIn == static_cast<uint32_t>(mMidiDeviceInId)) {
@@ -244,8 +246,6 @@ namespace l::nodegraph {
                     UpdateButton(i, BUTTON_ALLOCATED);
                 }
             }
-
-            SetDevice(0);
         }
 
         std::string defaultOutStrings[9];
@@ -280,7 +280,7 @@ namespace l::nodegraph {
             if (mMidiManager) {
                 int8_t buttonColor = remapToButtonStatesToColor.at(buttonState);
                 auto deviceInfo = mMidiManager->GetDeviceInfo(mMidiDeviceInId);
-                if (deviceInfo) {
+                if (deviceInfo && deviceInfo->HasMidiOut()) {
                     mMidiManager->SendToDevice(deviceInfo->GetMidiOut(), 0x90, 0, mButtonGroup * 8 + buttonId, buttonColor);
                 }
                 mButtonStates.at(buttonId) = buttonState;

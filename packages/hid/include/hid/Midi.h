@@ -36,7 +36,7 @@ namespace l::hid::midi {
 			return mInDevice >= 0;
 		}
 		bool HasMidiOut() {
-			return mInDevice >= 0;
+			return mOutDevice >= 0;
 		}
 		uint32_t GetMidiIn() {
 			return static_cast<uint32_t>(mInDevice);
