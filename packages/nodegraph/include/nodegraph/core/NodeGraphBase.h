@@ -11,9 +11,13 @@
 
 #include "math/MathConstants.h"
 
+#include "nodegraph/core/NodeGraphInput.h"
+#include "nodegraph/core/NodeGraphOutput.h"
+
 namespace l::nodegraph {
 
     int32_t CreateUniqueId();
+    bool IsValidInOutNum(int8_t inoutNum, size_t inoutSize);
 
     enum class DataType {
         FLOAT32,
@@ -21,106 +25,7 @@ namespace l::nodegraph {
         BITFIELD32
     };
 
-    enum class InputType {
-        INPUT_EMPTY,
-        INPUT_NODE,
-        INPUT_CONSTANT,
-        INPUT_VALUE,
-        INPUT_ARRAY
-    };
-
-    enum class InputBound {
-        INPUT_DONTCHANGE,
-        INPUT_UNBOUNDED,
-        INPUT_0_TO_1,
-        INPUT_0_TO_2,
-        INPUT_NEG_1_POS_1,
-        INPUT_0_100,
-        INPUT_CUSTOM,
-    };
-
-    enum class OutputType {
-        Default, // node will be processed if it is connected to the groups output by some route
-        ExternalOutput, // node does not have meaningful output for other nodes but should still be processed (ex speaker output only has input)
-        ExternalVisualOutput,
-    };
-
-    bool IsValidInOutNum(int8_t inoutNum, size_t inoutSize);
-
-    class NodeGraphOutput {
-    public:
-        NodeGraphOutput() = default;
-
-        float mOutput = 0.0f;
-        std::unique_ptr<std::vector<float>> mOutputBuf = nullptr;
-        std::unique_ptr<std::string> mName = nullptr;
-        bool mOutputPolled = false;
-
-        float& GetOutput(int32_t size = 1) {
-            if (!mOutputBuf) {
-                if (size <= 1) {
-                    mOutputPolled = true;
-                    return mOutput;
-                }
-                else {
-                    mOutputBuf = std::make_unique<std::vector<float>>();
-                }
-            }
-            if (static_cast<int32_t>(mOutputBuf->size()) < size) {
-                mOutputBuf->resize(size);
-            }
-            mOutputPolled = true;
-            return *mOutputBuf->data();
-        }
-
-        int32_t GetOutputSize() {
-            if (!mOutputBuf) {
-                return 1;
-            }
-            else {
-                return static_cast<int32_t>(mOutputBuf->size());
-            }
-        }
-
-        bool IsOutputPolled() {
-            return mOutputPolled;
-        }
-
-        void ResetOutputPollState() {
-            mOutputPolled = false;
-        }
-    };
-
-    class NodeGraphBase;
     class NodeGraphGroup;
-
-    union Input {
-        NodeGraphBase* mInputNode = nullptr;
-        float* mInputFloat;
-        float mInputFloatConstant;
-        int32_t* mInputInt;
-        int32_t mInputIntConstant;
-    };
-
-    struct NodeGraphInput {
-        Input mInput;
-        InputType mInputType = InputType::INPUT_EMPTY;
-
-        float mBoundMin = -l::math::constants::FLTMAX;
-        float mBoundMax = l::math::constants::FLTMAX;
-        InputBound mInputBound = InputBound::INPUT_UNBOUNDED;
-
-        int8_t mInputFromOutputChannel = 0;
-        std::unique_ptr<std::string> mName;
-
-        // hack to get input buffers working
-        std::unique_ptr<std::vector<float>> mInputBuf = nullptr;
-
-        void Reset();
-        bool HasInputNode();
-        float Get();
-        float& Get(int32_t numSamples);
-    };
 
     class NodeGraphBase {
     public:
@@ -232,16 +137,6 @@ namespace l::nodegraph {
         int8_t mNumConstants = 0;
     };
 
-    class GraphDataCopy : public NodeGraphOp {
-    public:
-        GraphDataCopy(NodeGraphBase* node) :
-            NodeGraphOp(node, 0)
-        {}
-        virtual ~GraphDataCopy() = default;
-
-        void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-    };
-
     template<class T, class... Params>
     class NodeGraph : public NodeGraphBase {
     public:
@@ -330,68 +225,6 @@ namespace l::nodegraph {
 
     protected:
         T mOperation;
-    };
-
-    class NodeGraphGroup {
-    public:
-        NodeGraphGroup() :
-            mInputNode(OutputType::Default),
-            mOutputNode(OutputType::Default)
-        {
-            SetNumInputs(1);
-            SetNumOutputs(1);
-            mOutputNodes.push_back(&mOutputNode);
-        }
-        ~NodeGraphGroup() {
-            LOG(LogInfo) << "Node group destroyed";
-        }
-
-        void SetNumInputs(int8_t numInputs);
-        void SetNumOutputs(int8_t outputCount);
-        void SetInput(int8_t inputChannel, NodeGraphBase& source, int8_t sourceOutputChannel);
-        void SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel);
-        void SetInput(int8_t inputChannel, float constant);
-        void SetInput(int8_t inputChannel, float* floatPtr);
-
-        void SetOutput(int8_t outputChannel, NodeGraphBase& source, int8_t sourceOutputChannel);
-        void SetOutput(int8_t outputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel);
-
-        float GetOutput(int8_t outputChannel);
-        NodeGraphBase& GetInputNode();
-        NodeGraphBase& GetOutputNode();
-
-        bool ContainsNode(int32_t id);
-        NodeGraphBase* GetNode(int32_t id);
-
-        template<class T, class U = void, class = std::enable_if_t<std::is_base_of_v<NodeGraphOp, T>>>
-        NodeGraph<T, U>* GetTypedNode(int32_t id) {
-            auto p = GetNode(id);
-            return reinterpret_cast<NodeGraph<T, U>*>(p);
-        }
-
-        bool RemoveNode(int32_t id);
-
-        template<class T, class = std::enable_if_t<std::is_base_of_v<NodeGraphOp, T>>, class... Params>
-        l::nodegraph::NodeGraphBase* NewNode(OutputType nodeType, Params&&... params) {
-            mNodes.push_back(std::make_unique<l::nodegraph::NodeGraph<T, Params...>>(nodeType, std::forward<Params>(params)...));
-            auto nodePtr = mNodes.back().get();
-            if (nodeType == OutputType::ExternalOutput || nodeType == OutputType::ExternalVisualOutput) {
-                mOutputNodes.push_back(nodePtr);
-            }
-            return nodePtr;
-        }
-
-        void ClearProcessFlags();
-        void ProcessSubGraph(int32_t numSamples, bool recomputeSubGraphCache = true);
-        void Tick(int32_t tickCount, float elapsed);
-    protected:
-        NodeGraph<GraphDataCopy> mInputNode;
-        NodeGraph<GraphDataCopy> mOutputNode;
-
-        std::vector<std::unique_ptr<NodeGraphBase>> mNodes;
-        std::vector<NodeGraphBase*> mOutputNodes;
-
-        int32_t mLastTickCount = 0;
     };
 
 }

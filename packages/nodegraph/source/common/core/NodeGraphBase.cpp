@@ -1,4 +1,5 @@
-#include "nodegraph/NodeGraph.h"
+#include "nodegraph/core/NodeGraphBase.h"
+#include "nodegraph/core/NodeGraphGroup.h"
 
 #include "logging/Log.h"
 
@@ -6,13 +7,13 @@
 
 namespace l::nodegraph {
 
-    bool IsValidInOutNum(int8_t inoutNum, size_t inoutSize) {
-        return inoutNum >= 0 && inoutSize < 256u && inoutNum < static_cast<int8_t>(inoutSize);
-    }
-
     int32_t CreateUniqueId() {
         static int32_t id = 1;
         return id++;
+    }
+
+    bool IsValidInOutNum(int8_t inoutNum, size_t inoutSize) {
+        return inoutNum >= 0 && inoutSize < 256u && inoutNum < static_cast<int8_t>(inoutSize);
     }
 
     void NodeGraphBase::SetNumInputs(int8_t numInputs) {
@@ -173,6 +174,7 @@ namespace l::nodegraph {
             return false;
         }
         auto& input = mInputs.at(inputChannel);
+        constant = l::math::functions::clamp(constant, input.mBoundMin, input.mBoundMax);
         if (size <= 0) {
             input.mInput.mInputFloatConstant = constant;
             input.mInputType = InputType::INPUT_CONSTANT;
@@ -358,191 +360,4 @@ namespace l::nodegraph {
         return "";
     }
 
-    void GraphDataCopy::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        for (size_t i = 0; i < inputs.size() && i < outputs.size(); i++) {
-            outputs.at(i).mOutput = inputs.at(i).Get();
-        }
-    }
-
-    void NodeGraphInput::Reset() {
-        if (mInputType == InputType::INPUT_NODE || mInputType == InputType::INPUT_VALUE) {
-            mInput.mInputNode = nullptr;
-            mInputType = InputType::INPUT_EMPTY;
-            mInputFromOutputChannel = 0;
-        }
-    }
-
-    bool NodeGraphInput::HasInputNode() {
-        if (mInputType == InputType::INPUT_NODE) {
-            return true;
-        }
-        return false;
-    }
-
-    float NodeGraphInput::Get() {
-        float value = 0.0f;
-        switch (mInputType) {
-        case InputType::INPUT_NODE:
-            if (mInput.mInputNode != nullptr) {
-                value = mInput.mInputNode->GetOutput(mInputFromOutputChannel);
-            }
-            break;
-        case InputType::INPUT_CONSTANT:
-            value = mInput.mInputFloatConstant;
-            break;
-        case InputType::INPUT_ARRAY:
-            return *mInputBuf->data();
-        case InputType::INPUT_VALUE:
-            value = *mInput.mInputFloat;
-            break;
-        case InputType::INPUT_EMPTY:
-            break;
-        }
-        return l::math::functions::clamp(value, mBoundMin, mBoundMax);
-    }
-
-    float& NodeGraphInput::Get(int32_t size) {
-        switch (mInputType) {
-        case InputType::INPUT_NODE:
-            if (mInput.mInputNode != nullptr) {
-                return mInput.mInputNode->GetOutput(mInputFromOutputChannel, size);
-            }
-            break;
-        case InputType::INPUT_ARRAY:
-            if (!mInputBuf) {
-                mInputBuf = std::make_unique<std::vector<float>>();
-            }
-            if (static_cast<int32_t>(mInputBuf->size()) < size) {
-                mInputBuf->resize(size);
-            }
-            return *mInputBuf->data();
-        case InputType::INPUT_CONSTANT:
-            return mInput.mInputFloatConstant;
-        case InputType::INPUT_VALUE:
-            return *mInput.mInputFloat;
-        case InputType::INPUT_EMPTY:
-            break;
-        }
-        return mInput.mInputFloatConstant;
-    }
-
-    void NodeGraphGroup::SetNumInputs(int8_t numInputs) {
-        mInputNode.SetNumInputs(numInputs);
-        mInputNode.SetNumOutputs(numInputs);
-    }
-
-    void NodeGraphGroup::SetNumOutputs(int8_t outputCount) {
-        mOutputNode.SetNumInputs(outputCount);
-        mOutputNode.SetNumOutputs(outputCount);
-    }
-
-    void NodeGraphGroup::SetInput(int8_t inputChannel, NodeGraphBase& source, int8_t sourceOutputChannel) {
-        mInputNode.SetInput(inputChannel, source, sourceOutputChannel);
-    }
-
-    void NodeGraphGroup::SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel) {
-        mInputNode.SetInput(inputChannel, source, sourceOutputChannel);
-    }
-
-    void NodeGraphGroup::SetInput(int8_t inputChannel, float constant) {
-        mInputNode.SetInput(inputChannel, constant);
-    }
-
-    void NodeGraphGroup::SetInput(int8_t inputChannel, float* floatPtr) {
-        mInputNode.SetInput(inputChannel, floatPtr);
-    }
-
-    void NodeGraphGroup::SetOutput(int8_t outputChannel, NodeGraphBase& source, int8_t sourceOutputChannel) {
-        mOutputNode.SetInput(outputChannel, source, sourceOutputChannel);
-        mOutputNode.SetOutputName(outputChannel, source.GetOutputName(sourceOutputChannel));
-    }
-
-    void NodeGraphGroup::SetOutput(int8_t outputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel) {
-        mOutputNode.SetInput(outputChannel, source, sourceOutputChannel);
-        mOutputNode.SetOutputName(outputChannel, source.GetOutputNode().GetOutputName(sourceOutputChannel));
-    }
-
-    float NodeGraphGroup::GetOutput(int8_t outputChannel) {
-        return mOutputNode.GetOutput(outputChannel);
-    }
-
-    NodeGraphBase& NodeGraphGroup::GetInputNode() {
-        return mInputNode;
-    }
-
-    NodeGraphBase& NodeGraphGroup::GetOutputNode() {
-        return mOutputNode;
-    }
-
-    bool NodeGraphGroup::ContainsNode(int32_t id) {
-        auto it = std::find_if(mNodes.begin(), mNodes.end(), [&](const std::unique_ptr<NodeGraphBase>& node) {
-            if (node->GetId() == id) {
-                return true;
-            }
-            return false;
-            });
-        if (it != mNodes.end()) {
-            return true;
-        }
-        return false;
-    }
-
-    NodeGraphBase* NodeGraphGroup::GetNode(int32_t id) {
-        auto it = std::find_if(mNodes.begin(), mNodes.end(), [&](const std::unique_ptr<NodeGraphBase>& node) {
-            if (node->GetId() == id) {
-                return true;
-            }
-            return false;
-            });
-        if (it != mNodes.end()) {
-            return it->get();
-        }
-        return nullptr;
-    }
-
-    bool NodeGraphGroup::RemoveNode(int32_t id) {
-        auto node = GetNode(id);
-        int32_t sourceCount = 0;
-        for (auto& it : mNodes) {
-            if (it->RemoveInput(node)) {
-                sourceCount++;
-            }
-        }
-        std::erase_if(mOutputNodes, [&](NodeGraphBase* nodePtr) {
-            if (nodePtr == node) {
-                return true;
-            }
-            return false;
-            });
-        auto count = std::erase_if(mNodes, [&](const std::unique_ptr<NodeGraphBase>& node) {
-            if (node->GetId() == id) {
-                return true;
-            }
-            return false;
-            });
-        return count > 0 ? true : false;
-    }
-
-    void NodeGraphGroup::ClearProcessFlags() {
-        mOutputNode.ClearProcessFlags();
-    }
-
-    void NodeGraphGroup::ProcessSubGraph(int32_t numSamples, bool) {
-        for (auto& it : mOutputNodes) {
-            it->ClearProcessFlags();
-        }
-        for (auto& it : mOutputNodes) {
-            it->ProcessSubGraph(numSamples, false);
-        }
-    }
-
-    void NodeGraphGroup::Tick(int32_t tickCount, float elapsed) {
-        if (tickCount <= mLastTickCount) {
-            return;
-        }
-        for (auto& it : mNodes) {
-            it->Tick(tickCount, elapsed);
-        }
-        mLastTickCount = tickCount;
-    }
 }

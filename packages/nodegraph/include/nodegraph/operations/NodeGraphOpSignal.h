@@ -1,5 +1,5 @@
 #pragma once
-#include "nodegraph/NodeGraph.h"
+#include "nodegraph/core/NodeGraphBase.h"
 
 #include "logging/LoggingAll.h"
 
@@ -22,78 +22,99 @@
 
 namespace l::nodegraph {
 
-    /* Mathematical operations */
-
-    /*********************************************************************/
-    class GraphSourceConstants : public NodeGraphOp {
+    class GraphSignalBase : public NodeGraphOp {
     public:
-        GraphSourceConstants(NodeGraphBase* node, int32_t mode) :
-            NodeGraphOp(node, 0, 4, 4),
-            mMode(mode)
+
+        static const int8_t mNumDefaultInputs = 6;
+        static const int8_t mNumDefaultOutputs = 1;
+
+        GraphSignalBase(NodeGraphBase* node, std::string_view name, int32_t numInputs = 0, int32_t numOutputs = 0, int32_t numConstants = 0) :
+            NodeGraphOp(node, mNumDefaultInputs + numInputs, mNumDefaultOutputs + numOutputs, numConstants),
+            mName(name)
         {}
 
-        virtual ~GraphSourceConstants() = default;
-        virtual void Reset();
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        virtual void Tick(int32_t, float) override;
-        virtual std::string_view GetName() override {
-            switch (mMode) {
-            case 0:
-                return "Constant [0,1]";
-            case 1:
-                return "Constant [-1,1]";
-            case 2:
-                return "Constant [0,100]";
-            case 3:
-                return "Constant [-inf,inf]";
-            };
+        std::string defaultInStrings[mNumDefaultInputs] = { "Reset", "Freq", "Volume", "Smooth", "Cutoff", "Resonance"};
+        std::string defaultOutStrings[mNumDefaultOutputs] = { "Out" };
+
+        virtual ~GraphSignalBase() = default;
+        virtual void Reset() override final;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override final;
+        virtual bool IsDataVisible(int8_t) override { return true; }
+        virtual bool IsDataEditable(int8_t) override { return true; }
+        virtual std::string_view GetInputName(int8_t inputChannel) override final {
+            if (inputChannel >= mNumDefaultInputs) return GetInputNameExtra(inputChannel - mNumDefaultInputs);
+            if (inputChannel >= 0) return defaultInStrings[static_cast<uint8_t>(inputChannel)];
             return "";
         }
-        virtual bool IsDataVisible(int8_t) override {return true;}
-        virtual bool IsDataEditable(int8_t) override {return true;}
-    protected:
-        int32_t mMode;
-        float mMax = 1.0f;
-        float mMin = 0.0f;
-    };
-
-    /*********************************************************************/
-    class GraphSourceTime : public NodeGraphOp {
-    public:
-        GraphSourceTime(NodeGraphBase* node) :
-            NodeGraphOp(node, 0, 2, 0)
-        {}
-
-        std::string defaultOutStrings[2] = { "Audio Time", "Frame Time"};
-
-        virtual ~GraphSourceTime() = default;
-        virtual void Reset() override;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        virtual void Tick(int32_t, float) override;
-        virtual std::string_view GetOutputName(int8_t outputChannel) override {
+        virtual std::string_view GetOutputName(int8_t outputChannel) override final {
+            if (outputChannel >= mNumDefaultOutputs) return GetOutputNameExtra(outputChannel - mNumDefaultOutputs);
             return defaultOutStrings[outputChannel];
         }
         virtual std::string_view GetName() override {
-            return "Time";
+            return mName;
         }
-        virtual bool IsDataVisible(int8_t) override { return true; }
-        virtual bool IsDataEditable(int8_t) override { return true; }
+
+        virtual std::string_view GetInputNameExtra(int8_t) { return ""; };
+        virtual std::string_view GetOutputNameExtra(int8_t) { return ""; };
+        virtual void ResetSignal() {};
+        virtual void UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
+        virtual float GenerateSignal(float deltaPhase) = 0;
     protected:
-        float mAudioTime = 0.0f;
-        float mFrameTime = 0.0f;
+        std::string mName;
+
+        float mReset = 0.0f;
+        float mFreq = 0.0f;
+        float mVolume = 0.0f;
+        float mSmooth = 0.5f;
+        float mSignal = 0.0f;
+        float mWave = 0.0f;
+        float mDeltaPhase = 0.0f;
+        float mDeltaTime = 0.0f;
+        float mVolumeTarget = 0.0f;
+        float mSamplesUntilUpdate = 0.0f;
+        float mUpdateSamples = 256.0f;
+
+        // high pass
+        float mHPCutoff = 0.5f;
+        float mHPResonance = 0.0001f;
+        float mHPState0 = 0.0f;
+        float mHPState1 = 0.0f;
     };
 
     /*********************************************************************/
-    class GraphSourceSine : public NodeGraphOp {
+    class GraphSignalSine2 : public GraphSignalBase {
     public:
-        GraphSourceSine(NodeGraphBase* node) :
-            NodeGraphOp(node, 5, 1)
+        GraphSignalSine2(NodeGraphBase* node) :
+            GraphSignalBase(node, "Sine 2", 2)
+        {}
+        std::string extraString[2] = { "Fmod", "Phase" };
+
+        virtual ~GraphSignalSine2() = default;
+        virtual std::string_view GetInputNameExtra(int8_t extraInputChannel) override {
+            if(extraInputChannel < 2) return extraString[static_cast<uint8_t>(extraInputChannel)];
+            return "";
+        }
+        void ResetSignal() override;
+        void UpdateSignal(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        float GenerateSignal(float deltaPhase) override;
+    protected:
+        float mFmod = 0.0f;
+        float mPmod = 0.0f;
+        float mPhase = 0.0f;
+        float mPhaseFmod = 0.0f;
+    };
+
+    /*********************************************************************/
+    class GraphSignalSine : public NodeGraphOp {
+    public:
+        GraphSignalSine(NodeGraphBase* node) :
+            NodeGraphOp(node, 6, 1)
         {}
 
-        std::string defaultInStrings[5] = { "Freq", "Volume", "Fmod", "Phase", "Reset"};
+        std::string defaultInStrings[6] = { "Freq", "Volume", "Fmod", "Phase", "Smooth", "Reset"};
         std::string defaultOutStrings[1] = { "Out"};
 
-        virtual ~GraphSourceSine() = default;
+        virtual ~GraphSignalSine() = default;
         virtual void Reset() override;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual bool IsDataVisible(int8_t) override { return true; }
@@ -125,16 +146,16 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphSourceSineFM : public NodeGraphOp {
+    class GraphSignalSineFM : public NodeGraphOp {
     public:
-        GraphSourceSineFM(NodeGraphBase* node) :
-            NodeGraphOp(node, 8, 1)
+        GraphSignalSineFM(NodeGraphBase* node) :
+            NodeGraphOp(node, 9, 1)
         {}
 
-        std::string defaultInStrings[8] = { "Freq", "Volume", "Fmod", "FmodFreq", "FmodVol", "FmodOfs", "FmodGain", "Reset"};
+        std::string defaultInStrings[9] = { "Freq", "Volume", "Fmod", "FmodFreq", "FmodVol", "FmodOfs", "FmodGain", "Smooth", "Reset"};
         std::string defaultOutStrings[1] = { "Out" };
 
-        virtual ~GraphSourceSineFM() = default;
+        virtual ~GraphSignalSineFM() = default;
         virtual void Reset() override;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual bool IsDataVisible(int8_t) override { return true; }
@@ -171,16 +192,16 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphSourceSineFM2 : public NodeGraphOp {
+    class GraphSignalSineFM2 : public NodeGraphOp {
     public:
-        GraphSourceSineFM2(NodeGraphBase* node) :
-            NodeGraphOp(node, 5, 1)
+        GraphSignalSineFM2(NodeGraphBase* node) :
+            NodeGraphOp(node, 6, 1)
         {}
 
-        std::string defaultInStrings[5] = { "Freq", "Volume", "FmodVol", "FmodFreq", "Reset" };
+        std::string defaultInStrings[6] = { "Freq", "Volume", "FmodVol", "FmodFreq", "Smooth", "Reset" };
         std::string defaultOutStrings[1] = { "Out" };
 
-        virtual ~GraphSourceSineFM2() = default;
+        virtual ~GraphSignalSineFM2() = default;
         virtual void Reset() override;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual bool IsDataVisible(int8_t) override { return true; }
@@ -212,16 +233,16 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphSourceSineFM3 : public NodeGraphOp {
+    class GraphSignalSineFM3 : public NodeGraphOp {
     public:
-        GraphSourceSineFM3(NodeGraphBase* node) :
-            NodeGraphOp(node, 4, 1)
+        GraphSignalSineFM3(NodeGraphBase* node) :
+            NodeGraphOp(node, 5, 1)
         {}
 
-        std::string defaultInStrings[4] = { "Freq", "Volume", "Fmod", "Reset" };
+        std::string defaultInStrings[5] = { "Freq", "Volume", "Fmod", "Smooth", "Reset" };
         std::string defaultOutStrings[1] = { "Out" };
 
-        virtual ~GraphSourceSineFM3() = default;
+        virtual ~GraphSignalSineFM3() = default;
         virtual void Reset() override;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual bool IsDataVisible(int8_t) override { return true; }
@@ -250,16 +271,16 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphSourceSaw : public NodeGraphOp {
+    class GraphSignalSaw : public NodeGraphOp {
     public:
-        GraphSourceSaw(NodeGraphBase* node) :
-            NodeGraphOp(node, 5, 1)
+        GraphSignalSaw(NodeGraphBase* node) :
+            NodeGraphOp(node, 6, 1)
         {}
 
-        std::string defaultInStrings[5] = { "Freq", "Volume", "Fmod", "Phase", "Reset" };
+        std::string defaultInStrings[6] = { "Freq", "Volume", "Fmod", "Phase", "Smooth", "Reset" };
         std::string defaultOutStrings[1] = { "Out" };
 
-        virtual ~GraphSourceSaw() = default;
+        virtual ~GraphSignalSaw() = default;
         virtual void Reset() override;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual bool IsDataVisible(int8_t) override { return true; }

@@ -7,7 +7,6 @@
 #include "rendering/ui/UIWindow.h"
 #include "rendering/ui/UICreator.h"
 
-#include "nodegraph/NodeGraph.h"
 #include "nodegraph/NodeGraphSchema.h"
 
 #include <functional>

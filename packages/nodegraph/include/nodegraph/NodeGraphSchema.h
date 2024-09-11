@@ -2,14 +2,15 @@
 
 #include "logging/LoggingAll.h"
 
-#include "nodegraph/NodeGraph.h"
-#include "nodegraph/NodeGraphOpEffect.h"
-#include "nodegraph/NodeGraphOpFilter.h"
-#include "nodegraph/NodeGraphOpInput.h"
-#include "nodegraph/NodeGraphOpLogic.h"
-#include "nodegraph/NodeGraphOpNumeric.h"
-#include "nodegraph/NodeGraphOpOutput.h"
-#include "nodegraph/NodeGraphOpSource.h"
+#include "nodegraph/core/NodeGraphGroup.h"
+#include "nodegraph/operations/NodeGraphOpEffect.h"
+#include "nodegraph/operations/NodeGraphOpFilter.h"
+#include "nodegraph/operations/NodeGraphOpInput.h"
+#include "nodegraph/operations/NodeGraphOpLogic.h"
+#include "nodegraph/operations/NodeGraphOpNumeric.h"
+#include "nodegraph/operations/NodeGraphOpOutput.h"
+#include "nodegraph/operations/NodeGraphOpSource.h"
+#include "nodegraph/operations/NodeGraphOpSignal.h"
 
 #include "hid/Midi.h"
 
@@ -45,11 +46,6 @@ namespace l::nodegraph {
             RegisterNodeType("Source", 2, "Value [0,100]");
             RegisterNodeType("Source", 3, "Value [-inf,inf]");
             RegisterNodeType("Source", 4, "Time");
-            RegisterNodeType("Source", 5, "Sine");
-            RegisterNodeType("Source", 6, "Sine FM 1");
-            RegisterNodeType("Source", 7, "Sine FM 2");
-            RegisterNodeType("Source", 8, "Sine FM 3");
-            RegisterNodeType("Source", 9, "Saw");
             RegisterNodeType("Numeric", 50, "Add");
             RegisterNodeType("Numeric", 51, "Subtract");
             RegisterNodeType("Numeric", 52, "Negate");
@@ -62,6 +58,7 @@ namespace l::nodegraph {
             RegisterNodeType("Logic", 101, "Or");
             RegisterNodeType("Logic", 102, "Xor");
             RegisterNodeType("Filter", 150, "Lowpass");
+            RegisterNodeType("Filter", 151, "Highpass");
             RegisterNodeType("Output", 200, "Debug");
             RegisterNodeType("Output", 201, "Speaker");
             RegisterNodeType("Output", 202, "Plot");
@@ -81,6 +78,13 @@ namespace l::nodegraph {
             RegisterNodeType("Input", 305, "Midi Button Group 3");
             RegisterNodeType("Input", 306, "Midi Button Group 4");
             RegisterNodeType("Input", 307, "Midi Button Group 5");
+            RegisterNodeType("Signal", 350, "Sine");
+            RegisterNodeType("Signal", 351, "Sine FM 1");
+            RegisterNodeType("Signal", 352, "Sine FM 2");
+            RegisterNodeType("Signal", 353, "Sine FM 3");
+            RegisterNodeType("Signal", 354, "Saw");
+            RegisterNodeType("Signal", 355, "Sine 2");
+
         }
 
         ~NodeGraphSchema() = default;

@@ -129,7 +129,7 @@ namespace l::math::functions {
 	T mod(T val, T mod) {
 		if constexpr (std::is_floating_point_v<T>) {
 			if constexpr (sizeof(T) == 4) {
-				return modff(val, mod);
+				return fmodf(val, mod);
 			}
 			else if constexpr (sizeof(T) == 8) {
 				return fmod(val, mod);

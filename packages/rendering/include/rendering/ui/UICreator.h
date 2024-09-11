@@ -13,7 +13,7 @@
 #include "implot/implot_internal.h"
 
 #include "rendering/ui/UIContainer.h"
-#include "nodegraph/NodeGraph.h"
+#include "nodegraph/core/NodeGraphBase.h"
 
 #include <functional>
 

@@ -40,21 +40,6 @@ namespace l::nodegraph {
         case 4:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceTime>(OutputType::Default);
             break;
-        case 5:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceSine>(OutputType::Default);
-            break;
-        case 6:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceSineFM>(OutputType::Default);
-            break;
-        case 7:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceSineFM2>(OutputType::Default);
-            break;
-        case 8:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceSineFM3>(OutputType::Default);
-            break;
-        case 9:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceSaw>(OutputType::Default);
-            break;
         case 50:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericAdd>(OutputType::Default);
             break;
@@ -90,6 +75,9 @@ namespace l::nodegraph {
             break;
         case 150:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterLowpass>(OutputType::Default);
+            break;
+        case 151:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterHighpass>(OutputType::Default);
             break;
         case 200:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputDebug>(OutputType::ExternalOutput);
@@ -148,6 +136,25 @@ namespace l::nodegraph {
         case 307:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons, l::hid::KeyState>(OutputType::Default, mMidiManager, 4);
             break;
+        case 350:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSine>(OutputType::Default);
+            break;
+        case 351:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSineFM>(OutputType::Default);
+            break;
+        case 352:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSineFM2>(OutputType::Default);
+            break;
+        case 353:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSineFM3>(OutputType::Default);
+            break;
+        case 354:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSaw>(OutputType::Default);
+            break;
+        case 355:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSine2>(OutputType::Default);
+            break;
+
 
         default:
             ASSERT(typeId < 10000) << "Custom node id's begin at id 1000";

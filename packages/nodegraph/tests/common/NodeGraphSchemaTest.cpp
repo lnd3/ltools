@@ -1,7 +1,7 @@
 #include "testing/Test.h"
 #include "logging/Log.h"
 
-#include "nodegraph/NodeGraph.h"
+#include "nodegraph/core/NodeGraphGroup.h"
 #include "nodegraph/NodeGraphSchema.h"
 
 using namespace l;
