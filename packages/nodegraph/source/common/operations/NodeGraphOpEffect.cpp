@@ -519,7 +519,7 @@ namespace l::nodegraph {
         float fmod = inputs.at(4).Get();
         float attack = inputs.at(5).Get();
 
-        if (inputs.at(6).Get() > 0.5f) {
+        if (inputs.at(7).Get() > 0.5f) {
             mSamplesUntilUpdate = 0.0f;
         }
 
@@ -565,9 +565,11 @@ namespace l::nodegraph {
                 }
                 else {
                     mNoteIndex = mNoteIndex % mNotes.size();
-                    mCurrentNoteFreq = l::audio::GetFrequencyFromNote(static_cast<float>(mNotes.at(mNoteIndex)));
+                    mFreqTarget = l::audio::GetFrequencyFromNote(static_cast<float>(mNotes.at(mNoteIndex)));
                     mNoteIndex++;
                     mGainTarget = velocity;
+                    mFreqSmoothing = inputs.at(6).Get();
+                    mFreqSmoothing *= mFreqSmoothing * 0.5f;
                 }
             },
             [&](int32_t start, int32_t end, bool) {
@@ -580,7 +582,8 @@ namespace l::nodegraph {
                         mGain += mGainSmoothingNeg * (-l::math::smooth::smootPolyh3(-delta));
                     }
 
-                    outputs.at(0).mOutput = mCurrentNoteFreq;
+                    mFreq += mFreqSmoothing * (mFreqTarget - mFreq);
+                    outputs.at(0).mOutput = mFreq;
                     outputs.at(1).mOutput = mGain;
                 }
             });

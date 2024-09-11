@@ -25,7 +25,7 @@ namespace l::nodegraph {
     class GraphSignalBase : public NodeGraphOp {
     public:
 
-        static const int8_t mNumDefaultInputs = 6;
+        static const int8_t mNumDefaultInputs = 7;
         static const int8_t mNumDefaultOutputs = 1;
 
         GraphSignalBase(NodeGraphBase* node, std::string_view name, int32_t numInputs = 0, int32_t numOutputs = 0, int32_t numConstants = 0) :
@@ -33,7 +33,7 @@ namespace l::nodegraph {
             mName(name)
         {}
 
-        std::string defaultInStrings[mNumDefaultInputs] = { "Reset", "Freq", "Volume", "Smooth", "Cutoff", "Resonance"};
+        std::string defaultInStrings[mNumDefaultInputs] = { "Reset", "Freq", "Volume", "Smooth", "Cutoff", "Resonance", "Phase expansion"};
         std::string defaultOutStrings[mNumDefaultOutputs] = { "Out" };
 
         virtual ~GraphSignalBase() = default;
@@ -58,7 +58,7 @@ namespace l::nodegraph {
         virtual std::string_view GetOutputNameExtra(int8_t) { return ""; };
         virtual void ResetSignal() {};
         virtual void UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
-        virtual float GenerateSignal(float deltaPhase) = 0;
+        virtual float GenerateSignal(float deltaTime, float freq, float deltaPhase) = 0;
     protected:
         std::string mName;
 
@@ -96,7 +96,7 @@ namespace l::nodegraph {
         }
         void ResetSignal() override;
         void UpdateSignal(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        float GenerateSignal(float deltaPhase) override;
+        float GenerateSignal(float deltaTime, float freq, float deltaPhase) override;
     protected:
         float mFmod = 0.0f;
         float mPmod = 0.0f;

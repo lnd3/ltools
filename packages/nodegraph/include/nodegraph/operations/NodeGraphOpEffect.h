@@ -331,11 +331,11 @@ namespace l::nodegraph {
     /*********************************************************************/
     class GraphEffectArpeggio: public NodeGraphOp {
     public:
-        std::string defaultInStrings[7] = { "Note On Id", "Note Off Id", "Velocity", "Bpm", "Fmod", "Attack", "Drift Sync"};
+        std::string defaultInStrings[8] = { "Note On Id", "Note Off Id", "Velocity", "Bpm", "Fmod", "Attack", "Smooth", "Drift Sync"};
         std::string defaultOutStrings[3] = { "Freq", "Volume" };
 
         GraphEffectArpeggio(NodeGraphBase* node) :
-            NodeGraphOp(node, 7, 2, 0)
+            NodeGraphOp(node, 8, 2, 0)
         {}
 
         virtual ~GraphEffectArpeggio() = default;
@@ -364,7 +364,9 @@ namespace l::nodegraph {
         float mGainSmoothing = 0.01f;
         float mGainSmoothingNeg = 0.01f;
 
-        float mCurrentNoteFreq = 0.0f;
+        float mFreqSmoothing = 0.1f;
+        float mFreqTarget = 0.0f;
+        float mFreq = 0.0f;
         std::vector<int32_t> mNotes;
         int32_t mNoteIndex = 0;
     };

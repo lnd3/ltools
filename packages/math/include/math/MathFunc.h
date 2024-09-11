@@ -125,6 +125,19 @@ namespace l::math::functions {
 		}
 	}
 
+
+	template<class T>
+	T cos(T val) {
+		if constexpr (std::is_floating_point_v<T>) {
+			if constexpr (sizeof(T) == 4) {
+				return cosf(val);
+			}
+			else if constexpr (sizeof(T) == 8) {
+				return ::cos(val);
+			}
+		}
+	}
+
 	template<class T>
 	T mod(T val, T mod) {
 		if constexpr (std::is_floating_point_v<T>) {

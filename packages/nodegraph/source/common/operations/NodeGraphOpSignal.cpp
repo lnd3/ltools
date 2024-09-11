@@ -20,7 +20,7 @@ namespace l::nodegraph {
         mDeltaTime = 0.0f;
         mVolume = 0.0f;
         mSamplesUntilUpdate = 0.0f;
-        mUpdateSamples = 256.0f;
+        mUpdateSamples = 16.0f;
         mHPCutoff = 0.5f;
         mHPResonance = 0.0001f;
         mHPState0 = 0.0f;
@@ -30,15 +30,17 @@ namespace l::nodegraph {
         mNode->SetInput(0, 0.0f);
         mNode->SetInput(1, 0.0f);
         mNode->SetInput(2, 0.5f);
-        mNode->SetInput(3, 0.5f);
-        mNode->SetInput(4, 0.5f);
-        mNode->SetInput(5, 0.0001f);
+        mNode->SetInput(3, 1.0f);
+        mNode->SetInput(4, 0.0f);
+        mNode->SetInput(5, 0.0f);
+        mNode->SetInput(6, 0.5f);
         mNode->SetInputBound(0, InputBound::INPUT_0_TO_1);
         mNode->SetInputBound(1, InputBound::INPUT_CUSTOM, 0.0f, l::math::constants::FLTMAX);
         mNode->SetInputBound(2, InputBound::INPUT_0_100);
         mNode->SetInputBound(3, InputBound::INPUT_0_TO_1);
         mNode->SetInputBound(4, InputBound::INPUT_0_TO_1);
         mNode->SetInputBound(5, InputBound::INPUT_0_TO_1);
+        mNode->SetInputBound(6, InputBound::INPUT_0_TO_1);
 
         ResetSignal();
     }
@@ -53,18 +55,15 @@ namespace l::nodegraph {
                 mFreq = inputs.at(1).Get();
                 mVolumeTarget = inputs.at(2).Get();
                 mSmooth = 0.5f * inputs.at(3).Get();
+                float phaseExpansion = inputs.at(6).Get();
 
                 mDeltaPhase = mDeltaTime * mFreq;
-                float deltaPhaseExpanded = l::math::functions::pow(mDeltaPhase, 0.125f);
+                //float deltaPhaseExpanded = l::math::functions::pow(mDeltaPhase, phaseExpansion);
+                float deltaPhaseExpanded = l::math::functions::pow(mDeltaPhase, 0.4f - phaseExpansion * mDeltaPhase * 6.0f);
                 mHPCutoff = deltaPhaseExpanded + (1.0f - deltaPhaseExpanded) * inputs.at(4).Get();
                 mHPResonance = 1.0f - inputs.at(5).Get();
 
-                if (mFreq == 0.0f) {
-                    mVolumeTarget = 0.0f;
-                    outputs.at(0).mOutput = 0.0f;
-                    return;
-                }
-                if (mReset > 0.5f) {
+                if (mFreq == 0.0f || mReset > 0.5f) {
                     mVolumeTarget = 0.0f;
                 }
 
@@ -73,7 +72,7 @@ namespace l::nodegraph {
             },
             [&](int32_t start, int32_t end, bool) {
                 for (int32_t i = start; i < end; i++) {
-                    float signalTarget = GenerateSignal(mDeltaPhase);
+                    float signalTarget = GenerateSignal(mDeltaTime, mFreq, mDeltaPhase);
 
                     // highpass filter
                     {
@@ -99,32 +98,33 @@ namespace l::nodegraph {
     /*********************************************************************/
 
     void GraphSignalSine2::ResetSignal() {
-        mNode->SetInput(mNumDefaultInputs + 0, 0.5f);
+        mNode->SetInput(mNumDefaultInputs + 0, 0.0f);
         mNode->SetInput(mNumDefaultInputs + 1, 0.0f);
         mNode->SetInputBound(mNumDefaultInputs + 0, InputBound::INPUT_0_TO_1);
         mNode->SetInputBound(mNumDefaultInputs + 1, InputBound::INPUT_0_TO_1);
+        mUpdateSamples = 16.0f;
     }
 
     void GraphSignalSine2::UpdateSignal(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
         mFmod = inputs.at(mNumDefaultInputs + 0).Get();
         mPmod = inputs.at(mNumDefaultInputs + 1).Get();
-        float fmodRange = 16.0f;
-        mFmod = mFmod > 0.5f ? 1.0f + fmodRange * (mFmod - 0.5f) : 1.0f / (1.0f + fmodRange * (0.5f - mFmod));
+        mFmod *= 0.25f * 0.25f * 0.5f * 44100.0f / l::math::functions::max(mFreq, 1.0f);
     }
 
-    float GraphSignalSine2::GenerateSignal(float deltaPhase) {
+    float GraphSignalSine2::GenerateSignal(float, float, float deltaPhase) {
         mPhaseFmod += deltaPhase;
         mPhaseFmod = l::math::functions::mod(mPhaseFmod, 1.0f);
-        float modulation = mFmod * (1.0f + 0.5f * l::math::functions::sin(l::math::constants::PI_f * mPhaseFmod * 2.0f));
+        float modulation = l::math::functions::cos(l::math::constants::PI_f * mPhaseFmod * 2.0f);
 
-        mPhase += deltaPhase * modulation;
-        mPhase = l::math::functions::mod(mPhase, 1.0f);
+        mPhase = mPhaseFmod;
+        mPhase += mFmod * modulation;
+        mPhase -= l::math::functions::floor(mPhase);
 
-        float phaseMod = mPhase + mPmod;
-        phaseMod = l::math::functions::mod(phaseMod, 1.0f);
+        float phaseMod = mPhaseFmod + mPmod;
+        phaseMod -= l::math::functions::floor(phaseMod);
 
-        mWave = mSmooth * (mPhase + phaseMod - mWave);
-        return l::math::functions::sin(l::math::constants::PI_f * mWave);
+        //mWave = mSmooth * (mPhase + phaseMod - mWave);
+        return 0.5f * (l::math::functions::sin(l::math::constants::PI_f * mPhase * 2.0f) + l::math::functions::sin(l::math::constants::PI_f * phaseMod * 2.0f));
     }
 
     /*********************************************************************/
@@ -137,7 +137,7 @@ namespace l::nodegraph {
         mNode->SetInput(3, 0.0f);
         mNode->SetInput(4, 0.5f);
         mNode->SetInput(5, 0.0f);
-        mNode->SetInputBound(0, InputBound::INPUT_UNBOUNDED);
+        mNode->SetInputBound(0, InputBound::INPUT_CUSTOM, 0.0f, l::math::constants::FLTMAX);
         mNode->SetInputBound(1, InputBound::INPUT_0_100);
         mNode->SetInputBound(2, InputBound::INPUT_0_TO_2);
         mNode->SetInputBound(3, InputBound::INPUT_0_TO_1);
@@ -228,7 +228,7 @@ namespace l::nodegraph {
         mNode->SetInput(6, 0.0f);
         mNode->SetInput(7, 0.5f);
         mNode->SetInput(8, 0.0f);
-        mNode->SetInputBound(0, InputBound::INPUT_UNBOUNDED);
+        mNode->SetInputBound(0, InputBound::INPUT_CUSTOM, 0.0f, l::math::constants::FLTMAX);
         mNode->SetInputBound(1, InputBound::INPUT_0_100);
         mNode->SetInputBound(2, InputBound::INPUT_UNBOUNDED);
         mNode->SetInputBound(3, InputBound::INPUT_UNBOUNDED);
@@ -301,7 +301,7 @@ namespace l::nodegraph {
         mNode->SetInput(3, 0.0f);
         mNode->SetInput(4, 0.5f);
         mNode->SetInput(5, 0.0f);
-        mNode->SetInputBound(0, InputBound::INPUT_UNBOUNDED);
+        mNode->SetInputBound(0, InputBound::INPUT_CUSTOM, 0.0f, l::math::constants::FLTMAX);
         mNode->SetInputBound(1, InputBound::INPUT_0_100);
         mNode->SetInputBound(2, InputBound::INPUT_0_TO_1);
         mNode->SetInputBound(3, InputBound::INPUT_0_100);
@@ -374,7 +374,7 @@ namespace l::nodegraph {
         mNode->SetInput(1, 0.5f);
         mNode->SetInput(2, 0.5f);
         mNode->SetInput(3, 0.0f);
-        mNode->SetInputBound(0, InputBound::INPUT_UNBOUNDED);
+        mNode->SetInputBound(0, InputBound::INPUT_CUSTOM, 0.0f, l::math::constants::FLTMAX);
         mNode->SetInputBound(1, InputBound::INPUT_0_100);
         mNode->SetInputBound(2, InputBound::INPUT_0_TO_1);
         mNode->SetInputBound(3, InputBound::INPUT_0_TO_1);
@@ -437,7 +437,7 @@ namespace l::nodegraph {
         mNode->SetInput(3, 0.0f);
         mNode->SetInput(4, 0.5f);
         mNode->SetInput(5, 0.0f);
-        mNode->SetInputBound(0, InputBound::INPUT_UNBOUNDED);
+        mNode->SetInputBound(0, InputBound::INPUT_CUSTOM, 0.0f, l::math::constants::FLTMAX);
         mNode->SetInputBound(1, InputBound::INPUT_0_100);
         mNode->SetInputBound(2, InputBound::INPUT_0_TO_2);
         mNode->SetInputBound(3, InputBound::INPUT_0_TO_1);
