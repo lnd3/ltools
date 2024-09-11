@@ -120,7 +120,7 @@ namespace l::nodegraph {
         mPhase += mFmod * modulation;
         mPhase -= l::math::functions::floor(mPhase);
 
-        float phaseMod = mPhaseFmod + mPmod;
+        float phaseMod = mPhaseFmod + mPmod * modulation;
         phaseMod -= l::math::functions::floor(phaseMod);
 
         //mWave = mSmooth * (mPhase + phaseMod - mWave);
