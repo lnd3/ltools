@@ -379,7 +379,7 @@ namespace l::ui {
                         float xpart1 = i / static_cast<float>(nodeValueCount);
                         float xpart2 = (i+1) / static_cast<float>(nodeValueCount);
                         ImVec2 graphP1 = ImVec2(startPos.x + size.x * xpart1, startPos.y + 0.5f * nodeValues[i] * size.y);
-                        ImVec2 graphP2 = ImVec2(startPos.x + size.x * xpart2, startPos.y + 0.5f * nodeValues[i] * size.y);
+                        ImVec2 graphP2 = ImVec2(startPos.x + size.x * xpart2, startPos.y + 0.5f * nodeValues[i+1] * size.y);
                         mDrawList->AddLine(graphP1, graphP2, color, 2.0f * container.GetScale());
                     }
                 }

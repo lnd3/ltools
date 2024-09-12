@@ -59,6 +59,7 @@ namespace l::nodegraph {
             RegisterNodeType("Logic", 102, "Xor");
             RegisterNodeType("Filter", 150, "Lowpass");
             RegisterNodeType("Filter", 151, "Highpass");
+            RegisterNodeType("Filter", 152, "Chamberlin two-pole (4 mode)");
             RegisterNodeType("Output", 200, "Debug");
             RegisterNodeType("Output", 201, "Speaker");
             RegisterNodeType("Output", 202, "Plot");
@@ -84,6 +85,7 @@ namespace l::nodegraph {
             RegisterNodeType("Signal", 353, "Sine FM 3");
             RegisterNodeType("Signal", 354, "Saw");
             RegisterNodeType("Signal", 355, "Sine 2");
+            RegisterNodeType("Signal", 356, "Saw 2");
 
         }
 

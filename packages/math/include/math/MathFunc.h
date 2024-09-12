@@ -125,7 +125,6 @@ namespace l::math::functions {
 		}
 	}
 
-
 	template<class T>
 	T cos(T val) {
 		if constexpr (std::is_floating_point_v<T>) {
@@ -134,6 +133,54 @@ namespace l::math::functions {
 			}
 			else if constexpr (sizeof(T) == 8) {
 				return ::cos(val);
+			}
+		}
+	}
+
+	template<class T>
+	T tan(T val) {
+		if constexpr (std::is_floating_point_v<T>) {
+			if constexpr (sizeof(T) == 4) {
+				return tanf(val);
+			}
+			else if constexpr (sizeof(T) == 8) {
+				return ::tan(val);
+			}
+		}
+	}
+
+	template<class T>
+	T asin(T val) {
+		if constexpr (std::is_floating_point_v<T>) {
+			if constexpr (sizeof(T) == 4) {
+				return asinf(val);
+			}
+			else if constexpr (sizeof(T) == 8) {
+				return ::asin(val);
+			}
+		}
+	}
+
+	template<class T>
+	T acos(T val) {
+		if constexpr (std::is_floating_point_v<T>) {
+			if constexpr (sizeof(T) == 4) {
+				return acosf(val);
+			}
+			else if constexpr (sizeof(T) == 8) {
+				return ::acos(val);
+			}
+		}
+	}
+
+	template<class T>
+	T atan(T val) {
+		if constexpr (std::is_floating_point_v<T>) {
+			if constexpr (sizeof(T) == 4) {
+				return atanf(val);
+			}
+			else if constexpr (sizeof(T) == 8) {
+				return ::atan(val);
 			}
 		}
 	}

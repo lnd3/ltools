@@ -86,5 +86,49 @@ namespace l::nodegraph {
         float mState1 = 0.0f;
     };
 
+    /*********************************************************************/
+    // source: https://www.musicdsp.org/en/latest/Filters/23-state-variable.html
+    class GraphFilterChamberlain2pole : public NodeGraphOp {
+    public:
+        std::string defaultInStrings[4] = { "In", "Cutoff", "Resonance", "Mode"};
+        std::string defaultOutStrings[1] = { "Out"};
+
+        GraphFilterChamberlain2pole(NodeGraphBase* node) :
+            NodeGraphOp(node, 4, 1)
+        {
+            mState.resize(4);
+        }
+
+        virtual ~GraphFilterChamberlain2pole() = default;
+        virtual void Reset() override;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual bool IsDataVisible(int8_t) override { return true; }
+        virtual bool IsDataEditable(int8_t channel) override { return channel > 0 ? true : false; }
+        virtual std::string_view GetInputName(int8_t inputChannel) override {
+            return defaultInStrings[inputChannel];
+        }
+
+        virtual std::string_view GetOutputName(int8_t outputChannel) override {
+            return defaultOutStrings[outputChannel];
+        }
+
+        virtual std::string_view GetName() override {
+            return "Chamberlin two-pole";
+        }
+    protected:
+        float mSamplesUntilUpdate = 0.0f;
+        float mUpdateSamples = 16.0f;
+
+        float mInputValuePrev = 0.0f;
+        float mCutoff = 0.0f;
+        float mResonance = 0.0f;
+
+        float mSampleRate = 44100.0f;
+        float mFreq = 0.0f;
+        float mScale = 0.0f;
+
+        std::vector<float> mState;
+    };
+
 }
 

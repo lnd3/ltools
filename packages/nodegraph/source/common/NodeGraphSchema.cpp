@@ -79,6 +79,9 @@ namespace l::nodegraph {
         case 151:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterHighpass>(OutputType::Default);
             break;
+        case 152:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterChamberlain2pole>(OutputType::Default);
+            break;
         case 200:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputDebug>(OutputType::ExternalOutput);
             break;
@@ -153,6 +156,9 @@ namespace l::nodegraph {
             break;
         case 355:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSine2>(OutputType::Default);
+            break;
+        case 356:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSaw2>(OutputType::Default);
             break;
 
 

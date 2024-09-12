@@ -90,12 +90,13 @@ namespace l::ui {
             }
 
             if (node.GetOutputType() == l::nodegraph::OutputType::ExternalVisualOutput) {
-                auto row = CreateContainer(uiStorage, l::ui::UIContainer_DrawFlag, l::ui::UIRenderType::Rect, l::ui::UIAlignH::Left, l::ui::UIAlignV::Top, l::ui::UILayoutH::Parent, l::ui::UILayoutV::Parent);
+                auto row = CreateContainer(uiStorage, l::ui::UIContainer_DrawFlag, l::ui::UIRenderType::Rect, l::ui::UIAlignH::Left, l::ui::UIAlignV::Bottom, l::ui::UILayoutH::Parent, l::ui::UILayoutV::Parent);
+                row->SetPosition(ImVec2(0.0f, 0.0f));
                 row->GetContainerArea().mMargin = ioSize;
                 node4->Add(row);
 
                 float estimatedWidth = 0.0f;
-                auto plot = CreateContainer(uiStorage, l::ui::UIContainer_DrawFlag, l::ui::UIRenderType::NodeOutputGraph, l::ui::UIAlignH::Center, l::ui::UIAlignV::Middle, l::ui::UILayoutH::Parent, l::ui::UILayoutV::Parent);
+                auto plot = CreateContainer(uiStorage, l::ui::UIContainer_DrawFlag, l::ui::UIRenderType::NodeOutputGraph, l::ui::UIAlignH::Center, l::ui::UIAlignV::Bottom, l::ui::UILayoutH::Parent, l::ui::UILayoutV::Parent);
                 plot->SetPosition(ImVec2(estimatedWidth, 0.0f));
                 plot->SetSize(ImVec2(100, 100));
                 plot->SetNodeId(node.GetId());

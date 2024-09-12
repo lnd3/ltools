@@ -20,27 +20,16 @@ namespace l::nodegraph {
         mDeltaTime = 0.0f;
         mVolume = 0.0f;
         mSamplesUntilUpdate = 0.0f;
-        mUpdateSamples = 16.0f;
-        mHPCutoff = 0.5f;
-        mHPResonance = 0.0001f;
-        mHPState0 = 0.0f;
-        mHPState1 = 0.0f;
-        mHPCutoff = 0.0f;
+        mUpdateSamples = 4.0f;
 
         mNode->SetInput(0, 0.0f);
-        mNode->SetInput(1, 0.0f);
+        mNode->SetInput(1, 441.0047f);
         mNode->SetInput(2, 0.5f);
-        mNode->SetInput(3, 1.0f);
-        mNode->SetInput(4, 0.0f);
-        mNode->SetInput(5, 0.0f);
-        mNode->SetInput(6, 0.5f);
+        mNode->SetInput(3, 0.5f);
         mNode->SetInputBound(0, InputBound::INPUT_0_TO_1);
         mNode->SetInputBound(1, InputBound::INPUT_CUSTOM, 0.0f, l::math::constants::FLTMAX);
         mNode->SetInputBound(2, InputBound::INPUT_0_100);
         mNode->SetInputBound(3, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(4, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(5, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(6, InputBound::INPUT_0_TO_1);
 
         ResetSignal();
     }
@@ -50,22 +39,26 @@ namespace l::nodegraph {
 
         mSamplesUntilUpdate = l::audio::BatchUpdate(mUpdateSamples, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
-                mDeltaTime = 1.0f / 44100.0f;
                 mReset = inputs.at(0).Get();
                 mFreq = inputs.at(1).Get();
-                mVolumeTarget = inputs.at(2).Get();
-                mSmooth = 0.5f * inputs.at(3).Get();
-                float phaseExpansion = inputs.at(6).Get();
 
-                mDeltaPhase = mDeltaTime * mFreq;
-                //float deltaPhaseExpanded = l::math::functions::pow(mDeltaPhase, phaseExpansion);
-                float deltaPhaseExpanded = l::math::functions::pow(mDeltaPhase, 0.4f - phaseExpansion * mDeltaPhase * 6.0f);
-                mHPCutoff = deltaPhaseExpanded + (1.0f - deltaPhaseExpanded) * inputs.at(4).Get();
-                mHPResonance = 1.0f - inputs.at(5).Get();
-
-                if (mFreq == 0.0f || mReset > 0.5f) {
+                if (mReset > 0.5f) {
                     mVolumeTarget = 0.0f;
                 }
+                else if (mFreq <= 0.0f) {
+                    mFreq = 0.0f;
+                    mVolumeTarget *= mVolumeTarget;
+                    if (mVolumeTarget < 0.00001f) {
+                        mVolumeTarget = 0.0f;
+                    }
+                }
+                else {
+                    mVolumeTarget = inputs.at(2).Get();
+                }
+
+                mSmooth = inputs.at(3).Get();
+                mDeltaTime = 1.0f / 44100.0f;
+                mDeltaPhase = mDeltaTime * mFreq;
 
                 UpdateSignal(inputs, outputs);
 
@@ -73,22 +66,8 @@ namespace l::nodegraph {
             [&](int32_t start, int32_t end, bool) {
                 for (int32_t i = start; i < end; i++) {
                     float signalTarget = GenerateSignal(mDeltaTime, mFreq, mDeltaPhase);
-
-                    // highpass filter
-                    {
-                        //float deltaPhase2 = l::math::functions::pow(mDeltaPhase, 0.125f);
-                        float cutoff = mHPCutoff;
-                        cutoff *= cutoff;
-                        float rc = 1.0f - mHPResonance * cutoff;
-                        float v01 = mHPState0 - mHPState1;
-                        mHPState0 += cutoff * (signalTarget - mHPState0 + rc * v01);
-                        mHPState1 += cutoff * v01;
-
-                        signalTarget = signalTarget - mHPState1;
-                    }
-
                     mSignal += mSmooth * (signalTarget - mSignal);
-                    mVolume += (1.0f / 256.0f) * (mVolumeTarget - mVolume);
+                    mVolume += 0.5f * (mVolumeTarget - mVolume);
                     *output0++ = mVolume * mSignal;
                 }
             }
@@ -102,7 +81,7 @@ namespace l::nodegraph {
         mNode->SetInput(mNumDefaultInputs + 1, 0.0f);
         mNode->SetInputBound(mNumDefaultInputs + 0, InputBound::INPUT_0_TO_1);
         mNode->SetInputBound(mNumDefaultInputs + 1, InputBound::INPUT_0_TO_1);
-        mUpdateSamples = 16.0f;
+        mUpdateSamples = 4.0f;
     }
 
     void GraphSignalSine2::UpdateSignal(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
@@ -114,17 +93,39 @@ namespace l::nodegraph {
     float GraphSignalSine2::GenerateSignal(float, float, float deltaPhase) {
         mPhaseFmod += deltaPhase;
         mPhaseFmod = l::math::functions::mod(mPhaseFmod, 1.0f);
-        float modulation = l::math::functions::cos(l::math::constants::PI_f * mPhaseFmod * 2.0f);
+        float modulation = 0.5f * (mFmod + mFmod * l::math::functions::cos(l::math::constants::PI_f * mPhaseFmod * 2.0f));
+        //float modulation = (0.5f - deltaPhase) + (mFmod) * 0.5f * l::math::functions::cos(l::math::constants::PI_f * mPhaseFmod * 2.0f);
+
 
         mPhase = mPhaseFmod;
-        mPhase += mFmod * modulation;
+        mPhase += modulation;
         mPhase -= l::math::functions::floor(mPhase);
 
-        float phaseMod = mPhaseFmod + mPmod * modulation;
+        float phaseMod = mPhaseFmod + mPmod * modulation * 4.0f;
         phaseMod -= l::math::functions::floor(phaseMod);
 
-        //mWave = mSmooth * (mPhase + phaseMod - mWave);
         return 0.5f * (l::math::functions::sin(l::math::constants::PI_f * mPhase * 2.0f) + l::math::functions::sin(l::math::constants::PI_f * phaseMod * 2.0f));
+    }
+
+    /*********************************************************************/
+
+    void GraphSignalSaw2::ResetSignal() {
+        mNode->SetInput(mNumDefaultInputs + 0, 0.0f);
+        mNode->SetInput(mNumDefaultInputs + 1, 0.0f);
+        mNode->SetInputBound(mNumDefaultInputs + 0, InputBound::INPUT_0_TO_1);
+        mNode->SetInputBound(mNumDefaultInputs + 1, InputBound::INPUT_0_TO_1);
+        mUpdateSamples = 4.0f;
+    }
+
+    void GraphSignalSaw2::UpdateSignal(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
+        mAttenuation = inputs.at(mNumDefaultInputs + 0).Get();
+        mCutoff = inputs.at(mNumDefaultInputs + 1).Get();
+
+        UpdateSaw(&mSaw, 0.00001f + 0.99999f * mAttenuation * mAttenuation * mAttenuation, mCutoff * mCutoff);
+    }
+
+    float GraphSignalSaw2::GenerateSignal(float, float, float deltaPhase) {
+        return static_cast<float>(ProcessSaw(&mSaw, static_cast<double>(deltaPhase)));
     }
 
     /*********************************************************************/

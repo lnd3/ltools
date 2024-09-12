@@ -259,9 +259,11 @@ namespace l::ui {
                     break;
                 case UISplitMode::AppendH:
                     current.mPosition.x += content->GetSize().x * mLayoutArea.mScale;
+                    current.mSize.x -= content->GetSize().x * mLayoutArea.mScale;
                     break;
                 case UISplitMode::AppendV:
                     current.mPosition.y += content->GetSize().y * mLayoutArea.mScale;
+                    current.mSize.y -= content->GetSize().y * mLayoutArea.mScale;
                     break;
                 case UISplitMode::EqualResizeH:
                     break;
