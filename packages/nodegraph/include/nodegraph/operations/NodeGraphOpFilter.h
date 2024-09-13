@@ -23,111 +23,119 @@
 namespace l::nodegraph {
 
     /* Stateful filtering operations */
-
-    /*********************************************************************/
-    class GraphFilterLowpass : public NodeGraphOp {
+    class GraphFilterBase : public NodeGraphOp {
     public:
-        std::string defaultInStrings[3] = { "Data", "Cutoff", "Resonance"};
-        std::string defaultOutStrings[1] = { "Out" };
 
-        GraphFilterLowpass(NodeGraphBase* node) :
-            NodeGraphOp(node, 3, 1)
+        static const int8_t mNumDefaultInputs = 4;
+        static const int8_t mNumDefaultOutputs = 1;
+
+        GraphFilterBase(NodeGraphBase* node, std::string_view name, int32_t numInputs = 0, int32_t numOutputs = 0, int32_t numConstants = 0) :
+            NodeGraphOp(node, mNumDefaultInputs + numInputs, mNumDefaultOutputs + numOutputs, numConstants),
+            mName(name)
         {}
 
-        virtual ~GraphFilterLowpass() = default;
-        virtual void Reset() override;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        virtual bool IsDataVisible(int8_t) override { return true; }
-        virtual bool IsDataEditable(int8_t channel) override { return channel > 0 ? true : false; }
-        virtual std::string_view GetInputName(int8_t inputChannel) override {
-            return defaultInStrings[inputChannel];
-        }
+        std::string defaultInStrings[mNumDefaultInputs] = { "Sync", "In", "Cutoff", "Resonance" };
+        std::string defaultOutStrings[mNumDefaultOutputs] = { "Out" };
 
-        virtual std::string_view GetOutputName(int8_t outputChannel) override {
+        virtual ~GraphFilterBase() = default;
+        virtual void Reset() override final;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override final;
+        virtual bool IsDataVisible(int8_t) override { return true; }
+        virtual bool IsDataEditable(int8_t) override { return true; }
+        virtual std::string_view GetInputName(int8_t inputChannel) override final {
+            if (inputChannel >= mNumDefaultInputs) return GetInputNameExtra(inputChannel - mNumDefaultInputs);
+            if (inputChannel >= 0) return defaultInStrings[static_cast<uint8_t>(inputChannel)];
+            return "";
+        }
+        virtual std::string_view GetOutputName(int8_t outputChannel) override final {
+            if (outputChannel >= mNumDefaultOutputs) return GetOutputNameExtra(outputChannel - mNumDefaultOutputs);
             return defaultOutStrings[outputChannel];
         }
-
         virtual std::string_view GetName() override {
-            return "Lowpass";
+            return mName;
         }
+
+        virtual std::string_view GetInputNameExtra(int8_t) { return ""; };
+        virtual std::string_view GetOutputNameExtra(int8_t) { return ""; };
+        virtual void ResetInput() {};
+        virtual void ResetSignal() {};
+        virtual void UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
+        virtual float ProcessSignal(float input, float cutoff, float resonance) = 0;
     protected:
+        std::string mName;
+        float mReset = 0.0f;
+        float mSamplesUntilUpdate = 0.0f;
+        float mUpdateSamples = 16.0f;
+
+        float mCutoff = 0.0f;
+        float mResonance = 0.0f;
+        float mCutoffCPS = 0.0f; // cutoff cycles per sample
+        l::audio::FilterRWA<float> mCutoffFilter;
+        l::audio::FilterRWA<float> mResonanceFilter;
+    };
+
+    /*********************************************************************/
+    class GraphFilterLowpass : public GraphFilterBase {
+    public:
+        GraphFilterLowpass(NodeGraphBase* node) :
+            GraphFilterBase(node, "Lowpass")
+        {}
+        virtual ~GraphFilterLowpass() = default;
+
+        virtual void ResetInput() override;
+        virtual void ResetSignal() override;
+        virtual float ProcessSignal(float input, float cutoff, float resonance) override;
+    protected:
+        float mInputValuePrev = 0.0f;
         float mState0 = 0.0f;
         float mState1 = 0.0f;
     };
 
     /*********************************************************************/
-    class GraphFilterHighpass : public NodeGraphOp {
+    class GraphFilterHighpass : public GraphFilterBase {
     public:
-        std::string defaultInStrings[3] = { "Data", "Cutoff", "Resonance" };
-        std::string defaultOutStrings[1] = { "Out" };
-
         GraphFilterHighpass(NodeGraphBase* node) :
-            NodeGraphOp(node, 3, 1)
+            GraphFilterBase(node, "Highpass")
         {}
 
         virtual ~GraphFilterHighpass() = default;
-        virtual void Reset() override;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        virtual bool IsDataVisible(int8_t) override { return true; }
-        virtual bool IsDataEditable(int8_t channel) override { return channel > 0 ? true : false; }
-        virtual std::string_view GetInputName(int8_t inputChannel) override {
-            return defaultInStrings[inputChannel];
-        }
 
-        virtual std::string_view GetOutputName(int8_t outputChannel) override {
-            return defaultOutStrings[outputChannel];
-        }
-
-        virtual std::string_view GetName() override {
-            return "Highpass";
-        }
+        virtual void ResetInput() override;
+        virtual void ResetSignal() override;
+        virtual float ProcessSignal(float input, float cutoff, float resonance) override;
     protected:
+        float mInputValuePrev = 0.0f;
         float mState0 = 0.0f;
         float mState1 = 0.0f;
     };
 
     /*********************************************************************/
     // source: https://www.musicdsp.org/en/latest/Filters/23-state-variable.html
-    class GraphFilterChamberlain2pole : public NodeGraphOp {
+    class GraphFilterChamberlain2pole : public GraphFilterBase {
     public:
-        std::string defaultInStrings[4] = { "In", "Cutoff", "Resonance", "Mode"};
-        std::string defaultOutStrings[1] = { "Out"};
-
         GraphFilterChamberlain2pole(NodeGraphBase* node) :
-            NodeGraphOp(node, 4, 1)
+            GraphFilterBase(node, "Chamberlin two-pole", 1)
         {
             mState.resize(4);
         }
 
         virtual ~GraphFilterChamberlain2pole() = default;
-        virtual void Reset() override;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        virtual bool IsDataVisible(int8_t) override { return true; }
-        virtual bool IsDataEditable(int8_t channel) override { return channel > 0 ? true : false; }
-        virtual std::string_view GetInputName(int8_t inputChannel) override {
-            return defaultInStrings[inputChannel];
-        }
 
-        virtual std::string_view GetOutputName(int8_t outputChannel) override {
-            return defaultOutStrings[outputChannel];
-        }
+        virtual void ResetInput() override;
+        virtual void ResetSignal() override;
+        virtual void UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) override;
+        virtual float ProcessSignal(float input, float cutoff, float resonance) override;
 
-        virtual std::string_view GetName() override {
-            return "Chamberlin two-pole";
+        virtual std::string_view GetInputNameExtra(int8_t) override {
+            return "Mode";
         }
     protected:
-        float mSamplesUntilUpdate = 0.0f;
-        float mUpdateSamples = 16.0f;
-
         float mInputValuePrev = 0.0f;
-        float mCutoff = 0.0f;
-        float mResonance = 0.0f;
-
-        float mSampleRate = 44100.0f;
-        float mFreq = 0.0f;
         float mScale = 0.0f;
+        int32_t mMode = 0;
 
         std::vector<float> mState;
+        l::audio::FilterRWA<float> mScaleFilter;
     };
 
 }

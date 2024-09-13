@@ -25,7 +25,7 @@ namespace l::nodegraph {
     class GraphSignalBase : public NodeGraphOp {
     public:
 
-        static const int8_t mNumDefaultInputs = 4;
+        static const int8_t mNumDefaultInputs = 5;
         static const int8_t mNumDefaultOutputs = 1;
 
         GraphSignalBase(NodeGraphBase* node, std::string_view name, int32_t numInputs = 0, int32_t numOutputs = 0, int32_t numConstants = 0) :
@@ -33,7 +33,7 @@ namespace l::nodegraph {
             mName(name)
         {}
 
-        std::string defaultInStrings[mNumDefaultInputs] = { "Reset", "Freq", "Volume", "Smooth"};
+        std::string defaultInStrings[mNumDefaultInputs] = { "Sync", "Rate", "Freq", "Volume", "Smooth"};
         std::string defaultOutStrings[mNumDefaultOutputs] = { "Out" };
 
         virtual ~GraphSignalBase() = default;
@@ -56,23 +56,23 @@ namespace l::nodegraph {
 
         virtual std::string_view GetInputNameExtra(int8_t) { return ""; };
         virtual std::string_view GetOutputNameExtra(int8_t) { return ""; };
+        virtual void ResetInput() {};
         virtual void ResetSignal() {};
         virtual void UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
-        virtual float GenerateSignal(float deltaTime, float freq, float deltaPhase) = 0;
+        virtual float ProcessSignal(float deltaTime, float freq) = 0;
     protected:
         std::string mName;
 
         float mReset = 0.0f;
         float mFreq = 0.0f;
-        float mVolume = 0.0f;
         float mSmooth = 0.5f;
-        float mSignal = 0.0f;
-        float mWave = 0.0f;
-        float mDeltaPhase = 0.0f;
         float mDeltaTime = 0.0f;
         float mVolumeTarget = 0.0f;
         float mSamplesUntilUpdate = 0.0f;
-        float mUpdateSamples = 256.0f;
+        float mUpdateSamples = 16.0f;
+
+        l::audio::FilterRWA<float> mFilterSignal;
+        l::audio::FilterRWA<float> mFilterVolume;
     };
 
     /*********************************************************************/
@@ -88,14 +88,18 @@ namespace l::nodegraph {
             if(extraInputChannel < 2) return extraString[static_cast<uint8_t>(extraInputChannel)];
             return "";
         }
+        void ResetInput() override;
         void ResetSignal() override;
         void UpdateSignal(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        float GenerateSignal(float deltaTime, float freq, float deltaPhase) override;
+        float ProcessSignal(float deltaTime, float freq) override;
     protected:
         float mFmod = 0.0f;
         float mPmod = 0.0f;
         float mPhase = 0.0f;
         float mPhaseFmod = 0.0f;
+
+        l::audio::FilterRWA<float> mFilterFmod;
+        l::audio::FilterRWA<float> mFilterPmod;
     };
 
     /*********************************************************************/
@@ -129,9 +133,10 @@ namespace l::nodegraph {
             if (extraInputChannel < 2) return extraString[static_cast<uint8_t>(extraInputChannel)];
             return "";
         }
+        void ResetInput() override;
         void ResetSignal() override;
         void UpdateSignal(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        float GenerateSignal(float deltaTime, float freq, float deltaPhase) override;
+        float ProcessSignal(float deltaTime, float freq) override;
 
         void InitSaw(WaveformBlit* b, double aNQ, double cutoff)
         {
