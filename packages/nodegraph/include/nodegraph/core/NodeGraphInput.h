@@ -42,6 +42,28 @@ namespace l::nodegraph {
         int32_t mInputIntConstant;
     };
 
+    class NodeInputDataIterator {
+    public:
+        NodeInputDataIterator(float* data, int32_t size) {
+            mData = data;
+            mSize = size;
+            mIncrement = size > 1 ? 1 : 0;
+        }
+        float& operator*() {
+            return *mData;
+        }
+        float* operator++(int) {
+            float* data = mData;
+            mData += mIncrement;
+            return data;
+        }
+
+    protected:
+        float* mData = nullptr;
+        int32_t mSize = 0;
+        int32_t mIncrement = 0;
+    };
+
     struct NodeGraphInput {
         Input mInput;
         InputType mInputType = InputType::INPUT_EMPTY;
@@ -57,8 +79,8 @@ namespace l::nodegraph {
 
         void Reset();
         bool HasInputNode();
-        float Get();
-        float& Get(int32_t numSamples);
+        float& Get(int32_t numSamples = 1);
+        NodeInputDataIterator GetIterator(int32_t numSamples = 1);
         int32_t GetSize();
     };
 

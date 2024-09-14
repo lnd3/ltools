@@ -33,8 +33,18 @@ namespace l::nodegraph {
             AddOutput("Out");
         }
         virtual ~GraphNumericAdd() = default;
-        virtual void Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            outputs.at(0).mOutput = inputs.at(0).Get() + inputs.at(1).Get();
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+            auto input0 = inputs.at(0).GetIterator(numSamples);
+            auto input1 = inputs.at(1).GetIterator(numSamples);
+            auto output = outputs.at(0).GetIterator(numSamples);
+
+            if (numSamples > 1) {
+                ASSERT(numSamples == outputs.at(0).GetSize());
+            }
+
+            for (int32_t i = 0; i < numSamples; i++) {
+                *output++ = *input0++ + *input1++;
+            }
         }
     };
 
@@ -50,8 +60,18 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphNumericMultiply() = default;
-        virtual void Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            outputs.at(0).mOutput = inputs.at(0).Get() * inputs.at(1).Get();
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+            auto input0 = inputs.at(0).GetIterator(numSamples);
+            auto input1 = inputs.at(1).GetIterator(numSamples);
+            auto output = outputs.at(0).GetIterator(numSamples);
+
+            if (numSamples > 1) {
+                ASSERT(numSamples == outputs.at(0).GetSize());
+            }
+
+            for (int32_t i = 0; i < numSamples; i++) {
+                *output++ = *input0++ * *input1++;
+            }
         }
     };
 
@@ -66,8 +86,18 @@ namespace l::nodegraph {
             AddOutput("Out");
         }
         virtual ~GraphNumericSubtract() = default;
-        virtual void Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            outputs.at(0).mOutput = inputs.at(0).Get() - inputs.at(1).Get();
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+            auto input0 = inputs.at(0).GetIterator(numSamples);
+            auto input1 = inputs.at(1).GetIterator(numSamples);
+            auto output = outputs.at(0).GetIterator(numSamples);
+
+            if (numSamples > 1) {
+                ASSERT(numSamples == outputs.at(0).GetSize());
+            }
+
+            for (int32_t i = 0; i < numSamples; i++) {
+                *output++ = *input0++ - *input1++;
+            }
         }
     };
 
@@ -82,8 +112,17 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphNumericNegate() = default;
-        virtual void Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            outputs.at(0).mOutput = -inputs.at(0).Get();
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+            auto input0 = inputs.at(0).GetIterator(numSamples);
+            auto output = outputs.at(0).GetIterator(numSamples);
+
+            if (numSamples > 1) {
+                ASSERT(numSamples == outputs.at(0).GetSize());
+            }
+
+            for (int32_t i = 0; i < numSamples; i++) {
+                *output++ = - *input0++;
+            }
         }
     };
 
@@ -93,14 +132,23 @@ namespace l::nodegraph {
         GraphNumericIntegral(NodeGraphBase* node) :
             NodeGraphOp(node, "Integral")
         {
-            AddInput("In");
-            AddOutput("Out");
+            AddInput("In", 0.0f, 1);
+            AddOutput("Out", 0.0f, 1);
         }
 
         virtual ~GraphNumericIntegral() = default;
-        virtual void Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            mOutput += inputs.at(0).Get();
-            outputs.at(0).mOutput = mOutput;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+            auto input0 = inputs.at(0).GetIterator(numSamples);
+            auto output = outputs.at(0).GetIterator(numSamples);
+
+            if (numSamples > 1) {
+                ASSERT(numSamples == outputs.at(0).GetSize());
+            }
+
+            for (int32_t i = 0; i < numSamples; i++) {
+                mOutput += *input0++;
+                *output++ = mOutput;
+            }
         }
     protected:
         float mOutput = 0.0f;
@@ -119,8 +167,19 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphNumericMultiply3() = default;
-        virtual void Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            outputs.at(0).mOutput = inputs.at(0).Get() * inputs.at(1).Get() * inputs.at(2).Get();
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+            auto input0 = inputs.at(0).GetIterator(numSamples);
+            auto input1 = inputs.at(1).GetIterator(numSamples);
+            auto input2 = inputs.at(2).GetIterator(numSamples);
+            auto output = outputs.at(0).GetIterator(numSamples);
+
+            if (numSamples > 1) {
+                ASSERT(numSamples == outputs.at(0).GetSize());
+            }
+
+            for (int32_t i = 0; i < numSamples; i++) {
+                *output++ = *input0++ * *input1++ * *input2++;
+            }
         }
     };
 
@@ -137,8 +196,19 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphNumericMultiplyAndAdd() = default;
-        void virtual Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            outputs.at(0).mOutput = inputs.at(0).Get() * inputs.at(1).Get() + inputs.at(2).Get();
+        void virtual Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+            auto input0 = inputs.at(0).GetIterator(numSamples);
+            auto input1 = inputs.at(1).GetIterator(numSamples);
+            auto input2 = inputs.at(2).GetIterator(numSamples);
+            auto output = outputs.at(0).GetIterator(numSamples);
+
+            if (numSamples > 1) {
+                ASSERT(numSamples == outputs.at(0).GetSize());
+            }
+
+            for (int32_t i = 0; i < numSamples; i++) {
+                *output++ = *input0++ * *input1++ + *input2++;
+            }
         }
     };
 
@@ -151,9 +221,21 @@ namespace l::nodegraph {
             AddInput("In");
             AddOutput("Out");
         }
+
         virtual ~GraphNumericRound() = default;
-        virtual void Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             outputs.at(0).mOutput = l::math::functions::round(inputs.at(0).Get());
+
+            auto input0 = inputs.at(2).GetIterator(numSamples);
+            auto output = outputs.at(0).GetIterator(numSamples);
+
+            if (numSamples > 1) {
+                ASSERT(numSamples == outputs.at(0).GetSize());
+            }
+
+            for (int32_t i = 0; i < numSamples; i++) {
+                *output++ = l::math::functions::round(*input0++);
+            }
         }
     };
 

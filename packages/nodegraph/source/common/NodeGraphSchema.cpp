@@ -38,7 +38,7 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(OutputType::Default, 3);
             break;
         case 4:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceTime>(OutputType::ExternalOutput, mAudioOutput->GetSampleRate(), 60);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceTime>(OutputType::ExternalOutput, mAudioOutput != nullptr ? mAudioOutput->GetSampleRate() : 44100, 60);
             break;
         case 50:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericAdd>(OutputType::Default);
@@ -100,19 +100,19 @@ namespace l::nodegraph {
         case 252:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectReverb2>(OutputType::Default);
             break;
-        case 253:
+        case 254:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectLimiter>(OutputType::Default);
             break;
-        case 254:
+        case 255:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectEnvelopeFollower>(OutputType::Default);
             break;
-        case 255:
+        case 256:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectSaturator>(OutputType::Default);
             break;
-        case 256:
+        case 257:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectTranceGate>(OutputType::Default);
             break;
-        case 257:
+        case 258:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectArpeggio>(OutputType::Default);
             break;
         case 300:
@@ -162,8 +162,9 @@ namespace l::nodegraph {
             break;
         default:
             ASSERT(typeId < 10000) << "Custom node id's begin at id 1000";
-            ASSERT(mCreateCustomNode != nullptr) << "Custom nodes needs a handler to create them. It's missing.";
-            node = mCreateCustomNode(typeId, mMainNodeGraph);
+            if (mCreateCustomNode) {
+                node = mCreateCustomNode(typeId, mMainNodeGraph);
+            }
             break;
         };
 
@@ -196,7 +197,7 @@ namespace l::nodegraph {
     }
 
     void NodeGraphSchema::ProcessSubGraph(int32_t numSamples) {
-        mMainNodeGraph.ProcessSubGraph(numSamples, true);
+        mMainNodeGraph.ProcessSubGraph(numSamples);
     }
 
 

@@ -9,8 +9,86 @@
 #include <math.h>
 
 namespace l::nodegraph {
+    /*********************************************************************/
 
-    void GraphEffectReverb1::Process(int32_t numSamples, std::vector<NodeGraphInput>&inputs, std::vector<NodeGraphOutput>&outputs) {
+    void GraphEffectBase::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        float sync = inputs.at(0).Get();
+        if (sync > 0.5f) {
+            mSamplesUntilUpdate = 0;
+        }
+
+        auto input0 = inputs.at(4).GetIterator(numSamples);
+        auto input1 = inputs.at(5).GetIterator(numSamples);
+        auto output0 = outputs.at(0).GetIterator(numSamples);
+        auto output1 = outputs.at(1).GetIterator(numSamples);
+
+        mFilterGain.SetConvergence();
+        mFilterMix.SetConvergence();
+
+        mSamplesUntilUpdate = l::audio::BatchUpdate(mUpdateRate, mSamplesUntilUpdate, 0, numSamples,
+            [&]() {
+                mUpdateRate = inputs.at(1).Get();
+                mFilterGain.SetTarget(inputs.at(2).Get());
+                mFilterMix.SetTarget(inputs.at(3).Get());
+
+                mDeltaTime = 1.0f / 44100.0f;
+
+                UpdateSignal(inputs, outputs);
+            },
+            [&](int32_t start, int32_t end, bool) {
+                for (int32_t i = start; i < end; i++) {
+                    float gain = mFilterGain.Next();
+                    float mix = gain * mFilterMix.Next();
+                    float antimix = gain * (1.0f - mix);
+
+                    auto in0 = *input0++;
+                    auto in1 = *input1++;
+                    auto [out0, out1] = ProcessStereoSignal(mDeltaTime, in0, in1);
+                    *output0++ = mix * out0 + antimix * in0;
+                    *output1++ = mix * out1 + antimix * in1;
+                }
+            }
+        );
+    }
+
+    /*********************************************************************/
+    void GraphEffectReverb2::UpdateSignal(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
+        fb = 0.2f * (1.0f - inputs.at(mNumDefaultInputs+0).Get());
+
+        float roomSize = inputs.at(mNumDefaultInputs+1).Get();
+        mBufSizeLimit = GetFramesPerRoomSize(roomSize);
+
+        d0 = inputs.at(mNumDefaultInputs+2).Get();
+        fb0 = 0.5f * 0.5f * math::functions::max(inputs.at(mNumDefaultInputs+3).Get(), 1.0f);
+        d1 = inputs.at(mNumDefaultInputs+4).Get();
+        fb1 = 0.5f * 0.5f * math::functions::max(inputs.at(mNumDefaultInputs+5).Get(), 1.0f);
+        d2 = inputs.at(mNumDefaultInputs+6).Get();
+        fb2 = 0.5f * 0.5f * math::functions::max(inputs.at(mNumDefaultInputs+7).Get(), 1.0f);
+
+        mDelay0 = (int(mBufIndex + d0 * mBufSizeLimit)) % mBufSizeLimit;
+        mDelay1 = (int(mBufIndex + d1 * mBufSizeLimit)) % mBufSizeLimit;
+        mDelay2 = (int(mBufIndex + d2 * mBufSizeLimit)) % mBufSizeLimit;
+    }
+
+    std::pair<float, float> GraphEffectReverb2::ProcessStereoSignal(float, float value0, float value1) {
+        float out0 = (fb1 * mBuf1[mDelay1] + fb0 * mBuf0[mDelay0] + fb2 * mBuf0[mDelay2]);
+        float out1 = (fb1 * mBuf0[mDelay1] + fb0 * mBuf1[mDelay0] + fb2 * mBuf1[mDelay2]);
+
+        mBuf0[mBufIndex] = fb * mBuf1[mBufIndex] - fb1 * mBuf1[mDelay1] - fb0 * mBuf0[mDelay0] - fb2 * mBuf0[mDelay2] + value0;
+        mBuf1[mBufIndex] = fb * mBuf0[mBufIndex] - fb1 * mBuf0[mDelay1] - fb0 * mBuf1[mDelay0] - fb2 * mBuf1[mDelay2] + value1;
+
+        mBufIndex = (mBufIndex + 1) % mBufSizeLimit;
+
+        mDelay0 = (mDelay0 + 1) % mBufSizeLimit;
+        mDelay1 = (mDelay1 + 1) % mBufSizeLimit;
+        mDelay2 = (mDelay2 + 1) % mBufSizeLimit;
+
+        return { out0, out1 };
+    }
+
+    /*********************************************************************/
+
+    void GraphEffectReverb1::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto wet = &inputs.at(2).Get(numSamples);
 
         fb = 0.2f * (1.0f - inputs.at(3).Get());
@@ -48,7 +126,7 @@ namespace l::nodegraph {
 
     /*********************************************************************/
 
-    void GraphEffectReverb2::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphEffectReverb3::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float wet = inputs.at(2).Get();
         float reverbFeedback = inputs.at(3).Get();
         float roomSize = inputs.at(4).Get();
@@ -366,10 +444,10 @@ namespace l::nodegraph {
 
                     float delta = mGainTarget - mGain;
                     if (delta > 0) {
-                        mGain += mGateSmoothing * l::math::smooth::smootPolyh3(delta);
+                        mGain += mGateSmoothing * l::math::smooth::smoothPolyh3(delta);
                     }
                     else {
-                        mGain += mGateSmoothingNeg * (-l::math::smooth::smootPolyh3(-delta));
+                        mGain += mGateSmoothingNeg * (-l::math::smooth::smoothPolyh3(-delta));
                     }
 
                     outputs.at(0).mOutput = mGain * in0;
@@ -444,10 +522,10 @@ namespace l::nodegraph {
                 for (int32_t i = start; i < end; i++) {
                     float delta = mGainTarget - mGain;
                     if (delta > 0) {
-                        mGain += mGainSmoothing * l::math::smooth::smootPolyh3(delta);
+                        mGain += mGainSmoothing * l::math::smooth::smoothPolyh3(delta);
                     }
                     else {
-                        mGain += mGainSmoothingNeg * (-l::math::smooth::smootPolyh3(-delta));
+                        mGain += mGainSmoothingNeg * (-l::math::smooth::smoothPolyh3(-delta));
                     }
 
                     mFreq += mFreqSmoothing * (mFreqTarget - mFreq);

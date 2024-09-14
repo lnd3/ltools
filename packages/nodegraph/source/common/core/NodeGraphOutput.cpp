@@ -17,9 +17,20 @@ namespace l::nodegraph {
         }
         if (static_cast<int32_t>(mOutputBuf->size()) < size) {
             mOutputBuf->resize(size);
+            for (int32_t i = 0; i < mOutputBuf->size(); i++) {
+                (*mOutputBuf)[i] = 0.0f;
+            }
         }
         mOutputPolled = true;
         return *mOutputBuf->data();
+    }
+
+    NodeOutputDataIterator NodeGraphOutput::GetIterator(int32_t numSamples) {
+        auto size = GetSize();
+        if (size > 1) {
+            ASSERT(size == numSamples);
+        }
+        return NodeOutputDataIterator(&Get(numSamples), size);
     }
 
     int32_t NodeGraphOutput::GetSize() {
@@ -38,5 +49,4 @@ namespace l::nodegraph {
     void NodeGraphOutput::ResetPollState() {
         mOutputPolled = false;
     }
-
 }

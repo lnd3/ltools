@@ -49,7 +49,8 @@ namespace l::nodegraph {
         void SetOutput(int8_t outputChannel, NodeGraphBase& source, int8_t sourceOutputChannel);
         void SetOutput(int8_t outputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel);
 
-        float GetOutput(int8_t outputChannel);
+        float& GetOutput(int8_t outputChannel, int32_t size = 1);
+
         NodeGraphBase& GetInputNode();
         NodeGraphBase& GetOutputNode();
 
@@ -69,7 +70,7 @@ namespace l::nodegraph {
         }
 
         void ClearProcessFlags();
-        void ProcessSubGraph(int32_t numSamples, bool recomputeSubGraphCache = true);
+        void ProcessSubGraph(int32_t numSamples);
         void Tick(int32_t tickCount, float elapsed);
     protected:
         NodeGraphBase* mInputNode = nullptr;

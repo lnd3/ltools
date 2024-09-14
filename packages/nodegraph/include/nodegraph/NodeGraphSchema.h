@@ -63,12 +63,13 @@ namespace l::nodegraph {
             RegisterNodeType("Output", 202, "Plot");
             RegisterNodeType("Effect", 250, "Envelope");
             RegisterNodeType("Effect", 251, "Reverb1");
-            //RegisterNodeType("Effect", 252, "Reverb2");
-            RegisterNodeType("Effect", 253, "Limiter");
-            RegisterNodeType("Effect", 254, "Envelope Follower");
-            RegisterNodeType("Effect", 255, "Saturator");
-            RegisterNodeType("Effect", 256, "Trance Gate");
-            RegisterNodeType("Effect", 257, "Arpeggio");
+            RegisterNodeType("Effect", 252, "Reverb2");
+            //RegisterNodeType("Effect", 253, "Reverb2");
+            RegisterNodeType("Effect", 254, "Limiter");
+            RegisterNodeType("Effect", 255, "Envelope Follower");
+            RegisterNodeType("Effect", 256, "Saturator");
+            RegisterNodeType("Effect", 257, "Trance Gate");
+            RegisterNodeType("Effect", 258, "Arpeggio");
             RegisterNodeType("Input", 300, "Keyboard Piano");
             RegisterNodeType("Input", 301, "Midi Keyboard");
             RegisterNodeType("Input", 302, "Midi Knobs");
@@ -106,9 +107,9 @@ namespace l::nodegraph {
         NodeGraphGroup mMainNodeGraph;
 
         std::function<CustomCreateFunctionType> mCreateCustomNode;
-        l::hid::KeyState* mKeyState;
-        l::audio::AudioStream* mAudioOutput;
-        l::hid::midi::MidiManager* mMidiManager;
+        l::hid::KeyState* mKeyState = nullptr;
+        l::audio::AudioStream* mAudioOutput = nullptr;
+        l::hid::midi::MidiManager* mMidiManager = nullptr;
 
         std::map<std::string, std::vector<UINodeDesc>> mRegisteredNodeTypes;
     };

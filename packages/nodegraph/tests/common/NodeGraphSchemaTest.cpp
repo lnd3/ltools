@@ -181,6 +181,22 @@ TEST(NodeGraph, GraphGroups) {
 
 TEST(NodeGraph, SchemaBasic) {
 
+	NodeGraphSchema ng;
+
+	std::vector<int32_t> nodeIds;
+
+	for (int32_t i = 0; i < 1000; i++) {
+		auto nodeId = ng.NewNode(i);
+		if (nodeId > 0) {
+			nodeIds.push_back(nodeId);
+		}
+	}
+
+	for (auto nodeId : nodeIds) {
+		TEST_TRUE(ng.RemoveNode(nodeId), "");
+	}
+
+
 	return 0;
 }
 

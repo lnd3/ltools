@@ -40,28 +40,6 @@ namespace l::nodegraph {
         return false;
     }
 
-    float NodeGraphInput::Get() {
-        float value = 0.0f;
-        switch (mInputType) {
-        case InputType::INPUT_NODE:
-            if (mInput.mInputNode != nullptr) {
-                value = mInput.mInputNode->GetOutput(mInputFromOutputChannel);
-            }
-            break;
-        case InputType::INPUT_CONSTANT:
-            value = mInput.mInputFloatConstant;
-            break;
-        case InputType::INPUT_ARRAY:
-            return *mInputBuf->data();
-        case InputType::INPUT_VALUE:
-            value = *mInput.mInputFloat;
-            break;
-        case InputType::INPUT_EMPTY:
-            break;
-        }
-        return l::math::functions::clamp(value, mBoundMin, mBoundMax);
-    }
-
     float& NodeGraphInput::Get(int32_t size) {
         switch (mInputType) {
         case InputType::INPUT_NODE:
@@ -75,6 +53,9 @@ namespace l::nodegraph {
             }
             if (static_cast<int32_t>(mInputBuf->size()) < size) {
                 mInputBuf->resize(size);
+                for (int32_t i = 0; i < mInputBuf->size();i++) {
+                    (*mInputBuf)[i] = 0.0f;
+                }
             }
             return *mInputBuf->data();
         case InputType::INPUT_CONSTANT:
@@ -87,15 +68,33 @@ namespace l::nodegraph {
         return mInput.mInputFloatConstant;
     }
 
-    int32_t NodeGraphInput::GetSize() {
-        if (!mInputBuf) {
-            return 1;
+    NodeInputDataIterator NodeGraphInput::GetIterator(int32_t numSamples) {
+        auto size = GetSize();
+        if (size > 1) {
+            ASSERT(size == numSamples);
         }
-        else {
-            return static_cast<int32_t>(mInputBuf->size());
-        }
+        return NodeInputDataIterator(&Get(numSamples), size);
     }
 
-
-
+    int32_t NodeGraphInput::GetSize() {
+        switch (mInputType) {
+        case InputType::INPUT_NODE:
+            if (mInput.mInputNode != nullptr) {
+                return mInput.mInputNode->GetOutputSize(mInputFromOutputChannel);
+            }
+            break;
+        case InputType::INPUT_ARRAY:
+            if (!mInputBuf) {
+                return 1;
+            }
+            return static_cast<int32_t>(mInputBuf->size());
+        case InputType::INPUT_CONSTANT:
+            return 1;
+        case InputType::INPUT_VALUE:
+            return 1;
+        case InputType::INPUT_EMPTY:
+            break;
+        }
+        return 1;
+    }
 }

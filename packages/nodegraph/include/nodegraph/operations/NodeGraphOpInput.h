@@ -84,14 +84,21 @@ namespace l::nodegraph {
 
             SetDevice(0);
 
-            mMidiManager->RegisterCallback([&](l::hid::midi::MidiData data) {
-                if (mMidiDeviceInId >= 0 && data.deviceIn == static_cast<uint32_t>(mMidiDeviceInId)) {
-                    MidiEvent(data);
-                }
-                });
+            if (mMidiManager) {
+                mCallbackId = mMidiManager->RegisterCallback([&](l::hid::midi::MidiData data) {
+                    if (mMidiDeviceInId >= 0 && data.deviceIn == static_cast<uint32_t>(mMidiDeviceInId)) {
+                        MidiEvent(data);
+                    }
+                    });
+            }
         }
 
-        virtual ~GraphInputMidiKeyboard() = default;
+        virtual ~GraphInputMidiKeyboard() {
+            if (mMidiManager != nullptr) {
+                mMidiManager->UnregisterCallback(mCallbackId);
+            }
+        }
+
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(int32_t tick, float deltaTime) override;
 
@@ -105,7 +112,7 @@ namespace l::nodegraph {
         int8_t GetNextNoteChannel(int32_t note);
 
         void SetDevice(int32_t deviceId) {
-            if (deviceId >= 0 && mMidiDeviceInId != deviceId) {
+            if (mMidiManager != nullptr && deviceId >= 0 && mMidiDeviceInId != deviceId) {
                 auto deviceInfo = mMidiManager->GetDeviceInfo(static_cast<uint32_t>(deviceId));
                 if (deviceInfo) {
                     mMidiDeviceInId = deviceId;
@@ -117,6 +124,7 @@ namespace l::nodegraph {
         }
 
         l::hid::midi::MidiManager* mMidiManager = nullptr;
+        int32_t mCallbackId = 0;
 
         int32_t mLastNote = 0;
         int8_t mNoteCounter = 0;
@@ -145,20 +153,27 @@ namespace l::nodegraph {
 
             SetDevice(0);
 
-            mMidiManager->RegisterCallback([&](l::hid::midi::MidiData data) {
-                if (mMidiDeviceInId >= 0 && data.deviceIn == static_cast<uint32_t>(mMidiDeviceInId)) {
-                    MidiEvent(data);
-                }
-                });
+            if (mMidiManager != nullptr) {
+                mCallbackId = mMidiManager->RegisterCallback([&](l::hid::midi::MidiData data) {
+                    if (mMidiDeviceInId >= 0 && data.deviceIn == static_cast<uint32_t>(mMidiDeviceInId)) {
+                        MidiEvent(data);
+                    }
+                    });
+            }
         }
 
-        virtual ~GraphInputMidiKnobs() = default;
+        virtual ~GraphInputMidiKnobs() {
+            if (mMidiManager != nullptr) {
+                mMidiManager->UnregisterCallback(mCallbackId);
+            }
+        };
+
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(int32_t tick, float deltaTime) override;
         virtual void MidiEvent(const l::hid::midi::MidiData& data);
     protected:
         void SetDevice(int32_t deviceId) {
-            if (deviceId >= 0 && mMidiDeviceInId != deviceId) {
+            if (mMidiManager != nullptr && deviceId >= 0 && mMidiDeviceInId != deviceId) {
                 auto deviceInfo = mMidiManager->GetDeviceInfo(static_cast<uint32_t>(deviceId));
                 if (deviceInfo) {
                     mMidiDeviceInId = deviceId;
@@ -170,6 +185,8 @@ namespace l::nodegraph {
         }
 
         l::hid::midi::MidiManager* mMidiManager = nullptr;
+        int32_t mCallbackId = 0;
+
         int32_t mMidiDeviceInId = -1;
         int32_t mMidiChannelKnobs = -1;
     };
@@ -249,7 +266,9 @@ namespace l::nodegraph {
 
             std::this_thread::yield();
 
-            mMidiManager->UnregisterCallback(mCallbackId);
+            if (mMidiManager != nullptr) {
+                mMidiManager->UnregisterCallback(mCallbackId);
+            }
         }
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(int32_t tick, float deltaTime) override;
@@ -277,7 +296,7 @@ namespace l::nodegraph {
         virtual void MidiEvent(const l::hid::midi::MidiData& data);
     protected:
         void SetDevice(int32_t deviceId) {
-            if (deviceId >= 0 && mMidiDeviceInId != deviceId) {
+            if (mMidiManager != nullptr && deviceId >= 0 && mMidiDeviceInId != deviceId) {
                 auto deviceInfo = mMidiManager->GetDeviceInfo(static_cast<uint32_t>(deviceId));
                 if (deviceInfo) {
                     mMidiDeviceInId = deviceId;

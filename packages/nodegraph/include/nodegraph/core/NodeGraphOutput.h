@@ -19,6 +19,28 @@ namespace l::nodegraph {
         ExternalVisualOutput,
     };
 
+
+    class NodeOutputDataIterator {
+    public:
+        NodeOutputDataIterator(float* data, int32_t size) {
+            mData = data;
+            mSize = size;
+            mIncrement = size > 1 ? 1 : 0;
+        }
+        float& operator*() {
+            return *mData;
+        }
+        float* operator++(int) {
+            float* data = mData;
+            mData += mIncrement;
+            return data;
+        }
+    protected:
+        float* mData = nullptr;
+        int32_t mSize = 0;
+        int32_t mIncrement = 0;
+    };
+
     class NodeGraphOutput {
     public:
         NodeGraphOutput() = default;
@@ -29,6 +51,7 @@ namespace l::nodegraph {
         bool mOutputPolled = false;
 
         float& Get(int32_t size = 1);
+        NodeOutputDataIterator GetIterator(int32_t numSamples = 1);
         int32_t GetSize();
         bool IsPolled();
         void ResetPollState();

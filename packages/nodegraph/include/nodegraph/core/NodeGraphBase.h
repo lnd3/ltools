@@ -48,10 +48,10 @@ namespace l::nodegraph {
         virtual int8_t GetNumInputs();
         virtual int8_t GetNumOutputs();
 
+        virtual float& GetInput(int8_t inputChannel, int32_t size = 1);
         virtual float& GetOutput(int8_t outputChannel, int32_t size = 1);
-        virtual float GetInput(int8_t inputChannel);
-        virtual float& GetInput(int8_t inputChannel, int32_t size);
 
+        virtual int32_t GetInputSize(int8_t inputChannel);
         virtual int32_t GetOutputSize(int8_t outputChannel);
 
         virtual std::string_view GetName();

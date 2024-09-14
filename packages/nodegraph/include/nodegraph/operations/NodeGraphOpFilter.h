@@ -38,7 +38,7 @@ namespace l::nodegraph {
 
             AddInput("Sync", 0.0f);
             AddInput("In");
-            AddInput("Cutoff", 0.0f);
+            AddInput("Cutoff", 1.0f);
             AddInput("Resonance", 0.0f);
             AddOutput("Out", 0.0f);
         }

@@ -80,20 +80,20 @@ namespace l::nodegraph {
         mLastTickCount = tickCount;
     }
 
+    float& NodeGraphBase::GetInput(int8_t inputChannel, int32_t size) {
+        return mInputs.at(inputChannel).Get(size);
+    }
+
     float& NodeGraphBase::GetOutput(int8_t outputChannel, int32_t size) {
         return mOutputs.at(outputChannel).Get(size);
     }
 
+    int32_t NodeGraphBase::GetInputSize(int8_t inputChannel) {
+        return mInputs.at(inputChannel).GetSize();
+    }
+
     int32_t NodeGraphBase::GetOutputSize(int8_t outputChannel) {
         return mOutputs.at(outputChannel).GetSize();
-    }
-
-    float NodeGraphBase::GetInput(int8_t inputChannel) {
-        return mInputs.at(inputChannel).Get();
-    }
-
-    float& NodeGraphBase::GetInput(int8_t inputChannel, int32_t size) {
-        return mInputs.at(inputChannel).Get(size);
     }
 
     bool NodeGraphBase::ClearInput(int8_t inputChannel) {

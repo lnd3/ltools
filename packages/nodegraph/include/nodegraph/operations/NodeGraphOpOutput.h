@@ -61,8 +61,12 @@ namespace l::nodegraph {
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         l::audio::AudioStream* mAudioStream;
+        float mSamplesUntilUpdate = 0.0f;
+
         int32_t mCurrentStereoPosition;
         float mEnvelope = 0.0f;
+        float mAttack = 1.0f;
+        float mRelease = 1.0f;
         l::audio::FilterRWA<float> mFilterEnvelope;
     };
 

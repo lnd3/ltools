@@ -22,7 +22,94 @@
 
 namespace l::nodegraph {
 
+    class GraphEffectBase : public NodeGraphOp {
+    public:
+
+        static const int8_t mNumDefaultInputs = 6;
+        static const int8_t mNumDefaultOutputs = 2;
+
+        GraphEffectBase(NodeGraphBase* node, std::string_view name) :
+            NodeGraphOp(node, name)
+        {
+            AddInput("Sync", 0.0f, 1, 0.0f, 1.0f);
+            AddInput("Rate", 256.0f, 1, 1.0f, 2048.0f);
+            AddInput("Gain", 0.5f, 1, 0.0f, 5.0f);
+            AddInput("Mix", 0.5f, 1, 0.0f, 1.0f);
+            AddInput("In 0");
+            AddInput("In 1");
+
+            AddOutput("Out 1");
+            AddOutput("Out 2");
+
+            mDeltaTime = 0.0f;
+            mSamplesUntilUpdate = 0.0f;
+        }
+
+        virtual ~GraphEffectBase() = default;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override final;
+        virtual void UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
+        virtual std::pair<float, float> ProcessStereoSignal(float deltaTime, float value0, float value1) = 0;
+    protected:
+        float mUpdateRate = 256.0f;
+
+        float mDeltaTime = 0.0f;
+        float mSamplesUntilUpdate = 0.0f;
+
+        l::audio::FilterRWA<float> mFilterGain;
+        l::audio::FilterRWA<float> mFilterMix;
+    };
+
     /*********************************************************************/
+    class GraphEffectReverb2 : public GraphEffectBase {
+    public:
+        uint32_t GetFramesPerRoomSize(float roomSize) {
+            const float metersPerFrame = 334.0f / 44100.0f; // (m/s)/(frames/s) = m/frames;
+            const float metersToWallPerFrame = metersPerFrame / 2.0f; // half the distance to wall for the bounced distance
+            const float framesPerRoom = roomSize / metersToWallPerFrame;
+            return static_cast<uint32_t>(framesPerRoom);
+        }
+
+        const float maxRoomSizeInMeters = 334.0f; // 334 meters large is 2 seconds of reverbation
+
+        GraphEffectReverb2(NodeGraphBase* node) :
+            GraphEffectBase(node, "Reverb 3") {
+
+            uint32_t bufferSize = GetFramesPerRoomSize(maxRoomSizeInMeters);
+            mBuf0.resize(bufferSize);
+            mBuf1.resize(bufferSize);
+
+            AddInput("Attenuation", 0.5f, 1, 0.0f, 1.0f);
+            AddInput("Room Size", 30.0f, 1, 0.2f, maxRoomSizeInMeters);
+            AddInput("Delay 1", 0.5f, 1, 0.0f, 1.0f);
+            AddInput("Feedback 1", 0.9f, 1, 0.0f, 1.0f);
+            AddInput("Delay 2", 0.8f, 1, 0.0f, 1.0f);
+            AddInput("Feedback 2", 0.9f, 1, 0.0f, 1.0f);
+            AddInput("Delay 3", 0.7f, 1, 0.0f, 1.0f);
+            AddInput("Feedback 3", 0.9f, 1, 0.0f, 1.0f);
+        }
+
+        virtual ~GraphEffectReverb2() = default;
+        virtual void UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) override;
+        virtual std::pair<float, float> ProcessStereoSignal(float deltaTime, float value0, float value1) override;
+    protected:
+        std::vector<float> mBuf0;
+        std::vector<float> mBuf1;
+        uint32_t mBufIndex = 0;
+        uint32_t mBufSizeLimit = 1;
+        uint32_t mDelay0 = 0;
+        uint32_t mDelay1 = 0;
+        uint32_t mDelay2 = 0;
+
+        float fb = 0.0f;
+        float fb0 = 0.0f;
+        float fb1 = 0.0f;
+        float fb2 = 0.0f;
+        float d0 = 0.0f;
+        float d1 = 0.0f;
+        float d2 = 0.0f;
+    };
+    /*********************************************************************/
+
     class GraphEffectReverb1 : public NodeGraphOp {
     public:
         uint32_t GetFramesPerRoomSize(float roomSize) {
@@ -75,18 +162,18 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphEffectReverb2 : public NodeGraphOp {
+    class GraphEffectReverb3 : public NodeGraphOp {
     public:
         uint32_t GetFramesPerRoomSize(float roomSize) {
             const float metersPerFrame = 334.0f / 44100.0f; // (m/s)/(frames/s) = m/frames;
             const float metersToWallPerFrame = metersPerFrame / 2.0f; // half the distance to wall for the bounced distance
-            const float framesPerRoom = roomSize / metersToWallPerFrame;
+            const float framesPerRoom = l::math::functions::min(5.0f, roomSize / metersToWallPerFrame);
             return static_cast<uint32_t>(framesPerRoom);
         }
 
         const float maxRoomSizeInMeters = 334.0f; // 334 meters large is 2 seconds of reverbation
 
-        GraphEffectReverb2(NodeGraphBase* node) :
+        GraphEffectReverb3(NodeGraphBase* node) :
             NodeGraphOp(node, "Reverb 2")
         {
             uint32_t bufferSize = GetFramesPerRoomSize(maxRoomSizeInMeters);
@@ -99,7 +186,7 @@ namespace l::nodegraph {
             AddInput("In 2");
             AddInput("Mix", 0.3f, 1, 0.0f, 1.0f);
             AddInput("Feedback", 0.5f, 1, 0.0f, 1.0f);
-            AddInput("Room Size", 30.0f, 1, 0.2f, maxRoomSizeInMeters);
+            AddInput("Room Size", 30.0f, 1, 0.1f, maxRoomSizeInMeters);
             AddInput("Width", 0.5f, 1, 0.0f, 1.0f);
             AddInput("First tap", 0.1f, 1, 0.0f, 10.0f);
             AddInput("Longest tap", 0.8f, 1, 0.0f, 10.0f);
@@ -114,7 +201,7 @@ namespace l::nodegraph {
             AddOutput("Tap 2");
         }
 
-        virtual ~GraphEffectReverb2() = default;
+        virtual ~GraphEffectReverb3() = default;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         bool mInited = false;

@@ -7,9 +7,18 @@
 
 namespace l::nodegraph {
 
-    void GraphDataCopy::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphDataCopy::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         for (size_t i = 0; i < inputs.size() && i < outputs.size(); i++) {
-            outputs.at(i).mOutput = inputs.at(i).Get();
+            auto numInputSamples = inputs.at(i).GetSize();
+            if (numSamples > 1) {
+                ASSERT(numInputSamples == numSamples);
+            }
+
+            auto input = &inputs.at(i).Get(numInputSamples);
+            auto output = &outputs.at(i).Get(numSamples);
+            for (int32_t j = 0; j < numSamples; j++) {
+                *output++ = *input++;
+            }
         }
     }
 
@@ -22,7 +31,6 @@ namespace l::nodegraph {
     void NodeGraphGroup::SetNumOutputs(int8_t numOutput) {
         if (!mOutputNode) {
             mOutputNode = NewNode<GraphDataCopy>(OutputType::ExternalOutput, numOutput);
-            mOutputNodes.push_back(mOutputNode);
         }
     }
 
@@ -52,8 +60,8 @@ namespace l::nodegraph {
         mOutputNode->SetOutputName(outputChannel, source.GetOutputNode().GetOutputName(sourceOutputChannel));
     }
 
-    float NodeGraphGroup::GetOutput(int8_t outputChannel) {
-        return mOutputNode->GetOutput(outputChannel);
+    float& NodeGraphGroup::GetOutput(int8_t outputChannel, int32_t size) {
+        return mOutputNode->GetOutput(outputChannel, size);
     }
 
     NodeGraphBase& NodeGraphGroup::GetInputNode() {
@@ -117,7 +125,7 @@ namespace l::nodegraph {
         mOutputNode->ClearProcessFlags();
     }
 
-    void NodeGraphGroup::ProcessSubGraph(int32_t numSamples, bool) {
+    void NodeGraphGroup::ProcessSubGraph(int32_t numSamples) {
         for (auto& it : mOutputNodes) {
             it->ClearProcessFlags();
         }

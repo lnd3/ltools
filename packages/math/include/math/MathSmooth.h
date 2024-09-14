@@ -33,7 +33,7 @@ namespace l::math::smooth {
 	}
 
 	template <class V>
-	V smootPolyh3(V x) {
+	V smoothPolyh3(V x) {
 		V x2 = x * x;
 		return static_cast<V>(3.0) * x2 - static_cast<V>(2.0) * x2 * x;
 	}
