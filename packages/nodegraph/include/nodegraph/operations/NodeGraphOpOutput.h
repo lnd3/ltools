@@ -25,26 +25,18 @@ namespace l::nodegraph {
     /*********************************************************************/
     class GraphOutputDebug : public NodeGraphOp {
     public:
-        std::string defaultInStrings[2] = { "Debug", "Smooth" };
         GraphOutputDebug(NodeGraphBase* node) :
-            NodeGraphOp(node, 1, 0, 2)
-        {}
+            NodeGraphOp(node, "Debug")
+        {
+            AddInput("Debug");
+            AddConstant("Smooth", 0.5f, 0.0f, 1.0f);
+            AddConstant("");
+
+            mValue = 0.0;
+        }
         virtual ~GraphOutputDebug() = default;
 
-        virtual void Reset() override;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        virtual bool IsDataVisible(int8_t) override {
-            return true;
-        }
-        virtual bool IsDataEditable(int8_t channel) override {
-            return channel == 1;
-        }
-        virtual std::string_view GetOutputName(int8_t outputChannel) override {
-            return defaultInStrings[outputChannel];
-        }
-        virtual std::string_view GetName() override {
-            return "Debug";
-        }
     protected:
         float mValue = 0.0F;
     };
@@ -52,56 +44,41 @@ namespace l::nodegraph {
     /*********************************************************************/
     class GraphOutputSpeaker : public NodeGraphOp {
     public:
-        std::string defaultInStrings[3] = { "Left", "Right", "Volume"};
-
         GraphOutputSpeaker(NodeGraphBase* node, l::audio::AudioStream* stream = nullptr) :
-            NodeGraphOp(node, 3, 0, 0),
+            NodeGraphOp(node, "Speaker"),
             mAudioStream(stream),
             mCurrentStereoPosition(0)
-        {}
+        {
+            AddInput("Left");
+            AddInput("Right");
+            AddInput("Volume", 0.5f, 1, 0.0f, 1.0f);
+
+            mEnvelope = 0.0f;
+            mFilterEnvelope.SetConvergence();
+        }
         virtual ~GraphOutputSpeaker() = default;
 
-        virtual void Reset() override;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        virtual bool IsDataVisible(int8_t) override {
-            return true;
-        }
-        virtual bool IsDataEditable(int8_t channel) override {
-            return channel == 2 ? true : false;
-        }
-        virtual std::string_view GetInputName(int8_t outputChannel) override {
-            return defaultInStrings[outputChannel];
-        }
-        virtual std::string_view GetName() override {
-            return "Speaker";
-        }
-
     protected:
         l::audio::AudioStream* mAudioStream;
         int32_t mCurrentStereoPosition;
         float mEnvelope = 0.0f;
+        l::audio::FilterRWA<float> mFilterEnvelope;
     };
 
     /*********************************************************************/
     class GraphOutputPlot : public NodeGraphOp {
     public:
-        std::string defaultInStrings[2] = { "Plot", "Smooth" };
         GraphOutputPlot(NodeGraphBase* node, int32_t plotSamples) :
-            NodeGraphOp(node, 1, 1, 0),
+            NodeGraphOp(node, "Plot"),
             mPlotSamples(plotSamples)
         {
-            mNode->GetOutput(0, mPlotSamples);
+            AddInput("Plot", 0.0f, 1, -1.0f, 1.0f);
+            AddOutput("Plot", 0.0f, mPlotSamples);
         }
         virtual ~GraphOutputPlot() = default;
 
-        virtual void Reset() override;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        virtual std::string_view GetOutputName(int8_t outputChannel) override {
-            return defaultInStrings[outputChannel];
-        }
-        virtual std::string_view GetName() override {
-            return "Plot";
-        }
     protected:
         int32_t mPlotSamples = 50;
         int32_t mCurIndex = 0;

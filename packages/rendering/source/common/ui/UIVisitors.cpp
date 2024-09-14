@@ -211,7 +211,7 @@ namespace l::ui {
                 auto nodeChannel = static_cast<int8_t>(container.GetChannelId());
                 if (node->IsDataEditable(nodeChannel)) {
                     float* nodeValue = nullptr;
-                    if (nodeChannel < node->GetNumInputs() + node->GetNumConstants()) {
+                    if (nodeChannel < node->GetNumInputs()) {
                         nodeValue = &node->GetInput(nodeChannel, 1);
                     }
                     else if (nodeChannel < node->GetNumOutputs()) {
@@ -354,7 +354,7 @@ namespace l::ui {
             if (mNGSchema) {
                 auto node = mNGSchema->GetNode(container.GetNodeId());
                 float nodeValue = 0.0f;
-                if (container.GetChannelId() < node->GetNumInputs() + node->GetNumConstants()) {
+                if (container.GetChannelId() < node->GetNumInputs()) {
                     nodeValue = node->GetInput(static_cast<int8_t>(container.GetChannelId()));
                 }
                 else {

@@ -28,8 +28,12 @@ namespace l::nodegraph {
     class GraphLogicalAnd : public NodeGraphOp {
     public:
         GraphLogicalAnd(NodeGraphBase* node) :
-            NodeGraphOp(node, 2, 1)
-        {}
+            NodeGraphOp(node, "And")
+        {
+            AddInput("In 1", 0.0f);
+            AddInput("In 2", 0.0f);
+            AddOutput("Out", 0.0f);
+        }
 
         virtual ~GraphLogicalAnd() = default;
         virtual void Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
@@ -37,19 +41,18 @@ namespace l::nodegraph {
             bool input2 = inputs.at(1).Get() != 0.0f;
             outputs.at(0).mOutput = (input1 && input2) ? 1.0f : 0.0f;
         }
-        std::string_view GetName() override {
-            return "And";
-        }
-        virtual bool IsDataVisible(int8_t) override { return true; }
-        virtual bool IsDataEditable(int8_t) override { return true; }
     };
 
     /*********************************************************************/
     class GraphLogicalOr : public NodeGraphOp {
     public:
         GraphLogicalOr(NodeGraphBase* node) :
-            NodeGraphOp(node, 2, 1)
-        {}
+            NodeGraphOp(node, "Or")
+        {
+            AddInput("In 1", 0.0f);
+            AddInput("In 2", 0.0f);
+            AddOutput("Out", 0.0f);
+        }
 
         virtual ~GraphLogicalOr() = default;
         virtual void Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
@@ -57,19 +60,18 @@ namespace l::nodegraph {
             bool input2 = inputs.at(1).Get() != 0.0f;
             outputs.at(0).mOutput = (input1 || input2) ? 1.0f : 0.0f;
         }
-        std::string_view GetName() override {
-            return "Or";
-        }
-        virtual bool IsDataVisible(int8_t) override { return true; }
-        virtual bool IsDataEditable(int8_t) override { return true; }
     };
 
     /*********************************************************************/
     class GraphLogicalXor : public NodeGraphOp {
     public:
         GraphLogicalXor(NodeGraphBase* node) :
-            NodeGraphOp(node, 2, 1)
-        {}
+            NodeGraphOp(node, "Xor")
+        {
+            AddInput("In 1", 0.0f);
+            AddInput("In 2", 0.0f);
+            AddOutput("Out", 0.0f);
+        }
 
         virtual ~GraphLogicalXor() = default;
         virtual void Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
@@ -77,11 +79,6 @@ namespace l::nodegraph {
             bool input2 = inputs.at(1).Get() != 0.0f;
             outputs.at(0).mOutput = (input1 ^ input2) ? 1.0f : 0.0f;
         }
-        virtual std::string_view GetName() override {
-            return "Xor";
-        }
-        virtual bool IsDataVisible(int8_t) override { return true; }
-        virtual bool IsDataEditable(int8_t) override { return true; }
     };
 
 }

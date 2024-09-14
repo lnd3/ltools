@@ -22,7 +22,7 @@ namespace l::nodegraph {
     };
 
     enum class InputBound {
-        INPUT_DONTCHANGE,
+        INPUT_DONTCHANGE = 0,
         INPUT_UNBOUNDED,
         INPUT_0_TO_1,
         INPUT_0_TO_2,
@@ -30,6 +30,8 @@ namespace l::nodegraph {
         INPUT_0_100,
         INPUT_CUSTOM,
     };
+
+    std::pair<float, float> GetInputBounds(InputBound bound);
 
     class NodeGraphBase;
 
@@ -47,7 +49,6 @@ namespace l::nodegraph {
 
         float mBoundMin = -l::math::constants::FLTMAX;
         float mBoundMax = l::math::constants::FLTMAX;
-        InputBound mInputBound = InputBound::INPUT_UNBOUNDED;
 
         int8_t mInputFromOutputChannel = 0;
         std::unique_ptr<std::string> mName;
@@ -59,6 +60,7 @@ namespace l::nodegraph {
         bool HasInputNode();
         float Get();
         float& Get(int32_t numSamples);
+        int32_t GetSize();
     };
 
 }

@@ -5,6 +5,16 @@
 #include <functional>
 
 namespace l::audio {
+
+    class INoteProcessor {
+    public:
+        virtual ~INoteProcessor() = default;
+        virtual void NoteOn(int32_t, int32_t = 127) {}
+        virtual void NoteOff() {}
+        virtual void NoteOff(int32_t) {}
+        virtual void NoteSustain(bool) {}
+    };
+
     extern const float gNoNote_f;
     extern const int32_t gNoNote;
     float GetFrequencyFromNote(float note);
@@ -17,6 +27,7 @@ namespace l::audio {
     public:
 
         FilterRWA() :
+            mSmooth(static_cast<T>(0.005)),
             mValue(static_cast<T>(0)),
             mTargetValue(static_cast<T>(0))
         {}

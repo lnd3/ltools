@@ -17,9 +17,16 @@ namespace l::nodegraph {
 
     class GraphDataCopy : public NodeGraphOp {
     public:
-        GraphDataCopy(NodeGraphBase* node) :
-            NodeGraphOp(node, 0)
-        {}
+        GraphDataCopy(NodeGraphBase* node, int32_t numInputsOutputs) :
+            NodeGraphOp(node, "Copy")
+        {
+            for (int32_t i = 0; i < numInputsOutputs; i++) {
+                AddInput("In " + std::to_string(i), 0.0f, 1);
+            }
+            for (int32_t i = 0; i < numInputsOutputs; i++) {
+                AddOutput("Out " + std::to_string(i), 0.0f, 1);
+            }
+        }
         virtual ~GraphDataCopy() = default;
 
         void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
@@ -27,14 +34,7 @@ namespace l::nodegraph {
 
     class NodeGraphGroup {
     public:
-        NodeGraphGroup() :
-            mInputNode(OutputType::Default),
-            mOutputNode(OutputType::Default)
-        {
-            SetNumInputs(1);
-            SetNumOutputs(1);
-            mOutputNodes.push_back(&mOutputNode);
-        }
+        NodeGraphGroup() {}
         ~NodeGraphGroup() {
             LOG(LogInfo) << "Node group destroyed";
         }
@@ -56,15 +56,9 @@ namespace l::nodegraph {
         bool ContainsNode(int32_t id);
         NodeGraphBase* GetNode(int32_t id);
 
-        template<class T, class U = void, class = std::enable_if_t<std::is_base_of_v<NodeGraphOp, T>>>
-        NodeGraph<T, U>* GetTypedNode(int32_t id) {
-            auto p = GetNode(id);
-            return reinterpret_cast<NodeGraph<T, U>*>(p);
-        }
-
         bool RemoveNode(int32_t id);
 
-        template<class T, class = std::enable_if_t<std::is_base_of_v<NodeGraphOp, T>>, class... Params>
+        template<class T, class... Params, std::enable_if_t<std::is_base_of_v<NodeGraphOp, T>, int> = 0>
         l::nodegraph::NodeGraphBase* NewNode(OutputType nodeType, Params&&... params) {
             mNodes.push_back(std::make_unique<l::nodegraph::NodeGraph<T, Params...>>(nodeType, std::forward<Params>(params)...));
             auto nodePtr = mNodes.back().get();
@@ -78,8 +72,8 @@ namespace l::nodegraph {
         void ProcessSubGraph(int32_t numSamples, bool recomputeSubGraphCache = true);
         void Tick(int32_t tickCount, float elapsed);
     protected:
-        NodeGraph<GraphDataCopy> mInputNode;
-        NodeGraph<GraphDataCopy> mOutputNode;
+        NodeGraphBase* mInputNode = nullptr;
+        NodeGraphBase* mOutputNode = nullptr;
 
         std::vector<std::unique_ptr<NodeGraphBase>> mNodes;
         std::vector<NodeGraphBase*> mOutputNodes;

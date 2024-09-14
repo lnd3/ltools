@@ -24,8 +24,8 @@ else()
 		meta
 		memory
 		math
-		hid
 		audio
+		hid
 		nodegraph
 
 		concurrency

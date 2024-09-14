@@ -14,51 +14,54 @@ namespace l::nodegraph {
     }
 
     void NodeGraphGroup::SetNumInputs(int8_t numInputs) {
-        mInputNode.SetNumInputs(numInputs);
-        mInputNode.SetNumOutputs(numInputs);
+        if (!mInputNode) {
+            mInputNode = NewNode<GraphDataCopy>(OutputType::Default, numInputs);
+        }
     }
 
-    void NodeGraphGroup::SetNumOutputs(int8_t outputCount) {
-        mOutputNode.SetNumInputs(outputCount);
-        mOutputNode.SetNumOutputs(outputCount);
+    void NodeGraphGroup::SetNumOutputs(int8_t numOutput) {
+        if (!mOutputNode) {
+            mOutputNode = NewNode<GraphDataCopy>(OutputType::ExternalOutput, numOutput);
+            mOutputNodes.push_back(mOutputNode);
+        }
     }
 
     void NodeGraphGroup::SetInput(int8_t inputChannel, NodeGraphBase& source, int8_t sourceOutputChannel) {
-        mInputNode.SetInput(inputChannel, source, sourceOutputChannel);
+        mInputNode->SetInput(inputChannel, source, sourceOutputChannel);
     }
 
     void NodeGraphGroup::SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel) {
-        mInputNode.SetInput(inputChannel, source, sourceOutputChannel);
+        mInputNode->SetInput(inputChannel, source, sourceOutputChannel);
     }
 
     void NodeGraphGroup::SetInput(int8_t inputChannel, float constant) {
-        mInputNode.SetInput(inputChannel, constant);
+        mInputNode->SetInput(inputChannel, constant);
     }
 
     void NodeGraphGroup::SetInput(int8_t inputChannel, float* floatPtr) {
-        mInputNode.SetInput(inputChannel, floatPtr);
+        mInputNode->SetInput(inputChannel, floatPtr);
     }
 
     void NodeGraphGroup::SetOutput(int8_t outputChannel, NodeGraphBase& source, int8_t sourceOutputChannel) {
-        mOutputNode.SetInput(outputChannel, source, sourceOutputChannel);
-        mOutputNode.SetOutputName(outputChannel, source.GetOutputName(sourceOutputChannel));
+        mOutputNode->SetInput(outputChannel, source, sourceOutputChannel);
+        mOutputNode->SetOutputName(outputChannel, source.GetOutputName(sourceOutputChannel));
     }
 
     void NodeGraphGroup::SetOutput(int8_t outputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel) {
-        mOutputNode.SetInput(outputChannel, source, sourceOutputChannel);
-        mOutputNode.SetOutputName(outputChannel, source.GetOutputNode().GetOutputName(sourceOutputChannel));
+        mOutputNode->SetInput(outputChannel, source, sourceOutputChannel);
+        mOutputNode->SetOutputName(outputChannel, source.GetOutputNode().GetOutputName(sourceOutputChannel));
     }
 
     float NodeGraphGroup::GetOutput(int8_t outputChannel) {
-        return mOutputNode.GetOutput(outputChannel);
+        return mOutputNode->GetOutput(outputChannel);
     }
 
     NodeGraphBase& NodeGraphGroup::GetInputNode() {
-        return mInputNode;
+        return *mInputNode;
     }
 
     NodeGraphBase& NodeGraphGroup::GetOutputNode() {
-        return mOutputNode;
+        return *mOutputNode;
     }
 
     bool NodeGraphGroup::ContainsNode(int32_t id) {
@@ -91,7 +94,7 @@ namespace l::nodegraph {
         auto node = GetNode(id);
         int32_t sourceCount = 0;
         for (auto& it : mNodes) {
-            if (it->RemoveInput(node)) {
+            if (it->DetachInput(node)) {
                 sourceCount++;
             }
         }
@@ -111,7 +114,7 @@ namespace l::nodegraph {
     }
 
     void NodeGraphGroup::ClearProcessFlags() {
-        mOutputNode.ClearProcessFlags();
+        mOutputNode->ClearProcessFlags();
     }
 
     void NodeGraphGroup::ProcessSubGraph(int32_t numSamples, bool) {

@@ -4,6 +4,7 @@
 #include "logging/LoggingAll.h"
 
 #include "hid/KeyboardPiano.h"
+#include "hid/KeyState.h"
 #include "hid/Midi.h"
 
 #include "audio/PortAudio.h"
@@ -23,31 +24,27 @@
 namespace l::nodegraph {
 
     /*********************************************************************/
-    class GraphInputKeyboardPiano : public NodeGraphOp, public l::hid::INoteProcessor {
+    class GraphInputKeyboardPiano : public NodeGraphOp, public l::audio::INoteProcessor {
     public:
         GraphInputKeyboardPiano(NodeGraphBase* node, l::hid::KeyState* keyState) :
-            NodeGraphOp(node, 0, 3, 3)
+            NodeGraphOp(node, "Keyboard")
         {
+            AddOutput("Freq", 0.0f);
+            AddOutput("Note On", l::audio::gNoNote_f);
+            AddOutput("Note Off", l::audio::gNoNote_f);
+
+            AddConstant("Freq", 0.0f);
+            AddConstant("Note On", l::audio::gNoNote_f);
+            AddConstant("Note Off", l::audio::gNoNote_f);
+
             mChannel.resize(1);
             mKeyboard.SetKeyState(keyState);
             mKeyboard.SetNoteProcessor(this);
         }
 
-        std::string defaultOutStrings[3] = { "Freq", "Note On Id", "Note Off Id" };
-
         virtual ~GraphInputKeyboardPiano() = default;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(int32_t tickCount, float elapsed) override;
-        virtual void Reset() override;
-        virtual std::string_view GetOutputName(int8_t outputChannel) override {
-            return defaultOutStrings[outputChannel];
-        }
-        virtual std::string_view GetName() override {
-            return "Keyboard";
-        }
-        virtual bool IsDataVisible(int8_t) override {
-            return true;
-        }
         virtual void NoteOn(int32_t note, int32_t velocity) override;
         virtual void NoteOff() override;
         virtual void NoteOff(int32_t note) override;
@@ -63,12 +60,26 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphInputMidiKeyboard : public NodeGraphOp, public l::hid::INoteProcessor {
+    class GraphInputMidiKeyboard : public NodeGraphOp, public l::audio::INoteProcessor {
     public:
+        const static int32_t gPolyphony = 12;
+
         GraphInputMidiKeyboard(NodeGraphBase* node, l::hid::midi::MidiManager* midiManager) :
-            NodeGraphOp(node, 0, 5, 5),
+            NodeGraphOp(node, ""),
             mMidiManager(midiManager)
         {
+            AddOutput("Freq", 0.0f);
+            AddOutput("Velocity", 0.0f);
+            AddOutput("Note On", l::audio::gNoNote_f, gPolyphony);
+            AddOutput("Note Off", l::audio::gNoNote_f, gPolyphony);
+            AddOutput("Device Id", 0.0f);
+
+            AddConstant("Freq", 0.0f);
+            AddConstant("Velocity", 0.0f);
+            AddConstant("Note On", l::audio::gNoNote_f, gPolyphony);
+            AddConstant("Note Off", l::audio::gNoNote_f, gPolyphony);
+            AddConstant("Device Id", 0.0f, 0.0f, 10.0f);
+
             mChannel.resize(1);
 
             SetDevice(0);
@@ -80,24 +91,9 @@ namespace l::nodegraph {
                 });
         }
 
-        std::string defaultOutStrings[5] = { "Freq", "Velocity", "Note On Id", "Note Off Id", "Device Id"};
-
         virtual ~GraphInputMidiKeyboard() = default;
-        virtual void Reset() override;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(int32_t tick, float deltaTime) override;
-        virtual std::string_view GetOutputName(int8_t outputChannel) override {
-            return defaultOutStrings[outputChannel];
-        }
-        virtual std::string_view GetName() override {
-            return mNodeName;
-        }
-        virtual bool IsDataVisible(int8_t) override {
-            return true;
-        }
-        virtual bool IsDataEditable(int8_t channel) override {
-            return channel >= 4 ? true : false;
-        }
 
         virtual void MidiEvent(const l::hid::midi::MidiData& data);
         virtual void NoteOn(int32_t note, int32_t velocity = 127) override;
@@ -114,8 +110,8 @@ namespace l::nodegraph {
                 if (deviceInfo) {
                     mMidiDeviceInId = deviceId;
                     mMidiChannelKeys = deviceInfo->mChannelKeys;
-                    mNodeName = deviceInfo->GetName();
-                    mNodeName += " : Midi";
+                    mName = deviceInfo->GetName();
+                    mName += " : Midi";
                 }
             }
         }
@@ -128,7 +124,6 @@ namespace l::nodegraph {
         std::vector<std::pair<int32_t, int32_t>> mChannel;
         int32_t mMidiDeviceInId = -1;
         int32_t mMidiChannelKeys = -1;
-        std::string mNodeName;
         std::vector<int32_t> mSustainedNotes;
     };
 
@@ -136,9 +131,18 @@ namespace l::nodegraph {
     class GraphInputMidiKnobs : public NodeGraphOp {
     public:
         GraphInputMidiKnobs(NodeGraphBase* node, l::hid::midi::MidiManager* midiManager) :
-            NodeGraphOp(node, 0, 9, 9),
+            NodeGraphOp(node, ""),
             mMidiManager(midiManager)
         {
+            for (int32_t i = 0; i < 8; i++) {
+                AddOutput("Knob " + std::to_string(i), 0.0f);
+            }
+            for (int32_t i = 0; i < 8; i++) {
+                AddConstant("Knob " + std::to_string(i), 0.0f);
+            }
+            AddOutput("Device Id", 0.0f);
+            AddConstant("Device Id", 0.0f, 0.0f, 10.0f);
+
             SetDevice(0);
 
             mMidiManager->RegisterCallback([&](l::hid::midi::MidiData data) {
@@ -148,25 +152,9 @@ namespace l::nodegraph {
                 });
         }
 
-        std::string defaultOutStrings[9] = { "Knob 1", "Knob 2", "Knob 3", "Knob 4", "Knob 5", "Knob 6", "Knob 7", "Knob 8", "Device Id"};
-
         virtual ~GraphInputMidiKnobs() = default;
-        virtual void Reset() override;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(int32_t tick, float deltaTime) override;
-        virtual std::string_view GetOutputName(int8_t outputChannel) override {
-            return defaultOutStrings[outputChannel];
-        }
-        virtual std::string_view GetName() override {
-            return mNodeName;
-        }
-        virtual bool IsDataVisible(int8_t) override {
-            return true;
-        }
-        virtual bool IsDataEditable(int8_t channel) override {
-            return channel >= 8 ? true : false;
-        }
-
         virtual void MidiEvent(const l::hid::midi::MidiData& data);
     protected:
         void SetDevice(int32_t deviceId) {
@@ -175,8 +163,8 @@ namespace l::nodegraph {
                 if (deviceInfo) {
                     mMidiDeviceInId = deviceId;
                     mMidiChannelKnobs = deviceInfo->mChannelKnobs;
-                    mNodeName = deviceInfo->GetName();
-                    mNodeName += " : Knobs";
+                    mName = deviceInfo->GetName();
+                    mName += " : Knobs";
                 }
             }
         }
@@ -184,7 +172,6 @@ namespace l::nodegraph {
         l::hid::midi::MidiManager* mMidiManager = nullptr;
         int32_t mMidiDeviceInId = -1;
         int32_t mMidiChannelKnobs = -1;
-        std::string mNodeName;
     };
 
     /*********************************************************************/
@@ -221,16 +208,20 @@ namespace l::nodegraph {
         const std::vector<int8_t> remapToButtonStatesToColor = {0, 6, 3, 5, 1, 4, 2};
 
         GraphInputMidiButtons(NodeGraphBase* node, l::hid::midi::MidiManager* midiManager, int32_t buttonGroup) :
-            NodeGraphOp(node, 0, 9, 9),
+            NodeGraphOp(node, ""),
             mMidiManager(midiManager),
             mButtonGroup(buttonGroup)
         {
-            mButtonStates.resize(8);
-
-            for (int8_t i = 0; i < 8; i++) {
-                defaultOutStrings[i] = std::string("Pad ") + std::to_string(i);
+            for (int32_t i = 0; i < 8; i++) {
+                AddOutput("Pad " + std::to_string(i), 0.0f);
             }
-            defaultOutStrings[8] = "Device Id";
+            for (int32_t i = 0; i < 8; i++) {
+                AddConstant("Pad " + std::to_string(i), 0.0f);
+            }
+            AddOutput("Device Id", 0.0f);
+            AddConstant("Device Id", 0.0f, 0.0f, 10.0f);
+
+            mButtonStates.resize(8);
 
             SetDevice(0);
 
@@ -260,21 +251,8 @@ namespace l::nodegraph {
 
             mMidiManager->UnregisterCallback(mCallbackId);
         }
-        virtual void Reset() override;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(int32_t tick, float deltaTime) override;
-        virtual std::string_view GetOutputName(int8_t outputChannel) override {
-            return defaultOutStrings[outputChannel];
-        }
-        virtual std::string_view GetName() override {
-            return mNodeName;
-        }
-        virtual bool IsDataVisible(int8_t) override {
-            return true;
-        }
-        virtual bool IsDataEditable(int8_t channel) override {
-            return channel >= 8 ? true : false;
-        }
 
         void UpdateButton(int8_t buttonId, int8_t buttonState) {
             if (mMidiManager) {
@@ -304,9 +282,9 @@ namespace l::nodegraph {
                 if (deviceInfo) {
                     mMidiDeviceInId = deviceId;
                     mMidiChannelButtons = deviceInfo->mChannelButtons;
-                    mNodeName = deviceInfo->GetName();
-                    mNodeName += " : Pads";
-                    mNodeName += std::to_string(mButtonGroup);
+                    mName = deviceInfo->GetName();
+                    mName += " : Pads";
+                    mName += std::to_string(mButtonGroup);
                 }
             }
         }
@@ -317,7 +295,6 @@ namespace l::nodegraph {
 
         int32_t mCallbackId = 0;
         int32_t mButtonGroup;
-        std::string mNodeName;
         bool mMidiShiftState = false;
         std::vector<int8_t> mButtonStates;
         int32_t mInitCounter = 0;

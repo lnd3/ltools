@@ -5,7 +5,7 @@
 #include "math/MathFunc.h"
 
 namespace l::nodegraph {
-    float& NodeGraphOutput::GetOutput(int32_t size) {
+    float& NodeGraphOutput::Get(int32_t size) {
         if (!mOutputBuf) {
             if (size <= 1) {
                 mOutputPolled = true;
@@ -22,7 +22,7 @@ namespace l::nodegraph {
         return *mOutputBuf->data();
     }
 
-    int32_t NodeGraphOutput::GetOutputSize() {
+    int32_t NodeGraphOutput::GetSize() {
         if (!mOutputBuf) {
             return 1;
         }
@@ -31,11 +31,11 @@ namespace l::nodegraph {
         }
     }
 
-    bool NodeGraphOutput::IsOutputPolled() {
+    bool NodeGraphOutput::IsPolled() {
         return mOutputPolled;
     }
 
-    void NodeGraphOutput::ResetOutputPollState() {
+    void NodeGraphOutput::ResetPollState() {
         mOutputPolled = false;
     }
 

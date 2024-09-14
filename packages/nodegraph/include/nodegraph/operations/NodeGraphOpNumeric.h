@@ -26,93 +26,82 @@ namespace l::nodegraph {
     class GraphNumericAdd : public NodeGraphOp {
     public:
         GraphNumericAdd(NodeGraphBase* node) :
-            NodeGraphOp(node, 2, 1)
-        {}
+            NodeGraphOp(node, "Add")
+        {
+            AddInput("In 1");
+            AddInput("In 2");
+            AddOutput("Out");
+        }
         virtual ~GraphNumericAdd() = default;
         virtual void Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             outputs.at(0).mOutput = inputs.at(0).Get() + inputs.at(1).Get();
         }
-        virtual std::string_view GetName() override {
-            return "Add";
-        }
-        virtual bool IsDataVisible(int8_t) override { return true; }
-        virtual bool IsDataEditable(int8_t) override { return true; }
     };
 
     /*********************************************************************/
     class GraphNumericMultiply : public NodeGraphOp {
     public:
         GraphNumericMultiply(NodeGraphBase* node) :
-            NodeGraphOp(node, 2, 1)
-        {}
+            NodeGraphOp(node, "Multiply")
+        {
+            AddInput("In 1");
+            AddInput("In 2");
+            AddOutput("Out");
+        }
 
         virtual ~GraphNumericMultiply() = default;
         virtual void Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             outputs.at(0).mOutput = inputs.at(0).Get() * inputs.at(1).Get();
         }
-        virtual std::string_view GetName() override {
-            return "Multiply";
-        }
-        virtual bool IsDataVisible(int8_t) override { return true; }
-        virtual bool IsDataEditable(int8_t) override { return true; }
     };
 
     /*********************************************************************/
     class GraphNumericSubtract : public NodeGraphOp {
     public:
         GraphNumericSubtract(NodeGraphBase* node) :
-            NodeGraphOp(node, 2, 1)
-        {}
+            NodeGraphOp(node, "Subtract")
+        {
+            AddInput("In 1");
+            AddInput("In 2");
+            AddOutput("Out");
+        }
         virtual ~GraphNumericSubtract() = default;
         virtual void Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             outputs.at(0).mOutput = inputs.at(0).Get() - inputs.at(1).Get();
         }
-        virtual std::string_view GetName() override {
-            return "Subtract";
-        }
-        virtual bool IsDataVisible(int8_t) override { return true; }
-        virtual bool IsDataEditable(int8_t) override { return true; }
     };
 
     /*********************************************************************/
     class GraphNumericNegate : public NodeGraphOp {
     public:
         GraphNumericNegate(NodeGraphBase* node) :
-            NodeGraphOp(node, 1, 1)
-        {}
+            NodeGraphOp(node, "Negate")
+        {
+            AddInput("In");
+            AddOutput("Out");
+        }
 
         virtual ~GraphNumericNegate() = default;
         virtual void Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             outputs.at(0).mOutput = -inputs.at(0).Get();
         }
-        virtual std::string_view GetName() override {
-            return "Negate";
-        }
-        virtual bool IsDataVisible(int8_t) override { return true; }
-        virtual bool IsDataEditable(int8_t) override { return true; }
     };
 
     /*********************************************************************/
     class GraphNumericIntegral : public NodeGraphOp {
     public:
         GraphNumericIntegral(NodeGraphBase* node) :
-            NodeGraphOp(node, 1, 1)
-        {}
-
-        virtual ~GraphNumericIntegral() = default;
-        virtual void Reset() override {
-            mOutput = 0.0f;
+            NodeGraphOp(node, "Integral")
+        {
+            AddInput("In");
+            AddOutput("Out");
         }
 
+        virtual ~GraphNumericIntegral() = default;
         virtual void Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             mOutput += inputs.at(0).Get();
             outputs.at(0).mOutput = mOutput;
         }
-        virtual std::string_view GetName() override {
-            return "Integral";
-        }
-        virtual bool IsDataVisible(int8_t) override { return true; }
-        virtual bool IsDataEditable(int8_t) override { return true; }
     protected:
         float mOutput = 0.0f;
     };
@@ -121,59 +110,51 @@ namespace l::nodegraph {
     class GraphNumericMultiply3 : public NodeGraphOp {
     public:
         GraphNumericMultiply3(NodeGraphBase* node) :
-            NodeGraphOp(node, 3, 1)
-        {}
+            NodeGraphOp(node, "Multiply3")
+        {
+            AddInput("In 1");
+            AddInput("In 2");
+            AddInput("In 3");
+            AddOutput("Out");
+        }
 
         virtual ~GraphNumericMultiply3() = default;
         virtual void Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             outputs.at(0).mOutput = inputs.at(0).Get() * inputs.at(1).Get() * inputs.at(2).Get();
         }
-        virtual std::string_view GetName() override {
-            return "Multiply3";
-        }
-        virtual bool IsDataVisible(int8_t) override { return true; }
-        virtual bool IsDataEditable(int8_t) override { return true; }
     };
 
     /*********************************************************************/
     class GraphNumericMultiplyAndAdd : public NodeGraphOp {
     public:
         GraphNumericMultiplyAndAdd(NodeGraphBase* node) :
-            NodeGraphOp(node, 3, 1)
-        {}
-
-        std::string defaultInStrings[3] = { "Factor 1", "Factor 2", "Term 1" };
+            NodeGraphOp(node, "Multiply & Add")
+        {
+            AddInput("In 1");
+            AddInput("In 2");
+            AddInput("In 3");
+            AddOutput("Out");
+        }
 
         virtual ~GraphNumericMultiplyAndAdd() = default;
         void virtual Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             outputs.at(0).mOutput = inputs.at(0).Get() * inputs.at(1).Get() + inputs.at(2).Get();
         }
-        virtual std::string_view GetName() override {
-            return "Multiply & Add";
-        }
-
-        virtual std::string_view GetInputName(int8_t inputChannel) {
-            return defaultInStrings[inputChannel];
-        }
-        virtual bool IsDataVisible(int8_t) override { return true; }
-        virtual bool IsDataEditable(int8_t) override { return true; }
     };
 
     /*********************************************************************/
     class GraphNumericRound : public NodeGraphOp {
     public:
         GraphNumericRound(NodeGraphBase* node) :
-            NodeGraphOp(node, 1, 1)
-        {}
+            NodeGraphOp(node, "Round")
+        {
+            AddInput("In");
+            AddOutput("Out");
+        }
         virtual ~GraphNumericRound() = default;
         virtual void Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             outputs.at(0).mOutput = l::math::functions::round(inputs.at(0).Get());
         }
-        virtual std::string_view GetName() override {
-            return "Round";
-        }
-        virtual bool IsDataVisible(int8_t) override { return true; }
-        virtual bool IsDataEditable(int8_t) override { return true; }
     };
 
 }

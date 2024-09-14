@@ -29,40 +29,29 @@ namespace l::nodegraph {
         static const int8_t mNumDefaultInputs = 4;
         static const int8_t mNumDefaultOutputs = 1;
 
-        GraphFilterBase(NodeGraphBase* node, std::string_view name, int32_t numInputs = 0, int32_t numOutputs = 0, int32_t numConstants = 0) :
-            NodeGraphOp(node, mNumDefaultInputs + numInputs, mNumDefaultOutputs + numOutputs, numConstants),
-            mName(name)
-        {}
+        GraphFilterBase(NodeGraphBase* node, std::string_view name) :
+            NodeGraphOp(node, name)
+        {
+            mDefaultInStrings.clear();
+            mDefaultOutStrings.clear();
+            mDefaultInData.clear();
 
-        std::string defaultInStrings[mNumDefaultInputs] = { "Sync", "In", "Cutoff", "Resonance" };
-        std::string defaultOutStrings[mNumDefaultOutputs] = { "Out" };
+            AddInput("Sync", 0.0f);
+            AddInput("In");
+            AddInput("Cutoff", 0.0f);
+            AddInput("Resonance", 0.0f);
+            AddOutput("Out", 0.0f);
+        }
 
         virtual ~GraphFilterBase() = default;
         virtual void Reset() override final;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override final;
-        virtual bool IsDataVisible(int8_t) override { return true; }
-        virtual bool IsDataEditable(int8_t) override { return true; }
-        virtual std::string_view GetInputName(int8_t inputChannel) override final {
-            if (inputChannel >= mNumDefaultInputs) return GetInputNameExtra(inputChannel - mNumDefaultInputs);
-            if (inputChannel >= 0) return defaultInStrings[static_cast<uint8_t>(inputChannel)];
-            return "";
-        }
-        virtual std::string_view GetOutputName(int8_t outputChannel) override final {
-            if (outputChannel >= mNumDefaultOutputs) return GetOutputNameExtra(outputChannel - mNumDefaultOutputs);
-            return defaultOutStrings[outputChannel];
-        }
-        virtual std::string_view GetName() override {
-            return mName;
-        }
 
-        virtual std::string_view GetInputNameExtra(int8_t) { return ""; };
-        virtual std::string_view GetOutputNameExtra(int8_t) { return ""; };
         virtual void ResetInput() {};
         virtual void ResetSignal() {};
         virtual void UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
         virtual float ProcessSignal(float input, float cutoff, float resonance) = 0;
     protected:
-        std::string mName;
         float mReset = 0.0f;
         float mSamplesUntilUpdate = 0.0f;
         float mUpdateSamples = 16.0f;
@@ -97,7 +86,6 @@ namespace l::nodegraph {
         GraphFilterHighpass(NodeGraphBase* node) :
             GraphFilterBase(node, "Highpass")
         {}
-
         virtual ~GraphFilterHighpass() = default;
 
         virtual void ResetInput() override;
@@ -114,21 +102,17 @@ namespace l::nodegraph {
     class GraphFilterChamberlain2pole : public GraphFilterBase {
     public:
         GraphFilterChamberlain2pole(NodeGraphBase* node) :
-            GraphFilterBase(node, "Chamberlin two-pole", 1)
+            GraphFilterBase(node, "Chamberlin two-pole")
         {
+            AddInput("Mode");
             mState.resize(4);
         }
-
         virtual ~GraphFilterChamberlain2pole() = default;
 
         virtual void ResetInput() override;
         virtual void ResetSignal() override;
         virtual void UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) override;
         virtual float ProcessSignal(float input, float cutoff, float resonance) override;
-
-        virtual std::string_view GetInputNameExtra(int8_t) override {
-            return "Mode";
-        }
     protected:
         float mInputValuePrev = 0.0f;
         float mScale = 0.0f;

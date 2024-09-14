@@ -12,31 +12,6 @@ namespace l::nodegraph {
     /* Mathematical operations */
 
     /*********************************************************************/
-    void GraphSourceConstants::Reset() {
-        switch (mMode) {
-        case 0:
-            for (int8_t i = 0; i < 4; i++) {
-                mNode->SetInputBound(i, InputBound::INPUT_0_TO_1);
-            }
-            break;
-        case 1:
-            for (int8_t i = 0; i < 4; i++) {
-                mNode->SetInputBound(i, InputBound::INPUT_NEG_1_POS_1);
-            }
-            break;
-        case 2:
-            for (int8_t i = 0; i < 4; i++) {
-                mNode->SetInputBound(i, InputBound::INPUT_0_100);
-            }
-            break;
-        default:
-            for (int8_t i = 0; i < 4; i++) {
-                mNode->SetInputBound(i, InputBound::INPUT_UNBOUNDED);
-            }
-            break;
-        }
-    }
-
     void GraphSourceConstants::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         for (int8_t i = 0; i < mNumOutputs; i++) {
             outputs.at(i).mOutput = inputs.at(i).Get();
@@ -48,22 +23,27 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphSourceTime::Process(int32_t, std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>& outputs) {
-        float rate = 44100.0f;
-        float phaseChange = 1.0f / rate;
-        mAudioTime += phaseChange;
+    void GraphSourceTime::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        mAudioTick++;
 
-        outputs.at(0).mOutput = mAudioTime;
-        outputs.at(1).mOutput = mFrameTime;
+        if (inputs.at(4).Get() > 0.5f) {
+            mAudioTick = 0;
+            mFrameTick = 0;
+        }
+
+        inputs.at(0).Get(1) = static_cast<float>(mAudioTick);
+        inputs.at(1).Get(1) = static_cast<float>(mFrameTick);
+        inputs.at(2).Get(1) = mAudioTick / static_cast<float>(mAudioRate);
+        inputs.at(3).Get(1) = mFrameTick / static_cast<float>(mFrameRate);
+
+        for (int32_t i = 0; i < 4; i++) {
+            outputs.at(i).Get() = inputs.at(i).Get();
+        }
     }
 
     void GraphSourceTime::Tick(int32_t, float deltaTime) {
+        mFrameTick++;
         mFrameTime += deltaTime;
-    }
-
-    void GraphSourceTime::Reset() {
-        mAudioTime = 0.0f;
-        mFrameTime = 0.0f;
     }
 
 }

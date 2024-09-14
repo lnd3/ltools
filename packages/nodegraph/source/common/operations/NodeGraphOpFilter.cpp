@@ -32,7 +32,7 @@ namespace l::nodegraph {
 
     void GraphFilterBase::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto input = &inputs.at(1).Get(numSamples);
-        auto output = &outputs.at(0).GetOutput(numSamples);
+        auto output = &outputs.at(0).Get(numSamples);
 
         mSamplesUntilUpdate = l::audio::BatchUpdate(mUpdateSamples, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
@@ -42,7 +42,7 @@ namespace l::nodegraph {
                 }
 
                 mCutoff = inputs.at(2).Get();
-                mCutoffCPS = l::math::functions::sin(l::math::constants::PI_f * mCutoff * mCutoff / 2.0f);
+                mCutoffCPS = l::math::functions::sin(l::math::constants::PI_f * mCutoff * mCutoff * 0.5f);
                 mResonance = 1.0f - inputs.at(3).Get();
 
                 mCutoffFilter.SetConvergence().SetTarget(mCutoffCPS).SnapAt();

@@ -25,30 +25,31 @@ namespace l::nodegraph {
     /*********************************************************************/
     class GraphSourceConstants : public NodeGraphOp {
     public:
+
+        const InputBound mModeToBoundList[4] = {InputBound::INPUT_0_TO_1, InputBound::INPUT_NEG_1_POS_1, InputBound::INPUT_0_100, InputBound::INPUT_UNBOUNDED};
+        const std::string mNameList[4] = {"Constant [0,1]" , "Constant [-1,1]" , "Constant [0,100]", "Constant [-inf,inf]"};
+
         GraphSourceConstants(NodeGraphBase* node, int32_t mode) :
-            NodeGraphOp(node, 0, 4, 4),
+            NodeGraphOp(node, ""),
             mMode(mode)
-        {}
+        {
+            mName = mNameList[mode];
+
+            AddOutput("Out 1");
+            AddOutput("Out 2");
+            AddOutput("Out 3");
+            AddOutput("Out 3");
+
+            auto bound = GetInputBounds(mModeToBoundList[mMode]);
+            AddConstant("Out 1", 0.0f, bound.first, bound.second);
+            AddConstant("Out 2", 0.0f, bound.first, bound.second);
+            AddConstant("Out 3", 0.0f, bound.first, bound.second);
+            AddConstant("Out 4", 0.0f, bound.first, bound.second);
+        }
 
         virtual ~GraphSourceConstants() = default;
-        virtual void Reset();
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(int32_t, float) override;
-        virtual std::string_view GetName() override {
-            switch (mMode) {
-            case 0:
-                return "Constant [0,1]";
-            case 1:
-                return "Constant [-1,1]";
-            case 2:
-                return "Constant [0,100]";
-            case 3:
-                return "Constant [-inf,inf]";
-            };
-            return "";
-        }
-        virtual bool IsDataVisible(int8_t) override {return true;}
-        virtual bool IsDataEditable(int8_t) override {return true;}
     protected:
         int32_t mMode;
         float mMax = 1.0f;
@@ -58,25 +59,38 @@ namespace l::nodegraph {
     /*********************************************************************/
     class GraphSourceTime : public NodeGraphOp {
     public:
-        GraphSourceTime(NodeGraphBase* node) :
-            NodeGraphOp(node, 0, 2, 0)
-        {}
+        GraphSourceTime(NodeGraphBase* node, int32_t audioRate, int32_t frameRate) :
+            NodeGraphOp(node, "Time"),
+            mAudioRate(audioRate),
+            mFrameRate(frameRate)
+        {
+            AddOutput("Audio Tick");
+            AddOutput("Frame Tick");
+            AddOutput("Audio Time");
+            AddOutput("Frame Time");
 
-        std::string defaultOutStrings[2] = { "Audio Time", "Frame Time"};
+            AddConstant("Audio Tick", 0.0f);
+            AddConstant("Frame Tick", 0.0f);
+            AddConstant("Audio Time", 0.0f);
+            AddConstant("Frame Time", 0.0f);
+
+            AddInput("Reset", 0.0f, 1, 0.0f, 1.0f);
+
+            mAudioTime = 0.0f;
+            mFrameTime = 0.0f;
+            mFrameTick = 0;
+            mAudioTick = 0;
+        }
 
         virtual ~GraphSourceTime() = default;
-        virtual void Reset() override;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(int32_t, float) override;
-        virtual std::string_view GetOutputName(int8_t outputChannel) override {
-            return defaultOutStrings[outputChannel];
-        }
-        virtual std::string_view GetName() override {
-            return "Time";
-        }
-        virtual bool IsDataVisible(int8_t) override { return true; }
-        virtual bool IsDataEditable(int8_t) override { return true; }
     protected:
+        int32_t mAudioRate = 44100;
+        int32_t mFrameRate = 60;
+
+        int32_t mFrameTick = 0;
+        int32_t mAudioTick = 0;
         float mAudioTime = 0.0f;
         float mFrameTime = 0.0f;
     };

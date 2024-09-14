@@ -28,10 +28,10 @@ namespace l::nodegraph {
         std::unique_ptr<std::string> mName = nullptr;
         bool mOutputPolled = false;
 
-        float& GetOutput(int32_t size = 1);
-        int32_t GetOutputSize();
-        bool IsOutputPolled();
-        void ResetOutputPollState();
+        float& Get(int32_t size = 1);
+        int32_t GetSize();
+        bool IsPolled();
+        void ResetPollState();
     };
 
 }

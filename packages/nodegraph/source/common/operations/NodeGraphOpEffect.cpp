@@ -10,33 +10,9 @@
 
 namespace l::nodegraph {
 
-    /*********************************************************************/
-    void GraphEffectReverb1::Reset() {
-        // { "In 1", "In 2", "Mix", "Attenuation", "Room Size", "Delay 1", "Feedback 1", "Delay 2", "Feedback 2", "Delay 3", "Feedback 3" };
+    void GraphEffectReverb1::Process(int32_t numSamples, std::vector<NodeGraphInput>&inputs, std::vector<NodeGraphOutput>&outputs) {
+        auto wet = &inputs.at(2).Get(numSamples);
 
-        mNode->SetInput(2, 0.75f);
-        mNode->SetInput(3, 0.5f);
-        mNode->SetInput(4, 30.0f);
-        mNode->SetInput(5, 0.5f);
-        mNode->SetInput(6, 0.9f);
-        mNode->SetInput(7, 0.8f);
-        mNode->SetInput(8, 0.9f);
-        mNode->SetInput(9, 0.7f);
-        mNode->SetInput(10, 0.9f);
-        mNode->SetInputBound(2, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(3, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(4, InputBound::INPUT_CUSTOM, 0.2f, maxRoomSizeInMeters);
-        mNode->SetInputBound(5, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(6, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(7, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(8, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(9, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(10, InputBound::INPUT_0_TO_1);
-    }
-
-    void GraphEffectReverb1::Process(int32_t, std::vector<NodeGraphInput>&inputs, std::vector<NodeGraphOutput>&outputs) {
-        float wet = inputs.at(2).Get();
-        
         fb = 0.2f * (1.0f - inputs.at(3).Get());
 
         float roomSize = inputs.at(4).Get();
@@ -49,7 +25,7 @@ namespace l::nodegraph {
         d2 = inputs.at(9).Get();
         fb2 = 0.5f * 0.5f * math::functions::max(inputs.at(10).Get(), 1.0f);
 
-        float dry = 1.0f - wet;
+        float dry = 1.0f - *wet;
 
         uint32_t delay0 = (int(bufIndex + d0 * bufSizeLimit)) % bufSizeLimit;
         uint32_t delay1 = (int(bufIndex + d1 * bufSizeLimit)) % bufSizeLimit;
@@ -57,8 +33,8 @@ namespace l::nodegraph {
         float in0 = inputs.at(0).Get();
         float in1 = inputs.at(1).Get();
 
-        outputs[0].mOutput = in0 * dry + (fb1 * buf1[delay1] + fb0 * buf0[delay0] + fb2 * buf0[delay2]) * wet;
-        outputs[1].mOutput = in1 * dry + (fb1 * buf0[delay1] + fb0 * buf1[delay0] + fb2 * buf1[delay2]) * wet;
+        outputs[0].mOutput = in0 * dry + (fb1 * buf1[delay1] + fb0 * buf0[delay0] + fb2 * buf0[delay2]) * *wet;
+        outputs[1].mOutput = in1 * dry + (fb1 * buf0[delay1] + fb0 * buf1[delay0] + fb2 * buf1[delay2]) * *wet;
 
         buf0[bufIndex] = fb * buf1[bufIndex] - fb1 * buf1[delay1] - fb0 * buf0[delay0] - fb2 * buf0[delay2] + in0;
         buf1[bufIndex] = fb * buf0[bufIndex] - fb1 * buf0[delay1] - fb0 * buf1[delay0] - fb2 * buf1[delay2] + in1;
@@ -71,30 +47,6 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-
-    void GraphEffectReverb2::Reset() {
-        // { "In 1", "In 2", "Mix", "Feedback", "Room Size", "Width", "First tap", "Longest tap", "Num taps", "Tap bulge", "Filter cutoff", "Filter res"};
-        mNode->SetInput(2, 0.3f);
-        mNode->SetInput(3, 0.5f);
-        mNode->SetInput(4, 30.0f);
-        mNode->SetInput(5, 0.5f);
-        mNode->SetInput(6, 0.1f);
-        mNode->SetInput(7, 0.8f);
-        mNode->SetInput(8, 5.0f);
-        mNode->SetInput(9, 0.7f);
-        mNode->SetInput(10, 0.95f);
-        mNode->SetInput(11, 0.01f);
-        mNode->SetInputBound(2, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(3, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(4, InputBound::INPUT_CUSTOM, 1.0f, 334.0f);
-        mNode->SetInputBound(5, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(6, InputBound::INPUT_CUSTOM, 0.0f, 10.0f);
-        mNode->SetInputBound(7, InputBound::INPUT_CUSTOM, 0.0f, 10.0f);
-        mNode->SetInputBound(8, InputBound::INPUT_CUSTOM, 1.0f, 30.0f);
-        mNode->SetInputBound(9, InputBound::INPUT_CUSTOM, 1.0f, 10.0f);
-        mNode->SetInputBound(10, InputBound::INPUT_CUSTOM, 0.001f, 0.999f);
-        mNode->SetInputBound(11, InputBound::INPUT_CUSTOM, 0.001f, 0.999f);
-    }
 
     void GraphEffectReverb2::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float wet = inputs.at(2).Get();
@@ -211,18 +163,6 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphEffectLimiter::Reset() {
-        // { "In 1", "In 2", "Attack", "Release", "Preamp", "Limit"};
-        mEnvelope = 0.0f;
-        mNode->SetInput(2, 5.0f);
-        mNode->SetInput(3, 100.0f);
-        mNode->SetInput(4, 1.0f);
-        mNode->SetInput(5, 0.95f);
-        mNode->SetInputBound(2, InputBound::INPUT_CUSTOM, 1.0f, 10000.0f);
-        mNode->SetInputBound(3, InputBound::INPUT_CUSTOM, 1.0f, 10000.0f);
-        mNode->SetInputBound(4, InputBound::INPUT_CUSTOM, 0.0f, 10.0f);
-        mNode->SetInputBound(5, InputBound::INPUT_CUSTOM, 0.0f, 10.0f);
-    }
 
     void GraphEffectLimiter::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float attackMs = inputs .at(2).Get();
@@ -264,17 +204,6 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphEffectEnvelope::Reset() {
-        mEnvelope = 0.0f;
-        mNode->SetInput(1, 0.5f);
-        mNode->SetInput(2, 50.0f);
-        mNode->SetInput(3, 50.0f);
-        mNode->SetInput(4, 0.1f);
-        mNode->SetInputBound(1, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(2, InputBound::INPUT_CUSTOM, 1.0f, 100000.0f);
-        mNode->SetInputBound(3, InputBound::INPUT_CUSTOM, 1.0f, 100000.0f);
-        mNode->SetInputBound(4, InputBound::INPUT_CUSTOM, 0.0001f, 1.0f);
-    }
 
     void GraphEffectEnvelope::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float freqTarget = inputs.at(0).Get();
@@ -343,14 +272,6 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphEffectEnvelopeFollower::Reset() {
-        mEnvelope = 0.0f;
-        mNode->SetInput(2, 5.0f);
-        mNode->SetInput(3, 100.0f);
-        mNode->SetInputBound(2, InputBound::INPUT_CUSTOM, 1.0f, 10000.0f);
-        mNode->SetInputBound(3, InputBound::INPUT_CUSTOM, 1.0f, 10000.0f);
-    }
-
     void GraphEffectEnvelopeFollower::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float attackMs = inputs.at(2).Get();
         float releaseMs = inputs.at(3).Get();
@@ -373,19 +294,6 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphEffectSaturator::Reset() {
-        // { "In 1", "In 2", "Wet", "Preamp", "Limit", "Postamp"};
-        mEnvelope = 0.0f;
-        mNode->SetInput(2, 0.5f);
-        mNode->SetInput(3, 1.5f);
-        mNode->SetInput(4, 0.6f);
-        mNode->SetInput(5, 1.4f);
-        mNode->SetInputBound(2, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(3, InputBound::INPUT_CUSTOM, 0.0f, 10.0f);
-        mNode->SetInputBound(4, InputBound::INPUT_CUSTOM, 0.0f, 10.0f);
-        mNode->SetInputBound(5, InputBound::INPUT_CUSTOM, 0.0f, 10.0f);
-    }
-
     void GraphEffectSaturator::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float wet = inputs.at(2).Get();
         float preamp = inputs.at(3).Get();
@@ -422,23 +330,6 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphEffectTranceGate::Reset() {
-        // { "In 1", "In 2", "Bpm", "Fmod", "Attack", "Pattern"};
-
-        mGateIndex = 0;
-
-        mNode->SetInput(2, 60.0f);
-        mNode->SetInput(3, 1.0f);
-        mNode->SetInput(4, 0.001f);
-        mNode->SetInput(5, 0.0f);
-        mNode->SetInput(6, 0.0f);
-        mNode->SetInputBound(2, InputBound::INPUT_CUSTOM, 1.0f, 1000.0f);
-        mNode->SetInputBound(3, InputBound::INPUT_CUSTOM, 0.01f, 1.0f);
-        mNode->SetInputBound(4, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(5, InputBound::INPUT_0_100);
-        mNode->SetInputBound(6, InputBound::INPUT_0_TO_1);
-    }
-
     void GraphEffectTranceGate::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         // "Bpm", "Fmod", "Attack", "Pattern"
 
@@ -488,32 +379,9 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphEffectArpeggio::Reset() {
-        // { "Note On Id", "Note Off Id", "Velocity", "Bpm", "Fmod", "Attack"};
-
-        mGainTarget = 0.0f;
-
-        mNode->SetInput(0, l::audio::gNoNote_f, 8);
-        mNode->SetInput(1, l::audio::gNoNote_f, 8);
-
-        mNode->SetInput(2, 1.0f);
-        mNode->SetInput(3, 60.0f);
-        mNode->SetInput(4, 1.0f);
-        mNode->SetInput(5, 0.01f);
-        mNode->SetInput(6, 0.0f);
-
-        mNode->SetInputBound(2, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(3, InputBound::INPUT_CUSTOM, 1.0f, 1000.0f);
-        mNode->SetInputBound(4, InputBound::INPUT_CUSTOM, 0.01f, 1.0f);
-        mNode->SetInputBound(5, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(6, InputBound::INPUT_0_TO_1);
-    }
-
     void GraphEffectArpeggio::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        // "Note On Id", "Note Off Id", "Velocity", "Bpm", "Fmod", "Attack"
-
-        auto noteIdsOn = &inputs.at(0).Get(8);
-        auto noteIdsOff = &inputs.at(1).Get(8);
+        auto noteIdsOn = &inputs.at(0).Get(gPolyphony);
+        auto noteIdsOff = &inputs.at(1).Get(gPolyphony);
         float velocity = inputs.at(2).Get();
         float bpm = inputs.at(3).Get();
         float fmod = inputs.at(4).Get();
@@ -524,7 +392,7 @@ namespace l::nodegraph {
         }
 
         if (!mNotes.empty()) {
-            for (int32_t i = 0; i < 8; i++) {
+            for (int32_t i = 0; i < gPolyphony; i++) {
                 if (l::math::functions::equal(*noteIdsOff, l::audio::gNoNote_f)) {
                     break;
                 }
@@ -541,7 +409,7 @@ namespace l::nodegraph {
             mSamplesUntilUpdate = 0.0f;
             mGainTarget = 0.0f;
         }
-        for (int32_t i = 0; i < 8; i++) {
+        for (int32_t i = 0; i < gPolyphony; i++) {
             if (l::math::functions::equal(*noteIdsOn, l::audio::gNoNote_f)) {
                 break;
             }

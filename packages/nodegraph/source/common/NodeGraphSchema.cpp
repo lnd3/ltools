@@ -38,7 +38,7 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(OutputType::Default, 3);
             break;
         case 4:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceTime>(OutputType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceTime>(OutputType::ExternalOutput, mAudioOutput->GetSampleRate(), 60);
             break;
         case 50:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericAdd>(OutputType::Default);
@@ -116,28 +116,28 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectArpeggio>(OutputType::Default);
             break;
         case 300:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputKeyboardPiano, l::hid::KeyState>(OutputType::Default, mKeyState);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputKeyboardPiano>(OutputType::Default, mKeyState);
             break;
         case 301:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiKeyboard, l::hid::KeyState>(OutputType::Default, mMidiManager);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiKeyboard>(OutputType::Default, mMidiManager);
             break;
         case 302:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiKnobs, l::hid::KeyState>(OutputType::Default, mMidiManager);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiKnobs>(OutputType::Default, mMidiManager);
             break;
         case 303:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons, l::hid::KeyState>(OutputType::Default, mMidiManager, 0);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(OutputType::Default, mMidiManager, 0);
             break;
         case 304:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons, l::hid::KeyState>(OutputType::Default, mMidiManager, 1);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(OutputType::Default, mMidiManager, 1);
             break;
         case 305:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons, l::hid::KeyState>(OutputType::Default, mMidiManager, 2);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(OutputType::Default, mMidiManager, 2);
             break;
         case 306:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons, l::hid::KeyState>(OutputType::Default, mMidiManager, 3);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(OutputType::Default, mMidiManager, 3);
             break;
         case 307:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons, l::hid::KeyState>(OutputType::Default, mMidiManager, 4);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(OutputType::Default, mMidiManager, 4);
             break;
         case 350:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSine>(OutputType::Default);
@@ -160,8 +160,6 @@ namespace l::nodegraph {
         case 356:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSaw2>(OutputType::Default);
             break;
-
-
         default:
             ASSERT(typeId < 10000) << "Custom node id's begin at id 1000";
             ASSERT(mCreateCustomNode != nullptr) << "Custom nodes needs a handler to create them. It's missing.";
@@ -169,9 +167,6 @@ namespace l::nodegraph {
             break;
         };
 
-        if (node != nullptr) {
-            node->Reset();
-        }
         return node == nullptr ? 0 : node->GetId();
     }
 

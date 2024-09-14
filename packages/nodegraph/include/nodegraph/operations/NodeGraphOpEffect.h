@@ -25,9 +25,6 @@ namespace l::nodegraph {
     /*********************************************************************/
     class GraphEffectReverb1 : public NodeGraphOp {
     public:
-        std::string defaultInStrings[11] = { "In 1", "In 2", "Mix", "Attenuation", "Room Size", "Delay 1", "Feedback 1", "Delay 2", "Feedback 2", "Delay 3", "Feedback 3" };
-        std::string defaultOutStrings[2] = { "Out 1", "Out 2" };
-        
         uint32_t GetFramesPerRoomSize(float roomSize) {
             const float metersPerFrame = 334.0f / 44100.0f; // (m/s)/(frames/s) = m/frames;
             const float metersToWallPerFrame = metersPerFrame / 2.0f; // half the distance to wall for the bounced distance
@@ -38,32 +35,30 @@ namespace l::nodegraph {
         const float maxRoomSizeInMeters = 334.0f; // 334 meters large is 2 seconds of reverbation
 
         GraphEffectReverb1(NodeGraphBase * node) :
-            NodeGraphOp(node, 11, 2, 0) {
-                uint32_t bufferSize = GetFramesPerRoomSize(maxRoomSizeInMeters);
-                buf0.resize(bufferSize);
-                buf1.resize(bufferSize);
-            }
+            NodeGraphOp(node, "Reverb 1") {
+
+            uint32_t bufferSize = GetFramesPerRoomSize(maxRoomSizeInMeters);
+            buf0.resize(bufferSize);
+            buf1.resize(bufferSize);
+
+            AddInput("In 1", 0.0f);
+            AddInput("In 2", 0.0f);
+            AddInput("Mix", 0.75f, 1, 0.0f, 1.0f);
+            AddInput("Attenuation", 0.5f, 1, 0.0f, 1.0f);
+            AddInput("Room Size", 30.0f, 1, 0.2f, maxRoomSizeInMeters);
+            AddInput("Delay 1", 0.5f, 1, 0.0f, 1.0f);
+            AddInput("Feedback 1", 0.9f, 1, 0.0f, 1.0f);
+            AddInput("Delay 2", 0.8f, 1, 0.0f, 1.0f);
+            AddInput("Feedback 2", 0.9f, 1, 0.0f, 1.0f);
+            AddInput("Delay 3", 0.7f, 1, 0.0f, 1.0f);
+            AddInput("Feedback 3", 0.9f, 1, 0.0f, 1.0f);
+
+            AddOutput("Out 1");
+            AddOutput("Out 2");
+        }
             
         virtual ~GraphEffectReverb1() = default;
-
-        virtual void Reset() override;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>&inputs, std::vector<NodeGraphOutput>&outputs) override;
-        virtual bool IsDataVisible(int8_t num) override {
-            return num >= 2 ? true : false;
-        }
-        virtual bool IsDataEditable(int8_t num) override {
-            return num >= 2 ? true : false;
-        }
-        virtual std::string_view GetInputName(int8_t inputChannel) override {
-            return defaultInStrings[inputChannel];
-        }
-        virtual std::string_view GetOutputName(int8_t outputChannel) override {
-            return defaultOutStrings[outputChannel];
-        }
-        virtual std::string_view GetName() override {
-            return "Reverb 1";
-        }
-
     protected:
         bool mInited = false;
         std::vector<float> buf0;
@@ -77,15 +72,11 @@ namespace l::nodegraph {
         float d0 = 0.0f;
         float d1 = 0.0f;
         float d2 = 0.0f;
-        
     };
 
     /*********************************************************************/
     class GraphEffectReverb2 : public NodeGraphOp {
     public:
-        std::string defaultInStrings[12] = { "In 1", "In 2", "Mix", "Feedback", "Room Size", "Width", "First tap", "Longest tap", "Num taps", "Tap bulge", "Filter cutoff", "Filter res"};
-        std::string defaultOutStrings[4] = { "Rev 1", "Rev 2", "Tap 1", "Tap 2"};
-
         uint32_t GetFramesPerRoomSize(float roomSize) {
             const float metersPerFrame = 334.0f / 44100.0f; // (m/s)/(frames/s) = m/frames;
             const float metersToWallPerFrame = metersPerFrame / 2.0f; // half the distance to wall for the bounced distance
@@ -96,34 +87,35 @@ namespace l::nodegraph {
         const float maxRoomSizeInMeters = 334.0f; // 334 meters large is 2 seconds of reverbation
 
         GraphEffectReverb2(NodeGraphBase* node) :
-            NodeGraphOp(node, 12, 4, 0)
+            NodeGraphOp(node, "Reverb 2")
         {
             uint32_t bufferSize = GetFramesPerRoomSize(maxRoomSizeInMeters);
             bufRev0.resize(bufferSize);
             bufRev1.resize(bufferSize);
             bufEarlyTap0.resize(bufferSize);
             bufEarlyTap1.resize(bufferSize);
+
+            AddInput("In 1");
+            AddInput("In 2");
+            AddInput("Mix", 0.3f, 1, 0.0f, 1.0f);
+            AddInput("Feedback", 0.5f, 1, 0.0f, 1.0f);
+            AddInput("Room Size", 30.0f, 1, 0.2f, maxRoomSizeInMeters);
+            AddInput("Width", 0.5f, 1, 0.0f, 1.0f);
+            AddInput("First tap", 0.1f, 1, 0.0f, 10.0f);
+            AddInput("Longest tap", 0.8f, 1, 0.0f, 10.0f);
+            AddInput("Num tapss", 5.0f, 1, 1.0f, 30.0f);
+            AddInput("Tap bulge", 0.7f, 1, 1.0f, 10.0f);
+            AddInput("Filter cutoff", 0.95f, 1, 0.001f, 0.999f);
+            AddInput("Filter res", 0.01f, 1, 0.001f, 0.999f);
+
+            AddOutput("Rev 1");
+            AddOutput("Rev 2");
+            AddOutput("Tap 1");
+            AddOutput("Tap 2");
         }
 
         virtual ~GraphEffectReverb2() = default;
-        virtual void Reset() override;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        virtual bool IsDataVisible(int8_t num) override {
-            return num >= 2 ? true : false;
-        }
-        virtual bool IsDataEditable(int8_t num) override {
-            return num >= 2 ? true : false;
-        }
-        virtual std::string_view GetInputName(int8_t inputChannel) override {
-            return defaultInStrings[inputChannel];
-        }
-        virtual std::string_view GetOutputName(int8_t outputChannel) override {
-            return defaultOutStrings[outputChannel];
-        }
-        virtual std::string_view GetName() override {
-            return "Reverb 2";
-        }
-
     protected:
         bool mInited = false;
 
@@ -145,32 +137,25 @@ namespace l::nodegraph {
     /*********************************************************************/
     class GraphEffectLimiter : public NodeGraphOp {
     public:
-        std::string defaultInStrings[6] = { "In 1", "In 2", "Attack", "Release", "Preamp", "Limit" };
-        std::string defaultOutStrings[3] = { "Out 1", "Out 2", "Envelope"};
-
         GraphEffectLimiter(NodeGraphBase* node) :
-            NodeGraphOp(node, 6, 3, 0)
-        {}
+            NodeGraphOp(node, "Limiter")
+        {
+            AddInput("In 1");
+            AddInput("In 2");
+            AddInput("Attack", 5.0f, 1, 1.0f, 10000.0f);
+            AddInput("Release", 100.0f, 1, 1.0f, 10000.0f);
+            AddInput("Preamp", 1.0f, 1, 0.0f, 10.0f);
+            AddInput("Limit", 0.95f, 1, 0.0f, 10.0f);
+
+            AddOutput("Out 1");
+            AddOutput("Out 2");
+            AddOutput("Envelope");
+
+            mEnvelope = 0.0f;
+        }
 
         virtual ~GraphEffectLimiter() = default;
-        virtual void Reset() override;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        virtual bool IsDataVisible(int8_t num) override {
-            return num >= 2 ? true : false;
-        }
-        virtual bool IsDataEditable(int8_t num) override {
-            return num >= 2 ? true : false;
-        }
-        virtual std::string_view GetInputName(int8_t inputChannel) override {
-            return defaultInStrings[inputChannel];
-        }
-        virtual std::string_view GetOutputName(int8_t outputChannel) override {
-            return defaultOutStrings[outputChannel];
-        }
-        virtual std::string_view GetName() override {
-            return "Limiter";
-        }
-
     protected:
         float mEnvelope = 0.0f;
     };
@@ -178,32 +163,24 @@ namespace l::nodegraph {
     /*********************************************************************/
     class GraphEffectEnvelope : public NodeGraphOp {
     public:
-        std::string defaultInStrings[5] = { "Freq", "Velocity", "Attack", "Release", "Fade" };
-        std::string defaultOutStrings[2] = { "Freq", "Volume" };
-
         GraphEffectEnvelope(NodeGraphBase* node) :
-            NodeGraphOp(node, 5, 2)
-        {}
+            NodeGraphOp(node, "Envelope")
+        {
+            AddInput("Freq");
+            AddInput("Velocity", 0.5f, 1, 0.0f, 1.0f);
+            AddInput("Attack", 50.0f, 1, 1.0f, 10000.0f);
+            AddInput("Release", 50.0f, 1, 1.0f, 10000.0f);
+            AddInput("Fade", 0.1f, 1, 0.0001f, 1.0f);
+
+            AddOutput("Freq");
+            AddOutput("Volume");
+
+            mEnvelope = 0.0f;
+        }
 
         virtual ~GraphEffectEnvelope() = default;
-        virtual void Reset() override;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(int32_t, float) {}
-        virtual std::string_view GetInputName(int8_t inputChannel) override {
-            return defaultInStrings[inputChannel];
-        }
-        virtual std::string_view GetOutputName(int8_t outputChannel) override {
-            return defaultOutStrings[outputChannel];
-        }
-        virtual bool IsDataVisible(int8_t channel) override {
-            return channel >= 1 ? true : false;
-        }
-        virtual bool IsDataEditable(int8_t channel) override {
-            return channel >= 1 ? true : false;
-        }
-        virtual std::string_view GetName() override {
-            return "Envelope";
-        }
     protected:
         int32_t mFrameCount = 0;
         float mEnvelopeTarget = 0.0f;
@@ -214,32 +191,21 @@ namespace l::nodegraph {
     /*********************************************************************/
     class GraphEffectEnvelopeFollower : public NodeGraphOp {
     public:
-        std::string defaultInStrings[6] = { "In 1", "In 2", "Attack", "Release" };
-        std::string defaultOutStrings[3] = { "Envelope" };
-
         GraphEffectEnvelopeFollower(NodeGraphBase* node) :
-            NodeGraphOp(node, 4, 1, 0)
-        {}
+            NodeGraphOp(node, "Envelope Follower")
+        {
+            AddInput("In 1");
+            AddInput("In 2");
+            AddInput("Attack", 5.0f, 1, 1.0f, 10000.0f);
+            AddInput("Release", 100.0f, 1, 1.0f, 10000.0f);
+
+            AddOutput("Envelope");
+
+            mEnvelope = 0.0f;
+        }
 
         virtual ~GraphEffectEnvelopeFollower() = default;
-        virtual void Reset() override;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        virtual bool IsDataVisible(int8_t num) override {
-            return num >= 2 ? true : false;
-        }
-        virtual bool IsDataEditable(int8_t num) override {
-            return num >= 2 ? true : false;
-        }
-        virtual std::string_view GetInputName(int8_t inputChannel) override {
-            return defaultInStrings[inputChannel];
-        }
-        virtual std::string_view GetOutputName(int8_t outputChannel) override {
-            return defaultOutStrings[outputChannel];
-        }
-        virtual std::string_view GetName() override {
-            return "Envelope Follower";
-        }
-
     protected:
         float mEnvelope = 0.0f;
     };
@@ -247,32 +213,24 @@ namespace l::nodegraph {
     /*********************************************************************/
     class GraphEffectSaturator : public NodeGraphOp {
     public:
-        std::string defaultInStrings[6] = { "In 1", "In 2", "Wet", "Preamp", "Limit", "Postamp"};
-        std::string defaultOutStrings[3] = { "Out 1", "Out 2"};
-
         GraphEffectSaturator(NodeGraphBase* node) :
-            NodeGraphOp(node, 6, 2, 0)
-        {}
+            NodeGraphOp(node, "Saturator")
+        {
+            AddInput("In 1");
+            AddInput("In 2");
+            AddInput("Wet", 0.5f, 1, 0.0f, 1.0f);
+            AddInput("Preamp", 1.5f, 1, 0.0f, 10.0f);
+            AddInput("Limit", 0.6f, 1, 0.0f, 10.0f);
+            AddInput("Postamp", 1.4f, 1, 0.0f, 10.0f);
+
+            AddOutput("Out 1");
+            AddOutput("Out 2");
+
+            mEnvelope = 0.0f;
+        }
 
         virtual ~GraphEffectSaturator() = default;
-        virtual void Reset() override;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        virtual bool IsDataVisible(int8_t num) override {
-            return num >= 2 ? true : false;
-        }
-        virtual bool IsDataEditable(int8_t num) override {
-            return num >= 2 ? true : false;
-        }
-        virtual std::string_view GetInputName(int8_t inputChannel) override {
-            return defaultInStrings[inputChannel];
-        }
-        virtual std::string_view GetOutputName(int8_t outputChannel) override {
-            return defaultOutStrings[outputChannel];
-        }
-        virtual std::string_view GetName() override {
-            return "Saturator";
-        }
-
     protected:
         float mEnvelope = 0.0f;
     };
@@ -280,9 +238,6 @@ namespace l::nodegraph {
     /*********************************************************************/
     class GraphEffectTranceGate : public NodeGraphOp {
     public:
-        std::string defaultInStrings[7] = { "In 1", "In 2", "Bpm", "Fmod", "Attack", "Pattern", "Drift Sync"};
-        std::string defaultOutStrings[3] = { "Out 1", "Out 2" };
-
         const std::vector< std::vector<float>> patterns = {
             {0.7f, 0.0f, 0.7f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f },
             {0.5f, 0.0f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f},
@@ -297,28 +252,24 @@ namespace l::nodegraph {
         };
 
         GraphEffectTranceGate(NodeGraphBase* node) :
-            NodeGraphOp(node, 7, 2, 0)
-        {}
+            NodeGraphOp(node, "Trance Gate")
+        {
+            AddInput("In 1");
+            AddInput("In 2");
+            AddInput("Bpm", 60.0f, 1, 1.0f, 1000.0f);
+            AddInput("Fmod", 1.0f, 1, 0.01f, 1.0f);
+            AddInput("Attack", 0.001f, 1, 0.0f, 1.0f);
+            AddInput("Pattern", 0.0f, 1, 0.0f, 100.0f);
+            AddInput("Sync", 0.0f, 1, 0.0f, 1.0f);
+
+            AddOutput("Out 1");
+            AddOutput("Out 2");
+
+            mGateIndex = 0;
+        }
 
         virtual ~GraphEffectTranceGate() = default;
-        virtual void Reset() override;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        virtual bool IsDataVisible(int8_t num) override {
-            return num >= 2 ? true : false;
-        }
-        virtual bool IsDataEditable(int8_t num) override {
-            return num >= 2 ? true : false;
-        }
-        virtual std::string_view GetInputName(int8_t inputChannel) override {
-            return defaultInStrings[inputChannel];
-        }
-        virtual std::string_view GetOutputName(int8_t outputChannel) override {
-            return defaultOutStrings[outputChannel];
-        }
-        virtual std::string_view GetName() override {
-            return "Trance Gate";
-        }
-
     protected:
         float mSamplesUntilUpdate = 0.0f;
         int32_t mGateIndex = 0;
@@ -331,32 +282,28 @@ namespace l::nodegraph {
     /*********************************************************************/
     class GraphEffectArpeggio: public NodeGraphOp {
     public:
-        std::string defaultInStrings[8] = { "Note On Id", "Note Off Id", "Velocity", "Bpm", "Fmod", "Attack", "Smooth", "Drift Sync"};
-        std::string defaultOutStrings[3] = { "Freq", "Volume" };
 
+        const static int32_t gPolyphony = 12;
         GraphEffectArpeggio(NodeGraphBase* node) :
-            NodeGraphOp(node, 8, 2, 0)
-        {}
+            NodeGraphOp(node, "Arpeggio")
+        {
+            AddInput("Note On", l::audio::gNoNote_f, gPolyphony, -499.0, 500.0);
+            AddInput("Note Off", l::audio::gNoNote_f, gPolyphony, -499.0, 500.0);
+            AddInput("Velocity", 1.0f, 1, 0.0f, 1.0f);
+            AddInput("Bpm", 60.0f, 1, 1.0f, 1000.0f);
+            AddInput("Fmod", 1.0f, 1, 0.01f, 1.0f);
+            AddInput("Attack", 0.01f, 1, 0.0f, 1.0f);
+            AddInput("Smooth", 0.0f, 1, 0.0f, 1.0f);
+            AddInput("Sync", 0.0f, 1, 0.0f, 1.0f);
+
+            AddOutput("Freq");
+            AddOutput("Volume");
+
+            mGainTarget = 0.0f;
+        }
 
         virtual ~GraphEffectArpeggio() = default;
-        virtual void Reset() override;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        virtual bool IsDataVisible(int8_t) override {
-            return true;
-        }
-        virtual bool IsDataEditable(int8_t channel) override {
-            return channel > 2 ? true : false;
-        }
-        virtual std::string_view GetInputName(int8_t inputChannel) override {
-            return defaultInStrings[inputChannel];
-        }
-        virtual std::string_view GetOutputName(int8_t outputChannel) override {
-            return defaultOutStrings[outputChannel];
-        }
-        virtual std::string_view GetName() override {
-            return "Arpeggio";
-        }
-
     protected:
         float mSamplesUntilUpdate = 0.0f;
         float mGainTarget = 0.0f;

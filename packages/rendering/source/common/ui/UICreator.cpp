@@ -10,8 +10,7 @@ namespace l::ui {
 
         auto numInputChannels = node.GetNumInputs();
         auto numOutputChannels = node.GetNumOutputs();
-        auto numConstants = node.GetNumConstants();
-        auto numRows = numInputChannels > numOutputChannels ? numInputChannels + numConstants : numOutputChannels;
+        auto numRows = numInputChannels > numOutputChannels ? numInputChannels : numOutputChannels;
 
         auto node4 = CreateSplit(uiStorage, l::ui::UIContainer_ResizeFlag | l::ui::UIContainer_MoveFlag | l::ui::UIContainer_DrawFlag | UIContainer_SelectFlag, l::ui::UIRenderType::RectFilled, l::ui::UISplitMode::AppendV);
         node4->SetColor(ImVec4(0.15f, 0.15f, 0.15f, 1.0f));
@@ -35,7 +34,7 @@ namespace l::ui {
                 connector1Text->GetContainerArea().mRender.mColor = ImColor(ImVec4(0.5f, 1.0f, 0.4f, 1.0f));
                 row0->Add(connector1Text);
             }
-            for (int8_t i = 0; i < numInputChannels || i < numOutputChannels || i < numInputChannels + numConstants || i < numOutputChannels; i++) {
+            for (int8_t i = 0; i < numInputChannels || i < numOutputChannels || i < numInputChannels || i < numOutputChannels; i++) {
                 auto row = CreateContainer(uiStorage, 0, l::ui::UIRenderType::Rect, l::ui::UIAlignH::Left, l::ui::UIAlignV::Top, l::ui::UILayoutH::Parent, l::ui::UILayoutV::Fixed);
                 row->GetContainerArea().mMargin = ioSize;
                 node4->Add(row);
@@ -44,7 +43,7 @@ namespace l::ui {
                     bool showsOutput = i < numOutputChannels;
 
                     float estimatedWidth = 0.0f;
-                    if (showsInput) {
+                    if (showsInput && !node.IsDataConstant(i)) {
                         auto in = CreateContainer(uiStorage, l::ui::UIContainer_InputFlag | l::ui::UIContainer_DrawFlag, l::ui::UIRenderType::CircleFilled, l::ui::UIAlignH::Left);
                         in->SetPosition(ImVec2(-ioSize, ioSize * ioOffsetV));
                         in->SetSize(ImVec2(ioSize, ioSize));

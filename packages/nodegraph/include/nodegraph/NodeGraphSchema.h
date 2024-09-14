@@ -12,8 +12,6 @@
 #include "nodegraph/operations/NodeGraphOpSource.h"
 #include "nodegraph/operations/NodeGraphOpSignal.h"
 
-#include "hid/Midi.h"
-
 #include <string>
 #include <vector>
 #include <map>
@@ -99,11 +97,6 @@ namespace l::nodegraph {
         int32_t NewNode(int32_t typeId);
         bool RemoveNode(int32_t nodeId);
         NodeGraphBase* GetNode(int32_t nodeId);
-
-        template<class T, class U = void, class = std::enable_if_t<std::is_base_of_v<NodeGraphOp, T>>>
-        NodeGraph<T, U>* GetTypedNode(int32_t id) {
-            return mMainNodeGraph.GetTypedNode<T, U>(id);
-        }
 
         void ForEachNodeType(std::function<void(std::string_view, const std::vector<UINodeDesc>&)> cb) const;
         void RegisterNodeType(const std::string& typeGroup, int32_t uniqueTypeId, std::string_view typeName);

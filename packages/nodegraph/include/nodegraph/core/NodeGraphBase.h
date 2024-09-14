@@ -45,13 +45,8 @@ namespace l::nodegraph {
         virtual void ProcessSubGraph(int32_t numSamples = 1, bool recomputeSubGraphCache = true);
         virtual void Tick(int32_t tickCount, float elapsed);
 
-        virtual void SetNumInputs(int8_t numInputs);
-        virtual void SetNumOutputs(int8_t outputCount);
-        virtual void SetNumConstants(int8_t numConstants);
-
         virtual int8_t GetNumInputs();
         virtual int8_t GetNumOutputs();
-        virtual int8_t GetNumConstants();
 
         virtual float& GetOutput(int8_t outputChannel, int32_t size = 1);
         virtual float GetInput(int8_t inputChannel);
@@ -69,13 +64,14 @@ namespace l::nodegraph {
 
         virtual bool SetInput(int8_t inputChannel, NodeGraphBase& source, int8_t sourceOutputChannel);
         virtual bool SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel);
-        virtual bool SetInput(int8_t inputChannel, float constant, int32_t size = -1);
+        virtual bool SetInput(int8_t inputChannel, float constant, int32_t size = 1);
         virtual bool SetInput(int8_t inputChannel, float* floatPtr);
-        virtual void SetDefaultOutput(int8_t outputChannel, float constant, int32_t size = -1);
+        virtual void SetDefaultOutput(int8_t outputChannel, float constant, int32_t size = 1);
 
         virtual bool SetInputBound(int8_t inputChannel, InputBound bound = InputBound::INPUT_DONTCHANGE, float boundMin = 0.0f, float boundMax = 0.0f);
-        virtual bool RemoveInput(void* source);
+        virtual bool DetachInput(void* source);
 
+        virtual bool IsDataConstant(int8_t num);
         virtual bool IsDataVisible(int8_t num);
         virtual bool IsDataEditable(int8_t num);
         virtual bool IsOutputPolled(int8_t outputChannel);
@@ -83,6 +79,9 @@ namespace l::nodegraph {
         virtual OutputType GetOutputType();
 
     protected:
+        virtual void SetNumInputs(int8_t numInputs);
+        virtual void SetNumOutputs(int8_t outputCount);
+
         virtual void ProcessOperation(int32_t numSamples = 1);
 
         bool mProcessUpdateHasRun = false;
@@ -94,47 +93,47 @@ namespace l::nodegraph {
         OutputType mOutputType;
 
         std::string mName;
-        int8_t mInputCount = 0;
-        int8_t mConstantCount = 0;
     };
 
     class NodeGraphOp {
     public:
-        NodeGraphOp(NodeGraphBase* node, int32_t numInputs = 1, int32_t numOutputs = 1, int32_t numConstants = 0) :
+        NodeGraphOp(NodeGraphBase* node, std::string_view name) :
             mNode(node),
-            mNumInputs(static_cast<int8_t>(numInputs)), 
-            mNumOutputs(static_cast<int8_t>(numOutputs)),
-            mNumConstants(static_cast<int8_t>(numConstants))
+            mName(name)
         {}
         virtual ~NodeGraphOp() {
             LOG(LogInfo) << "Node operation destroyed";
         }
 
-        std::string defaultInStrings[4] = { "In 1", "In 2", "In 3", "In 4" };
-        std::string defaultOutStrings[4] = { "Out 1", "Out 2", "Out 3", "Out 4" };
-
-        virtual void Reset() {}
+        virtual void Reset();
         virtual void Process(int32_t, std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
         virtual void Tick(int32_t, float) {}
 
-        virtual void SetNumInputs(int8_t numInputs);
-        virtual void SetNumOutputs(int8_t numOutputs);
-        virtual void SetNumConstants(int8_t numConstants);
         int8_t GetNumInputs();
         int8_t GetNumOutputs();
-        int8_t GetNumConstants();
 
-        virtual bool IsDataVisible(int8_t num);
-        virtual bool IsDataEditable(int8_t num);
+        virtual bool IsDataConstant(int8_t channel);
+        virtual bool IsDataVisible(int8_t channel);
+        virtual bool IsDataEditable(int8_t channel);
         virtual std::string_view GetInputName(int8_t inputChannel);
         virtual std::string_view GetOutputName(int8_t outputChannel);
         virtual std::string_view GetName();
 
     protected:
+        virtual void AddInput(std::string_view name, float defaultValue = 0.0f, int32_t size = 1, float boundMin = -l::math::constants::FLTMAX, float boundMax = l::math::constants::FLTMAX, bool visible = true, bool editable = true);
+        virtual void AddOutput(std::string_view name, float defaultValue = 0.0f, int32_t size = 1);
+        virtual void AddConstant(std::string_view name, float defaultValue = 0.0f, float boundMin = -l::math::constants::FLTMAX, float boundMax = l::math::constants::FLTMAX, bool visible = true, bool editable = true);
+
         NodeGraphBase* mNode;
+        std::string mName;
+
+        std::vector<std::string> mDefaultInStrings;
+        std::vector<std::string> mDefaultOutStrings;
+        std::vector<std::tuple<float, int32_t, float, float, bool, bool, bool>> mDefaultInData;
+        std::vector<std::tuple<float, int32_t>> mDefaultOutData;
+
         int8_t mNumInputs = 0;
         int8_t mNumOutputs = 0;
-        int8_t mNumConstants = 0;
     };
 
     template<class T, class... Params>
@@ -146,28 +145,15 @@ namespace l::nodegraph {
         {
             SetNumInputs(mOperation.GetNumInputs());
             SetNumOutputs(mOperation.GetNumOutputs());
-            SetNumConstants(mOperation.GetNumConstants());
+
+            Reset();
         }
         virtual ~NodeGraph() {
             LOG(LogInfo) << "Node destroyed";
         }
 
-        virtual void SetNumInputs(int8_t numInputs) {
-            NodeGraphBase::SetNumInputs(numInputs);
-            mOperation.SetNumInputs(numInputs);
-        }
-
-        virtual void SetNumOutputs(int8_t numOutputs) {
-            NodeGraphBase::SetNumOutputs(numOutputs);
-            mOperation.SetNumOutputs(numOutputs);
-        }
-
-        virtual void SetNumConstants(int8_t numConstants) {
-            NodeGraphBase::SetNumConstants(numConstants);
-            mOperation.SetNumConstants(numConstants);
-            for (int8_t i = mInputCount; i < mInputCount + mConstantCount; i++) {
-                SetInput(i, 0.0f);
-            }
+        virtual bool IsDataConstant(int8_t num) override {
+            return mOperation.IsDataConstant(num);
         }
 
         virtual bool IsDataVisible(int8_t num) override {

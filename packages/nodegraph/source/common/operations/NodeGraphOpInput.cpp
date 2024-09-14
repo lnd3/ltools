@@ -2,6 +2,7 @@
 
 #include "logging/Log.h"
 #include "audio/AudioUtils.h"
+#include "hid/Midi.h"
 
 #include "math/MathFunc.h"
 
@@ -10,20 +11,11 @@
 namespace l::nodegraph {
 
     /*********************************************************************/
-    void GraphInputKeyboardPiano::Reset() {
-        mNode->SetInput(0, 0.0f);
-        mNode->SetInput(1, l::audio::gNoNote_f, 8);
-        mNode->SetInput(2, l::audio::gNoNote_f, 8);
-
-        mNode->GetOutput(1, 8);
-        mNode->GetOutput(2, 8);
-    }
-
     void GraphInputKeyboardPiano::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         outputs.at(0).mOutput = inputs.at(0).Get();
 
-        auto output1 = &outputs.at(1).GetOutput(8);
-        auto output2 = &outputs.at(2).GetOutput(8);
+        auto output1 = &outputs.at(1).Get(8);
+        auto output2 = &outputs.at(2).Get(8);
         auto input1 = &inputs.at(1).Get(8);
         auto input2 = &inputs.at(2).Get(8);
         for (int32_t i = 0; i < 8; i++) {
@@ -114,26 +106,15 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphInputMidiKeyboard::Reset() {
-        mNode->SetInput(0, 0.0f);
-        mNode->SetInput(1, 0.0f);
-        mNode->SetInput(2, l::audio::gNoNote_f, 8);
-        mNode->SetInput(3, l::audio::gNoNote_f, 8);
-        mNode->SetInput(4, 0.0f);
-
-        mNode->GetOutput(2, 8);
-        mNode->GetOutput(3, 8);
-    }
-
     void GraphInputMidiKeyboard::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         outputs.at(0).mOutput = inputs.at(0).Get();
         outputs.at(1).mOutput = inputs.at(1).Get();
 
-        auto output2 = &outputs.at(2).GetOutput(8);
-        auto output3 = &outputs.at(3).GetOutput(8);
-        auto input2 = &inputs.at(2).Get(8);
-        auto input3 = &inputs.at(3).Get(8);
-        for (int32_t i = 0; i < 8; i++) {
+        auto output2 = &outputs.at(2).Get(gPolyphony);
+        auto output3 = &outputs.at(3).Get(gPolyphony);
+        auto input2 = &inputs.at(2).Get(gPolyphony);
+        auto input3 = &inputs.at(3).Get(gPolyphony);
+        for (int32_t i = 0; i < gPolyphony; i++) {
             *output2++ = *input2;
             *output3++ = *input3;
             *input2++ = l::audio::gNoNote_f;
@@ -178,15 +159,15 @@ namespace l::nodegraph {
         mLastNote = note;
         float frequency = l::audio::GetFrequencyFromNote(static_cast<float>(note));
         mNode->SetInput(0, frequency);
-        mNode->SetInput(1, velocity / 128.0f);
+        mNode->SetInput(1, velocity / 127.0f);
 
         if (mSustain && !mSustainedNotes.empty()) {
             std::erase_if(mSustainedNotes, [&](const int32_t& sustainedNote) {
                 return sustainedNote == note;
                 });
         }
-        auto input2 = &mNode->GetInput(2, 8);
-        for (int32_t i = 0; i < 8; i++) {
+        auto input2 = &mNode->GetInput(2, gPolyphony);
+        for (int32_t i = 0; i < gPolyphony; i++) {
             if (l::math::functions::equal(*input2, l::audio::gNoNote_f)) {
                 *input2 = static_cast<float>(note);
                 break;
@@ -203,8 +184,8 @@ namespace l::nodegraph {
         }
 
         if (!mSustain) {
-            auto input3 = &mNode->GetInput(3, 8);
-            for (int32_t i = 0; i < 8; i++) {
+            auto input3 = &mNode->GetInput(3, gPolyphony);
+            for (int32_t i = 0; i < gPolyphony; i++) {
                 if (l::math::functions::equal(*input3, l::audio::gNoNote_f)) {
                     *input3 = static_cast<float>(note);
                     break;
@@ -221,8 +202,8 @@ namespace l::nodegraph {
         mSustain = on;
         if (!mSustain && !mSustainedNotes.empty()) {
             for (auto note : mSustainedNotes) {
-                auto input3 = &mNode->GetInput(3, 8);
-                for (int32_t i = 0; i < 8; i++) {
+                auto input3 = &mNode->GetInput(3, gPolyphony);
+                for (int32_t i = 0; i < gPolyphony; i++) {
                     if (l::math::functions::equal(*input3, l::audio::gNoNote_f)) {
                         *input3 = static_cast<float>(note);
                         break;
@@ -275,13 +256,6 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphInputMidiKnobs::Reset() {
-        for (int8_t i = 0; i < GetNumInputs(); i++) {
-            mNode->SetInput(i, 0.0f);
-        }
-        mNode->SetInput(8, 0.0f);
-    }
-
     void GraphInputMidiKnobs::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         for (size_t i = 0; i < inputs.size(); i++) {
             outputs.at(i).mOutput = inputs.at(i).Get();
@@ -299,23 +273,16 @@ namespace l::nodegraph {
         }
         if (data.status == 11) {
             if (data.data1 >= 48 && data.data1 < 56) {
-                mNode->SetInput(static_cast<int8_t>(data.data1 - 48), data.data2 / 128.0f);
+                mNode->SetInput(static_cast<int8_t>(data.data1 - 48), data.data2 / 127.0f);
             }
             else if (data.data1 >= 7 && data.data1 < 15) {
-                mNode->SetInput(static_cast<int8_t>(data.data1 - 7), data.data2 / 128.0f);
+                mNode->SetInput(static_cast<int8_t>(data.data1 - 7), data.data2 / 127.0f);
             }
         }
     }
 
 
     /*********************************************************************/
-    void GraphInputMidiButtons::Reset() {
-        for (int8_t i = 0; i < GetNumInputs(); i++) {
-            mNode->SetInput(i, 0.0f);
-        }
-        mNode->SetInput(8, 0.0f);
-    }
-
     void GraphInputMidiButtons::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         for (size_t i = 0; i < inputs.size(); i++) {
             outputs.at(i).mOutput = inputs.at(i).Get();

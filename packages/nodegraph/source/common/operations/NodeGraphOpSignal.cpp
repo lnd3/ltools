@@ -10,34 +10,13 @@
 namespace l::nodegraph {
 
     /*********************************************************************/
-    void GraphSignalBase::Reset() {
-        mFreq = 0.0f;
-        mVolumeTarget = 0.0f;
-        mSmooth = 0.5f;
-        mDeltaTime = 0.0f;
-        mSamplesUntilUpdate = 0.0f;
-
-        mNode->SetInput(0, 0.0f);
-        mNode->SetInput(1, 256.0f);
-        mNode->SetInput(2, 0.0f); // 441.0047f is stable in plot when debugging
-        mNode->SetInput(3, 0.5f);
-        mNode->SetInput(4, 0.5f);
-        mNode->SetInputBound(0, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(1, InputBound::INPUT_CUSTOM, 1.0f, 44100.0f);
-        mNode->SetInputBound(2, InputBound::INPUT_CUSTOM, 0.0f, l::math::constants::FLTMAX);
-        mNode->SetInputBound(3, InputBound::INPUT_0_100);
-        mNode->SetInputBound(4, InputBound::INPUT_0_TO_1);
-
-        ResetInput();
-    }
-
     void GraphSignalBase::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float sync = inputs.at(0).Get();
         if (sync > 0.5f) {
             mSamplesUntilUpdate = 0;
         }
 
-        float* output0 = &outputs.at(0).GetOutput(numSamples);
+        float* output0 = &outputs.at(0).Get(numSamples);
 
         mSamplesUntilUpdate = l::audio::BatchUpdate(mUpdateSamples, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
@@ -140,29 +119,8 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphSignalSine::Reset() {
-        // { "Freq Hz", "Freq Mod", "Phase Mod", "Reset"};
-        mPhase = 0.0f;
-        mPhaseFmod = 0.0f;
-        mWave = 0.0f;
-        mVol = 0.0f;
-
-        mNode->SetInput(0, 0.0f);
-        mNode->SetInput(1, 0.0f);
-        mNode->SetInput(2, 1.0f);
-        mNode->SetInput(3, 0.0f);
-        mNode->SetInput(4, 0.5f);
-        mNode->SetInput(5, 0.0f);
-        mNode->SetInputBound(0, InputBound::INPUT_CUSTOM, 0.0f, l::math::constants::FLTMAX);
-        mNode->SetInputBound(1, InputBound::INPUT_0_100);
-        mNode->SetInputBound(2, InputBound::INPUT_0_TO_2);
-        mNode->SetInputBound(3, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(4, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(5, InputBound::INPUT_0_TO_1);
-    }
-
     void GraphSignalSine::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        float* output0 = &outputs.at(0).GetOutput(numSamples);
+        float* output0 = &outputs.at(0).Get(numSamples);
 
         mSamplesUntilUpdate = l::audio::BatchUpdate(256.0f, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
@@ -232,31 +190,8 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphSignalSineFM::Reset() {
-        // { "Note", "Volume", "Fmod", "FmodFreq", "FmodVol", "FmodOfs", "Reset"}
-        mPhase = 0.0f;
-        mNode->SetInput(0, 0.0f);
-        mNode->SetInput(1, 0.5f);
-        mNode->SetInput(2, 0.0f);
-        mNode->SetInput(3, 0.0f);
-        mNode->SetInput(4, 0.0f);
-        mNode->SetInput(5, 0.0f);
-        mNode->SetInput(6, 0.0f);
-        mNode->SetInput(7, 0.5f);
-        mNode->SetInput(8, 0.0f);
-        mNode->SetInputBound(0, InputBound::INPUT_CUSTOM, 0.0f, l::math::constants::FLTMAX);
-        mNode->SetInputBound(1, InputBound::INPUT_0_100);
-        mNode->SetInputBound(2, InputBound::INPUT_UNBOUNDED);
-        mNode->SetInputBound(3, InputBound::INPUT_UNBOUNDED);
-        mNode->SetInputBound(4, InputBound::INPUT_UNBOUNDED);
-        mNode->SetInputBound(5, InputBound::INPUT_UNBOUNDED);
-        mNode->SetInputBound(6, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(7, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(8, InputBound::INPUT_0_TO_1);
-    }
-
     void GraphSignalSineFM::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        float* output0 = &outputs.at(0).GetOutput(numSamples);
+        float* output0 = &outputs.at(0).Get(numSamples);
 
         mSamplesUntilUpdate = l::audio::BatchUpdate(256.0f, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
@@ -308,25 +243,8 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphSignalSineFM2::Reset() {
-        // { "Note", "Volume", "FmodVol", "FmodOfs", "Reset"}
-        mPhase = 0.0f;
-        mNode->SetInput(0, 0.0f);
-        mNode->SetInput(1, 0.5f);
-        mNode->SetInput(2, 0.0f);
-        mNode->SetInput(3, 0.0f);
-        mNode->SetInput(4, 0.5f);
-        mNode->SetInput(5, 0.0f);
-        mNode->SetInputBound(0, InputBound::INPUT_CUSTOM, 0.0f, l::math::constants::FLTMAX);
-        mNode->SetInputBound(1, InputBound::INPUT_0_100);
-        mNode->SetInputBound(2, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(3, InputBound::INPUT_0_100);
-        mNode->SetInputBound(4, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(5, InputBound::INPUT_0_TO_1);
-    }
-
     void GraphSignalSineFM2::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        float* output0 = &outputs.at(0).GetOutput(numSamples);
+        float* output0 = &outputs.at(0).Get(numSamples);
 
         mSamplesUntilUpdate = l::audio::BatchUpdate(256.0f, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
@@ -383,21 +301,8 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphSignalSineFM3::Reset() {
-        // { "Note", "Volume", "Fmod", "Reset"}
-        mPhase = 0.0f;
-        mNode->SetInput(0, 0.0f);
-        mNode->SetInput(1, 0.5f);
-        mNode->SetInput(2, 0.5f);
-        mNode->SetInput(3, 0.0f);
-        mNode->SetInputBound(0, InputBound::INPUT_CUSTOM, 0.0f, l::math::constants::FLTMAX);
-        mNode->SetInputBound(1, InputBound::INPUT_0_100);
-        mNode->SetInputBound(2, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(3, InputBound::INPUT_0_TO_1);
-    }
-
     void GraphSignalSineFM3::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        float* output0 = &outputs.at(0).GetOutput(numSamples);
+        float* output0 = &outputs.at(0).Get(numSamples);
 
         mSamplesUntilUpdate = l::audio::BatchUpdate(16.0f, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
@@ -444,25 +349,8 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphSignalSaw::Reset() {
-        // { "Freq", "Volume", "Fmod", "Phase", "Reset"};
-        mPhase = 0.0f;
-        mNode->SetInput(0, 0.0f);
-        mNode->SetInput(1, 0.0f);
-        mNode->SetInput(2, 1.0f);
-        mNode->SetInput(3, 0.0f);
-        mNode->SetInput(4, 0.5f);
-        mNode->SetInput(5, 0.0f);
-        mNode->SetInputBound(0, InputBound::INPUT_CUSTOM, 0.0f, l::math::constants::FLTMAX);
-        mNode->SetInputBound(1, InputBound::INPUT_0_100);
-        mNode->SetInputBound(2, InputBound::INPUT_0_TO_2);
-        mNode->SetInputBound(3, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(4, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(5, InputBound::INPUT_0_TO_1);
-    }
-
     void GraphSignalSaw::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        float* output0 = &outputs.at(0).GetOutput(numSamples);
+        float* output0 = &outputs.at(0).Get(numSamples);
 
         mSamplesUntilUpdate = l::audio::BatchUpdate(256.0f, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
