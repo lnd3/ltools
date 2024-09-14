@@ -207,8 +207,7 @@ namespace l::nodegraph {
         }
         auto& input = mInputs.at(inputChannel);
 
-        if (bound == InputBound::INPUT_DONTCHANGE) {
-        }else if (bound == InputBound::INPUT_CUSTOM) {
+        if (bound == InputBound::INPUT_CUSTOM) {
             input.mBoundMin = boundMin;
             input.mBoundMax = boundMax;
         }
@@ -289,12 +288,12 @@ namespace l::nodegraph {
     }
 
     void NodeGraphOp::Reset() {
-        for (int8_t i = 0; i < mDefaultInData.size(); i++) {
+        for (int8_t i = 0; i < static_cast<int8_t>(mDefaultInData.size()); i++) {
             auto& e = mDefaultInData.at(i);
             mNode->SetInput(i, std::get<0>(e), std::get<1>(e));
             mNode->SetInputBound(i, l::nodegraph::InputBound::INPUT_CUSTOM, std::get<2>(e), std::get<3>(e));
         }
-        for (int8_t i = 0; i < mDefaultOutData.size(); i++) {
+        for (int8_t i = 0; i < static_cast<int8_t>(mDefaultOutData.size()); i++) {
             auto& e = mDefaultOutData.at(i);
             auto output = &mNode->GetOutput(i, std::get<1>(e));
             for (int32_t j = 0; j < std::get<1>(e);j++) {

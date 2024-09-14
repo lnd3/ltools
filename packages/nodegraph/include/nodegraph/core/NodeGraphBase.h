@@ -68,7 +68,7 @@ namespace l::nodegraph {
         virtual bool SetInput(int8_t inputChannel, float* floatPtr);
         virtual void SetDefaultOutput(int8_t outputChannel, float constant, int32_t size = 1);
 
-        virtual bool SetInputBound(int8_t inputChannel, InputBound bound = InputBound::INPUT_DONTCHANGE, float boundMin = 0.0f, float boundMax = 0.0f);
+        virtual bool SetInputBound(int8_t inputChannel, InputBound bound = InputBound::INPUT_0_TO_1, float boundMin = 0.0f, float boundMax = 1.0f);
         virtual bool DetachInput(void* source);
 
         virtual bool IsDataConstant(int8_t num);

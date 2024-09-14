@@ -22,7 +22,6 @@ namespace l::nodegraph {
     };
 
     enum class InputBound {
-        INPUT_DONTCHANGE = 0,
         INPUT_UNBOUNDED,
         INPUT_0_TO_1,
         INPUT_0_TO_2,

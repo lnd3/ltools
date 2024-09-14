@@ -19,8 +19,10 @@ namespace l::nodegraph {
             return { 0.0f, 100.0f };
         case InputBound::INPUT_UNBOUNDED:
             return { -l::math::constants::FLTMAX, l::math::constants::FLTMAX };
+        case InputBound::INPUT_CUSTOM:
+            return { 0.0f, 0.0f };
         }
-        return { -l::math::constants::FLTMAX, l::math::constants::FLTMAX };
+        return { 0.0f, 0.0f };
     }
 
     void NodeGraphInput::Reset() {
