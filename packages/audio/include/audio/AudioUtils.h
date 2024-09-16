@@ -19,7 +19,10 @@ namespace l::audio {
     extern const int32_t gNoNote;
     float GetFrequencyFromNote(float note);
     double GetPhaseModifier(double note, double modifier);
-    float GetRCAFactor(float numSamples, float limit = 0.01f);
+
+    float GetRWAFactorFromMS(float numMS, float limit, float rate = 44100.0f);
+    float GetRWAFactorFromTicks(float numTicks, float limit);
+
     float BatchUpdate(float updateSamples, float samplesLeft, int32_t start, int32_t end, std::function<void()> update, std::function<void(int32_t, int32_t, bool)> process);
 
     template<class T>
@@ -31,7 +34,7 @@ namespace l::audio {
             mValue(static_cast<T>(0)),
             mTargetValue(static_cast<T>(0))
         {}
-        ~FilterRWA() {}
+        ~FilterRWA() = default;
 
         bool SnapAt(T value = static_cast<T>(0), T proximity = static_cast<T>(0.00001)) {
             if (l::math::functions::abs(mValue - value) < proximity) {
@@ -39,6 +42,11 @@ namespace l::audio {
                 return true;
             }
             return false;
+        }
+
+        FilterRWA<T>& SetConvergenceInMs(T convergenceInMS, T limit = static_cast<T>(0.0001)) {
+            mSmooth = GetRWAFactorFromMS(convergenceInMS, limit);
+            return *this;
         }
 
         FilterRWA<T>& SetConvergence(T smooth = static_cast<T>(0.005)) {
@@ -56,9 +64,15 @@ namespace l::audio {
             return mValue;
         }
 
+        T& Value() {
+            return mValue;
+        }
+
     protected:
         T mSmooth;
         T mValue;
         T mTargetValue;
     };
+
+    using FilterRWAFloat = FilterRWA<float>;
 }

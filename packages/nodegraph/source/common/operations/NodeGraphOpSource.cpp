@@ -13,7 +13,7 @@ namespace l::nodegraph {
 
     /*********************************************************************/
     void GraphSourceConstants::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        auto input0 = inputs.at(0).GetIterator(numSamples);
+        auto input0 = inputs.at(0).GetBufferIterator(numSamples);
         auto output0 = outputs.at(0).GetIterator(numSamples);
 
         for (int8_t i = 0; i < mNumOutputs; i++) {
@@ -28,10 +28,10 @@ namespace l::nodegraph {
     /*********************************************************************/
     void GraphSourceTime::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
 
-        auto input0 = inputs.at(0).GetIterator(numSamples);
-        auto input1 = inputs.at(1).GetIterator(numSamples);
-        auto input2 = inputs.at(2).GetIterator(numSamples);
-        auto input3 = inputs.at(3).GetIterator(numSamples);
+        auto input0 = inputs.at(0).GetBufferIterator(numSamples);
+        auto input1 = inputs.at(1).GetBufferIterator(numSamples);
+        auto input2 = inputs.at(2).GetBufferIterator(numSamples);
+        auto input3 = inputs.at(3).GetBufferIterator(numSamples);
         auto output0 = outputs.at(0).GetIterator(numSamples);
         auto output1 = outputs.at(1).GetIterator(numSamples);
         auto output2 = outputs.at(2).GetIterator(numSamples);

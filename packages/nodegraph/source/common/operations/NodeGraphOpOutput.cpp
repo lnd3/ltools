@@ -19,10 +19,13 @@ namespace l::nodegraph {
 
     /*********************************************************************/
     void GraphOutputSpeaker::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
+        if (mAudioStream == nullptr) {
+            return;
+        }
 
         auto& buffer = mAudioStream->GetWriteBuffer();
-        auto in0 = inputs.at(0).GetIterator(numSamples);
-        auto in1 = inputs.at(1).GetIterator(numSamples);
+        auto in0 = inputs.at(0).GetBufferIterator(numSamples);
+        auto in1 = inputs.at(1).GetBufferIterator(numSamples);
 
         mSamplesUntilUpdate = l::audio::BatchUpdate(256.0f, mSamplesUntilUpdate, 0, numSamples,
             [&]() {

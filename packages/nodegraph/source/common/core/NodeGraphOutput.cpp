@@ -17,7 +17,7 @@ namespace l::nodegraph {
         }
         if (static_cast<int32_t>(mOutputBuf->size()) < size) {
             mOutputBuf->resize(size);
-            for (int32_t i = 0; i < mOutputBuf->size(); i++) {
+            for (size_t i = 0; i < mOutputBuf->size(); i++) {
                 (*mOutputBuf)[i] = 0.0f;
             }
         }

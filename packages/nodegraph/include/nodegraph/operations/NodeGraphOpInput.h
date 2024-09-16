@@ -78,7 +78,7 @@ namespace l::nodegraph {
             AddConstant("Velocity", 0.0f);
             AddConstant("Note On", l::audio::gNoNote_f, gPolyphony);
             AddConstant("Note Off", l::audio::gNoNote_f, gPolyphony);
-            AddConstant("Device Id", 0.0f, 0.0f, 10.0f);
+            AddConstant("Device Id", 0.0f, 1, 0.0f, 10.0f);
 
             mChannel.resize(1);
 
@@ -149,7 +149,7 @@ namespace l::nodegraph {
                 AddConstant("Knob " + std::to_string(i), 0.0f);
             }
             AddOutput("Device Id", 0.0f);
-            AddConstant("Device Id", 0.0f, 0.0f, 10.0f);
+            AddConstant("Device Id", 0.0f, 1, 0.0f, 10.0f);
 
             SetDevice(0);
 
@@ -236,7 +236,7 @@ namespace l::nodegraph {
                 AddConstant("Pad " + std::to_string(i), 0.0f);
             }
             AddOutput("Device Id", 0.0f);
-            AddConstant("Device Id", 0.0f, 0.0f, 10.0f);
+            AddConstant("Device Id", 0.0f, 1, 0.0f, 10.0f);
 
             mButtonStates.resize(8);
 

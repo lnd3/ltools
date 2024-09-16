@@ -192,6 +192,14 @@ TEST(NodeGraph, SchemaBasic) {
 		}
 	}
 
+	int32_t tick = 0;
+	for (int32_t j = 0; j < 10; j++) {
+		for (int32_t i = 0; i < 10; i++) {
+			ng.Tick(tick++, 0.001f);
+			ng.ProcessSubGraph(100);
+		}
+	}
+	
 	for (auto nodeId : nodeIds) {
 		TEST_TRUE(ng.RemoveNode(nodeId), "");
 	}

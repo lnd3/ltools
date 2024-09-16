@@ -41,10 +41,10 @@ namespace l::nodegraph {
             AddOutput("Out 3");
 
             auto bound = GetInputBounds(mModeToBoundList[mMode]);
-            AddConstant("Out 1", 0.0f, bound.first, bound.second);
-            AddConstant("Out 2", 0.0f, bound.first, bound.second);
-            AddConstant("Out 3", 0.0f, bound.first, bound.second);
-            AddConstant("Out 4", 0.0f, bound.first, bound.second);
+            AddConstant("Out 1", 0.0f, 1, bound.first, bound.second);
+            AddConstant("Out 2", 0.0f, 1, bound.first, bound.second);
+            AddConstant("Out 3", 0.0f, 1, bound.first, bound.second);
+            AddConstant("Out 4", 0.0f, 1, bound.first, bound.second);
         }
 
         virtual ~GraphSourceConstants() = default;

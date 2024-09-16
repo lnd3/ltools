@@ -20,8 +20,14 @@ namespace l::audio {
 		return 800.0 * modifier * modifier * limit;
 	}
 
-	float GetRCAFactor(float numSamples, float limit) {
-		return limit / l::math::functions::log(static_cast<float>(numSamples));
+	float GetRWAFactorFromMS(float ms, float limit, float rate) {
+		float ticks = ms * rate / 1000.0f;
+		return GetRWAFactorFromTicks(ticks, limit);
+	}
+
+	float GetRWAFactorFromTicks(float numTicks, float limit) {
+		// rwa factor = pow(e, log(limit)/ticks)
+		return 1.0f - l::math::functions::pow(l::math::constants::E_f, l::math::functions::log(limit) / numTicks);
 	}
 
 	float BatchUpdate(float updateSamples, float samplesLeft, int32_t start, int32_t end, std::function<void()> update, std::function<void(int32_t, int32_t, bool)> process) {

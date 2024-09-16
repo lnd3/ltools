@@ -118,11 +118,12 @@ namespace l::nodegraph {
         virtual std::string_view GetInputName(int8_t inputChannel);
         virtual std::string_view GetOutputName(int8_t outputChannel);
         virtual std::string_view GetName();
+        virtual float GetDefaultData(int8_t inputChannel);
 
     protected:
-        virtual void AddInput(std::string_view name, float defaultValue = 0.0f, int32_t size = 1, float boundMin = -l::math::constants::FLTMAX, float boundMax = l::math::constants::FLTMAX, bool visible = true, bool editable = true);
-        virtual void AddOutput(std::string_view name, float defaultValue = 0.0f, int32_t size = 1);
-        virtual void AddConstant(std::string_view name, float defaultValue = 0.0f, float boundMin = -l::math::constants::FLTMAX, float boundMax = l::math::constants::FLTMAX, bool visible = true, bool editable = true);
+        virtual int32_t AddInput(std::string_view name, float defaultValue = 0.0f, int32_t size = 1, float boundMin = -l::math::constants::FLTMAX, float boundMax = l::math::constants::FLTMAX, bool visible = true, bool editable = true);
+        virtual int32_t AddOutput(std::string_view name, float defaultValue = 0.0f, int32_t size = 1);
+        virtual int32_t AddConstant(std::string_view name, float defaultValue = 0.0f, int32_t size = 1, float boundMin = -l::math::constants::FLTMAX, float boundMax = l::math::constants::FLTMAX, bool visible = true, bool editable = true);
 
         NodeGraphBase* mNode;
         std::string mName;
@@ -213,5 +214,75 @@ namespace l::nodegraph {
         T mOperation;
     };
 
+
+
+    class NodeInputManager {
+    public:
+        NodeInputManager(NodeGraphOp& nodeGraphOperation) :
+            mNodeGraphOperation(nodeGraphOperation)
+        {
+        }
+        ~NodeInputManager() = default;
+
+        int32_t AddInputBase(InputTypeBase type, int32_t inputIndex = -1) {
+            if (type != InputTypeBase::CUSTOM_VALUE_INTERP_MS) {
+                ASSERT(inputIndex >= 0);
+            }
+
+            inputIndex = static_cast<int32_t>(mInputs.size());
+            mInputs.emplace_back(NodeInput{ type, inputIndex });
+
+            if (type != InputTypeBase::CUSTOM_VALUE_INTERP_MS) {
+                mInputs.back().SetValue(mNodeGraphOperation.GetDefaultData(static_cast<int8_t>(inputIndex)));
+                mInputs.back().SetTarget(mNodeGraphOperation.GetDefaultData(static_cast<int8_t>(inputIndex)));
+            }
+            return inputIndex;
+        }
+
+        void ProcessUpdate(std::vector<NodeGraphInput>& inputs, int32_t numSamples) {
+            for (auto& input : mInputs) {
+                input.ProcessUpdate(inputs, numSamples);
+            }
+        }
+
+        void NodeUpdate(std::vector<NodeGraphInput>& inputs) {
+            for (auto& input : mInputs) {
+                input.NodeUpdate(inputs);
+            }
+        }
+
+        float GetValueNext(int32_t inputIndex) {
+            return mInputs.at(inputIndex).GetValueNext();
+        }
+
+        float GetValue(int32_t inputIndex) {
+            return mInputs.at(inputIndex).GetValue();
+        }
+
+        float GetArrayValue(int32_t inputIndex, int32_t arrayIndex) {
+            return mInputs.at(inputIndex).GetArrayValue(arrayIndex);
+        }
+
+        float* GetArray(int32_t inputIndex) {
+            return mInputs.at(inputIndex).GetArray();
+        }
+
+        void SetConvergence(int32_t inputIndex, float value) {
+            mInputs.at(inputIndex).SetConvergence(value);
+        }
+
+        void SetTarget(int32_t inputIndex, float value) {
+            mInputs.at(inputIndex).SetTarget(value);
+        }
+
+        void SetValue(int32_t inputIndex, float value) {
+            mInputs.at(inputIndex).SetValue(value);
+        }
+
+    protected:
+        NodeGraphOp& mNodeGraphOperation;
+        std::vector<NodeInput> mInputs;
+        //std::vector<InputBase&> mInputsRefs;
+    };
 }
 

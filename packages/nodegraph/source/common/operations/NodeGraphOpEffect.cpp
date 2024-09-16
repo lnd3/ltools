@@ -17,8 +17,8 @@ namespace l::nodegraph {
             mSamplesUntilUpdate = 0;
         }
 
-        auto input0 = inputs.at(4).GetIterator(numSamples);
-        auto input1 = inputs.at(5).GetIterator(numSamples);
+        auto input0 = inputs.at(4).GetBufferIterator(numSamples);
+        auto input1 = inputs.at(5).GetBufferIterator(numSamples);
         auto output0 = outputs.at(0).GetIterator(numSamples);
         auto output1 = outputs.at(1).GetIterator(numSamples);
 
@@ -31,8 +31,6 @@ namespace l::nodegraph {
                 mFilterGain.SetTarget(inputs.at(2).Get());
                 mFilterMix.SetTarget(inputs.at(3).Get());
 
-                mDeltaTime = 1.0f / 44100.0f;
-
                 UpdateSignal(inputs, outputs);
             },
             [&](int32_t start, int32_t end, bool) {
@@ -43,7 +41,7 @@ namespace l::nodegraph {
 
                     auto in0 = *input0++;
                     auto in1 = *input1++;
-                    auto [out0, out1] = ProcessStereoSignal(mDeltaTime, in0, in1);
+                    auto [out0, out1] = ProcessSignal(in0, in1);
                     *output0++ = mix * out0 + antimix * in0;
                     *output1++ = mix * out1 + antimix * in1;
                 }
@@ -70,7 +68,7 @@ namespace l::nodegraph {
         mDelay2 = (int(mBufIndex + d2 * mBufSizeLimit)) % mBufSizeLimit;
     }
 
-    std::pair<float, float> GraphEffectReverb2::ProcessStereoSignal(float, float value0, float value1) {
+    std::pair<float, float> GraphEffectReverb2::ProcessSignal(float value0, float value1) {
         float out0 = (fb1 * mBuf1[mDelay1] + fb0 * mBuf0[mDelay0] + fb2 * mBuf0[mDelay2]);
         float out1 = (fb1 * mBuf0[mDelay1] + fb0 * mBuf1[mDelay0] + fb2 * mBuf1[mDelay2]);
 
@@ -242,124 +240,59 @@ namespace l::nodegraph {
 
     /*********************************************************************/
 
-    void GraphEffectLimiter::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        float attackMs = inputs .at(2).Get();
-        float releaseMs = inputs.at(3).Get();
-        float attack = l::math::functions::pow(0.01f, 1.0f / (attackMs * 44100.0f * 0.001f));
-        float release = l::math::functions::pow(0.01f, 1.0f / (releaseMs * 44100.0f * 0.001f));
-        float preamp = inputs.at(4).Get();
-        float limit = inputs.at(5).Get();
+    void GraphEffectLimiter::UpdateSignal(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
+        mFilterPreamp.SetTarget(inputs.at(mNumDefaultInputs + 0).Get());
+        mFilterLimit.SetTarget(inputs.at(mNumDefaultInputs + 1).Get());
+        float attackMs = inputs.at(mNumDefaultInputs + 2).Get();
+        float releaseMs = inputs.at(mNumDefaultInputs + 3).Get();
+        mAttack = l::audio::GetRWAFactorFromMS(attackMs, 0.001f);
+        mRelease = l::audio::GetRWAFactorFromMS(releaseMs, 0.001f);
+    }
 
-        float in0 = inputs.at(0).Get();
-        float in1 = inputs.at(1).Get();
+    std::pair<float, float> GraphEffectLimiter::ProcessSignal(float value0, float value1) {
+        float limit = mFilterLimit.Next();
+        float preamp = mFilterPreamp.Next();
 
-        float inVal0 = preamp * in0;
-        float inVal1 = preamp * in1;
+        float inVal0 = preamp * value0;
+        float inVal1 = preamp * value1;
         float inVal = inVal0 > inVal1 ? inVal0 : inVal1;
         if (inVal > mEnvelope) {
-            mEnvelope = attack * (mEnvelope - inVal) + inVal;
+            mEnvelope = mAttack * (mEnvelope - inVal) + inVal;
         }
         else {
-            mEnvelope = release * (mEnvelope - inVal) + inVal;
+            mEnvelope = mRelease * (mEnvelope - inVal) + inVal;
         }
 
         float envelopeAbs = l::math::functions::abs(mEnvelope);
+        float out0;
+        float out1;
         if (envelopeAbs > limit) {
             if (envelopeAbs > 1.0f) {
-                outputs.at(0).mOutput = inVal0 / mEnvelope;
-                outputs.at(1).mOutput = inVal1 / mEnvelope;
+                out0 = inVal0 / mEnvelope;
+                out1 = inVal1 / mEnvelope;
             }
             else {
-                outputs.at(0).mOutput = inVal0 / (1.0f + mEnvelope - limit);
-                outputs.at(1).mOutput = inVal1 / (1.0f + mEnvelope - limit);
+                out0 = inVal0 / (1.0f + mEnvelope - limit);
+                out1 = inVal1 / (1.0f + mEnvelope - limit);
             }
         }
         else {
-            outputs.at(0).mOutput = in0;
-            outputs.at(1).mOutput = in1;
+            out0 = value0;
+            out1 = value1;
         }
-        outputs.at(2).mOutput = envelopeAbs;
+        return { out0, out1 };
     }
 
     /*********************************************************************/
-
-    void GraphEffectEnvelope::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        float freqTarget = inputs.at(0).Get();
-        float velocity = l::math::functions::pow(inputs.at(1).Get(), 0.5f);
-        int32_t attackFrames = static_cast<int32_t>(inputs.at(2).Get() * 44100.0f / 1000.0f);
-        int32_t releaseFrames = static_cast<int32_t>(inputs.at(3).Get() * 44100.0f / 1000.0f);
-        float freqFade = inputs.at(4).Get();
-
-        float attackFade = 1.0f - l::math::functions::pow(0.001f, 1.0f / (inputs.at(2).Get() * 44100.0f * 0.001f));
-        float releaseFade = 1.0f - l::math::functions::pow(0.001f, 1.0f / (inputs.at(3).Get() * 44100.0f * 0.001f));
-
-        if (freqTarget == 0.0f) {
-            // trigger release
-            if (mFrameCount > 0 && mFrameCount < attackFrames + 1) {
-                mFrameCount = attackFrames + 2;
-            }
-            else if (mFrameCount > attackFrames + 1 + releaseFrames) {
-                mFrameCount = 0;
-            }
-        }
-        else {
-            if (mFrameCount == 0) {
-                mFreq = freqTarget;
-            }
-            else if (freqTarget != 0) {
-                mFrameCount = attackFrames + 2;
-                mEnvelopeTarget = velocity;
-            }
-        }
-
-        if (freqTarget != 0 && mFrameCount < attackFrames) {
-            // attack
-            mEnvelopeTarget = velocity;
-            mFrameCount++;
-        }
-        else if (freqTarget != 0 && mFrameCount == attackFrames + 1) {
-            // sustain
-        }
-        else if (freqTarget == 0 && mFrameCount > attackFrames + 1) {
-            // release
-            mEnvelopeTarget = 0.0f;
-            mFrameCount++;
-            if (mFrameCount > attackFrames + 1 + releaseFrames) {
-                mFrameCount = 0;
-            }
-        }
-
-        float delta = mEnvelopeTarget - mEnvelope;
-        if (delta > 0) {
-            mEnvelope += attackFade * delta;
-        }
-        else {
-            mEnvelope += releaseFade * delta;
-        }
-
-        if (freqTarget != 0.0f) {
-            // note on
-            mFreq += freqFade * freqFade * (freqTarget - mFreq);
-        }
-        else {
-            // note off
-        }
-
-        outputs.at(0).mOutput = mFreq;
-        outputs.at(1).mOutput = l::math::functions::pow(mEnvelope, 0.5f);
+    void GraphEffectEnvelopeFollower::UpdateSignal(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
+        mFilterAttack.SetConvergenceInMs(inputs.at(2).Get());
+        mFilterAttack.SetConvergenceInMs(inputs.at(3).Get());
     }
 
-    /*********************************************************************/
-    void GraphEffectEnvelopeFollower::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        float attackMs = inputs.at(2).Get();
-        float releaseMs = inputs.at(3).Get();
-        float attack = l::math::functions::pow(0.01f, 1.0f / (attackMs * 44100.0f * 0.001f));
-        float release = l::math::functions::pow(0.01f, 1.0f / (releaseMs * 44100.0f * 0.001f));
-
-        float in0 = inputs.at(0).Get();
-        float in1 = inputs.at(1).Get();
-
-        float inVal = in0 > in1 ? in0 : in1;
+    std::pair<float, float> GraphEffectEnvelopeFollower::ProcessSignal(float value0, float value1) {
+        float inVal = value0 > value1 ? value0 : value1;
+        float attack = mFilterAttack.Next();
+        float release = mFilterRelease.Next();
         if (inVal > mEnvelope) {
             mEnvelope = attack * (mEnvelope - inVal) + inVal;
         }
@@ -368,10 +301,11 @@ namespace l::nodegraph {
         }
 
         float envelopeAbs = l::math::functions::abs(mEnvelope);
-        outputs.at(0).mOutput = envelopeAbs;
+        return { envelopeAbs * value0, envelopeAbs * value1 };
     }
 
     /*********************************************************************/
+
     void GraphEffectSaturator::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float wet = inputs.at(2).Get();
         float preamp = inputs.at(3).Get();
@@ -455,84 +389,4 @@ namespace l::nodegraph {
                 }
             });
     }
-
-    /*********************************************************************/
-    void GraphEffectArpeggio::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        auto noteIdsOn = &inputs.at(0).Get(gPolyphony);
-        auto noteIdsOff = &inputs.at(1).Get(gPolyphony);
-        float velocity = inputs.at(2).Get();
-        float bpm = inputs.at(3).Get();
-        float fmod = inputs.at(4).Get();
-        float attack = inputs.at(5).Get();
-
-        if (inputs.at(7).Get() > 0.5f) {
-            mSamplesUntilUpdate = 0.0f;
-        }
-
-        if (!mNotes.empty()) {
-            for (int32_t i = 0; i < gPolyphony; i++) {
-                if (l::math::functions::equal(*noteIdsOff, l::audio::gNoNote_f)) {
-                    break;
-                }
-                int32_t noteOffId = static_cast<int32_t>(*noteIdsOff + 0.5f);
-                auto it = std::find(mNotes.begin(), mNotes.end(), noteOffId);
-                if (it != mNotes.end()) {
-                    mNotes.erase(it);
-                }
-                noteIdsOff++;
-            }
-        }
-
-        if (mNotes.empty()) {
-            mSamplesUntilUpdate = 0.0f;
-            mGainTarget = 0.0f;
-        }
-        for (int32_t i = 0; i < gPolyphony; i++) {
-            if (l::math::functions::equal(*noteIdsOn, l::audio::gNoNote_f)) {
-                break;
-            }
-            int32_t noteOnId = static_cast<int32_t>(*noteIdsOn + 0.5f);
-            auto it = std::find(mNotes.begin(), mNotes.end(), noteOnId);
-            if (it == mNotes.end()) {
-                mNotes.push_back(noteOnId);
-            }
-            noteIdsOn++;
-        }
-
-        mGainSmoothing = attack * attack;
-        mGainSmoothingNeg = mGainSmoothing;
-
-        float freq = 44100.0f * 60.0f / bpm;
-
-        mSamplesUntilUpdate = l::audio::BatchUpdate(freq * fmod, mSamplesUntilUpdate, 0, numSamples,
-            [&]() {
-                if (mNotes.empty()) {
-                    mGainTarget = 0.0f;
-                }
-                else {
-                    mNoteIndex = mNoteIndex % mNotes.size();
-                    mFreqTarget = l::audio::GetFrequencyFromNote(static_cast<float>(mNotes.at(mNoteIndex)));
-                    mNoteIndex++;
-                    mGainTarget = velocity;
-                    mFreqSmoothing = inputs.at(6).Get();
-                    mFreqSmoothing *= mFreqSmoothing * 0.5f;
-                }
-            },
-            [&](int32_t start, int32_t end, bool) {
-                for (int32_t i = start; i < end; i++) {
-                    float delta = mGainTarget - mGain;
-                    if (delta > 0) {
-                        mGain += mGainSmoothing * l::math::smooth::smoothPolyh3(delta);
-                    }
-                    else {
-                        mGain += mGainSmoothingNeg * (-l::math::smooth::smoothPolyh3(-delta));
-                    }
-
-                    mFreq += mFreqSmoothing * (mFreqTarget - mFreq);
-                    outputs.at(0).mOutput = mFreq;
-                    outputs.at(1).mOutput = mGain;
-                }
-            });
-    }
-
 }

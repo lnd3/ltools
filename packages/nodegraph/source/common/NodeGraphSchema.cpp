@@ -40,6 +40,7 @@ namespace l::nodegraph {
         case 4:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceTime>(OutputType::ExternalOutput, mAudioOutput != nullptr ? mAudioOutput->GetSampleRate() : 44100, 60);
             break;
+
         case 50:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericAdd>(OutputType::Default);
             break;
@@ -64,6 +65,7 @@ namespace l::nodegraph {
         case 57:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericRound>(OutputType::Default);
             break;
+
         case 100:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalAnd>(OutputType::Default);
             break;
@@ -73,6 +75,7 @@ namespace l::nodegraph {
         case 102:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalXor>(OutputType::Default);
             break;
+
         case 150:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterLowpass>(OutputType::Default);
             break;
@@ -82,6 +85,7 @@ namespace l::nodegraph {
         case 152:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterChamberlain2pole>(OutputType::Default);
             break;
+
         case 200:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputDebug>(OutputType::ExternalOutput);
             break;
@@ -91,9 +95,7 @@ namespace l::nodegraph {
         case 202:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputPlot>(OutputType::ExternalVisualOutput, 100);
             break;
-        case 250:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectEnvelope>(OutputType::Default);
-            break;
+
         case 251:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectReverb1>(OutputType::Default);
             break;
@@ -112,9 +114,7 @@ namespace l::nodegraph {
         case 257:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectTranceGate>(OutputType::Default);
             break;
-        case 258:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectArpeggio>(OutputType::Default);
-            break;
+
         case 300:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputKeyboardPiano>(OutputType::Default, mKeyState);
             break;
@@ -139,6 +139,7 @@ namespace l::nodegraph {
         case 307:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(OutputType::Default, mMidiManager, 4);
             break;
+
         case 350:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSine>(OutputType::Default);
             break;
@@ -160,6 +161,14 @@ namespace l::nodegraph {
         case 356:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSaw2>(OutputType::Default);
             break;
+
+        case 400:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphControlEnvelope>(OutputType::Default);
+            break;
+        case 401:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphControlArpeggio>(OutputType::Default);
+            break;
+
         default:
             ASSERT(typeId < 10000) << "Custom node id's begin at id 1000";
             if (mCreateCustomNode) {

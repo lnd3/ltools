@@ -53,7 +53,7 @@ namespace l::nodegraph {
             }
             if (static_cast<int32_t>(mInputBuf->size()) < size) {
                 mInputBuf->resize(size);
-                for (int32_t i = 0; i < mInputBuf->size();i++) {
+                for (size_t i = 0; i < mInputBuf->size();i++) {
                     (*mInputBuf)[i] = 0.0f;
                 }
             }
@@ -68,12 +68,17 @@ namespace l::nodegraph {
         return mInput.mInputFloatConstant;
     }
 
-    NodeInputDataIterator NodeGraphInput::GetIterator(int32_t numSamples) {
+    NodeInputDataIterator NodeGraphInput::GetBufferIterator(int32_t numSamples) {
         auto size = GetSize();
         if (size > 1) {
             ASSERT(size == numSamples);
         }
         return NodeInputDataIterator(&Get(numSamples), size);
+    }
+
+    NodeInputDataIterator NodeGraphInput::GetArrayIterator() {
+        auto size = GetSize();
+        return NodeInputDataIterator(&Get(size), size);
     }
 
     int32_t NodeGraphInput::GetSize() {

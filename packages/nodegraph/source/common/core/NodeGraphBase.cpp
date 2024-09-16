@@ -105,9 +105,16 @@ namespace l::nodegraph {
         if (!input.HasInputNode()) {
             return false;
         }
-        input.mInputType = InputType::INPUT_EMPTY;
+
         input.mInput.mInputNode = nullptr;
         input.mInputFromOutputChannel = 0;
+
+        if (input.mInputBuf) {
+            input.mInputType = InputType::INPUT_ARRAY;
+        }
+        else {
+            input.mInputType = InputType::INPUT_CONSTANT;
+        }
         return true;
     }
 
@@ -334,22 +341,29 @@ namespace l::nodegraph {
         return mName;
     }
 
-    void NodeGraphOp::AddInput(std::string_view name, float defaultValue, int32_t size, float boundMin, float boundMax, bool visible, bool editable) {
+    float NodeGraphOp::GetDefaultData(int8_t inputChannel) {
+        return std::get<0>(mDefaultInData.at(inputChannel));
+    }
+
+    int32_t NodeGraphOp::AddInput(std::string_view name, float defaultValue, int32_t size, float boundMin, float boundMax, bool visible, bool editable) {
         mNumInputs++;
         mDefaultInStrings.push_back(std::string(name));
         mDefaultInData.push_back({ defaultValue, size, boundMin, boundMax, false, visible, editable});
+        return static_cast<int32_t>(mDefaultInData.size() - 1);
     }
 
-    void NodeGraphOp::AddOutput(std::string_view name, float defaultValue, int32_t size) {
+    int32_t NodeGraphOp::AddOutput(std::string_view name, float defaultValue, int32_t size) {
         mNumOutputs++;
         mDefaultOutStrings.push_back(std::string(name));
         mDefaultOutData.push_back({ defaultValue, size });
+        return static_cast<int32_t>(mDefaultOutData.size() - 1);
     }
 
-    void NodeGraphOp::AddConstant(std::string_view name, float defaultValue, float boundMin, float boundMax, bool visible, bool editable) {
+    int32_t NodeGraphOp::AddConstant(std::string_view name, float defaultValue, int32_t size, float boundMin, float boundMax, bool visible, bool editable) {
         mNumInputs++;
         mDefaultInStrings.push_back(std::string(name));
-        mDefaultInData.push_back({ defaultValue, 1, boundMin, boundMax, true, visible, editable});
+        mDefaultInData.push_back({ defaultValue, size, boundMin, boundMax, true, visible, editable});
+        return static_cast<int32_t>(mDefaultInData.size() - 1);
     }
 
 

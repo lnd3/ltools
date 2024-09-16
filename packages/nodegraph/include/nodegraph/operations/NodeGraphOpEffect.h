@@ -48,7 +48,7 @@ namespace l::nodegraph {
         virtual ~GraphEffectBase() = default;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override final;
         virtual void UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
-        virtual std::pair<float, float> ProcessStereoSignal(float deltaTime, float value0, float value1) = 0;
+        virtual std::pair<float, float> ProcessSignal(float value0, float value1) = 0;
     protected:
         float mUpdateRate = 256.0f;
 
@@ -90,7 +90,7 @@ namespace l::nodegraph {
 
         virtual ~GraphEffectReverb2() = default;
         virtual void UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) override;
-        virtual std::pair<float, float> ProcessStereoSignal(float deltaTime, float value0, float value1) override;
+        virtual std::pair<float, float> ProcessSignal(float value0, float value1) override;
     protected:
         std::vector<float> mBuf0;
         std::vector<float> mBuf1;
@@ -222,79 +222,52 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphEffectLimiter : public NodeGraphOp {
+    class GraphEffectLimiter : public GraphEffectBase {
     public:
         GraphEffectLimiter(NodeGraphBase* node) :
-            NodeGraphOp(node, "Limiter")
+            GraphEffectBase(node, "Limiter")
         {
-            AddInput("In 1");
-            AddInput("In 2");
-            AddInput("Attack", 5.0f, 1, 1.0f, 10000.0f);
-            AddInput("Release", 100.0f, 1, 1.0f, 10000.0f);
             AddInput("Preamp", 1.0f, 1, 0.0f, 10.0f);
             AddInput("Limit", 0.95f, 1, 0.0f, 10.0f);
-
-            AddOutput("Out 1");
-            AddOutput("Out 2");
-            AddOutput("Envelope");
+            AddInput("Attack", 5.0f, 1, 1.0f, 10000.0f);
+            AddInput("Release", 100.0f, 1, 1.0f, 10000.0f);
 
             mEnvelope = 0.0f;
         }
 
         virtual ~GraphEffectLimiter() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) override;
+        virtual std::pair<float, float> ProcessSignal(float value0, float value1) override;
     protected:
         float mEnvelope = 0.0f;
+        float mAttack = 0.0;
+        float mRelease = 0.0;
+
+        l::audio::FilterRWA<float> mFilterLimit;
+        l::audio::FilterRWA<float> mFilterPreamp;
     };
 
-    /*********************************************************************/
-    class GraphEffectEnvelope : public NodeGraphOp {
-    public:
-        GraphEffectEnvelope(NodeGraphBase* node) :
-            NodeGraphOp(node, "Envelope")
-        {
-            AddInput("Freq");
-            AddInput("Velocity", 0.5f, 1, 0.0f, 1.0f);
-            AddInput("Attack", 50.0f, 1, 1.0f, 10000.0f);
-            AddInput("Release", 50.0f, 1, 1.0f, 10000.0f);
-            AddInput("Fade", 0.1f, 1, 0.0001f, 1.0f);
-
-            AddOutput("Freq");
-            AddOutput("Volume");
-
-            mEnvelope = 0.0f;
-        }
-
-        virtual ~GraphEffectEnvelope() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        virtual void Tick(int32_t, float) {}
-    protected:
-        int32_t mFrameCount = 0;
-        float mEnvelopeTarget = 0.0f;
-        float mFreq = 0.0f;
-        float mEnvelope = 0.0f;
-    };
 
     /*********************************************************************/
-    class GraphEffectEnvelopeFollower : public NodeGraphOp {
+    class GraphEffectEnvelopeFollower : public GraphEffectBase {
     public:
         GraphEffectEnvelopeFollower(NodeGraphBase* node) :
-            NodeGraphOp(node, "Envelope Follower")
+            GraphEffectBase(node, "Envelope Follower")
         {
-            AddInput("In 1");
-            AddInput("In 2");
             AddInput("Attack", 5.0f, 1, 1.0f, 10000.0f);
             AddInput("Release", 100.0f, 1, 1.0f, 10000.0f);
-
             AddOutput("Envelope");
 
             mEnvelope = 0.0f;
         }
 
         virtual ~GraphEffectEnvelopeFollower() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) override;
+        virtual std::pair<float, float> ProcessSignal(float value0, float value1) override;
     protected:
         float mEnvelope = 0.0f;
+        l::audio::FilterRWA<float> mFilterAttack;
+        l::audio::FilterRWA<float> mFilterRelease;
     };
 
     /*********************************************************************/
@@ -366,43 +339,5 @@ namespace l::nodegraph {
         float mGateSmoothingNeg = 0.01f;
     };
 
-    /*********************************************************************/
-    class GraphEffectArpeggio: public NodeGraphOp {
-    public:
-
-        const static int32_t gPolyphony = 12;
-        GraphEffectArpeggio(NodeGraphBase* node) :
-            NodeGraphOp(node, "Arpeggio")
-        {
-            AddInput("Note On", l::audio::gNoNote_f, gPolyphony, -499.0, 500.0);
-            AddInput("Note Off", l::audio::gNoNote_f, gPolyphony, -499.0, 500.0);
-            AddInput("Velocity", 1.0f, 1, 0.0f, 1.0f);
-            AddInput("Bpm", 60.0f, 1, 1.0f, 1000.0f);
-            AddInput("Fmod", 1.0f, 1, 0.01f, 1.0f);
-            AddInput("Attack", 0.01f, 1, 0.0f, 1.0f);
-            AddInput("Smooth", 0.0f, 1, 0.0f, 1.0f);
-            AddInput("Sync", 0.0f, 1, 0.0f, 1.0f);
-
-            AddOutput("Freq");
-            AddOutput("Volume");
-
-            mGainTarget = 0.0f;
-        }
-
-        virtual ~GraphEffectArpeggio() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-    protected:
-        float mSamplesUntilUpdate = 0.0f;
-        float mGainTarget = 0.0f;
-        float mGain = 0.0f;
-        float mGainSmoothing = 0.01f;
-        float mGainSmoothingNeg = 0.01f;
-
-        float mFreqSmoothing = 0.1f;
-        float mFreqTarget = 0.0f;
-        float mFreq = 0.0f;
-        std::vector<int32_t> mNotes;
-        int32_t mNoteIndex = 0;
-    };
 }
 
