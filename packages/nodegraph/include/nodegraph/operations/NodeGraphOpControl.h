@@ -36,8 +36,8 @@ namespace l::nodegraph {
             mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Rate", 256.0f, 1, 1.0f, 2048.0f));
             mNodeInputManager.AddInputBase(InputTypeBase::INTERPOLATED, AddInput("Velocity", 0.5f, 1, 0.0f, 1.0f));
             mNodeInputManager.AddInputBase(InputTypeBase::INTERPOLATED, AddInput("Fade", 0.1f, 1, 0.0001f, 1.0f));
-            mNodeInputManager.AddInputBase(InputTypeBase::INTERPOLATED, AddInput("Attack", 50.0f, 1, 1.0f, 10000.0f));
-            mNodeInputManager.AddInputBase(InputTypeBase::INTERPOLATED, AddInput("Release", 50.0f, 1, 1.0f, 10000.0f));
+            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Attack", 50.0f, 1, 1.0f, 10000.0f));
+            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Release", 50.0f, 1, 1.0f, 10000.0f));
 
             AddOutput("Freq");
             AddOutput("Volume");

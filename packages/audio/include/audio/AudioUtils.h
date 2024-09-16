@@ -44,7 +44,7 @@ namespace l::audio {
             return false;
         }
 
-        FilterRWA<T>& SetConvergenceInMs(T convergenceInMS, T limit = static_cast<T>(0.0001)) {
+        FilterRWA<T>& SetConvergenceInMs(T convergenceInMS, T limit = static_cast<T>(0.001)) {
             mSmooth = GetRWAFactorFromMS(convergenceInMS, limit);
             return *this;
         }

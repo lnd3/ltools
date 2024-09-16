@@ -48,8 +48,8 @@ namespace l::nodegraph {
         inputManager.SetTarget(mFreqId, mFreqTarget);
         mAttackFrames = static_cast<int32_t>(inputManager.GetValue(4));
         mReleaseFrames = static_cast<int32_t>(inputManager.GetValue(5));
-        mAttackFactor = l::audio::GetRWAFactorFromTicks(inputManager.GetValueNext(4), 0.001f);
-        mReleaseFactor = l::audio::GetRWAFactorFromTicks(inputManager.GetValueNext(5), 0.001f);
+        mAttackFactor = l::audio::GetRWAFactorFromTicks(inputManager.GetValueNext(4), 0.01f);
+        mReleaseFactor = l::audio::GetRWAFactorFromTicks(inputManager.GetValueNext(5), 0.01f);
     }
 
     std::pair<float, float> GraphControlEnvelope::ProcessSignal(NodeInputManager& inputManager) {
@@ -108,7 +108,7 @@ namespace l::nodegraph {
             // note off
         }
 
-        return { freq, l::math::functions::pow(mEnvelope, 0.5f) };
+        return { freq, mEnvelope };
     }
 
     /*********************************************************************/
