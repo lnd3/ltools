@@ -46,10 +46,10 @@ namespace l::nodegraph {
 
         mFreqTarget = inputManager.GetValueNext(mFreqTargetId);
         inputManager.SetTarget(mFreqId, mFreqTarget);
-        mAttackFrames = static_cast<int32_t>(inputManager.GetValue(4));
-        mReleaseFrames = static_cast<int32_t>(inputManager.GetValue(5));
-        mAttackFactor = l::audio::GetRWAFactorFromTicks(inputManager.GetValueNext(4), 0.01f);
-        mReleaseFactor = l::audio::GetRWAFactorFromTicks(inputManager.GetValueNext(5), 0.01f);
+        mAttackFrames = l::audio::GetSamplesFromMS(inputManager.GetValue(4));
+        mReleaseFrames = l::audio::GetSamplesFromMS(inputManager.GetValue(5));
+        mAttackFactor = l::audio::GetRWAFactorFromMSAttackSkew(inputManager.GetValue(4), 0.0001f);
+        mReleaseFactor = l::audio::GetRWAFactorFromMS(inputManager.GetValue(5), 0.0001f);
     }
 
     std::pair<float, float> GraphControlEnvelope::ProcessSignal(NodeInputManager& inputManager) {

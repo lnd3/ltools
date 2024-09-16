@@ -20,8 +20,13 @@ namespace l::audio {
     float GetFrequencyFromNote(float note);
     double GetPhaseModifier(double note, double modifier);
 
-    float GetRWAFactorFromMS(float numMS, float limit, float rate = 44100.0f);
-    float GetRWAFactorFromTicks(float numTicks, float limit);
+    int32_t GetSamplesFromMS(float ms, float rate = 44100.0f);
+    float GetMSFromSamples(float numSamples, float rate = 44100.0f);
+
+    float GetRWAFactorFromMS(float numMS, float limit = 0.0001f, float rate = 44100.0f);
+    float GetRWAFactorFromMSAttackSkew(float ms, float limit, float rate = 44100.0f);
+        
+    float GetRWAFactorFromSamples(int32_t numSamples, float limit = 0.0001f);
 
     float BatchUpdate(float updateSamples, float samplesLeft, int32_t start, int32_t end, std::function<void()> update, std::function<void(int32_t, int32_t, bool)> process);
 

@@ -302,8 +302,8 @@ namespace l::hid::midi {
 		ClearCallbacks();
 		mMidiDevice.initDevices();
 
-		RegisterCallback([](const MidiData& data) {
-			LOG(LogInfo) << "midi cb: device in:" << data.deviceIn << " device out:" << data.deviceOut << " stat:" << data.status << " ch:" << data.channel << " d1:" << data.data1 << " d2:" << data.data2;
+		RegisterCallback([](const MidiData&) {
+			//LOG(LogInfo) << "midi cb: device in:" << data.deviceIn << " device out:" << data.deviceOut << " stat:" << data.status << " ch:" << data.channel << " d1:" << data.data1 << " d2:" << data.data2;
 			});
 	}
 
