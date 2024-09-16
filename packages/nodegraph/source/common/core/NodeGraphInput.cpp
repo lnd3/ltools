@@ -73,7 +73,7 @@ namespace l::nodegraph {
         if (size > 1) {
             ASSERT(size == numSamples);
         }
-        return NodeInputDataIterator(&Get(numSamples), size);
+        return NodeInputDataIterator(&Get(size), size);
     }
 
     NodeInputDataIterator NodeGraphInput::GetArrayIterator() {

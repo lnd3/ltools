@@ -75,15 +75,18 @@ namespace l::nodegraph {
     public:
         GraphOutputPlot(NodeGraphBase* node, int32_t plotSamples) :
             NodeGraphOp(node, "Plot"),
-            mPlotSamples(plotSamples)
+            mPlotSamples(plotSamples),
+            mNodeInputManager(*this)
         {
-            AddInput("Plot", 0.0f, 1, -1.0f, 1.0f);
+            mNodeInputManager.AddInputBase(InputTypeBase::SAMPLED, AddInput("Plot", 0.0f, 1, -1.0f, 1.0f));
             AddOutput("Plot", 0.0f, mPlotSamples);
         }
         virtual ~GraphOutputPlot() = default;
 
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
+        NodeInputManager mNodeInputManager;
+
         int32_t mPlotSamples = 50;
         int32_t mCurIndex = 0;
     };
