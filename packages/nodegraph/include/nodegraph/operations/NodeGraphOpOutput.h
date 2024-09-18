@@ -75,8 +75,8 @@ namespace l::nodegraph {
     public:
         GraphOutputPlot(NodeGraphBase* node, int32_t plotSamples) :
             NodeGraphOp(node, "Plot"),
-            mPlotSamples(plotSamples),
-            mNodeInputManager(*this)
+            mNodeInputManager(*this),
+            mPlotSamples(plotSamples)
         {
             mNodeInputManager.AddInputBase(InputTypeBase::SAMPLED, AddInput("Plot", 0.0f, 1, -1.0f, 1.0f));
             AddOutput("Plot", 0.0f, mPlotSamples);
