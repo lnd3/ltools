@@ -30,16 +30,18 @@ namespace l::nodegraph {
         static const int8_t mNumDefaultOutputs = 1;
 
         GraphFilterBase(NodeGraphBase* node, std::string_view name) :
-            NodeGraphOp(node, name)
+            NodeGraphOp(node, name),
+            mNodeInputManager(*this)
         {
             mDefaultInStrings.clear();
             mDefaultOutStrings.clear();
             mDefaultInData.clear();
 
-            AddInput("Sync", 0.0f);
-            AddInput("In");
-            AddInput("Cutoff", 1.0f);
-            AddInput("Resonance", 0.0f);
+            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Sync", 0.0f));
+            mNodeInputManager.AddInputBase(InputTypeBase::SAMPLED, AddInput("In"));
+            mNodeInputManager.AddInputBase(InputTypeBase::INTERP_RWA, AddInput("Cutoff", 1.0f));
+            mNodeInputManager.AddInputBase(InputTypeBase::INTERP_RWA, AddInput("Resonance", 0.0f));
+
             AddOutput("Out", 0.0f);
         }
 
@@ -52,15 +54,11 @@ namespace l::nodegraph {
         virtual void UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
         virtual float ProcessSignal(float input, float cutoff, float resonance) = 0;
     protected:
-        float mReset = 0.0f;
-        float mSamplesUntilUpdate = 0.0f;
-        float mUpdateRate = 16.0f;
+        NodeInputManager mNodeInputManager;
 
-        float mCutoff = 0.0f;
-        float mResonance = 0.0f;
-        float mCutoffCPS = 0.0f; // cutoff cycles per sample
-        l::audio::FilterRWA<float> mCutoffFilter;
-        l::audio::FilterRWA<float> mResonanceFilter;
+        float mSync = 0.0f;
+        float mSamplesUntilUpdate = 0.0f;
+        float mUpdateRate = 128.0f;
     };
 
     /*********************************************************************/

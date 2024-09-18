@@ -12,16 +12,12 @@ namespace l::nodegraph {
     /* Stateful filtering operations */
         /*********************************************************************/
     void GraphFilterBase::Reset() {
-        mReset = 0.0f;
+        mSync = 0.0f;
         mSamplesUntilUpdate = 0.0f;
 
-        mCutoff = 0.0f;
-        mResonance = 0.0f;
-        mCutoffCPS = 0.0f;
-
         mNode->SetInput(0, 0.0f);
-        mNode->SetInput(2, 1.0f);
-        mNode->SetInput(3, 0.0f);
+        mNode->SetInput(2, 0.5f);
+        mNode->SetInput(3, 0.5f);
         mNode->SetInputBound(0, InputBound::INPUT_0_TO_1);
         mNode->SetInputBound(2, InputBound::INPUT_0_TO_1);
         mNode->SetInputBound(3, InputBound::INPUT_0_TO_1);
@@ -31,22 +27,17 @@ namespace l::nodegraph {
     }
 
     void GraphFilterBase::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        auto input = &inputs.at(1).Get(numSamples);
+        mNodeInputManager.ProcessUpdate(inputs, numSamples, mUpdateRate);
+        mSync = inputs.at(0).Get();
+        if (mSync > 0.5f) {
+            mNode->SetInput(1, 0.0f, numSamples);
+        }
+
         auto output = &outputs.at(0).Get(numSamples);
 
         mSamplesUntilUpdate = l::audio::BatchUpdate(mUpdateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
-                mReset = inputs.at(0).Get();
-                if (mReset > 0.5f) {
-                    mNode->SetInput(1, 0.0f, numSamples);
-                }
-
-                mCutoff = inputs.at(2).Get();
-                mCutoffCPS = l::math::functions::sin(l::math::constants::PI_f * mCutoff * mCutoff * 0.5f);
-                mResonance = 1.0f - inputs.at(3).Get();
-
-                mCutoffFilter.SetConvergenceFactor().SetTarget(mCutoffCPS).SnapAt();
-                mResonanceFilter.SetConvergenceFactor().SetTarget(mResonance).SnapAt();
+                mNodeInputManager.NodeUpdate(inputs, mUpdateRate);
 
                 UpdateSignal(inputs, outputs);
 
@@ -54,8 +45,8 @@ namespace l::nodegraph {
             },
             [&](int32_t start, int32_t end, bool) {
                 for (int32_t i = start; i < end; i++) {
-                    float inputValue = *input++;
-                    float signal = ProcessSignal(inputValue, mCutoffFilter.Next(), mResonanceFilter.Next());
+                    float inputValue = mNodeInputManager.GetValueNext(1);
+                    float signal = ProcessSignal(inputValue, mNodeInputManager.GetValueNext(2), mNodeInputManager.GetValueNext(3));
                     *output++ = signal;
                 }
             }
@@ -114,7 +105,7 @@ namespace l::nodegraph {
 
     void GraphFilterChamberlain2pole::UpdateSignal(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
         mMode = static_cast<int32_t>(3.0f * inputs.at(mNumDefaultInputs + 0).Get() + 0.5f);
-        mScale = l::math::functions::sqrt(mResonance);
+        mScale = l::math::functions::sqrt(mNodeInputManager.GetValue(3));
         mScaleFilter.SetConvergenceFactor().SetTarget(mScale).SnapAt();
     }
 
@@ -122,6 +113,7 @@ namespace l::nodegraph {
         float inputValueInbetween = (mInputValuePrev + input) * 0.5f;
         float scale = mScaleFilter.Next();
         cutoff *= 0.5f;
+        resonance = 1.0f - resonance;
         for (int32_t oversample = 0; oversample < 2; oversample++) {
             mState.at(0) = mState.at(0) + cutoff * mState.at(2);
             mState.at(1) = scale * (oversample == 0 ? inputValueInbetween : input) - mState.at(0) - resonance * mState.at(2);

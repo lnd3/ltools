@@ -108,11 +108,11 @@ namespace l::nodegraph {
         SAMPLED = 0,
         INTERP_RWA,
         INTERP_RWA_MS,
-        INTERP_TWEEN,
-        INTERP_TWEEN_MS,
         CONSTANT_VALUE,
         CONSTANT_ARRAY,
-        CUSTOM_VALUE_INTERP_RWA_MS
+        CUSTOM_INTERP_TWEEN,
+        CUSTOM_INTERP_TWEEN_MS,
+        CUSTOM_INTERP_RWA_MS
     };
 
     union InputUnion {
@@ -135,14 +135,14 @@ namespace l::nodegraph {
             switch(mType) {
             case InputTypeBase::INTERP_RWA:
             case InputTypeBase::INTERP_RWA_MS:
-            case InputTypeBase::CUSTOM_VALUE_INTERP_RWA_MS:
+            case InputTypeBase::CUSTOM_INTERP_RWA_MS:
                 //new (&s.vec) std::vector<int>;
                 new (&mInput.mFilterRWA) l::audio::FilterRWA<float>();
 
                 //mInput.mFilter = l::audio::FilterRWA<float>();
                 break;
-            case InputTypeBase::INTERP_TWEEN:
-            case InputTypeBase::INTERP_TWEEN_MS:
+            case InputTypeBase::CUSTOM_INTERP_TWEEN:
+            case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
                 new (&mInput.mTween) l::math::tween::DynamicTween();
                 break;
             case InputTypeBase::SAMPLED:

@@ -34,8 +34,8 @@ namespace l::nodegraph {
         {
             mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Sync", 0.0f, 1, 0.0f, 1.0f));
             mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Rate", 256.0f, 1, 1.0f, 2048.0f));
-            mNodeInputManager.AddInputBase(InputTypeBase::INTERP_TWEEN, AddInput("Velocity", 0.5f, 1, 0.0f, 1.0f));
-            mNodeInputManager.AddInputBase(InputTypeBase::INTERP_TWEEN, AddInput("Fade", 0.1f, 1, 0.0001f, 1.0f));
+            mNodeInputManager.AddInputBase(InputTypeBase::CUSTOM_INTERP_TWEEN, AddInput("Velocity", 0.5f, 1, 0.0f, 1.0f));
+            mNodeInputManager.AddInputBase(InputTypeBase::CUSTOM_INTERP_TWEEN, AddInput("Fade", 0.1f, 1, 0.0001f, 1.0f));
             mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Attack", 50.0f, 1, 1.0f, 10000.0f));
             mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Release", 50.0f, 1, 1.0f, 10000.0f));
 
@@ -65,7 +65,7 @@ namespace l::nodegraph {
             GraphControlBase(node, "Envelope")
         {
             mFreqTargetId = mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Freq"));
-            mFreqId = mNodeInputManager.AddInputBase(InputTypeBase::CUSTOM_VALUE_INTERP_RWA_MS);
+            mFreqId = mNodeInputManager.AddInputBase(InputTypeBase::CUSTOM_INTERP_RWA_MS);
             mEnvelope = 0.0f;
         }
 

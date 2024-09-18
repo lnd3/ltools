@@ -113,11 +113,11 @@ namespace l::nodegraph {
             mInput.mFilterRWA.SetConvergenceInTicks(static_cast<float>(ticks));
             break;
         case InputTypeBase::INTERP_RWA_MS:
-        case InputTypeBase::CUSTOM_VALUE_INTERP_RWA_MS:
+        case InputTypeBase::CUSTOM_INTERP_RWA_MS:
             mInput.mFilterRWA.SetConvergenceInTicks(static_cast<float>(ticks));
             break;
-        case InputTypeBase::INTERP_TWEEN:
-        case InputTypeBase::INTERP_TWEEN_MS:
+        case InputTypeBase::CUSTOM_INTERP_TWEEN:
+        case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
             mInput.mTween.SetTweenLength(ticks);
             break;
         case InputTypeBase::SAMPLED:
@@ -134,11 +134,11 @@ namespace l::nodegraph {
             mInput.mFilterRWA.SetConvergenceInMs(ms);
             break;
         case InputTypeBase::INTERP_RWA_MS:
-        case InputTypeBase::CUSTOM_VALUE_INTERP_RWA_MS:
+        case InputTypeBase::CUSTOM_INTERP_RWA_MS:
             mInput.mFilterRWA.SetConvergenceInMs(ms);
             break;
-        case InputTypeBase::INTERP_TWEEN:
-        case InputTypeBase::INTERP_TWEEN_MS:
+        case InputTypeBase::CUSTOM_INTERP_TWEEN:
+        case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
             mInput.mTween.SetTweenLength(l::audio::GetAudioTicksFromMS(ms));
             break;
         case InputTypeBase::SAMPLED:
@@ -153,11 +153,11 @@ namespace l::nodegraph {
         switch (mType) {
         case InputTypeBase::INTERP_RWA:
         case InputTypeBase::INTERP_RWA_MS:
-        case InputTypeBase::CUSTOM_VALUE_INTERP_RWA_MS:
+        case InputTypeBase::CUSTOM_INTERP_RWA_MS:
             mInput.mFilterRWA.SetTarget(value);
             break;
-        case InputTypeBase::INTERP_TWEEN:
-        case InputTypeBase::INTERP_TWEEN_MS:
+        case InputTypeBase::CUSTOM_INTERP_TWEEN:
+        case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
             mInput.mTween.SetTarget(value);
             break;
         case InputTypeBase::SAMPLED:
@@ -171,11 +171,11 @@ namespace l::nodegraph {
         switch (mType) {
         case InputTypeBase::INTERP_RWA:
         case InputTypeBase::INTERP_RWA_MS:
-        case InputTypeBase::CUSTOM_VALUE_INTERP_RWA_MS:
+        case InputTypeBase::CUSTOM_INTERP_RWA_MS:
             mInput.mFilterRWA.Value() = value;
             break;
-        case InputTypeBase::INTERP_TWEEN:
-        case InputTypeBase::INTERP_TWEEN_MS:
+        case InputTypeBase::CUSTOM_INTERP_TWEEN:
+        case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
             mInput.mTween.Reset(value, true);
             break;
         case InputTypeBase::SAMPLED:
@@ -189,10 +189,10 @@ namespace l::nodegraph {
         switch (mType) {
         case InputTypeBase::INTERP_RWA:
         case InputTypeBase::INTERP_RWA_MS:
-        case InputTypeBase::CUSTOM_VALUE_INTERP_RWA_MS:
+        case InputTypeBase::CUSTOM_INTERP_RWA_MS:
             return mInput.mFilterRWA.Next();
-        case InputTypeBase::INTERP_TWEEN:
-        case InputTypeBase::INTERP_TWEEN_MS:
+        case InputTypeBase::CUSTOM_INTERP_TWEEN:
+        case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
             return mInput.mTween.Next();
         case InputTypeBase::SAMPLED:
         case InputTypeBase::CONSTANT_ARRAY:
@@ -207,10 +207,10 @@ namespace l::nodegraph {
         switch (mType) {
         case InputTypeBase::INTERP_RWA:
         case InputTypeBase::INTERP_RWA_MS:
-        case InputTypeBase::CUSTOM_VALUE_INTERP_RWA_MS:
+        case InputTypeBase::CUSTOM_INTERP_RWA_MS:
             return mInput.mFilterRWA.Value();
-        case InputTypeBase::INTERP_TWEEN:
-        case InputTypeBase::INTERP_TWEEN_MS:
+        case InputTypeBase::CUSTOM_INTERP_TWEEN:
+        case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
             return mInput.mTween.Value();
         case InputTypeBase::SAMPLED:
         case InputTypeBase::CONSTANT_VALUE:
@@ -239,11 +239,11 @@ namespace l::nodegraph {
         switch (mType) {
         case InputTypeBase::INTERP_RWA:
         case InputTypeBase::INTERP_RWA_MS:
-        case InputTypeBase::CUSTOM_VALUE_INTERP_RWA_MS:
+        case InputTypeBase::CUSTOM_INTERP_RWA_MS:
             mInput.mFilterRWA.SetRWAUpdateRate(updateRate);
             break;
-        case InputTypeBase::INTERP_TWEEN:
-        case InputTypeBase::INTERP_TWEEN_MS:
+        case InputTypeBase::CUSTOM_INTERP_TWEEN:
+        case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
             break;
         case InputTypeBase::SAMPLED:
             mInput.mIterator = input.at(mInputIndex).GetBufferIterator(numSamples);
@@ -265,11 +265,11 @@ namespace l::nodegraph {
             mInput.mFilterRWA.SetRWAUpdateRate(updateRate);
             mInput.mFilterRWA.SetTarget(input.at(mInputIndex).Get());
             break;
-        case InputTypeBase::INTERP_TWEEN:
-        case InputTypeBase::INTERP_TWEEN_MS:
+        case InputTypeBase::CUSTOM_INTERP_TWEEN:
+        case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
             mInput.mTween.Update();
             break;
-        case InputTypeBase::CUSTOM_VALUE_INTERP_RWA_MS: // must set it manually
+        case InputTypeBase::CUSTOM_INTERP_RWA_MS: // must set it manually
             mInput.mFilterRWA.SetRWAUpdateRate(updateRate);
             break;
         case InputTypeBase::SAMPLED:
