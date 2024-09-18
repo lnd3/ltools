@@ -45,6 +45,7 @@ namespace l::nodegraph {
             RegisterNodeType("Source", 2, "Value [0,100]");
             RegisterNodeType("Source", 3, "Value [-inf,inf]");
             RegisterNodeType("Source", 4, "Time");
+
             RegisterNodeType("Numeric", 50, "Add");
             RegisterNodeType("Numeric", 51, "Subtract");
             RegisterNodeType("Numeric", 52, "Negate");
@@ -53,23 +54,26 @@ namespace l::nodegraph {
             RegisterNodeType("Numeric", 55, "Multiply3");
             RegisterNodeType("Numeric", 56, "Multiply & Add");
             RegisterNodeType("Numeric", 57, "Round");
+
             RegisterNodeType("Logic", 100, "And");
             RegisterNodeType("Logic", 101, "Or");
             RegisterNodeType("Logic", 102, "Xor");
+
             RegisterNodeType("Filter", 150, "Lowpass");
             RegisterNodeType("Filter", 151, "Highpass");
             RegisterNodeType("Filter", 152, "Chamberlin two-pole (4 mode)");
+
             RegisterNodeType("Output", 200, "Debug");
             RegisterNodeType("Output", 201, "Speaker");
             RegisterNodeType("Output", 202, "Plot");
-            RegisterNodeType("Effect", 250, "Envelope");
+
             RegisterNodeType("Effect", 251, "Reverb1");
             RegisterNodeType("Effect", 252, "Reverb2");
-            //RegisterNodeType("Effect", 253, "Reverb2");
             RegisterNodeType("Effect", 254, "Limiter");
             RegisterNodeType("Effect", 255, "Envelope Follower");
             RegisterNodeType("Effect", 256, "Saturator");
             RegisterNodeType("Effect", 257, "Trance Gate");
+
             RegisterNodeType("Input", 300, "Keyboard Piano");
             RegisterNodeType("Input", 301, "Midi Keyboard");
             RegisterNodeType("Input", 302, "Midi Knobs");
@@ -78,6 +82,7 @@ namespace l::nodegraph {
             RegisterNodeType("Input", 305, "Midi Button Group 3");
             RegisterNodeType("Input", 306, "Midi Button Group 4");
             RegisterNodeType("Input", 307, "Midi Button Group 5");
+
             RegisterNodeType("Signal", 350, "Sine");
             RegisterNodeType("Signal", 351, "Sine FM 1");
             RegisterNodeType("Signal", 352, "Sine FM 2");
@@ -85,6 +90,7 @@ namespace l::nodegraph {
             RegisterNodeType("Signal", 354, "Saw");
             RegisterNodeType("Signal", 355, "Sine 2");
             RegisterNodeType("Signal", 356, "Saw 2");
+
             RegisterNodeType("Control", 400, "Envelope");
             RegisterNodeType("Control", 401, "Arpeggio");
 

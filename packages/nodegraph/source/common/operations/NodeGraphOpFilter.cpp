@@ -34,7 +34,7 @@ namespace l::nodegraph {
         auto input = &inputs.at(1).Get(numSamples);
         auto output = &outputs.at(0).Get(numSamples);
 
-        mSamplesUntilUpdate = l::audio::BatchUpdate(mUpdateSamples, mSamplesUntilUpdate, 0, numSamples,
+        mSamplesUntilUpdate = l::audio::BatchUpdate(mUpdateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
                 mReset = inputs.at(0).Get();
                 if (mReset > 0.5f) {
@@ -45,10 +45,12 @@ namespace l::nodegraph {
                 mCutoffCPS = l::math::functions::sin(l::math::constants::PI_f * mCutoff * mCutoff * 0.5f);
                 mResonance = 1.0f - inputs.at(3).Get();
 
-                mCutoffFilter.SetConvergence().SetTarget(mCutoffCPS).SnapAt();
-                mResonanceFilter.SetConvergence().SetTarget(mResonance).SnapAt();
+                mCutoffFilter.SetConvergenceFactor().SetTarget(mCutoffCPS).SnapAt();
+                mResonanceFilter.SetConvergenceFactor().SetTarget(mResonance).SnapAt();
 
                 UpdateSignal(inputs, outputs);
+
+                return mUpdateRate;
             },
             [&](int32_t start, int32_t end, bool) {
                 for (int32_t i = start; i < end; i++) {
@@ -113,7 +115,7 @@ namespace l::nodegraph {
     void GraphFilterChamberlain2pole::UpdateSignal(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
         mMode = static_cast<int32_t>(3.0f * inputs.at(mNumDefaultInputs + 0).Get() + 0.5f);
         mScale = l::math::functions::sqrt(mResonance);
-        mScaleFilter.SetConvergence().SetTarget(mScale).SnapAt();
+        mScaleFilter.SetConvergenceFactor().SetTarget(mScale).SnapAt();
     }
 
     float GraphFilterChamberlain2pole::ProcessSignal(float input, float cutoff, float resonance) {

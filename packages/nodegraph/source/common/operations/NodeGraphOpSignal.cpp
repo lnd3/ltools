@@ -11,6 +11,8 @@ namespace l::nodegraph {
 
     /*********************************************************************/
     void GraphSignalBase::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        mNodeInputManager.ProcessUpdate(inputs, numSamples, mUpdateRate);
+
         float sync = inputs.at(0).Get();
         if (sync > 0.5f) {
             mSamplesUntilUpdate = 0;
@@ -18,9 +20,12 @@ namespace l::nodegraph {
 
         float* output0 = &outputs.at(0).Get(numSamples);
 
-        mSamplesUntilUpdate = l::audio::BatchUpdate(mUpdateSamples, mSamplesUntilUpdate, 0, numSamples,
+        mSamplesUntilUpdate = l::audio::BatchUpdate(mUpdateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
-                mUpdateSamples = inputs.at(1).Get();
+                mUpdateRate = inputs.at(1).Get();
+                mNodeInputManager.NodeUpdate(inputs, mUpdateRate);
+
+
                 mFreq = inputs.at(2).Get();
 
                 if (mFreq <= 0.0f) {
@@ -32,15 +37,17 @@ namespace l::nodegraph {
                 }
                 mSmooth = inputs.at(4).Get();
 
-                if (mFilterVolume.SetConvergence().SetTarget(mVolumeTarget).SnapAt()) {
+                if (mFilterVolume.SetConvergenceFactor().SetTarget(mVolumeTarget).SnapAt()) {
                     mVolumeTarget = 0.0f;
                     ResetSignal();
                 }
-                mFilterSignal.SetConvergence(mSmooth);
+                mFilterSignal.SetConvergenceFactor(mSmooth);
 
                 mDeltaTime = 1.0f / 44100.0f;
 
                 UpdateSignal(inputs, outputs);
+
+                return mUpdateRate;
             },
             [&](int32_t start, int32_t end, bool) {
                 for (int32_t i = start; i < end; i++) {
@@ -58,7 +65,7 @@ namespace l::nodegraph {
         mNode->SetInput(mNumDefaultInputs + 1, 0.0f);
         mNode->SetInputBound(mNumDefaultInputs + 0, InputBound::INPUT_0_TO_1);
         mNode->SetInputBound(mNumDefaultInputs + 1, InputBound::INPUT_0_TO_1);
-        mUpdateSamples = 16.0f;
+        mUpdateRate = 16.0f;
     }
 
     void GraphSignalSine2::ResetSignal() {
@@ -71,8 +78,8 @@ namespace l::nodegraph {
         mPmod = inputs.at(mNumDefaultInputs + 1).Get();
         mFmod *= 0.25f * 0.25f * 0.5f * 44100.0f / l::math::functions::max(mFreq, 1.0f);
 
-        mFilterFmod.SetConvergence().SetTarget(mFmod);
-        mFilterPmod.SetConvergence().SetTarget(mPmod);
+        mFilterFmod.SetConvergenceFactor().SetTarget(mFmod);
+        mFilterPmod.SetConvergenceFactor().SetTarget(mPmod);
     }
 
     float GraphSignalSine2::ProcessSignal(float deltaTime, float freq) {
@@ -100,7 +107,7 @@ namespace l::nodegraph {
         mNode->SetInput(mNumDefaultInputs + 1, 0.0f);
         mNode->SetInputBound(mNumDefaultInputs + 0, InputBound::INPUT_0_TO_1);
         mNode->SetInputBound(mNumDefaultInputs + 1, InputBound::INPUT_0_TO_1);
-        mUpdateSamples = 16.0f;
+        mUpdateRate = 16.0f;
     }
 
     void GraphSignalSaw2::ResetSignal() {
@@ -122,7 +129,9 @@ namespace l::nodegraph {
     void GraphSignalSine::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float* output0 = &outputs.at(0).Get(numSamples);
 
-        mSamplesUntilUpdate = l::audio::BatchUpdate(256.0f, mSamplesUntilUpdate, 0, numSamples,
+        float updateRate = 256.0f;
+
+        mSamplesUntilUpdate = l::audio::BatchUpdate(updateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
                 mFreq = l::math::functions::max(static_cast<double>(inputs.at(0).Get()), 0.0);
                 mVolume = inputs.at(1).Get();
@@ -131,13 +140,14 @@ namespace l::nodegraph {
                 if (mFreq == 0.0f) {
                     mVolume = 0.0f;
                     outputs.at(0).mOutput = 0.0f;
-                    return;
+                    return updateRate;
                 }
                 if (mReset > 0.5f) {
                     mVolume = 0.0f;
                 }
                 mDeltaTime = 1.0 / 44100.0;
 
+                return updateRate;
             },
             [&](int32_t start, int32_t end, bool) {
 
@@ -193,7 +203,8 @@ namespace l::nodegraph {
     void GraphSignalSineFM::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float* output0 = &outputs.at(0).Get(numSamples);
 
-        mSamplesUntilUpdate = l::audio::BatchUpdate(256.0f, mSamplesUntilUpdate, 0, numSamples,
+        float updateRate = 256.0f;
+        mSamplesUntilUpdate = l::audio::BatchUpdate(updateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
                 mFreq = l::math::functions::max(static_cast<double>(inputs.at(0).Get()), 0.0);
                 mVolume = inputs.at(1).Get();
@@ -204,10 +215,11 @@ namespace l::nodegraph {
                     mPhaseFmod = 0.0;
                     mVolume = 0.0f;
                     outputs.at(0).mOutput = 0.0f;
-                    return;
+                    return updateRate;
                 }
                 mDeltaTime = 1.0 / 44100.0;
 
+                return updateRate;
             },
             [&](int32_t start, int32_t end, bool) {
 
@@ -246,7 +258,8 @@ namespace l::nodegraph {
     void GraphSignalSineFM2::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float* output0 = &outputs.at(0).Get(numSamples);
 
-        mSamplesUntilUpdate = l::audio::BatchUpdate(256.0f, mSamplesUntilUpdate, 0, numSamples,
+        float updateRate = 256.0f;
+        mSamplesUntilUpdate = l::audio::BatchUpdate(updateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
                 mFreq = l::math::functions::max(static_cast<double>(inputs.at(0).Get()), 0.0);
                 mVolume = inputs.at(1).Get();
@@ -257,11 +270,12 @@ namespace l::nodegraph {
                     mPhaseFmod = 0.0;
                     mVolume = 0.0f;
                     outputs.at(0).mOutput = 0.0f;
-                    return;
+                    return updateRate;
                 }
                 mDeltaTime = 1.0 / 44100.0;
                 mDeltaLimit = mDeltaTime * 2.0;
 
+                return updateRate;
             },
             [&](int32_t start, int32_t end, bool) {
 
@@ -304,7 +318,8 @@ namespace l::nodegraph {
     void GraphSignalSineFM3::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float* output0 = &outputs.at(0).Get(numSamples);
 
-        mSamplesUntilUpdate = l::audio::BatchUpdate(16.0f, mSamplesUntilUpdate, 0, numSamples,
+        float updateRate = 256.0f;
+        mSamplesUntilUpdate = l::audio::BatchUpdate(updateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
                 mFreq = l::math::functions::max(static_cast<double>(inputs.at(0).Get()), 0.0);
                 mVolume = inputs.at(1).Get();
@@ -315,10 +330,12 @@ namespace l::nodegraph {
                     mPhaseFmod = 0.0;
                     mVolume = 0.0f;
                     outputs.at(0).mOutput = 0.0f;
-                    return;
+                    return updateRate;
                 }
                 mDeltaTime = 1.0 / 44100.0;
                 mDeltaLimit = mDeltaTime * 4.0;
+
+                return updateRate;
             },
             [&](int32_t start, int32_t end, bool) {
 
@@ -352,7 +369,8 @@ namespace l::nodegraph {
     void GraphSignalSaw::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float* output0 = &outputs.at(0).Get(numSamples);
 
-        mSamplesUntilUpdate = l::audio::BatchUpdate(256.0f, mSamplesUntilUpdate, 0, numSamples,
+        float updateRate = 256.0f;
+        mSamplesUntilUpdate = l::audio::BatchUpdate(updateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
                 mFreq = l::math::functions::max(static_cast<double>(inputs.at(0).Get()), 0.0);
                 mVolume = inputs.at(1).Get();
@@ -361,13 +379,14 @@ namespace l::nodegraph {
                 if (mFreq == 0.0f) {
                     mVolume = 0.0f;
                     outputs.at(0).mOutput = 0.0f;
-                    return;
+                    return updateRate;
                 }
                 if (mReset > 0.5f) {
                     mVolume = 0.0f;
                 }
                 mDeltaTime = 1.0 / 44100.0;
 
+                return updateRate;
             },
             [&](int32_t start, int32_t end, bool) {
 

@@ -54,7 +54,7 @@ namespace l::nodegraph {
     protected:
         float mReset = 0.0f;
         float mSamplesUntilUpdate = 0.0f;
-        float mUpdateSamples = 16.0f;
+        float mUpdateRate = 16.0f;
 
         float mCutoff = 0.0f;
         float mResonance = 0.0f;

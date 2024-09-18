@@ -4,6 +4,7 @@
 #include "math/MathAll.h"
 
 #include "math/MathFunc.h"
+#include "math/MathTween.h"
 
 #include <math.h>
 
@@ -20,39 +21,36 @@ namespace l::audio {
 		return 800.0 * modifier * modifier * limit;
 	}
 
-	int32_t GetSamplesFromMS(float ms, float rate) {
-		return static_cast<int32_t>(ms * rate / 1000.0f);
+	int32_t GetAudioTicksFromMS(float ms, float sampleRate) {
+		return static_cast<int32_t>(ms * sampleRate / 1000.0f);
 	}
 
-	float GetMSFromSamples(float numSamples, float rate) {
-		return numSamples * 1000.0f / rate;
+	float GetMSFromAudioTicks(float numAudioSamples, float sampleRate) {
+		return numAudioSamples * 1000.0f / sampleRate;
 	}
 
-	float GetRWAFactorFromMS(float ms, float limit, float rate) {
-		int32_t samples = static_cast<int32_t>(ms * rate / 1000.0f);
-		return GetRWAFactorFromSamples(samples, limit);
+	float GetRWAFactorFromMS(float ms, float limit, float rwaUpdateRate, float sampleRate) {
+		int32_t updateSteps = GetAudioTicksFromMS(ms, sampleRate / rwaUpdateRate);
+		return l::math::tween::GetRWAFactor(updateSteps, limit);
 	}
 
-	float GetRWAFactorFromMSAttackSkew(float ms, float limit, float rate) {
+	float GetRWAFactorFromMSSkewed(float ms, float limit, float rwaUpdateRate, float sampleRate) {
 		float msRoot = l::math::functions::sqrt(ms);
-		int32_t samples = static_cast<int32_t>(msRoot * rate / 1000.0f);
-		float factor = l::audio::GetRWAFactorFromSamples(samples, limit);
+		int32_t steps = GetAudioTicksFromMS(msRoot, sampleRate / rwaUpdateRate);
+		float factor = l::math::tween::GetRWAFactor(steps, limit);
 		factor *= factor;
 		return factor;
 	}
 
-	float GetRWAFactorFromSamples(int32_t numSamples, float limit) {
-		return 1.0f - l::math::functions::pow(l::math::constants::E_f, l::math::functions::log(limit) / static_cast<float>(numSamples));
-	}
-
-	float BatchUpdate(float updateSamples, float samplesLeft, int32_t start, int32_t end, std::function<void()> update, std::function<void(int32_t, int32_t, bool)> process) {
+	float BatchUpdate(float updateSamples, float samplesLeft, int32_t start, int32_t end, std::function<float()> update, std::function<void(int32_t, int32_t, bool)> process) {
 		float startNum = static_cast<float>(start);
 		while (startNum < static_cast<float>(end)) {
 			bool updated = false;
 			if (samplesLeft < 1.0f) {
 				samplesLeft += updateSamples;
 				if (update != nullptr) {
-					update();
+					float rate = update();
+					updateSamples = rate > 0.0f ? rate : updateSamples;
 				}
 				updated = true;
 			}
@@ -71,5 +69,4 @@ namespace l::audio {
 		}
 		return samplesLeft;
 	}
-
 }

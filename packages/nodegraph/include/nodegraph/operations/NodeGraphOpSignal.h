@@ -29,13 +29,15 @@ namespace l::nodegraph {
         static const int8_t mNumDefaultOutputs = 1;
 
         GraphSignalBase(NodeGraphBase* node, std::string_view name) :
-            NodeGraphOp(node, name)
+            NodeGraphOp(node, name),
+            mNodeInputManager(*this)
         {
-            AddInput("Sync", 0.0f, 1, 0.0f, 1.0f);
-            AddInput("Rate", 256.0f, 1, 1.0f, 2048.0f);
-            AddInput("Freq", 0.0f, 1, 0.0f, 22050.0f);
-            AddInput("Volume", 0.5f, 1, 0.0f, 5.0f);
-            AddInput("Smooth", 1.0f, 1, 0.0f, 1.0f);
+            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Sync", 0.0f, 1, 0.0f, 1.0f));
+            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Rate", 256.0f, 1, 1.0f, 2048.0f));
+            mNodeInputManager.AddInputBase(InputTypeBase::INTERP_TWEEN, AddInput("Freq", 0.0f, 1, 0.0f, 22050.0f));
+            mNodeInputManager.AddInputBase(InputTypeBase::INTERP_TWEEN, AddInput("Volume", 0.5f, 1, 0.0f, 5.0f));
+            mNodeInputManager.AddInputBase(InputTypeBase::INTERP_TWEEN, AddInput("Smooth", 1.0f, 1, 0.0f, 1.0f));
+
             AddOutput("Out", 0.0f, 2);
 
             mFreq = 0.0f;
@@ -55,6 +57,7 @@ namespace l::nodegraph {
         virtual void UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
         virtual float ProcessSignal(float deltaTime, float freq) = 0;
     protected:
+        NodeInputManager mNodeInputManager;
 
         float mReset = 0.0f;
         float mFreq = 0.0f;
@@ -62,7 +65,7 @@ namespace l::nodegraph {
         float mDeltaTime = 0.0f;
         float mVolumeTarget = 0.0f;
         float mSamplesUntilUpdate = 0.0f;
-        float mUpdateSamples = 16.0f;
+        float mUpdateRate = 16.0f;
 
         l::audio::FilterRWA<float> mFilterSignal;
         l::audio::FilterRWA<float> mFilterVolume;

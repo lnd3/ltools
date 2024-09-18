@@ -27,6 +27,8 @@ namespace l::nodegraph {
 
     class NodeGraphGroup;
 
+
+    /**********************************************************************************/
     class NodeGraphBase {
     public:
         NodeGraphBase(OutputType outputType) : mId(CreateUniqueId()), mOutputType(outputType) {
@@ -95,6 +97,8 @@ namespace l::nodegraph {
         std::string mName;
     };
 
+    /**********************************************************************************/
+
     class NodeGraphOp {
     public:
         NodeGraphOp(NodeGraphBase* node, std::string_view name) :
@@ -136,6 +140,8 @@ namespace l::nodegraph {
         int8_t mNumInputs = 0;
         int8_t mNumOutputs = 0;
     };
+
+    /**********************************************************************************/
 
     template<class T, class... Params>
     class NodeGraph : public NodeGraphBase {
@@ -214,7 +220,7 @@ namespace l::nodegraph {
         T mOperation;
     };
 
-
+    /**********************************************************************************/
 
     class NodeInputManager {
     public:
@@ -224,64 +230,20 @@ namespace l::nodegraph {
         }
         ~NodeInputManager() = default;
 
-        int32_t AddInputBase(InputTypeBase type, int32_t inputIndex = -1) {
-            if (type != InputTypeBase::CUSTOM_VALUE_INTERP_MS) {
-                ASSERT(inputIndex >= 0);
-            }
-
-            inputIndex = static_cast<int32_t>(mInputs.size());
-            mInputs.emplace_back(NodeInput{ type, inputIndex });
-
-            if (type != InputTypeBase::CUSTOM_VALUE_INTERP_MS) {
-                mInputs.back().SetValue(mNodeGraphOperation.GetDefaultData(static_cast<int8_t>(inputIndex)));
-                mInputs.back().SetTarget(mNodeGraphOperation.GetDefaultData(static_cast<int8_t>(inputIndex)));
-            }
-            return inputIndex;
-        }
-
-        void ProcessUpdate(std::vector<NodeGraphInput>& inputs, int32_t numSamples) {
-            for (auto& input : mInputs) {
-                input.ProcessUpdate(inputs, numSamples);
-            }
-        }
-
-        void NodeUpdate(std::vector<NodeGraphInput>& inputs) {
-            for (auto& input : mInputs) {
-                input.NodeUpdate(inputs);
-            }
-        }
-
-        float GetValueNext(int32_t inputIndex) {
-            return mInputs.at(inputIndex).GetValueNext();
-        }
-
-        float GetValue(int32_t inputIndex) {
-            return mInputs.at(inputIndex).GetValue();
-        }
-
-        float GetArrayValue(int32_t inputIndex, int32_t arrayIndex) {
-            return mInputs.at(inputIndex).GetArrayValue(arrayIndex);
-        }
-
-        float* GetArray(int32_t inputIndex) {
-            return mInputs.at(inputIndex).GetArray();
-        }
-
-        void SetConvergence(int32_t inputIndex, float value) {
-            mInputs.at(inputIndex).SetConvergence(value);
-        }
-
-        void SetTarget(int32_t inputIndex, float value) {
-            mInputs.at(inputIndex).SetTarget(value);
-        }
-
-        void SetValue(int32_t inputIndex, float value) {
-            mInputs.at(inputIndex).SetValue(value);
-        }
+        int32_t AddInputBase(InputTypeBase type, int32_t inputIndex = -1);
+        void ProcessUpdate(std::vector<NodeGraphInput>& inputs, int32_t numSamples, float updateRate);
+        void NodeUpdate(std::vector<NodeGraphInput>& inputs, float updateRate);
+        float GetValueNext(int32_t inputIndex);
+        float GetValue(int32_t inputIndex);
+        float GetArrayValue(int32_t inputIndex, int32_t arrayIndex);
+        float* GetArray(int32_t inputIndex);
+        void SetDuration(int32_t inputIndex, float value);
+        void SetTarget(int32_t inputIndex, float value);
+        void SetValue(int32_t inputIndex, float value);
 
     protected:
         NodeGraphOp& mNodeGraphOperation;
-        std::vector<NodeInput> mInputs;
+        std::vector<NodeGraphInputAccessor> mInputs;
         //std::vector<InputBase&> mInputsRefs;
     };
 }

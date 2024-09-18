@@ -9,7 +9,7 @@
 #include <type_traits>
 #include <memory>
 
-#include "math/MathConstants.h"
+#include "math/MathAll.h"
 #include "audio/AudioUtils.h"
 
 namespace l::nodegraph {
@@ -40,6 +40,8 @@ namespace l::nodegraph {
         float* mInputFloat;
         float mInputFloatConstant;
     };
+
+    /*********************************************************************************/
 
     class NodeInputDataIterator {
     public:
@@ -76,6 +78,8 @@ namespace l::nodegraph {
         int32_t mIncrement = 0;
     };
 
+    /*********************************************************************************/
+
     class NodeGraphInput {
     public:
         Input mInput;
@@ -102,35 +106,44 @@ namespace l::nodegraph {
     /****************************************************************************************/
     enum class InputTypeBase {
         SAMPLED = 0,
-        INTERPOLATED,
-        INTERPOLATED_MS,
+        INTERP_RWA,
+        INTERP_RWA_MS,
+        INTERP_TWEEN,
+        INTERP_TWEEN_MS,
         CONSTANT_VALUE,
         CONSTANT_ARRAY,
-        CUSTOM_VALUE_INTERP_MS
+        CUSTOM_VALUE_INTERP_RWA_MS
     };
 
     union InputUnion {
-        l::audio::FilterRWAFloat mFilter;
+        l::audio::FilterRWAFloat mFilterRWA;
+        l::math::tween::DynamicTween mTween;
         NodeInputDataIterator mIterator;
 
-        InputUnion() : mFilter() {}
+        InputUnion() : mFilterRWA() {}
         ~InputUnion() = default;
     };
 
-    class NodeInput {
+    /*********************************************************************************/
+
+    class NodeGraphInputAccessor {
     public:
-        NodeInput(InputTypeBase type, int32_t inputIndex) :
+        NodeGraphInputAccessor(InputTypeBase type, int32_t inputIndex) :
             mType(type),
             mInputIndex(inputIndex)
         {
             switch(mType) {
-            case InputTypeBase::INTERPOLATED:
-            case InputTypeBase::INTERPOLATED_MS:
-            case InputTypeBase::CUSTOM_VALUE_INTERP_MS:
+            case InputTypeBase::INTERP_RWA:
+            case InputTypeBase::INTERP_RWA_MS:
+            case InputTypeBase::CUSTOM_VALUE_INTERP_RWA_MS:
                 //new (&s.vec) std::vector<int>;
-                new (&mInput.mFilter) l::audio::FilterRWA<float>();
+                new (&mInput.mFilterRWA) l::audio::FilterRWA<float>();
 
                 //mInput.mFilter = l::audio::FilterRWA<float>();
+                break;
+            case InputTypeBase::INTERP_TWEEN:
+            case InputTypeBase::INTERP_TWEEN_MS:
+                new (&mInput.mTween) l::math::tween::DynamicTween();
                 break;
             case InputTypeBase::SAMPLED:
             case InputTypeBase::CONSTANT_VALUE:
@@ -140,129 +153,18 @@ namespace l::nodegraph {
                 break;
             }
         }
-        ~NodeInput() = default;
+        ~NodeGraphInputAccessor() = default;
 
-        void SetConvergence(float value) {
-            switch(mType) {
-            case InputTypeBase::INTERPOLATED:
-                mInput.mFilter.SetConvergence(value);
-                break;
-            case InputTypeBase::INTERPOLATED_MS:
-            case InputTypeBase::CUSTOM_VALUE_INTERP_MS:
-                mInput.mFilter.SetConvergenceInMs(value);
-                break;
-            case InputTypeBase::SAMPLED:
-            case InputTypeBase::CONSTANT_VALUE:
-            case InputTypeBase::CONSTANT_ARRAY:
-                ASSERT(false) << "Failed to set convergence on a non interpolated input type";
-                break;
-            }
-        }
-
-        void SetTarget(float value) {
-            switch (mType) {
-            case InputTypeBase::INTERPOLATED:
-            case InputTypeBase::INTERPOLATED_MS:
-            case InputTypeBase::CUSTOM_VALUE_INTERP_MS:
-                mInput.mFilter.SetTarget(value);
-                break;
-            case InputTypeBase::SAMPLED:
-            case InputTypeBase::CONSTANT_VALUE:
-            case InputTypeBase::CONSTANT_ARRAY:
-                break;
-            }
-        }
-
-        void SetValue(float value) {
-            switch (mType) {
-            case InputTypeBase::INTERPOLATED:
-            case InputTypeBase::INTERPOLATED_MS:
-            case InputTypeBase::CUSTOM_VALUE_INTERP_MS:
-                mInput.mFilter.Value() = value;
-                break;
-            case InputTypeBase::SAMPLED:
-            case InputTypeBase::CONSTANT_VALUE:
-            case InputTypeBase::CONSTANT_ARRAY:
-                break;
-            }
-        }
-
-        float GetValueNext() {
-            switch (mType) {
-            case InputTypeBase::INTERPOLATED:
-            case InputTypeBase::INTERPOLATED_MS:
-            case InputTypeBase::CUSTOM_VALUE_INTERP_MS:
-                return mInput.mFilter.Next();
-            case InputTypeBase::SAMPLED:
-            case InputTypeBase::CONSTANT_ARRAY:
-                return *mInput.mIterator++;
-            case InputTypeBase::CONSTANT_VALUE:
-                return *mInput.mIterator;
-            }
-            return 0.0f;
-        }
-
-        float GetValue() {
-            switch (mType) {
-            case InputTypeBase::INTERPOLATED:
-            case InputTypeBase::INTERPOLATED_MS:
-            case InputTypeBase::CUSTOM_VALUE_INTERP_MS:
-                return mInput.mFilter.Value();
-            case InputTypeBase::SAMPLED:
-            case InputTypeBase::CONSTANT_VALUE:
-            case InputTypeBase::CONSTANT_ARRAY:
-                return *mInput.mIterator;
-            }
-            return 0.0f;
-        }
-
-        float GetArrayValue(int32_t index) {
-            if (mType == InputTypeBase::CONSTANT_ARRAY) {
-                return mInput.mIterator[index];
-            }
-            return 0.0f;
-        }
-
-        float* GetArray() {
-            if (mType == InputTypeBase::CONSTANT_ARRAY) {
-                return mInput.mIterator.data();
-            }
-            return nullptr;
-        }
-
-        // run on each new batch call to setup input iterators for buffered data
-        void ProcessUpdate(std::vector<NodeGraphInput>& input, int32_t numSamples) {
-            switch (mType) {
-            case InputTypeBase::INTERPOLATED:
-            case InputTypeBase::INTERPOLATED_MS:
-            case InputTypeBase::CUSTOM_VALUE_INTERP_MS:
-                break;
-            case InputTypeBase::SAMPLED:
-                mInput.mIterator = input.at(mInputIndex).GetBufferIterator(numSamples);
-                break;
-            case InputTypeBase::CONSTANT_VALUE:
-                mInput.mIterator.Reset(&input.at(mInputIndex).Get(), 1);
-                break;
-            case InputTypeBase::CONSTANT_ARRAY:
-                mInput.mIterator = input.at(mInputIndex).GetArrayIterator();
-                break;
-            }
-        }
-
-        // run on each node update (can be node specific) and will update node rwa filters
-        void NodeUpdate(std::vector<NodeGraphInput>& input) {
-            switch (mType) {
-            case InputTypeBase::INTERPOLATED:
-            case InputTypeBase::INTERPOLATED_MS:
-                mInput.mFilter.SetTarget(input.at(mInputIndex).Get());
-                break;
-            case InputTypeBase::CUSTOM_VALUE_INTERP_MS: // must set it manually
-            case InputTypeBase::SAMPLED:
-            case InputTypeBase::CONSTANT_VALUE:
-            case InputTypeBase::CONSTANT_ARRAY:
-                break;
-            }
-        }
+        void SetDuration(float ms);
+        void SetDuration(int32_t ticks);
+        void SetTarget(float value);
+        void SetValue(float value);
+        float GetValueNext();
+        float GetValue();
+        float GetArrayValue(int32_t index);
+        float* GetArray();
+        void ProcessUpdate(std::vector<NodeGraphInput>& input, int32_t numSamples, float updateRate);
+        void NodeUpdate(std::vector<NodeGraphInput>& input, float updateRate);
 
     protected:
         InputTypeBase mType;

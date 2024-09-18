@@ -12,23 +12,26 @@ namespace l::nodegraph {
     /*********************************************************************/
 
     void GraphControlBase::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        mNodeInputManager.ProcessUpdate(inputs, numSamples, mUpdateRate);
+
         float sync = inputs.at(0).Get();
+        mUpdateRate = mNodeInputManager.GetValue(1);
         if (sync > 0.5f) {
             mSamplesUntilUpdate = 0;
-            mUpdateRate = mNodeInputManager.GetValue(1);
         }
 
         auto output0 = outputs.at(0).GetIterator(numSamples);
         auto output1 = outputs.at(1).GetIterator(numSamples);
 
-        mNodeInputManager.ProcessUpdate(inputs, numSamples);
 
         mSamplesUntilUpdate = l::audio::BatchUpdate(mUpdateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
-                mNodeInputManager.NodeUpdate(inputs);
+                mNodeInputManager.NodeUpdate(inputs, mUpdateRate);
                 mUpdateRate = mNodeInputManager.GetValue(1);
 
                 UpdateSignal(mNodeInputManager);
+
+                return mUpdateRate;
             },
             [&](int32_t start, int32_t end, bool) {
                 for (int32_t i = start; i < end; i++) {
@@ -46,9 +49,9 @@ namespace l::nodegraph {
 
         mFreqTarget = inputManager.GetValueNext(mFreqTargetId);
         inputManager.SetTarget(mFreqId, mFreqTarget);
-        mAttackFrames = l::audio::GetSamplesFromMS(inputManager.GetValue(4));
-        mReleaseFrames = l::audio::GetSamplesFromMS(inputManager.GetValue(5));
-        mAttackFactor = l::audio::GetRWAFactorFromMSAttackSkew(inputManager.GetValue(4), 0.0001f);
+        mAttackFrames = l::audio::GetAudioTicksFromMS(inputManager.GetValue(4));
+        mReleaseFrames = l::audio::GetAudioTicksFromMS(inputManager.GetValue(5));
+        mAttackFactor = l::audio::GetRWAFactorFromMSSkewed(inputManager.GetValue(4), 0.0001f);
         mReleaseFactor = l::audio::GetRWAFactorFromMS(inputManager.GetValue(5), 0.0001f);
     }
 
@@ -139,13 +142,10 @@ namespace l::nodegraph {
     }
 
     void GraphControlArpeggio::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        mNodeInputManager.ProcessUpdate(inputs, numSamples);
-
+        mNodeInputManager.ProcessUpdate(inputs, numSamples, mUpdateRate);
         float sync = mNodeInputManager.GetValue(0);
-        float bpm = mNodeInputManager.GetValueNext(1);
-
+        float bpm = mNodeInputManager.GetValue(1);
         mUpdateRate = 44100.0f * 60.0f / (4.0f * bpm);
-        
         if (sync > 0.5f) {
             mSamplesUntilUpdate = 0;
         }
@@ -188,10 +188,12 @@ namespace l::nodegraph {
         auto output1 = outputs.at(1).GetIterator(numSamples);
         mSamplesUntilUpdate = l::audio::BatchUpdate(mUpdateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
-                mNodeInputManager.NodeUpdate(inputs);
+                mNodeInputManager.NodeUpdate(inputs, mUpdateRate);
                 mUpdateRate = mNodeInputManager.GetValue(1);
 
                 UpdateSignal(mNodeInputManager);
+
+                return mUpdateRate;
             },
             [&](int32_t start, int32_t end, bool) {
                 for (int32_t i = start; i < end; i++) {

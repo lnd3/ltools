@@ -27,7 +27,8 @@ namespace l::nodegraph {
         auto in0 = inputs.at(0).GetBufferIterator(numSamples);
         auto in1 = inputs.at(1).GetBufferIterator(numSamples);
 
-        mSamplesUntilUpdate = l::audio::BatchUpdate(256.0f, mSamplesUntilUpdate, 0, numSamples,
+        float updateRate = 256.0f;
+        mSamplesUntilUpdate = l::audio::BatchUpdate(updateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
                 auto volume = inputs.at(2).Get();
                 mFilterEnvelope.SetTarget(volume * volume).SnapAt();
@@ -38,6 +39,8 @@ namespace l::nodegraph {
                 mRelease = l::math::functions::pow(0.001f, 1.0f / (releaseMs * 44100.0f * 0.001f));
                 mAttack = 0.01f;
                 mRelease = 0.01f;
+
+                return updateRate;
             },
             [&](int32_t start, int32_t end, bool) {
 
@@ -84,7 +87,7 @@ namespace l::nodegraph {
 
     /*********************************************************************/
     void GraphOutputPlot::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        mNodeInputManager.ProcessUpdate(inputs, numSamples);
+        mNodeInputManager.ProcessUpdate(inputs, numSamples, 1.0f);
 
         int32_t outputSize = outputs.at(0).GetSize();
         float* output = &outputs.at(0).Get(outputSize);

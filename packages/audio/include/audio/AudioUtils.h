@@ -1,6 +1,6 @@
 #pragma once
 
-#include "math/MathFunc.h"
+#include "math/MathAll.h"
 
 #include <functional>
 
@@ -20,15 +20,14 @@ namespace l::audio {
     float GetFrequencyFromNote(float note);
     double GetPhaseModifier(double note, double modifier);
 
-    int32_t GetSamplesFromMS(float ms, float rate = 44100.0f);
-    float GetMSFromSamples(float numSamples, float rate = 44100.0f);
+    int32_t GetAudioTicksFromMS(float ms, float sampleRate = 44100.0f);
+    float GetMSFromAudioTicks(float numTicks, float sampleRate = 44100.0f);
 
-    float GetRWAFactorFromMS(float numMS, float limit = 0.0001f, float rate = 44100.0f);
-    float GetRWAFactorFromMSAttackSkew(float ms, float limit, float rate = 44100.0f);
+    float GetRWAFactorFromMS(float numMS, float limit = 0.0001f, float rwaUpdateRate = 1.0f, float sampleRate = 44100.0f);
+    float GetRWAFactorFromMSSkewed(float ms, float limit = 0.0001f, float rwaUpdateRate = 1.0f, float sampleRate = 44100.0f);
         
-    float GetRWAFactorFromSamples(int32_t numSamples, float limit = 0.0001f);
 
-    float BatchUpdate(float updateSamples, float samplesLeft, int32_t start, int32_t end, std::function<void()> update, std::function<void(int32_t, int32_t, bool)> process);
+    float BatchUpdate(float updateSamples, float samplesLeft, int32_t start, int32_t end, std::function<float()> update, std::function<void(int32_t, int32_t, bool)> process);
 
     template<class T>
     class FilterRWA {
@@ -36,8 +35,10 @@ namespace l::audio {
 
         FilterRWA() :
             mSmooth(static_cast<T>(0.005)),
+            mSmoothSkewed(mSmooth * mSmooth),
             mValue(static_cast<T>(0)),
-            mTargetValue(static_cast<T>(0))
+            mTargetValue(static_cast<T>(0)),
+            mRWAUpdateRate(static_cast<T>(1.0))
         {}
         ~FilterRWA() = default;
 
@@ -49,19 +50,43 @@ namespace l::audio {
             return false;
         }
 
-        FilterRWA<T>& SetConvergenceInMs(T convergenceInMS, T limit = static_cast<T>(0.001)) {
-            mSmooth = GetRWAFactorFromMS(convergenceInMS, limit);
+        FilterRWA<T>& SetConvergenceInMs(T convergenceInMS, T limit = static_cast<T>(0.0001), T sampleRate = static_cast<T>(44100.0)) {
+            mSmooth = GetRWAFactorFromMS(convergenceInMS, limit, mRWAUpdateRate, sampleRate);
+            mSmoothSkewed = GetRWAFactorFromMSSkewed(convergenceInMS, limit, mRWAUpdateRate, sampleRate);
             return *this;
         }
 
-        FilterRWA<T>& SetConvergence(T smooth = static_cast<T>(0.005)) {
+        FilterRWA<T>& SetConvergenceFactor(T smooth = static_cast<T>(0.005)) {
             mSmooth = smooth;
+            mSmoothSkewed = mSmooth * mSmooth;
+            return *this;
+        }
+
+        FilterRWA<T>& SetConvergenceInTicks(T ticks, T limit = static_cast<T>(0.001)) {
+            mSmooth = l::math::tween::GetRWAFactor(static_cast<int32_t>(ticks), limit);
+            mSmoothSkewed = mSmooth * mSmooth;
+            return *this;
+        }
+
+        FilterRWA<T>& SetRWAUpdateRate(T rwaUpdateRate = static_cast<float>(1.0)) {
+            mRWAUpdateRate = l::math::functions::max(rwaUpdateRate, static_cast<float>(1.0));
             return *this;
         }
 
         FilterRWA<T>& SetTarget(T target) {
             mTargetValue = target;
             return *this;
+        }
+
+        T NextSkewed() {
+            float delta = mTargetValue - mValue;
+            if (delta < 0) {
+                mValue += mSmooth * delta;
+            }
+            else {
+                mValue += mSmoothSkewed * delta;
+            }
+            return mValue;
         }
 
         T Next() {
@@ -75,9 +100,12 @@ namespace l::audio {
 
     protected:
         T mSmooth;
+        T mSmoothSkewed;
         T mValue;
         T mTargetValue;
+        T mRWAUpdateRate;
     };
 
     using FilterRWAFloat = FilterRWA<float>;
+
 }

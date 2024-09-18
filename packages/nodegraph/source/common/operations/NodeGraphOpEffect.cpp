@@ -22,8 +22,8 @@ namespace l::nodegraph {
         auto output0 = outputs.at(0).GetIterator(numSamples);
         auto output1 = outputs.at(1).GetIterator(numSamples);
 
-        mFilterGain.SetConvergence();
-        mFilterMix.SetConvergence();
+        mFilterGain.SetConvergenceFactor();
+        mFilterMix.SetConvergenceFactor();
 
         mSamplesUntilUpdate = l::audio::BatchUpdate(mUpdateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
@@ -32,6 +32,8 @@ namespace l::nodegraph {
                 mFilterMix.SetTarget(inputs.at(3).Get());
 
                 UpdateSignal(inputs, outputs);
+
+                return mUpdateRate;
             },
             [&](int32_t start, int32_t end, bool) {
                 for (int32_t i = start; i < end; i++) {
@@ -363,13 +365,15 @@ namespace l::nodegraph {
         mGateSmoothing = attack * attack;
         mGateSmoothingNeg = mGateSmoothing;
 
-        float freq = 44100.0f * 60.0f / bpm;
+        float updateRate = 44100.0f * 60.0f / bpm;
 
-        mSamplesUntilUpdate = l::audio::BatchUpdate(freq * fmodPerPattern, mSamplesUntilUpdate, 0, numSamples,
+        mSamplesUntilUpdate = l::audio::BatchUpdate(updateRate * fmodPerPattern, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
                 mGateIndex %= gate.size();
                 mGainTarget = gate[mGateIndex];
                 mGateIndex++;
+
+                return updateRate * fmodPerPattern;
             },
             [&](int32_t start, int32_t end, bool) {
                 for (int32_t i = start; i < end; i++) {

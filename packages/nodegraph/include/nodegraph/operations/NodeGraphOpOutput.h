@@ -54,7 +54,7 @@ namespace l::nodegraph {
             AddInput("Volume", 0.5f, 1, 0.0f, 1.0f);
 
             mEnvelope = 0.0f;
-            mFilterEnvelope.SetConvergence();
+            mFilterEnvelope.SetConvergenceFactor();
         }
         virtual ~GraphOutputSpeaker() = default;
 

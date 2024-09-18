@@ -16,6 +16,8 @@ namespace l::nodegraph {
         return inoutNum >= 0 && inoutSize < 256u && inoutNum < static_cast<int8_t>(inoutSize);
     }
 
+    /**********************************************************************************/
+
     void NodeGraphBase::SetNumInputs(int8_t numInputs) {
         mInputs.resize(numInputs);
     }
@@ -294,6 +296,8 @@ namespace l::nodegraph {
         }
     }
 
+    /**********************************************************************************/
+
     void NodeGraphOp::Reset() {
         for (int8_t i = 0; i < static_cast<int8_t>(mDefaultInData.size()); i++) {
             auto& e = mDefaultInData.at(i);
@@ -366,5 +370,60 @@ namespace l::nodegraph {
         return static_cast<int32_t>(mDefaultInData.size() - 1);
     }
 
+    /**********************************************************************************/
 
+    int32_t NodeInputManager::AddInputBase(InputTypeBase type, int32_t inputIndex) {
+        if (type != InputTypeBase::CUSTOM_VALUE_INTERP_RWA_MS) {
+            ASSERT(inputIndex >= 0);
+        }
+
+        inputIndex = static_cast<int32_t>(mInputs.size());
+        mInputs.emplace_back(NodeGraphInputAccessor{ type, inputIndex });
+
+        if (type != InputTypeBase::CUSTOM_VALUE_INTERP_RWA_MS) {
+            mInputs.back().SetValue(mNodeGraphOperation.GetDefaultData(static_cast<int8_t>(inputIndex)));
+            mInputs.back().SetTarget(mNodeGraphOperation.GetDefaultData(static_cast<int8_t>(inputIndex)));
+        }
+        return inputIndex;
+    }
+
+    void NodeInputManager::ProcessUpdate(std::vector<NodeGraphInput>& inputs, int32_t numSamples, float updateRate) {
+        for (auto& input : mInputs) {
+            input.ProcessUpdate(inputs, numSamples, updateRate);
+        }
+    }
+
+    void NodeInputManager::NodeUpdate(std::vector<NodeGraphInput>& inputs, float updateRate) {
+        for (auto& input : mInputs) {
+            input.NodeUpdate(inputs, updateRate);
+        }
+    }
+
+    float NodeInputManager::GetValueNext(int32_t inputIndex) {
+        return mInputs.at(inputIndex).GetValueNext();
+    }
+
+    float NodeInputManager::GetValue(int32_t inputIndex) {
+        return mInputs.at(inputIndex).GetValue();
+    }
+
+    float NodeInputManager::GetArrayValue(int32_t inputIndex, int32_t arrayIndex) {
+        return mInputs.at(inputIndex).GetArrayValue(arrayIndex);
+    }
+
+    float* NodeInputManager::GetArray(int32_t inputIndex) {
+        return mInputs.at(inputIndex).GetArray();
+    }
+
+    void NodeInputManager::SetDuration(int32_t inputIndex, float value) {
+        mInputs.at(inputIndex).SetDuration(value);
+    }
+
+    void NodeInputManager::SetTarget(int32_t inputIndex, float value) {
+        mInputs.at(inputIndex).SetTarget(value);
+    }
+
+    void NodeInputManager::SetValue(int32_t inputIndex, float value) {
+        mInputs.at(inputIndex).SetValue(value);
+    }
 }
