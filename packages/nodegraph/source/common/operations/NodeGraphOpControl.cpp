@@ -49,69 +49,72 @@ namespace l::nodegraph {
 
         mFreqTarget = inputManager.GetValueNext(mFreqTargetId);
         inputManager.SetTarget(mFreqId, mFreqTarget);
+        inputManager.SetDuration(mFreqId, 100.0f * inputManager.GetValue(3));
         mAttackFrames = l::audio::GetAudioTicksFromMS(inputManager.GetValue(4));
         mReleaseFrames = l::audio::GetAudioTicksFromMS(inputManager.GetValue(5));
-        mAttackFactor = l::audio::GetRWAFactorFromMSSkewed(inputManager.GetValue(4), 0.0001f);
-        mReleaseFactor = l::audio::GetRWAFactorFromMS(inputManager.GetValue(5), 0.0001f);
+        mAttackFactor = inputManager.GetValue(4);
+        mReleaseFactor = inputManager.GetValue(5);
     }
 
     std::pair<float, float> GraphControlEnvelope::ProcessSignal(NodeInputManager& inputManager) {
         float velocity = inputManager.GetValueNext(2);
-        float freq = inputManager.GetValue(mFreqId);
+        float freq = inputManager.GetValueNext(mFreqId);
 
-        if (mFreqTarget == 0.0f) {
-            // trigger release
+        bool noteOn = mFreqTarget != 0.0f;
+        bool differentNote = mNoteOn && noteOn && mFreqTargetPrev != mFreqTarget;
+        if (noteOn && !mNoteOn || differentNote) {
+            mNoteOn = true;
+
+            mFreqTargetPrev = mFreqTarget;
+
+            mNodeInputManager.SetDuration(8, mAttackFactor);
+            mNodeInputManager.SetTarget(8, velocity);
+
+            if (mFrameCount == 0) {
+                // if note was off we set freq immediately
+                freq = mFreqTarget;
+            }
+            mFrameCount = 0;
+        }
+        else if (!noteOn && mNoteOn) {
+            mNoteOn = false;
+
+            mNodeInputManager.SetDuration(8, mReleaseFactor);
+            mNodeInputManager.SetTarget(8, 0.0f);
+
             if (mFrameCount > 0 && mFrameCount < mAttackFrames + 1) {
+                // still in attack so fast forward to release
                 mFrameCount = mAttackFrames + 2;
             }
             else if (mFrameCount > mAttackFrames + 1 + mReleaseFrames) {
+                // if released, reset
                 mFrameCount = 0;
             }
         }
-        else {
-            if (mFrameCount == 0) {
-                freq = mFreqTarget;
-            }
-            else if (mFreqTarget != 0) {
-                mFrameCount = mAttackFrames + 2;
-                mEnvelopeTarget = velocity;
-            }
-        }
 
-        if (mFreqTarget != 0 && mFrameCount < mAttackFrames) {
-            // attack
-            mEnvelopeTarget = velocity;
-            mFrameCount++;
+        if (mNoteOn) {
+            if (mFrameCount < mAttackFrames) {
+                // attack
+                mFrameCount++;
+            }
+            else if (mFrameCount == mAttackFrames + 1) {
+                // sustain, linger on frame after last attack frame
+            }
         }
-        else if (mFreqTarget != 0 && mFrameCount == mAttackFrames + 1) {
-            // sustain
-        }
-        else if (mFreqTarget == 0 && mFrameCount > mAttackFrames + 1) {
+        else if (mFrameCount > 0) {
             // release
-            mEnvelopeTarget = 0.0f;
             mFrameCount++;
             if (mFrameCount > mAttackFrames + 1 + mReleaseFrames) {
                 mFrameCount = 0;
             }
         }
 
-        float delta = mEnvelopeTarget - mEnvelope;
-        if (delta > 0) {
-            mEnvelope += mAttackFactor * delta;
-        }
-        else {
-            mEnvelope += mReleaseFactor * delta;
-        }
-
-        if (mFreqTarget != 0.0f) {
-            // note on
+        if (mNoteOn) {
             freq = inputManager.GetValueNext(mFreqId);
         }
-        else {
-            // note off
-        }
 
-        return { freq, mEnvelope };
+        float envelope = mNodeInputManager.GetValueNext(8);
+        return { freq, envelope };
     }
 
     /*********************************************************************/

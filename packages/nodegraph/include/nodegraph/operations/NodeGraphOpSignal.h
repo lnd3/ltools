@@ -34,9 +34,9 @@ namespace l::nodegraph {
         {
             mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Sync", 0.0f, 1, 0.0f, 1.0f));
             mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Rate", 256.0f, 1, 1.0f, 2048.0f));
-            mNodeInputManager.AddInputBase(InputTypeBase::CUSTOM_INTERP_TWEEN, AddInput("Freq", 0.0f, 1, 0.0f, 22050.0f));
-            mNodeInputManager.AddInputBase(InputTypeBase::CUSTOM_INTERP_TWEEN, AddInput("Volume", 0.5f, 1, 0.0f, 5.0f));
-            mNodeInputManager.AddInputBase(InputTypeBase::CUSTOM_INTERP_TWEEN, AddInput("Smooth", 1.0f, 1, 0.0f, 1.0f));
+            mNodeInputManager.AddInputBase(InputTypeBase::INTERP_RWA, AddInput("Freq", 0.0f, 1, 0.0f, 22050.0f));
+            mNodeInputManager.AddInputBase(InputTypeBase::INTERP_RWA, AddInput("Volume", 0.5f, 1, 0.0f, 5.0f));
+            mNodeInputManager.AddInputBase(InputTypeBase::INTERP_RWA, AddInput("Smooth", 1.0f, 1, 0.0f, 1.0f));
 
             AddOutput("Out", 0.0f, 2);
 

@@ -373,14 +373,14 @@ namespace l::nodegraph {
     /**********************************************************************************/
 
     int32_t NodeInputManager::AddInputBase(InputTypeBase type, int32_t inputIndex) {
-        if (type != InputTypeBase::CUSTOM_INTERP_RWA_MS) {
+        if (type != InputTypeBase::CUSTOM_INTERP_RWA_MS && type != InputTypeBase::CUSTOM_INTERP_TWEEN && type != InputTypeBase::CUSTOM_INTERP_TWEEN_MS) {
             ASSERT(inputIndex >= 0);
         }
 
         inputIndex = static_cast<int32_t>(mInputs.size());
         mInputs.emplace_back(NodeGraphInputAccessor{ type, inputIndex });
 
-        if (type != InputTypeBase::CUSTOM_INTERP_RWA_MS) {
+        if (type != InputTypeBase::CUSTOM_INTERP_RWA_MS && type != InputTypeBase::CUSTOM_INTERP_TWEEN && type != InputTypeBase::CUSTOM_INTERP_TWEEN_MS) {
             mInputs.back().SetValue(mNodeGraphOperation.GetDefaultData(static_cast<int8_t>(inputIndex)));
             mInputs.back().SetTarget(mNodeGraphOperation.GetDefaultData(static_cast<int8_t>(inputIndex)));
         }

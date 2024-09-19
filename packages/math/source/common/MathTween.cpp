@@ -6,7 +6,16 @@
 namespace l::math::tween {
 
 	float GetRWAFactor(int32_t steps, float limit) {
-		return 1.0f - l::math::functions::pow(l::math::constants::E_f, l::math::functions::log(limit) / static_cast<float>(steps));
+		return 1.0f - l::math::functions::pow(l::math::constants::E_f, l::math::functions::log(limit) / static_cast<float>(steps-1));
+	}
+
+	void RecentWeightedAverage::Reset(float value) {
+		mTargetValue = value;
+		mValue = value;
+	}
+
+	void RecentWeightedAverage::SetValue(float value) {
+		mValue = value;
 	}
 
 	void RecentWeightedAverage::SetConvergence(float smooth) {
@@ -28,13 +37,21 @@ namespace l::math::tween {
 
 	/**********************************************************************************/
 
-	void DynamicTween::Reset(float value, bool ignoreDynamicSmooth) {
+	void DynamicTween::Reset(float value) {
 		mTargetValue = value;
 		mTargetValuePrev = value;
-		if (ignoreDynamicSmooth) {
+		mTarget = value;
+		mValue = value;
+		mCounter = 0;
+	}
+
+	void DynamicTween::SetValue(float value, bool setSmooth) {
+		mTargetValue = value;
+		mTargetValuePrev = value;
+		if (setSmooth) {
+			mTarget = value;
 			mValue = value;
 		}
-		mCounter = 0;
 	}
 
 	void DynamicTween::SetTweenLength(int32_t tweenCount) {
@@ -45,15 +62,23 @@ namespace l::math::tween {
 		mTargetValuePrev = mValue;
 		mTargetValue = target;
 		mCounter = 0;
-		mUpdateCount = l::math::functions::max(tweenCount, 4);
+		if (tweenCount > 4) {
+			mUpdateCount = l::math::functions::max(tweenCount, 4);
+		}
 	}
 
 	// update rate in audio processing, the number of samples between calls
 	// we can use this to update expensive interpolation here
-	void DynamicTween::Update() {
+	void DynamicTween::Update(float updateRate) {
+		if (updateRate != mUpdateRate) {
+			mUpdateRate = l::math::functions::max(updateRate, 2.0f);
+			mDynamicSmooth = GetRWAFactor(static_cast<int32_t>(mUpdateRate), mDynamicSmoothAccuracy);
+		}
+
 		mTarget = mTargetValue;
 		if (mCounter < mUpdateCount) {
-			float t = mCounter / static_cast<float>(mUpdateCount);
+			float t = (mCounter + 0.5f * mUpdateRate) / static_cast<float>(mUpdateCount - 0.5f * mUpdateRate);
+			t = l::math::functions::clamp(t, 0.0f, 1.0f);
 			mTarget = mTargetValuePrev + l::math::smooth::smoothPolyh3(t) * (mTargetValue - mTargetValuePrev);
 		}
 	}
@@ -65,7 +90,6 @@ namespace l::math::tween {
 	}
 
 	float DynamicTween::Value() {
-		mValue += mDynamicSmooth * (mTarget - mValue);
 		return mValue;
 	}
 }

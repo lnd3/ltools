@@ -34,8 +34,8 @@ namespace l::nodegraph {
         {
             mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Sync", 0.0f, 1, 0.0f, 1.0f));
             mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Rate", 256.0f, 1, 1.0f, 2048.0f));
-            mNodeInputManager.AddInputBase(InputTypeBase::CUSTOM_INTERP_TWEEN, AddInput("Velocity", 0.5f, 1, 0.0f, 1.0f));
-            mNodeInputManager.AddInputBase(InputTypeBase::CUSTOM_INTERP_TWEEN, AddInput("Fade", 0.1f, 1, 0.0001f, 1.0f));
+            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Velocity", 0.5f, 1, 0.0f, 1.0f));
+            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Fade", 0.1f, 1, 0.0001f, 1.0f));
             mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Attack", 50.0f, 1, 1.0f, 10000.0f));
             mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Release", 50.0f, 1, 1.0f, 10000.0f));
 
@@ -50,12 +50,11 @@ namespace l::nodegraph {
         virtual void UpdateSignal(NodeInputManager& inputManager) = 0;
         virtual std::pair<float, float> ProcessSignal(NodeInputManager& inputManager) = 0;
     protected:
+        NodeInputManager mNodeInputManager;
         float mUpdateRate = 256.0f;
 
         float mDeltaTime = 0.0f;
         float mSamplesUntilUpdate = 0.0f;
-
-        NodeInputManager mNodeInputManager;
     };
 
     /*********************************************************************/
@@ -66,6 +65,7 @@ namespace l::nodegraph {
         {
             mFreqTargetId = mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Freq"));
             mFreqId = mNodeInputManager.AddInputBase(InputTypeBase::CUSTOM_INTERP_RWA_MS);
+            mNodeInputManager.AddInputBase(InputTypeBase::CUSTOM_INTERP_TWEEN_MS);
             mEnvelope = 0.0f;
         }
 
@@ -73,6 +73,7 @@ namespace l::nodegraph {
         virtual void UpdateSignal(NodeInputManager& inputManager) override;
         virtual std::pair<float, float> ProcessSignal(NodeInputManager& inputManager) override;
     protected:
+        bool mNoteOn = false;
         int32_t mFrameCount = 0;
         int32_t mFreqTargetId = 0;
         int32_t mFreqId = 0;
@@ -82,6 +83,7 @@ namespace l::nodegraph {
         float mReleaseFactor = 0.0f;
         float mEnvelopeTarget = 0.0f;
         float mFreqTarget = 0.0f;
+        float mFreqTargetPrev = 0.0f;
         float mEnvelope = 0.0f;
     };
 

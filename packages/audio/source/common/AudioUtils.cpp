@@ -43,6 +43,7 @@ namespace l::audio {
 	}
 
 	float BatchUpdate(float updateSamples, float samplesLeft, int32_t start, int32_t end, std::function<float()> update, std::function<void(int32_t, int32_t, bool)> process) {
+		updateSamples = l::math::functions::max(updateSamples, 1.0f);
 		float startNum = static_cast<float>(start);
 		while (startNum < static_cast<float>(end)) {
 			bool updated = false;

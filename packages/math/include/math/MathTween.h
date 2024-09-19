@@ -15,6 +15,8 @@ namespace l::math::tween {
         RecentWeightedAverage() = default;
         ~RecentWeightedAverage() = default;
 
+        void Reset(float value);
+        void SetValue(float value);
         void SetConvergence(float smooth);
         void SetTarget(float target);
         float Next();
@@ -29,21 +31,23 @@ namespace l::math::tween {
 
     class DynamicTween {
     public:
-        DynamicTween(int32_t updateCount = 0, float dynamicSmooth = 0.25f) :
-            mUpdateCount(updateCount),
-            mDynamicSmooth(dynamicSmooth)
+        DynamicTween(float dynamicSmoothAccuracy = 0.35f) :
+            mDynamicSmoothAccuracy(dynamicSmoothAccuracy)
         {}
         ~DynamicTween() = default;
 
-        void Reset(float value = 0.0f, bool ignoreDynamicSmooth = false);
+        void Reset(float value);
+        void SetValue(float value, bool setSmooth = true);
         void SetTweenLength(int32_t tweenCount);
         void SetTarget(float target, int32_t tweenCount = 0);
-        void Update();
+        void Update(float updateRate = 1.0f);
         float Next();
         float Value();
 
     protected:
+        float mUpdateRate = 0.0f;
         int32_t mUpdateCount = 1;
+        float mDynamicSmoothAccuracy = 0.1f;
         float mDynamicSmooth = 0.25f;
 
         float mValue = 0.0f;

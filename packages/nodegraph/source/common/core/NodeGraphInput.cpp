@@ -267,7 +267,7 @@ namespace l::nodegraph {
             break;
         case InputTypeBase::CUSTOM_INTERP_TWEEN:
         case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
-            mInput.mTween.Update();
+            mInput.mTween.Update(updateRate);
             break;
         case InputTypeBase::CUSTOM_INTERP_RWA_MS: // must set it manually
             mInput.mFilterRWA.SetRWAUpdateRate(updateRate);
