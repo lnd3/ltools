@@ -64,7 +64,7 @@ namespace l::nodegraph {
 
         bool noteOn = mFreqTarget != 0.0f;
         bool differentNote = mNoteOn && noteOn && mFreqTargetPrev != mFreqTarget;
-        if (noteOn && !mNoteOn || differentNote) {
+        if ((noteOn && !mNoteOn) || differentNote) {
             mNoteOn = true;
 
             mFreqTargetPrev = mFreqTarget;
