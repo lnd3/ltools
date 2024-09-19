@@ -99,11 +99,13 @@ namespace l::nodegraph {
             mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Sync", 0.0f, 1, 0.0f, 1.0f));
             mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Bpm", 60.0f, 1, 1.0f, 1000.0f));
             mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Velocity", 0.5f, 1, 0.0f, 1.0f));
-            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Fade", 0.1f, 1, 0.0001f, 1.0f));
-            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Attack", 50.0f, 1, 1.0f, 10000.0f));
-            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Release", 50.0f, 1, 1.0f, 10000.0f));
+            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Fade", 1.0f, 1, 0.0001f, 1.0f));
+            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Attack", 5.0f, 1, 1.0f, 10000.0f));
+            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Release", 20.0f, 1, 1.0f, 10000.0f));
             mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_ARRAY, AddInput("Note On", l::audio::gNoNote_f, gPolyphony, -499.0, 500.0));
             mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_ARRAY, AddInput("Note Off", l::audio::gNoNote_f, gPolyphony, -499.0, 500.0));
+            mNodeInputManager.AddInputBase(InputTypeBase::CUSTOM_INTERP_RWA_MS);
+            mNodeInputManager.AddInputBase(InputTypeBase::CUSTOM_INTERP_RWA_MS);
 
             AddOutput("Freq");
             AddOutput("Volume");

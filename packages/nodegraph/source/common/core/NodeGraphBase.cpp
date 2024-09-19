@@ -415,8 +415,8 @@ namespace l::nodegraph {
         return mInputs.at(inputIndex).GetArray();
     }
 
-    void NodeInputManager::SetDuration(int32_t inputIndex, float value) {
-        mInputs.at(inputIndex).SetDuration(value);
+    void NodeInputManager::SetDuration(int32_t inputIndex, float value, float limit) {
+        mInputs.at(inputIndex).SetDuration(value, limit);
     }
 
     void NodeInputManager::SetTarget(int32_t inputIndex, float value) {

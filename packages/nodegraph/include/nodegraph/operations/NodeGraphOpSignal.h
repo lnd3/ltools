@@ -34,9 +34,9 @@ namespace l::nodegraph {
         {
             mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Sync", 0.0f, 1, 0.0f, 1.0f));
             mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Rate", 256.0f, 1, 1.0f, 2048.0f));
-            mNodeInputManager.AddInputBase(InputTypeBase::INTERP_RWA, AddInput("Freq", 0.0f, 1, 0.0f, 22050.0f));
-            mNodeInputManager.AddInputBase(InputTypeBase::INTERP_RWA, AddInput("Volume", 0.5f, 1, 0.0f, 5.0f));
-            mNodeInputManager.AddInputBase(InputTypeBase::INTERP_RWA, AddInput("Smooth", 1.0f, 1, 0.0f, 1.0f));
+            mNodeInputManager.AddInputBase(InputTypeBase::SAMPLED, AddInput("Freq", 0.0f, 1, 0.0f, 22050.0f));
+            mNodeInputManager.AddInputBase(InputTypeBase::SAMPLED, AddInput("Volume", 0.0f, 1, 0.0f, 5.0f));
+            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Smooth", 1.0f, 1, 0.0f, 1.0f));
 
             AddOutput("Out", 0.0f, 2);
 
@@ -67,7 +67,6 @@ namespace l::nodegraph {
         float mSamplesUntilUpdate = 0.0f;
         float mUpdateRate = 16.0f;
 
-        l::audio::FilterRWA<float> mFilterSignal;
         l::audio::FilterRWA<float> mFilterVolume;
     };
 
@@ -77,8 +76,8 @@ namespace l::nodegraph {
         GraphSignalSine2(NodeGraphBase* node) :
             GraphSignalBase(node, "Sine 2")
         {
-            AddInput("Fmod", 0.0f, 1, 0.0f, 1.0f);
-            AddInput("Phase", 0.0f, 1, 0.0f, 1.0f);
+            mNodeInputManager.AddInputBase(InputTypeBase::INTERP_RWA, AddInput("Fmod", 0.0f, 1, 0.0f, 1.0f));
+            mNodeInputManager.AddInputBase(InputTypeBase::INTERP_RWA, AddInput("Phase", 0.0f, 1, 0.0f, 1.0f));
         }
 
         virtual ~GraphSignalSine2() = default;
@@ -120,8 +119,8 @@ namespace l::nodegraph {
         GraphSignalSaw2(NodeGraphBase* node) :
             GraphSignalBase(node, "Saw 2")
         {
-            AddInput("Attenuation", 0.0f, 1, 0.0f, 1.0f);
-            AddInput("Cutoff", 0.0f, 1, 0.0f, 1.0f);
+            mNodeInputManager.AddInputBase(InputTypeBase::INTERP_RWA, AddInput("Attenuation", 0.0f, 1, 0.0f, 1.0f));
+            mNodeInputManager.AddInputBase(InputTypeBase::INTERP_RWA, AddInput("Cutoff", 0.0f, 1, 0.0f, 1.0f));
         }
 
         virtual ~GraphSignalSaw2() = default;

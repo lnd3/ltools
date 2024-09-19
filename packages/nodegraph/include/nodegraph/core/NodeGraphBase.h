@@ -237,7 +237,7 @@ namespace l::nodegraph {
         float GetValue(int32_t inputIndex);
         float GetArrayValue(int32_t inputIndex, int32_t arrayIndex);
         float* GetArray(int32_t inputIndex);
-        void SetDuration(int32_t inputIndex, float value);
+        void SetDuration(int32_t inputIndex, float value, float limit = 0.001f);
         void SetTarget(int32_t inputIndex, float value);
         void SetValue(int32_t inputIndex, float value);
 

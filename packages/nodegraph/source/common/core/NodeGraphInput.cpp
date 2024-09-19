@@ -128,14 +128,14 @@ namespace l::nodegraph {
         }
     }
 
-    void NodeGraphInputAccessor::SetDuration(float ms) {
+    void NodeGraphInputAccessor::SetDuration(float ms, float limit) {
         switch (mType) {
         case InputTypeBase::INTERP_RWA:
-            mInput.mFilterRWA.SetConvergenceInMs(ms);
+            mInput.mFilterRWA.SetConvergenceInMs(ms, limit);
             break;
         case InputTypeBase::INTERP_RWA_MS:
         case InputTypeBase::CUSTOM_INTERP_RWA_MS:
-            mInput.mFilterRWA.SetConvergenceInMs(ms);
+            mInput.mFilterRWA.SetConvergenceInMs(ms, limit);
             break;
         case InputTypeBase::CUSTOM_INTERP_TWEEN:
         case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
@@ -176,7 +176,7 @@ namespace l::nodegraph {
             break;
         case InputTypeBase::CUSTOM_INTERP_TWEEN:
         case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
-            mInput.mTween.Reset(value, true);
+            mInput.mTween.Reset(value);
             break;
         case InputTypeBase::SAMPLED:
         case InputTypeBase::CONSTANT_VALUE:

@@ -155,7 +155,7 @@ namespace l::nodegraph {
         }
         ~NodeGraphInputAccessor() = default;
 
-        void SetDuration(float ms);
+        void SetDuration(float ms, float limit = 0.001f);
         void SetDuration(int32_t ticks);
         void SetTarget(float value);
         void SetValue(float value);

@@ -48,7 +48,9 @@ namespace l::nodegraph {
     void GraphControlEnvelope::UpdateSignal(NodeInputManager& inputManager) {
 
         mFreqTarget = inputManager.GetValueNext(mFreqTargetId);
-        inputManager.SetTarget(mFreqId, mFreqTarget);
+        if (mFreqTarget != 0.0f) {
+            inputManager.SetTarget(mFreqId, mFreqTarget);
+        }
         inputManager.SetDuration(mFreqId, 100.0f * inputManager.GetValue(3));
         mAttackFrames = l::audio::GetAudioTicksFromMS(inputManager.GetValue(4));
         mReleaseFrames = l::audio::GetAudioTicksFromMS(inputManager.GetValue(5));
@@ -58,7 +60,7 @@ namespace l::nodegraph {
 
     std::pair<float, float> GraphControlEnvelope::ProcessSignal(NodeInputManager& inputManager) {
         float velocity = inputManager.GetValueNext(2);
-        float freq = inputManager.GetValueNext(mFreqId);
+        float freq = 0.0f;
 
         bool noteOn = mFreqTarget != 0.0f;
         bool differentNote = mNoteOn && noteOn && mFreqTargetPrev != mFreqTarget;
@@ -68,7 +70,7 @@ namespace l::nodegraph {
             mFreqTargetPrev = mFreqTarget;
 
             mNodeInputManager.SetDuration(8, mAttackFactor);
-            mNodeInputManager.SetTarget(8, velocity);
+            mNodeInputManager.SetTarget(8, l::math::functions::sqrt(velocity));
 
             if (mFrameCount == 0) {
                 // if note was off we set freq immediately
@@ -109,9 +111,7 @@ namespace l::nodegraph {
             }
         }
 
-        if (mNoteOn) {
-            freq = inputManager.GetValueNext(mFreqId);
-        }
+        freq = inputManager.GetValueNext(mFreqId);
 
         float envelope = mNodeInputManager.GetValueNext(8);
         return { freq, envelope };
@@ -138,9 +138,14 @@ namespace l::nodegraph {
             auto velocity = inputManager.GetValue(2);
             auto fade = inputManager.GetValue(3);
 
-            mGainTarget = velocity;
+            mGainTarget = 3.0f*velocity;
             mFreqSmoothing = fade;
             mFreqSmoothing *= mFreqSmoothing * 0.5f;
+
+            inputManager.SetDuration(8, attack, 0.01f);
+            inputManager.SetDuration(9, attack + release, 0.01f);
+            inputManager.SetValue(8, 0.0f);
+            inputManager.SetValue(9, 1.0f);
         }
     }
 
@@ -200,13 +205,13 @@ namespace l::nodegraph {
             },
             [&](int32_t start, int32_t end, bool) {
                 for (int32_t i = start; i < end; i++) {
-                    float delta = mGainTarget - mGain;
-                    if (delta > 0) {
-                        mGain += mGainAttack * l::math::smooth::smoothPolyh3(delta);
-                    }
-                    else {
-                        mGain += mGainRelease * (-l::math::smooth::smoothPolyh3(-delta));
-                    }
+                    mNodeInputManager.SetTarget(8, 1.0f);
+                    mNodeInputManager.SetTarget(9, 0.0f);
+                    float attack = mNodeInputManager.GetValueNext(8);
+                    float release = mNodeInputManager.GetValueNext(9);
+                    float gain = mGainTarget * (attack * release);
+                    mGain += 0.25f * (gain - mGain);
+
                     mFreq += mFreqSmoothing * (mFreqTarget - mFreq);
 
                     *output0++ = mFreq;
