@@ -109,7 +109,7 @@ TEST(NodeGraph, FilterLowpass) {
 		//LOG(LogInfo) << nodeLowpass.GetOutput(0);
 	}
 
-	TEST_FUZZY(nodeLowpass.GetOutput(0), -0.005843f, 0.0001f, "");
+	TEST_FUZZY(nodeLowpass.GetOutput(0), -0.201134, 0.0001f, "");
 
 	return 0;
 }
@@ -173,8 +173,8 @@ TEST(NodeGraph, GraphGroups) {
 	float output1 = group2.GetOutput(0);
 	float output2 = group2.GetOutput(1);
 
-	TEST_FUZZY(output1, 0.00000537335563f, 0.00000001, "");
-	TEST_FUZZY(output2, 0.00000358223701f, 0.00000001, "");
+	TEST_FUZZY(output1, 0.149999559f, 0.00001, "");
+	TEST_FUZZY(output2, 0.0999997109f, 0.00001, "");
 
 	return 0;
 }

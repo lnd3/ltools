@@ -27,7 +27,7 @@ namespace l::nodegraph {
 
                 mSmooth = mNodeInputManager.GetValueNext(4);
 
-                mNodeInputManager.SetDuration(2, 10000.0f * (1.0f - mSmooth), 0.05f);
+                mRWAFreq.SetConvergenceInMs(1000.0f * (1.0f - mSmooth), 0.05f);
 
                 mDeltaTime = 1.0f / 44100.0f;
 
@@ -37,7 +37,9 @@ namespace l::nodegraph {
             },
             [&](int32_t start, int32_t end, bool) {
                 for (int32_t i = start; i < end; i++) {
-                    float signalTarget = ProcessSignal(mDeltaTime, mNodeInputManager.GetValueNext(2));
+                    float freq = mNodeInputManager.GetValueNext(2);
+                    mRWAFreq.SetTarget(freq);
+                    float signalTarget = ProcessSignal(mDeltaTime, mRWAFreq.Next());
                     *output0++ = mNodeInputManager.GetValueNext(3) * signalTarget;
                 }
             }

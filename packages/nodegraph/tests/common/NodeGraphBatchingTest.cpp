@@ -15,6 +15,7 @@ TEST(NodeGraphBatching, Simple) {
 	auto nodeSine = group.NewNode<GraphSignalSine2>(OutputType::Default);
 	nodeSine->SetInput(1, 4.0f); // sine update rate
 	nodeSine->SetInput(2, 1400.0f); // sine freq
+	nodeSine->SetInput(3, 0.5f); // sine freq
 
 	auto nodeLowpass = group.NewNode<GraphFilterLowpass>(OutputType::Default);
 
@@ -35,7 +36,7 @@ TEST(NodeGraphBatching, Simple) {
 
 	auto output = &group.GetOutput(0, 8);
 	
-	TEST_FUZZY(0.000151574f, output[7], 0.0001f, "");
+	TEST_FUZZY(0.034771f, output[7], 0.0001f, "");
 
 	return 0;
 }

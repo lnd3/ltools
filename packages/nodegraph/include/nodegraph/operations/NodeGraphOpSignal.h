@@ -67,7 +67,7 @@ namespace l::nodegraph {
         float mSamplesUntilUpdate = 0.0f;
         float mUpdateRate = 16.0f;
 
-        l::audio::FilterRWA<float> mFilterVolume;
+        l::audio::FilterRWA<float> mRWAFreq;
     };
 
     /*********************************************************************/
