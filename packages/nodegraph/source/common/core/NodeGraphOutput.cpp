@@ -1,4 +1,5 @@
 #include "nodegraph/core/NodeGraphOutput.h"
+#include "nodegraph/core/NodeGraphBase.h"
 
 #include "logging/Log.h"
 
@@ -15,8 +16,12 @@ namespace l::nodegraph {
                 mOutputBuf = std::make_unique<std::vector<float>>();
             }
         }
-        if (static_cast<int32_t>(mOutputBuf->size()) < size) {
-            mOutputBuf->resize(size);
+        int32_t lodSize = static_cast<int32_t>(size / mOutputLod);
+        if (lodSize != size) {
+            ASSERT(lodSize != size) << "Failed to reset 'lod' output buffer to size '" << lodSize << "' because it is already allocated for size '" << mOutputBuf->size() << "'";
+        }
+        if (static_cast<int32_t>(mOutputBuf->size()) < lodSize) {
+            mOutputBuf->resize(lodSize);
             for (size_t i = 0; i < mOutputBuf->size(); i++) {
                 (*mOutputBuf)[i] = 0.0f;
             }
@@ -25,12 +30,18 @@ namespace l::nodegraph {
         return *mOutputBuf->data();
     }
 
-    NodeOutputDataIterator NodeGraphOutput::GetIterator(int32_t numSamples) {
-        auto size = GetSize();
-        if (size > 1) {
-            ASSERT(size == numSamples);
+    NodeDataIterator NodeGraphOutput::GetIterator(int32_t size, float lod) {
+        if (mOutputLod == 1.0f && lod > 1.0f) {
+            mOutputLod = lod;
         }
-        return NodeOutputDataIterator(&Get(numSamples), size);
+        float stepPerIndex = size == 1 ? 0.0f : 1.0f / mOutputLod;
+        return NodeDataIterator(&Get(size), stepPerIndex);
+    }
+
+    NodeDataIterator NodeGraphOutput::GetIterator() {
+        auto size = GetSize();
+        float stepPerIndex = size == 1 ? 0.0f : 1.0f / mOutputLod;
+        return NodeDataIterator(&Get(size), stepPerIndex);
     }
 
     int32_t NodeGraphOutput::GetSize() {

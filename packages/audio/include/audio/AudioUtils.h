@@ -51,8 +51,8 @@ namespace l::audio {
         }
 
         FilterRWA<T>& SetConvergenceInMs(T convergenceInMS, T limit = static_cast<T>(0.0001), T sampleRate = static_cast<T>(44100.0)) {
-            mSmooth = GetRWAFactorFromMS(convergenceInMS, limit, mRWAUpdateRate, sampleRate);
-            mSmoothSkewed = GetRWAFactorFromMSSkewed(convergenceInMS, limit, mRWAUpdateRate, sampleRate);
+            mSmooth = GetRWAFactorFromMS(convergenceInMS, limit, mRWAUpdateRate, sampleRate / mRWAUpdateRate);
+            mSmoothSkewed = GetRWAFactorFromMSSkewed(convergenceInMS, limit, mRWAUpdateRate, sampleRate / mRWAUpdateRate);
             return *this;
         }
 

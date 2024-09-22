@@ -39,7 +39,7 @@ namespace l::nodegraph {
                 for (int32_t i = start; i < end; i++) {
                     float freq = mNodeInputManager.GetValueNext(2);
                     mRWAFreq.SetTarget(freq);
-                    float signalTarget = ProcessSignal(mDeltaTime, mRWAFreq.Next());
+                    float signalTarget = ProcessSignal(mDeltaTime, freq);
                     *output0++ = mNodeInputManager.GetValueNext(3) * signalTarget;
                 }
             }

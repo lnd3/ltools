@@ -29,14 +29,14 @@ namespace l::audio {
 		return numAudioSamples * 1000.0f / sampleRate;
 	}
 
-	float GetRWAFactorFromMS(float ms, float limit, float , float sampleRate) {
-		int32_t updateSteps = GetAudioTicksFromMS(ms, sampleRate);
+	float GetRWAFactorFromMS(float ms, float limit, float rwaUpdateRate, float sampleRate) {
+		int32_t updateSteps = GetAudioTicksFromMS(ms, sampleRate / rwaUpdateRate);
 		return l::math::tween::GetRWAFactor(updateSteps, limit);
 	}
 
-	float GetRWAFactorFromMSSkewed(float ms, float limit, float, float sampleRate) {
+	float GetRWAFactorFromMSSkewed(float ms, float limit, float rwaUpdateRate, float sampleRate) {
 		float msRoot = l::math::functions::sqrt(ms);
-		int32_t steps = GetAudioTicksFromMS(msRoot, sampleRate);
+		int32_t steps = GetAudioTicksFromMS(msRoot, sampleRate / rwaUpdateRate);
 		float factor = l::math::tween::GetRWAFactor(steps, limit);
 		factor *= factor;
 		return factor;

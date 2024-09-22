@@ -76,8 +76,8 @@ namespace l::nodegraph {
         GraphSignalSine2(NodeGraphBase* node) :
             GraphSignalBase(node, "Sine 2")
         {
-            mNodeInputManager.AddInputBase(InputTypeBase::INTERP_RWA, AddInput("Fmod", 0.0f, 1, 0.0f, 1.0f));
-            mNodeInputManager.AddInputBase(InputTypeBase::INTERP_RWA, AddInput("Phase", 0.0f, 1, 0.0f, 1.0f));
+            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Fmod", 0.0f, 1, 0.0f, 1.0f));
+            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Phase", 0.0f, 1, 0.0f, 1.0f));
         }
 
         virtual ~GraphSignalSine2() = default;

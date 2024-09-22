@@ -17,8 +17,8 @@ namespace l::nodegraph {
             mSamplesUntilUpdate = 0;
         }
 
-        auto input0 = inputs.at(4).GetBufferIterator(numSamples);
-        auto input1 = inputs.at(5).GetBufferIterator(numSamples);
+        auto input0 = inputs.at(4).GetIterator(numSamples);
+        auto input1 = inputs.at(5).GetIterator(numSamples);
         auto output0 = outputs.at(0).GetIterator(numSamples);
         auto output1 = outputs.at(1).GetIterator(numSamples);
 

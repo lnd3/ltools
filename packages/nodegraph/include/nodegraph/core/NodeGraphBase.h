@@ -11,6 +11,7 @@
 
 #include "math/MathConstants.h"
 
+#include "nodegraph/core/NodeGraphData.h"
 #include "nodegraph/core/NodeGraphInput.h"
 #include "nodegraph/core/NodeGraphOutput.h"
 
@@ -19,12 +20,6 @@ namespace l::nodegraph {
     int32_t CreateUniqueId();
     bool IsValidInOutNum(int8_t inoutNum, size_t inoutSize);
 
-    enum class DataType {
-        FLOAT32,
-        INT32,
-        BITFIELD32
-    };
-
     class NodeGraphGroup;
 
 
@@ -32,8 +27,6 @@ namespace l::nodegraph {
     class NodeGraphBase {
     public:
         NodeGraphBase(OutputType outputType) : mId(CreateUniqueId()), mOutputType(outputType) {
-            mInputs.resize(1);
-            mOutputs.resize(1);
         }
         virtual ~NodeGraphBase() {
             LOG(LogInfo) << "Node graph base destroyed";
@@ -52,6 +45,8 @@ namespace l::nodegraph {
 
         virtual float& GetInput(int8_t inputChannel, int32_t size = 1);
         virtual float& GetOutput(int8_t outputChannel, int32_t size = 1);
+        virtual NodeGraphInput& GetInputOf(int8_t inputChannel);
+        virtual NodeGraphOutput& GetOutputOf(int8_t outputChannel);
 
         virtual int32_t GetInputSize(int8_t inputChannel);
         virtual int32_t GetOutputSize(int8_t outputChannel);
@@ -66,7 +61,7 @@ namespace l::nodegraph {
 
         virtual bool SetInput(int8_t inputChannel, NodeGraphBase& source, int8_t sourceOutputChannel);
         virtual bool SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel);
-        virtual bool SetInput(int8_t inputChannel, float constant, int32_t size = 1);
+        virtual bool SetInput(int8_t inputChannel, float initialValue, int32_t size = 1);
         virtual bool SetInput(int8_t inputChannel, float* floatPtr);
         virtual void SetDefaultOutput(int8_t outputChannel, float constant, int32_t size = 1);
 
@@ -220,7 +215,6 @@ namespace l::nodegraph {
         T mOperation;
     };
 
-    /**********************************************************************************/
 
     class NodeInputManager {
     public:

@@ -122,8 +122,8 @@ namespace l::nodegraph {
     void GraphControlArpeggio::UpdateSignal(NodeInputManager& inputManager) {
         float attack = inputManager.GetValue(4);
         float release = inputManager.GetValue(5);
-        float attackFactor = l::audio::GetRWAFactorFromMS(attack, 0.001f);
-        float releaseFactor = l::audio::GetRWAFactorFromMS(release, 0.001f);
+        float attackFactor = l::audio::GetRWAFactorFromMS(attack, 0.001f, gArpeggioUpdateRate);
+        float releaseFactor = l::audio::GetRWAFactorFromMS(release, 0.001f, gArpeggioUpdateRate);
         mGainAttack = attackFactor;
         mGainRelease = releaseFactor;
 
@@ -192,8 +192,8 @@ namespace l::nodegraph {
             }
         }
 
-        auto output0 = outputs.at(0).GetIterator(numSamples);
-        auto output1 = outputs.at(1).GetIterator(numSamples);
+        auto output0 = outputs.at(0).GetIterator(numSamples, gArpeggioUpdateRate);
+        auto output1 = outputs.at(1).GetIterator(numSamples, gArpeggioUpdateRate);
         mSamplesUntilUpdate = l::audio::BatchUpdate(mUpdateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
                 mNodeInputManager.NodeUpdate(inputs, mUpdateRate);

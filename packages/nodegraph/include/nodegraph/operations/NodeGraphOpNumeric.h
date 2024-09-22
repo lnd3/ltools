@@ -34,8 +34,8 @@ namespace l::nodegraph {
         }
         virtual ~GraphNumericAdd() = default;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input0 = inputs.at(0).GetBufferIterator(numSamples);
-            auto input1 = inputs.at(1).GetBufferIterator(numSamples);
+            auto input0 = inputs.at(0).GetIterator(numSamples);
+            auto input1 = inputs.at(1).GetIterator(numSamples);
             auto output = outputs.at(0).GetIterator(numSamples);
 
             if (numSamples > 1) {
@@ -61,8 +61,8 @@ namespace l::nodegraph {
 
         virtual ~GraphNumericMultiply() = default;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input0 = inputs.at(0).GetBufferIterator(numSamples);
-            auto input1 = inputs.at(1).GetBufferIterator(numSamples);
+            auto input0 = inputs.at(0).GetIterator(numSamples);
+            auto input1 = inputs.at(1).GetIterator(numSamples);
             auto output = outputs.at(0).GetIterator(numSamples);
 
             if (numSamples > 1) {
@@ -87,8 +87,8 @@ namespace l::nodegraph {
         }
         virtual ~GraphNumericSubtract() = default;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input0 = inputs.at(0).GetBufferIterator(numSamples);
-            auto input1 = inputs.at(1).GetBufferIterator(numSamples);
+            auto input0 = inputs.at(0).GetIterator(numSamples);
+            auto input1 = inputs.at(1).GetIterator(numSamples);
             auto output = outputs.at(0).GetIterator(numSamples);
 
             if (numSamples > 1) {
@@ -113,7 +113,7 @@ namespace l::nodegraph {
 
         virtual ~GraphNumericNegate() = default;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input0 = inputs.at(0).GetBufferIterator(numSamples);
+            auto input0 = inputs.at(0).GetIterator(numSamples);
             auto output = outputs.at(0).GetIterator(numSamples);
 
             if (numSamples > 1) {
@@ -138,7 +138,7 @@ namespace l::nodegraph {
 
         virtual ~GraphNumericIntegral() = default;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input0 = inputs.at(0).GetBufferIterator(numSamples);
+            auto input0 = inputs.at(0).GetIterator(numSamples);
             auto output = outputs.at(0).GetIterator(numSamples);
 
             if (numSamples > 1) {
@@ -168,9 +168,9 @@ namespace l::nodegraph {
 
         virtual ~GraphNumericMultiply3() = default;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input0 = inputs.at(0).GetBufferIterator(numSamples);
-            auto input1 = inputs.at(1).GetBufferIterator(numSamples);
-            auto input2 = inputs.at(2).GetBufferIterator(numSamples);
+            auto input0 = inputs.at(0).GetIterator(numSamples);
+            auto input1 = inputs.at(1).GetIterator(numSamples);
+            auto input2 = inputs.at(2).GetIterator(numSamples);
             auto output = outputs.at(0).GetIterator(numSamples);
 
             if (numSamples > 1) {
@@ -197,9 +197,9 @@ namespace l::nodegraph {
 
         virtual ~GraphNumericMultiplyAndAdd() = default;
         void virtual Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input0 = inputs.at(0).GetBufferIterator(numSamples);
-            auto input1 = inputs.at(1).GetBufferIterator(numSamples);
-            auto input2 = inputs.at(2).GetBufferIterator(numSamples);
+            auto input0 = inputs.at(0).GetIterator(numSamples);
+            auto input1 = inputs.at(1).GetIterator(numSamples);
+            auto input2 = inputs.at(2).GetIterator(numSamples);
             auto output = outputs.at(0).GetIterator(numSamples);
 
             if (numSamples > 1) {
@@ -226,7 +226,7 @@ namespace l::nodegraph {
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             outputs.at(0).mOutput = l::math::functions::round(inputs.at(0).Get());
 
-            auto input0 = inputs.at(2).GetBufferIterator(numSamples);
+            auto input0 = inputs.at(2).GetIterator(numSamples);
             auto output = outputs.at(0).GetIterator(numSamples);
 
             if (numSamples > 1) {

@@ -90,6 +90,14 @@ namespace l::nodegraph {
         return mOutputs.at(outputChannel).Get(size);
     }
 
+    NodeGraphInput& NodeGraphBase::GetInputOf(int8_t inputChannel) {
+        return mInputs.at(inputChannel);
+    }
+
+    NodeGraphOutput& NodeGraphBase::GetOutputOf(int8_t outputChannel) {
+        return mOutputs.at(outputChannel);
+    }
+
     int32_t NodeGraphBase::GetInputSize(int8_t inputChannel) {
         return mInputs.at(inputChannel).GetSize();
     }
@@ -165,15 +173,15 @@ namespace l::nodegraph {
         return true;
     }
 
-    bool NodeGraphBase::SetInput(int8_t inputChannel, float constant, int32_t size) {
+    bool NodeGraphBase::SetInput(int8_t inputChannel, float initialValue, int32_t size) {
         ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
         if (!IsValidInOutNum(inputChannel, mInputs.size())) {
             return false;
         }
         auto& input = mInputs.at(inputChannel);
-        constant = l::math::functions::clamp(constant, input.mBoundMin, input.mBoundMax);
+        initialValue = l::math::functions::clamp(initialValue, input.mBoundMin, input.mBoundMax);
         if (size <= 1) {
-            input.mInput.mInputFloatConstant = constant;
+            input.mInput.mInputFloatConstant = initialValue;
             input.mInputType = InputType::INPUT_CONSTANT;
             input.mInputFromOutputChannel = 0;
         }
@@ -182,9 +190,9 @@ namespace l::nodegraph {
             input.mInputFromOutputChannel = 0;
             auto inputBuf = &input.Get(size);
             for (int32_t i = 0; i < size; i++) {
-                *inputBuf++ = constant;
+                *inputBuf++ = initialValue;
             }
-            input.mInput.mInputFloatConstant = constant;
+            input.mInput.mInputFloatConstant = initialValue;
         }
 
         return true;

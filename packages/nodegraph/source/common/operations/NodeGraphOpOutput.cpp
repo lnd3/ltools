@@ -24,8 +24,8 @@ namespace l::nodegraph {
         }
 
         auto& buffer = mAudioStream->GetWriteBuffer();
-        auto in0 = inputs.at(0).GetBufferIterator(numSamples);
-        auto in1 = inputs.at(1).GetBufferIterator(numSamples);
+        auto in0 = inputs.at(0).GetIterator(numSamples);
+        auto in1 = inputs.at(1).GetIterator(numSamples);
 
         float updateRate = 256.0f;
         mSamplesUntilUpdate = l::audio::BatchUpdate(updateRate, mSamplesUntilUpdate, 0, numSamples,

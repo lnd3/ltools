@@ -91,6 +91,8 @@ namespace l::nodegraph {
     class GraphControlArpeggio: public NodeGraphOp {
     public:
 
+        const float gArpeggioUpdateRate = 16.0f;
+
         const static int32_t gPolyphony = 12;
         GraphControlArpeggio(NodeGraphBase* node) :
             NodeGraphOp(node, "Arpeggio"),

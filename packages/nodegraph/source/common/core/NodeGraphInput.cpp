@@ -7,26 +7,6 @@
 
 namespace l::nodegraph {
 
-    std::pair<float, float> GetInputBounds(InputBound bound) {
-        switch (bound) {
-        case InputBound::INPUT_0_TO_1:
-            return { 0.0f, 1.0f };
-        case InputBound::INPUT_0_TO_2:
-            return { 0.0f, 2.0f };
-        case InputBound::INPUT_NEG_1_POS_1:
-            return { -1.0f, 1.0f };
-        case InputBound::INPUT_0_100:
-            return { 0.0f, 100.0f };
-        case InputBound::INPUT_UNBOUNDED:
-            return { -l::math::constants::FLTMAX, l::math::constants::FLTMAX };
-        case InputBound::INPUT_CUSTOM:
-            return { 0.0f, 0.0f };
-        }
-        return { 0.0f, 0.0f };
-    }
-
-    /*********************************************************************************/
-
     void NodeGraphInput::Reset() {
         if (mInputType == InputType::INPUT_NODE || mInputType == InputType::INPUT_VALUE) {
             mInput.mInputNode = nullptr;
@@ -70,17 +50,25 @@ namespace l::nodegraph {
         return mInput.mInputFloatConstant;
     }
 
-    NodeInputDataIterator NodeGraphInput::GetBufferIterator(int32_t numSamples) {
-        auto size = GetSize();
-        if (size > 1) {
-            ASSERT(size == numSamples);
+    NodeDataIterator NodeGraphInput::GetIterator(int32_t size, float lod) {
+        if (mInputType == InputType::INPUT_NODE && mInput.mInputNode != nullptr) {
+            return mInput.mInputNode->GetOutputOf(mInputFromOutputChannel).GetIterator();
         }
-        return NodeInputDataIterator(&Get(size), size);
+        else if (mInputType == InputType::INPUT_CONSTANT) {
+            return NodeDataIterator(&Get(1), 0.0f);
+        }
+        else {
+            if (mInputLod == 1.0f && lod > 1.0f) {
+                mInputLod = lod;
+            }
+            float stepPerIndex = size == 1 ? 0.0f : 1.0f / mInputLod;
+            return NodeDataIterator(&Get(size), stepPerIndex);
+        }
     }
 
-    NodeInputDataIterator NodeGraphInput::GetArrayIterator() {
+    NodeDataIterator NodeGraphInput::GetArrayIterator() {
         auto size = GetSize();
-        return NodeInputDataIterator(&Get(size), size);
+        return NodeDataIterator(&Get(size));
     }
 
     int32_t NodeGraphInput::GetSize() {
@@ -246,7 +234,7 @@ namespace l::nodegraph {
         case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
             break;
         case InputTypeBase::SAMPLED:
-            mInput.mIterator = input.at(mInputIndex).GetBufferIterator(numSamples);
+            mInput.mIterator = input.at(mInputIndex).GetIterator(numSamples);
             break;
         case InputTypeBase::CONSTANT_VALUE:
             mInput.mIterator.Reset(&input.at(mInputIndex).Get(), 1);

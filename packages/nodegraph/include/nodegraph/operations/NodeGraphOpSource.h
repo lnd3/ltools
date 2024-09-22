@@ -47,7 +47,9 @@ namespace l::nodegraph {
             AddConstant("Out 4", 0.0f, 1, bound.first, bound.second);
         }
 
-        virtual ~GraphSourceConstants() = default;
+        virtual ~GraphSourceConstants() {
+            LOG(LogInfo) << "sdad";
+        }
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(int32_t, float) override;
     protected:
@@ -64,15 +66,15 @@ namespace l::nodegraph {
             mAudioRate(audioRate),
             mFrameRate(frameRate)
         {
-            AddOutput("Audio Tick");
-            AddOutput("Frame Tick");
-            AddOutput("Audio Time");
-            AddOutput("Frame Time");
+            AddOutput("Audio Tick", 0.0f, 2);
+            AddOutput("Frame Tick", 0.0f, 2);
+            AddOutput("Audio Time", 0.0f, 2);
+            AddOutput("Frame Time", 0.0f, 2);
 
-            AddConstant("Audio Tick", 0.0f);
-            AddConstant("Frame Tick", 0.0f);
-            AddConstant("Audio Time", 0.0f);
-            AddConstant("Frame Time", 0.0f);
+            AddConstant("Audio Tick", 0.0f, 2);
+            AddConstant("Frame Tick", 0.0f, 2);
+            AddConstant("Audio Time", 0.0f, 2);
+            AddConstant("Frame Time", 0.0f, 2);
 
             AddInput("Reset", 0.0f, 1, 0.0f, 1.0f);
 
@@ -82,7 +84,10 @@ namespace l::nodegraph {
             mAudioTick = 0;
         }
 
-        virtual ~GraphSourceTime() = default;
+        virtual ~GraphSourceTime() {
+            LOG(LogInfo) << "sdad";
+        }
+
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(int32_t, float) override;
     protected:
