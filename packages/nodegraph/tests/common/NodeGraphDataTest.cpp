@@ -23,7 +23,7 @@ public:
 
     virtual ~TestOp() = default;
     virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-        mNodeInputManager.BatchUpdate(inputs, numSamples, mUpdateRate);
+        mNodeInputManager.BatchUpdate(inputs, numSamples);
         auto out0 = outputs.at(0).GetIterator(numSamples, 4.0f);
         auto out1 = outputs.at(1).GetIterator(numSamples, 4.0f);
 
