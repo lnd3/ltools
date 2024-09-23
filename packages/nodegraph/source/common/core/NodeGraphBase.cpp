@@ -380,24 +380,26 @@ namespace l::nodegraph {
 
     /**********************************************************************************/
 
-    int32_t NodeInputManager::AddInputBase(InputTypeBase type, int32_t inputIndex) {
-        if (type != InputTypeBase::CUSTOM_INTERP_RWA_MS && type != InputTypeBase::CUSTOM_INTERP_TWEEN && type != InputTypeBase::CUSTOM_INTERP_TWEEN_MS) {
-            ASSERT(inputIndex >= 0);
-        }
-
+    int32_t NodeInputManager::AddInput(InputTypeBase type, int32_t inputIndex) {
         inputIndex = static_cast<int32_t>(mInputs.size());
         mInputs.emplace_back(NodeGraphInputAccessor{ type, inputIndex });
-
-        if (type != InputTypeBase::CUSTOM_INTERP_RWA_MS && type != InputTypeBase::CUSTOM_INTERP_TWEEN && type != InputTypeBase::CUSTOM_INTERP_TWEEN_MS) {
-            mInputs.back().SetValue(mNodeGraphOperation.GetDefaultData(static_cast<int8_t>(inputIndex)));
-            mInputs.back().SetTarget(mNodeGraphOperation.GetDefaultData(static_cast<int8_t>(inputIndex)));
-        }
+        mInputs.back().SetValue(mNodeGraphOperation.GetDefaultData(static_cast<int8_t>(inputIndex)));
+        mInputs.back().SetTarget(mNodeGraphOperation.GetDefaultData(static_cast<int8_t>(inputIndex)));
         return inputIndex;
     }
 
-    void NodeInputManager::ProcessUpdate(std::vector<NodeGraphInput>& inputs, int32_t numSamples, float updateRate) {
+    int32_t NodeInputManager::AddCustom(InputTypeBase type) {
+        auto inputIndex = static_cast<int32_t>(mCustom.size());
+        mCustom.emplace_back(NodeGraphInputAccessor{ type, inputIndex });
+        return inputIndex + gCustomIndexBase;
+    }
+
+    void NodeInputManager::BatchUpdate(std::vector<NodeGraphInput>& inputs, int32_t numSamples) {
         for (auto& input : mInputs) {
-            input.ProcessUpdate(inputs, numSamples, updateRate);
+            input.BatchUpdate(inputs, numSamples);
+        }
+        for (auto& custom : mCustom) {
+            custom.BatchUpdate(inputs, numSamples);
         }
     }
 
@@ -405,33 +407,99 @@ namespace l::nodegraph {
         for (auto& input : mInputs) {
             input.NodeUpdate(inputs, updateRate);
         }
+        for (auto& custom : mCustom) {
+            custom.NodeUpdate(inputs, updateRate);
+        }
     }
 
     float NodeInputManager::GetValueNext(int32_t inputIndex) {
-        return mInputs.at(inputIndex).GetValueNext();
+        if (inputIndex < gCustomIndexBase) {
+            return mInputs.at(inputIndex).GetValueNext();
+        }
+        return mCustom.at(inputIndex - gCustomIndexBase).GetValueNext();
     }
 
     float NodeInputManager::GetValue(int32_t inputIndex) {
-        return mInputs.at(inputIndex).GetValue();
+        if (inputIndex < gCustomIndexBase) {
+            return mInputs.at(inputIndex).GetValue();
+        }
+        return mCustom.at(inputIndex - gCustomIndexBase).GetValue();
     }
 
     float NodeInputManager::GetArrayValue(int32_t inputIndex, int32_t arrayIndex) {
-        return mInputs.at(inputIndex).GetArrayValue(arrayIndex);
+        if (inputIndex < gCustomIndexBase) {
+            return mInputs.at(inputIndex).GetArrayValue(arrayIndex);
+        }
+        return mCustom.at(inputIndex - gCustomIndexBase).GetArrayValue(arrayIndex);
     }
 
     float* NodeInputManager::GetArray(int32_t inputIndex) {
-        return mInputs.at(inputIndex).GetArray();
+        if (inputIndex < gCustomIndexBase) {
+            return mInputs.at(inputIndex).GetArray();
+        }
+        return mCustom.at(inputIndex - gCustomIndexBase).GetArray();
+    }
+
+    void NodeInputManager::SetUpdateRate(int32_t inputIndex, float updateRate) {
+        if (inputIndex < gCustomIndexBase) {
+            mInputs.at(inputIndex).SetUpdateRate(updateRate);
+        }
+        mCustom.at(inputIndex - gCustomIndexBase).SetUpdateRate(updateRate);
     }
 
     void NodeInputManager::SetDuration(int32_t inputIndex, float value, float limit) {
-        mInputs.at(inputIndex).SetDuration(value, limit);
+        if (inputIndex < gCustomIndexBase) {
+            mInputs.at(inputIndex).SetDuration(value, limit);
+        }
+        mCustom.at(inputIndex - gCustomIndexBase).SetDuration(value, limit);
     }
 
     void NodeInputManager::SetTarget(int32_t inputIndex, float value) {
-        mInputs.at(inputIndex).SetTarget(value);
+        if (inputIndex < gCustomIndexBase) {
+            mInputs.at(inputIndex).SetTarget(value);
+        }
+        mCustom.at(inputIndex - gCustomIndexBase).SetTarget(value);
     }
 
     void NodeInputManager::SetValue(int32_t inputIndex, float value) {
-        mInputs.at(inputIndex).SetValue(value);
+        if (inputIndex < gCustomIndexBase) {
+            mInputs.at(inputIndex).SetValue(value);
+        }
+        mCustom.at(inputIndex - gCustomIndexBase).SetValue(value);
     }
+
+    /**********************************************************************************/
+
+    void NodeGraphOp2::Tick(int32_t, float) {
+
+    }
+
+    int32_t NodeGraphOp2::AddInput(
+        InputTypeBase type,
+        std::string_view name,
+        float defaultValue,
+        int32_t size,
+        float boundMin,
+        float boundMax,
+        bool visible,
+        bool editable) {
+        return mNodeInputManager.AddInput(type, NodeGraphOp::AddInput(name, defaultValue, size, boundMin, boundMax, visible, editable));
+    }
+
+    int32_t NodeGraphOp2::AddConstant(
+        InputTypeBase type,
+        std::string_view name,
+        float defaultValue,
+        int32_t size,
+        float boundMin,
+        float boundMax,
+        bool visible,
+        bool editable) {
+        return mNodeInputManager.AddInput(type, NodeGraphOp::AddConstant(name, defaultValue, size, boundMin, boundMax, visible, editable));
+    }
+
+    int32_t NodeGraphOp2::AddCustom(InputTypeBase type) {
+        return mNodeInputManager.AddCustom(type);
+    }
+
 }

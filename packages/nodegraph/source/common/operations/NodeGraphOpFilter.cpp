@@ -27,7 +27,7 @@ namespace l::nodegraph {
     }
 
     void GraphFilterBase::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        mNodeInputManager.ProcessUpdate(inputs, numSamples, mUpdateRate);
+        mNodeInputManager.BatchUpdate(inputs, numSamples);
         mSync = inputs.at(0).Get();
         if (mSync > 0.5f) {
             mNode->SetInput(1, 0.0f, numSamples);

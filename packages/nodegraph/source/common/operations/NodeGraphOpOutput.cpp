@@ -87,7 +87,7 @@ namespace l::nodegraph {
 
     /*********************************************************************/
     void GraphOutputPlot::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        mNodeInputManager.ProcessUpdate(inputs, numSamples, 1.0f);
+        mNodeInputManager.BatchUpdate(inputs, numSamples);
 
         int32_t outputSize = outputs.at(0).GetSize();
         float* output = &outputs.at(0).Get(outputSize);

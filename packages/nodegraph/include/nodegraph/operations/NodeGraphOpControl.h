@@ -25,19 +25,21 @@ namespace l::nodegraph {
     class GraphControlBase : public NodeGraphOp {
     public:
 
-        static const int8_t mNumDefaultInputs = 7;
+        static const int8_t mNumDefaultInputs = 6;
         static const int8_t mNumDefaultOutputs = 2;
 
         GraphControlBase(NodeGraphBase* node, std::string_view name) :
             NodeGraphOp(node, name),
             mNodeInputManager(*this)
         {
-            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Sync", 0.0f, 1, 0.0f, 1.0f));
-            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Rate", 256.0f, 1, 1.0f, 2048.0f));
-            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Velocity", 0.5f, 1, 0.0f, 1.0f));
-            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Fade", 0.1f, 1, 0.0001f, 1.0f));
-            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Attack", 50.0f, 1, 1.0f, 10000.0f));
-            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Release", 50.0f, 1, 1.0f, 10000.0f));
+            mNodeInputManager.AddInput(InputTypeBase::CONSTANT_VALUE, AddInput("Sync", 0.0f, 1, 0.0f, 1.0f));
+            mNodeInputManager.AddInput(InputTypeBase::CONSTANT_VALUE, AddInput("Rate", 256.0f, 1, 1.0f, 2048.0f));
+            mNodeInputManager.AddInput(InputTypeBase::CONSTANT_VALUE, AddInput("Velocity", 0.5f, 1, 0.0f, 1.0f));
+            mNodeInputManager.AddInput(InputTypeBase::CONSTANT_VALUE, AddInput("Fade", 0.1f, 1, 0.0001f, 1.0f));
+            mNodeInputManager.AddInput(InputTypeBase::CONSTANT_VALUE, AddInput("Attack", 50.0f, 1, 1.0f, 10000.0f));
+            mNodeInputManager.AddInput(InputTypeBase::CONSTANT_VALUE, AddInput("Release", 50.0f, 1, 1.0f, 10000.0f));
+            mNodeInputManager.AddCustom(InputTypeBase::CUSTOM_INTERP_RWA_MS); // 100
+            mNodeInputManager.AddCustom(InputTypeBase::CUSTOM_INTERP_RWA_MS); // 101
 
             AddOutput("Freq");
             AddOutput("Volume");
@@ -63,9 +65,7 @@ namespace l::nodegraph {
         GraphControlEnvelope(NodeGraphBase* node) :
             GraphControlBase(node, "Envelope")
         {
-            mFreqTargetId = mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Freq"));
-            mFreqId = mNodeInputManager.AddInputBase(InputTypeBase::CUSTOM_INTERP_RWA_MS);
-            mNodeInputManager.AddInputBase(InputTypeBase::CUSTOM_INTERP_TWEEN_MS);
+            mNodeInputManager.AddInput(InputTypeBase::CONSTANT_VALUE, AddInput("Freq"));
             mEnvelope = 0.0f;
         }
 
@@ -75,8 +75,6 @@ namespace l::nodegraph {
     protected:
         bool mNoteOn = false;
         int32_t mFrameCount = 0;
-        int32_t mFreqTargetId = 0;
-        int32_t mFreqId = 0;
         int32_t mAttackFrames = 0;
         int32_t mReleaseFrames = 0;
         float mAttackFactor = 0.0f;
@@ -98,16 +96,16 @@ namespace l::nodegraph {
             NodeGraphOp(node, "Arpeggio"),
             mNodeInputManager(*this)
         {
-            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Sync", 0.0f, 1, 0.0f, 1.0f));
-            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Bpm", 60.0f, 1, 1.0f, 1000.0f));
-            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Velocity", 0.5f, 1, 0.0f, 1.0f));
-            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Fade", 1.0f, 1, 0.0001f, 1.0f));
-            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Attack", 5.0f, 1, 1.0f, 10000.0f));
-            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_VALUE, AddInput("Release", 20.0f, 1, 1.0f, 10000.0f));
-            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_ARRAY, AddInput("Note On", l::audio::gNoNote_f, gPolyphony, -499.0, 500.0));
-            mNodeInputManager.AddInputBase(InputTypeBase::CONSTANT_ARRAY, AddInput("Note Off", l::audio::gNoNote_f, gPolyphony, -499.0, 500.0));
-            mNodeInputManager.AddInputBase(InputTypeBase::CUSTOM_INTERP_RWA_MS);
-            mNodeInputManager.AddInputBase(InputTypeBase::CUSTOM_INTERP_RWA_MS);
+            mNodeInputManager.AddInput(InputTypeBase::CONSTANT_VALUE, AddInput("Sync", 0.0f, 1, 0.0f, 1.0f));
+            mNodeInputManager.AddInput(InputTypeBase::CONSTANT_VALUE, AddInput("Bpm", 60.0f, 1, 1.0f, 1000.0f));
+            mNodeInputManager.AddInput(InputTypeBase::CONSTANT_VALUE, AddInput("Velocity", 0.5f, 1, 0.0f, 1.0f));
+            mNodeInputManager.AddInput(InputTypeBase::CONSTANT_VALUE, AddInput("Fade", 1.0f, 1, 0.0001f, 1.0f));
+            mNodeInputManager.AddInput(InputTypeBase::CONSTANT_VALUE, AddInput("Attack", 5.0f, 1, 1.0f, 10000.0f));
+            mNodeInputManager.AddInput(InputTypeBase::CONSTANT_VALUE, AddInput("Release", 20.0f, 1, 1.0f, 10000.0f));
+            mNodeInputManager.AddInput(InputTypeBase::CONSTANT_ARRAY, AddInput("Note On", l::audio::gNoNote_f, gPolyphony, -499.0, 500.0));
+            mNodeInputManager.AddInput(InputTypeBase::CONSTANT_ARRAY, AddInput("Note Off", l::audio::gNoNote_f, gPolyphony, -499.0, 500.0));
+            mNodeInputManager.AddCustom(InputTypeBase::CUSTOM_INTERP_RWA_MS); // 100
+            mNodeInputManager.AddCustom(InputTypeBase::CUSTOM_INTERP_RWA_MS); // 101
 
             AddOutput("Freq");
             AddOutput("Volume");
@@ -123,6 +121,7 @@ namespace l::nodegraph {
 
         float mSamplesUntilUpdate = 0.0f;
         float mUpdateRate = 256.0f;
+        int32_t mUpdateCounter = 0;
 
         float mGainTarget = 0.0f;
         float mGain = 0.0f;

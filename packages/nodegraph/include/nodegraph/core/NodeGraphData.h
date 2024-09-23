@@ -15,7 +15,6 @@
 namespace l::nodegraph {
 
     enum class InputType {
-        INPUT_EMPTY,
         INPUT_NODE,
         INPUT_CONSTANT,
         INPUT_VALUE,
@@ -50,9 +49,9 @@ namespace l::nodegraph {
     /**********************************************************************************/
     class NodeDataIterator {
     public:
-        NodeDataIterator(float* data = nullptr, float stepPerIndex = 1.0f) {
+        NodeDataIterator(float* data = nullptr, float increment = 1.0f) {
             mData = data;
-            mIncrement = stepPerIndex;
+            mIncrement = increment;
             mIndex = mIncrement * 0.5f; // warmstart accumulator half a step to avoid rounding down (to previous index) close to whole integers because of floating point inprecision
         }
         ~NodeDataIterator() = default;
@@ -66,7 +65,7 @@ namespace l::nodegraph {
             return p;
         }
         float& operator[](int offset) {
-            return *(mData + static_cast<int32_t>(offset * offset));
+            return *(mData + static_cast<int32_t>(offset * mIncrement));
         }
         float* data() {
             return mData;
@@ -75,6 +74,10 @@ namespace l::nodegraph {
             mData = data;
             mIncrement = stepPerIndex;
         }
+
+        float GetStepsPerIncrement() {
+            return 1.0f / mIncrement;
+        }
     protected:
         int32_t mSize = 0;
         float mIndex = 0.0f;
@@ -82,10 +85,31 @@ namespace l::nodegraph {
         float mIncrement = 0.0f;
     };
 
+    class NodeDataIteratorRwa {
+    public:
+        NodeDataIteratorRwa(NodeDataIterator&& iterator) {
+            Reset(std::move(iterator));
+        }
+        float operator*() {
+            return mRwa.Value();
+        }
+        float operator++(int) {
+            mRwa.SetTarget(*mIterator++);
+            return mRwa.Next();
+        }
+        void Reset(NodeDataIterator&& iterator) {
+            mIterator = std::move(iterator);
+            mRwa.Value() = *mIterator;
+            mRwa.SetConvergenceInTicks(iterator.GetStepsPerIncrement(), 0.35f);
+        }
+    protected:
+        NodeDataIterator mIterator;
+        l::audio::FilterRWAFloat mRwa;
+    };
     /*********************************************************************************/
     enum class InputTypeBase {
         SAMPLED = 0, // todo: make it interpolate in smaller custom buffers
-        //SAMPLED_RWA = 0, // todo: add a smoothed sampled variant. Will replace interp_rwa and interp_rwa_ms as we will add a separate config for passing ticks or millis
+        SAMPLED_RWA, // todo: add a smoothed sampled variant. Will replace interp_rwa and interp_rwa_ms as we will add a separate config for passing ticks or millis
         INTERP_RWA, // TBR
         INTERP_RWA_MS, // TBR
         CONSTANT_VALUE, // Will basically be replace by sampled as it should be able to handle 1-sized arrays
@@ -99,6 +123,7 @@ namespace l::nodegraph {
         l::audio::FilterRWAFloat mFilterRWA;
         l::math::tween::DynamicTween mTween;
         NodeDataIterator mIterator;
+        NodeDataIteratorRwa mIteratorRwa;
 
         InputUnion() : mFilterRWA() {}
         ~InputUnion() = default;

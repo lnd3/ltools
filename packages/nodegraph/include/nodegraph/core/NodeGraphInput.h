@@ -19,7 +19,7 @@ namespace l::nodegraph {
     class NodeGraphInput {
     public:
         Input mInput;
-        InputType mInputType = InputType::INPUT_EMPTY;
+        InputType mInputType = InputType::INPUT_CONSTANT;
 
         float mBoundMin = -l::math::constants::FLTMAX;
         float mBoundMax = l::math::constants::FLTMAX;
@@ -34,7 +34,7 @@ namespace l::nodegraph {
         void Reset();
         bool HasInputNode();
         float& Get(int32_t size = 1);
-        NodeDataIterator GetIterator(int32_t size = 1, float lod = 1.0f);
+        NodeDataIterator GetIterator(int32_t size = 1);
         NodeDataIterator GetArrayIterator();
         int32_t GetSize();
     };
@@ -71,6 +71,7 @@ namespace l::nodegraph {
         }
         ~NodeGraphInputAccessor() = default;
 
+        void SetUpdateRate(float updateRate);
         void SetDuration(float ms, float limit = 0.001f);
         void SetDuration(int32_t ticks);
         void SetTarget(float value);
@@ -79,7 +80,7 @@ namespace l::nodegraph {
         float GetValue();
         float GetArrayValue(int32_t index);
         float* GetArray();
-        void ProcessUpdate(std::vector<NodeGraphInput>& input, int32_t numSamples, float updateRate);
+        void BatchUpdate(std::vector<NodeGraphInput>& input, int32_t numSamples);
         void NodeUpdate(std::vector<NodeGraphInput>& input, float updateRate);
 
     protected:

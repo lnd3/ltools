@@ -11,7 +11,7 @@ namespace l::nodegraph {
 
     /*********************************************************************/
     void GraphSignalBase::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        mNodeInputManager.ProcessUpdate(inputs, numSamples, mUpdateRate);
+        mNodeInputManager.BatchUpdate(inputs, numSamples);
 
         float sync = mNodeInputManager.GetValueNext(0);
         if (sync > 0.5f) {
@@ -105,6 +105,8 @@ namespace l::nodegraph {
     void GraphSignalSaw2::UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {
         mAttenuation = mNodeInputManager.GetValueNext(mNumDefaultInputs + 0);
         mCutoff = mNodeInputManager.GetValueNext(mNumDefaultInputs + 1);
+        mNodeInputManager.SetUpdateRate(mNumDefaultInputs + 0, mUpdateRate);
+        mNodeInputManager.SetUpdateRate(mNumDefaultInputs + 1, mUpdateRate);
 
         UpdateSaw(&mSaw, 0.00001f + 0.99999f * mAttenuation * mAttenuation * mAttenuation, mCutoff * mCutoff);
     }

@@ -10,7 +10,7 @@ namespace l::nodegraph {
     void NodeGraphInput::Reset() {
         if (mInputType == InputType::INPUT_NODE || mInputType == InputType::INPUT_VALUE) {
             mInput.mInputNode = nullptr;
-            mInputType = InputType::INPUT_EMPTY;
+            mInputType = InputType::INPUT_CONSTANT;
             mInputFromOutputChannel = 0;
         }
     }
@@ -44,26 +44,34 @@ namespace l::nodegraph {
             return mInput.mInputFloatConstant;
         case InputType::INPUT_VALUE:
             return *mInput.mInputFloat;
-        case InputType::INPUT_EMPTY:
-            break;
         }
         return mInput.mInputFloatConstant;
     }
 
-    NodeDataIterator NodeGraphInput::GetIterator(int32_t size, float lod) {
-        if (mInputType == InputType::INPUT_NODE && mInput.mInputNode != nullptr) {
-            return mInput.mInputNode->GetOutputOf(mInputFromOutputChannel).GetIterator();
-        }
-        else if (mInputType == InputType::INPUT_CONSTANT) {
-            return NodeDataIterator(&Get(1), 0.0f);
-        }
-        else {
-            if (mInputLod == 1.0f && lod > 1.0f) {
-                mInputLod = lod;
+    NodeDataIterator NodeGraphInput::GetIterator(int32_t size) {
+        switch (mInputType) {
+        case InputType::INPUT_NODE:
+            if (mInput.mInputNode != nullptr) {
+                return mInput.mInputNode->GetOutputOf(mInputFromOutputChannel).GetIterator();
             }
-            float stepPerIndex = size == 1 ? 0.0f : 1.0f / mInputLod;
-            return NodeDataIterator(&Get(size), stepPerIndex);
+            break;
+        case InputType::INPUT_ARRAY:
+            if (!mInputBuf) {
+                mInputBuf = std::make_unique<std::vector<float>>();
+            }
+            if (static_cast<int32_t>(mInputBuf->size()) < size) {
+                mInputBuf->resize(size);
+                for (size_t i = 0; i < mInputBuf->size(); i++) {
+                    (*mInputBuf)[i] = 0.0f;
+                }
+            }
+            return NodeDataIterator(mInputBuf->data());
+        case InputType::INPUT_VALUE:
+            return NodeDataIterator(mInput.mInputFloat, 0.0f);
+        case InputType::INPUT_CONSTANT:
+            return NodeDataIterator(&mInput.mInputFloatConstant, 0.0f);
         }
+        return NodeDataIterator(&mInput.mInputFloatConstant, 0.0f);
     }
 
     NodeDataIterator NodeGraphInput::GetArrayIterator() {
@@ -87,13 +95,32 @@ namespace l::nodegraph {
             return 1;
         case InputType::INPUT_VALUE:
             return 1;
-        case InputType::INPUT_EMPTY:
-            break;
         }
         return 1;
     }
 
     /*********************************************************************************/
+
+    void NodeGraphInputAccessor::SetUpdateRate(float updateRate) {
+        switch (mType) {
+        case InputTypeBase::INTERP_RWA:
+        case InputTypeBase::INTERP_RWA_MS:
+            mInput.mFilterRWA.SetRWAUpdateRate(updateRate);
+            break;
+        case InputTypeBase::CUSTOM_INTERP_TWEEN:
+        case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
+            mInput.mTween.Update(updateRate);
+            break;
+        case InputTypeBase::CUSTOM_INTERP_RWA_MS: // must set it manually
+            mInput.mFilterRWA.SetRWAUpdateRate(updateRate);
+            break;
+        case InputTypeBase::SAMPLED:
+        case InputTypeBase::CONSTANT_VALUE:
+        case InputTypeBase::CONSTANT_ARRAY:
+        case InputTypeBase::SAMPLED_RWA:
+            break;
+        }
+    }
 
     void NodeGraphInputAccessor::SetDuration(int32_t ticks) {
         switch (mType) {
@@ -109,6 +136,7 @@ namespace l::nodegraph {
             mInput.mTween.SetTweenLength(ticks);
             break;
         case InputTypeBase::SAMPLED:
+        case InputTypeBase::SAMPLED_RWA:
         case InputTypeBase::CONSTANT_VALUE:
         case InputTypeBase::CONSTANT_ARRAY:
             ASSERT(false) << "Failed to set convergence on a non interpolated input type";
@@ -130,6 +158,7 @@ namespace l::nodegraph {
             mInput.mTween.SetTweenLength(l::audio::GetAudioTicksFromMS(ms));
             break;
         case InputTypeBase::SAMPLED:
+        case InputTypeBase::SAMPLED_RWA:
         case InputTypeBase::CONSTANT_VALUE:
         case InputTypeBase::CONSTANT_ARRAY:
             ASSERT(false) << "Failed to set convergence on a non interpolated input type";
@@ -149,6 +178,7 @@ namespace l::nodegraph {
             mInput.mTween.SetTarget(value);
             break;
         case InputTypeBase::SAMPLED:
+        case InputTypeBase::SAMPLED_RWA:
         case InputTypeBase::CONSTANT_VALUE:
         case InputTypeBase::CONSTANT_ARRAY:
             break;
@@ -185,6 +215,8 @@ namespace l::nodegraph {
         case InputTypeBase::SAMPLED:
         case InputTypeBase::CONSTANT_ARRAY:
             return *mInput.mIterator++;
+        case InputTypeBase::SAMPLED_RWA:
+            return mInput.mIteratorRwa++;
         case InputTypeBase::CONSTANT_VALUE:
             return *mInput.mIterator;
         }
@@ -204,6 +236,8 @@ namespace l::nodegraph {
         case InputTypeBase::CONSTANT_VALUE:
         case InputTypeBase::CONSTANT_ARRAY:
             return *mInput.mIterator;
+        case InputTypeBase::SAMPLED_RWA:
+            return *mInput.mIteratorRwa;
         }
         return 0.0f;
     }
@@ -223,18 +257,20 @@ namespace l::nodegraph {
     }
 
     // run on each new batch call to setup input iterators for buffered data
-    void NodeGraphInputAccessor::ProcessUpdate(std::vector<NodeGraphInput>& input, int32_t numSamples, float updateRate) {
+    void NodeGraphInputAccessor::BatchUpdate(std::vector<NodeGraphInput>& input, int32_t numSamples) {
         switch (mType) {
         case InputTypeBase::INTERP_RWA:
         case InputTypeBase::INTERP_RWA_MS:
         case InputTypeBase::CUSTOM_INTERP_RWA_MS:
-            mInput.mFilterRWA.SetRWAUpdateRate(updateRate);
             break;
         case InputTypeBase::CUSTOM_INTERP_TWEEN:
         case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
             break;
         case InputTypeBase::SAMPLED:
             mInput.mIterator = input.at(mInputIndex).GetIterator(numSamples);
+            break;
+        case InputTypeBase::SAMPLED_RWA:
+            mInput.mIteratorRwa = input.at(mInputIndex).GetIterator(numSamples);
             break;
         case InputTypeBase::CONSTANT_VALUE:
             mInput.mIterator.Reset(&input.at(mInputIndex).Get(), 1);
@@ -250,7 +286,6 @@ namespace l::nodegraph {
         switch (mType) {
         case InputTypeBase::INTERP_RWA:
         case InputTypeBase::INTERP_RWA_MS:
-            mInput.mFilterRWA.SetRWAUpdateRate(updateRate);
             mInput.mFilterRWA.SetTarget(input.at(mInputIndex).Get());
             break;
         case InputTypeBase::CUSTOM_INTERP_TWEEN:
@@ -258,11 +293,11 @@ namespace l::nodegraph {
             mInput.mTween.Update(updateRate);
             break;
         case InputTypeBase::CUSTOM_INTERP_RWA_MS: // must set it manually
-            mInput.mFilterRWA.SetRWAUpdateRate(updateRate);
             break;
         case InputTypeBase::SAMPLED:
         case InputTypeBase::CONSTANT_VALUE:
         case InputTypeBase::CONSTANT_ARRAY:
+        case InputTypeBase::SAMPLED_RWA:
             break;
         }
     }

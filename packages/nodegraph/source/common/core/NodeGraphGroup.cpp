@@ -14,8 +14,8 @@ namespace l::nodegraph {
                 ASSERT(numInputSamples == numSamples);
             }
 
-            auto input = &inputs.at(i).Get(numInputSamples);
-            auto output = &outputs.at(i).Get(numSamples);
+            auto input = inputs.at(i).GetIterator(numInputSamples);
+            auto output = outputs.at(i).GetIterator(numSamples);
             for (int32_t j = 0; j < numSamples; j++) {
                 *output++ = *input++;
             }

@@ -218,19 +218,23 @@ namespace l::nodegraph {
 
     class NodeInputManager {
     public:
+        const int32_t gCustomIndexBase = 100;
+
         NodeInputManager(NodeGraphOp& nodeGraphOperation) :
             mNodeGraphOperation(nodeGraphOperation)
         {
         }
         ~NodeInputManager() = default;
 
-        int32_t AddInputBase(InputTypeBase type, int32_t inputIndex = -1);
-        void ProcessUpdate(std::vector<NodeGraphInput>& inputs, int32_t numSamples, float updateRate);
+        int32_t AddInput(InputTypeBase type, int32_t inputIndex = -1);
+        int32_t AddCustom(InputTypeBase type);
+        void BatchUpdate(std::vector<NodeGraphInput>& inputs, int32_t numSamples);
         void NodeUpdate(std::vector<NodeGraphInput>& inputs, float updateRate);
         float GetValueNext(int32_t inputIndex);
         float GetValue(int32_t inputIndex);
         float GetArrayValue(int32_t inputIndex, int32_t arrayIndex);
         float* GetArray(int32_t inputIndex);
+        void SetUpdateRate(int32_t inputIndex, float updateRate);
         void SetDuration(int32_t inputIndex, float value, float limit = 0.001f);
         void SetTarget(int32_t inputIndex, float value);
         void SetValue(int32_t inputIndex, float value);
@@ -238,7 +242,49 @@ namespace l::nodegraph {
     protected:
         NodeGraphOp& mNodeGraphOperation;
         std::vector<NodeGraphInputAccessor> mInputs;
-        //std::vector<InputBase&> mInputsRefs;
+        std::vector<NodeGraphInputAccessor> mCustom;
+    };
+
+    class NodeGraphOp2 : public NodeGraphOp {
+    public:
+        NodeGraphOp2(NodeGraphBase* node, std::string_view name) :
+            NodeGraphOp(node, name),
+            mNodeInputManager(*this) {
+
+        }
+        ~NodeGraphOp2() {
+
+        }
+
+        virtual void Tick(int32_t, float) override;
+
+        int32_t AddInput(
+            InputTypeBase type,
+            std::string_view name, 
+            float defaultValue = 0.0f, 
+            int32_t size = 1, 
+            float boundMin = -l::math::constants::FLTMAX, 
+            float boundMax = l::math::constants::FLTMAX, 
+            bool visible = true, 
+            bool editable = true);
+
+        int32_t AddConstant(
+            InputTypeBase type,
+            std::string_view name, 
+            float defaultValue = 0.0f, 
+            int32_t size = 1, 
+            float boundMin = -l::math::constants::FLTMAX, 
+            float boundMax = l::math::constants::FLTMAX, 
+            bool visible = true, 
+            bool editable = true);
+
+        int32_t AddCustom(
+            InputTypeBase type);
+
+    protected:
+        NodeInputManager mNodeInputManager;
+        float mStepsUntilUpdate = 0.0f;
+        float mUpdateRate = 16.0f;
     };
 }
 
