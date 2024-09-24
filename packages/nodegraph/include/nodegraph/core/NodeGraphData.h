@@ -111,7 +111,7 @@ namespace l::nodegraph {
     };
     /*********************************************************************************/
     enum class InputTypeBase {
-        SAMPLED = 0, // todo: make it interpolate in smaller custom buffers
+        SAMPLED = 0, // interpolate in a buffer the size of a ProcessSubGraph(size) call. The actual size is defined by the lod factor of the output buffer.
         SAMPLED_RWA, // todo: add a smoothed sampled variant. Will replace interp_rwa and interp_rwa_ms as we will add a separate config for passing ticks or millis
         CONSTANT_ARRAY, // Same here, will be replaced
         CUSTOM_INTERP_TWEEN, // custom input vars should not be used at all

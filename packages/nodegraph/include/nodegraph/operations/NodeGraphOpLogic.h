@@ -36,10 +36,15 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphLogicalAnd() = default;
-        virtual void Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            bool input1 = inputs.at(0).Get() != 0.0f;
-            bool input2 = inputs.at(1).Get() != 0.0f;
-            outputs.at(0).mOutput = (input1 && input2) ? 1.0f : 0.0f;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+            auto input1 = inputs.at(0).GetIterator(numSamples);
+            auto input2 = inputs.at(1).GetIterator(numSamples);
+            auto output = outputs.at(0).GetIterator();
+            for (int32_t i = 0; i < numSamples; i++) {
+                bool bool1 = (*input1++) != 0.0f;
+                bool bool2 = (*input2++) != 0.0f;
+                *output++ = (bool1 && bool2) ? 1.0f : 0.0f;
+            }
         }
     };
 
@@ -55,10 +60,15 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphLogicalOr() = default;
-        virtual void Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            bool input1 = inputs.at(0).Get() != 0.0f;
-            bool input2 = inputs.at(1).Get() != 0.0f;
-            outputs.at(0).mOutput = (input1 || input2) ? 1.0f : 0.0f;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+            auto input1 = inputs.at(0).GetIterator(numSamples);
+            auto input2 = inputs.at(1).GetIterator(numSamples);
+            auto output = outputs.at(0).GetIterator();
+            for (int32_t i = 0; i < numSamples; i++) {
+                bool bool1 = (*input1++) != 0.0f;
+                bool bool2 = (*input2++) != 0.0f;
+                *output++ = (bool1 || bool2) ? 1.0f : 0.0f;
+            }
         }
     };
 
@@ -74,10 +84,15 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphLogicalXor() = default;
-        virtual void Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            bool input1 = inputs.at(0).Get() != 0.0f;
-            bool input2 = inputs.at(1).Get() != 0.0f;
-            outputs.at(0).mOutput = (input1 ^ input2) ? 1.0f : 0.0f;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+            auto input1 = inputs.at(0).GetIterator(numSamples);
+            auto input2 = inputs.at(1).GetIterator(numSamples);
+            auto output = outputs.at(0).GetIterator();
+            for (int32_t i = 0; i < numSamples; i++) {
+                bool bool1 = (*input1++) != 0.0f;
+                bool bool2 = (*input2++) != 0.0f;
+                *output++ = (bool1 ^ bool2) ? 1.0f : 0.0f;
+            }
         }
     };
 

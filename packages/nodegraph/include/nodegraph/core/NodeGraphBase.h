@@ -245,6 +245,7 @@ namespace l::nodegraph {
         std::vector<NodeGraphInputAccessor> mCustom;
     };
 
+    // Use this when the operation requires dynamic input parameters or when the input data can be sampled scarcily (not every sample etc)
     class NodeGraphOp2 : public NodeGraphOp {
     public:
         NodeGraphOp2(NodeGraphBase* node, std::string_view name) :

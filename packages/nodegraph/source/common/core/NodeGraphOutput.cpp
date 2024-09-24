@@ -31,7 +31,7 @@ namespace l::nodegraph {
     }
 
     NodeDataIterator NodeGraphOutput::GetIterator(int32_t size, float lod) {
-        if (mOutputLod == 1.0f && lod > 1.0f) {
+        if (lod >= 1.0f && lod <= size) {
             mOutputLod = lod;
         }
         float stepPerIndex = size == 1 ? 0.0f : 1.0f / mOutputLod;
