@@ -45,7 +45,7 @@ namespace l::ui {
 
                 mNGSchema->ForEachNodeType([&](std::string_view typeName, const std::vector<l::nodegraph::UINodeDesc>& types) {
                     if (typeName.empty() || ImGui::TreeNode(typeName.data())) {
-                        for (auto it : types) {
+                        for (auto& it : types) {
                             if (ImGui::MenuItem(it.GetName().data())) {
                                 ImVec2 p = ImVec2(mUIInput.mCurPos.x - mUIWindow.GetPosition().x, mUIInput.mCurPos.y - mUIWindow.GetPosition().y);
                                 p.x -= mUIRoot->GetPosition().x;

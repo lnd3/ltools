@@ -189,7 +189,7 @@ namespace l::nodegraph {
     }
 
     void NodeGraphSchema::ForEachNodeType(std::function<void(std::string_view, const std::vector<UINodeDesc>&)> cb) const {
-        for (auto it : mRegisteredNodeTypes) {
+        for (auto& it : mRegisteredNodeTypes) {
             cb(it.first, it.second);
         }
     }

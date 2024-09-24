@@ -50,7 +50,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphSignalBase() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override final;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
 
         virtual void ResetInput() {};
         virtual void ResetSignal() {};

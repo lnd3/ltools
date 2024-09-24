@@ -107,6 +107,8 @@ namespace l::nodegraph {
         mCutoff = mNodeInputManager.GetValueNext(mNumDefaultInputs + 1);
         mNodeInputManager.SetUpdateRate(mNumDefaultInputs + 0, mUpdateRate);
         mNodeInputManager.SetUpdateRate(mNumDefaultInputs + 1, mUpdateRate);
+        mNodeInputManager.SetDuration(mNumDefaultInputs + 0, 1.0f);
+        mNodeInputManager.SetDuration(mNumDefaultInputs + 1, 1.0f);
 
         UpdateSaw(&mSaw, 0.00001f + 0.99999f * mAttenuation * mAttenuation * mAttenuation, mCutoff * mCutoff);
     }

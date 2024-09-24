@@ -197,6 +197,7 @@ namespace l::nodegraph {
             mInput.mTween.Reset(value);
             break;
         case InputTypeBase::SAMPLED:
+        case InputTypeBase::SAMPLED_RWA:
         case InputTypeBase::CONSTANT_VALUE:
         case InputTypeBase::CONSTANT_ARRAY:
             break;
@@ -295,9 +296,9 @@ namespace l::nodegraph {
         case InputTypeBase::CUSTOM_INTERP_RWA_MS: // must set it manually
             break;
         case InputTypeBase::SAMPLED:
+        case InputTypeBase::SAMPLED_RWA:
         case InputTypeBase::CONSTANT_VALUE:
         case InputTypeBase::CONSTANT_ARRAY:
-        case InputTypeBase::SAMPLED_RWA:
             break;
         }
     }

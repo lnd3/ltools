@@ -15,8 +15,8 @@ public:
     TestOp(NodeGraphBase* node) :
         NodeGraphOp2(node, "TestOp")
     {
-        AddInput(InputTypeBase::SAMPLED, "In 0", 0.0f, 1, 0.0f, 1.0f);
-        AddInput(InputTypeBase::SAMPLED_RWA, "In 1", 0.0f, 1, 0.0f, 1.0f);
+        AddInput2(InputTypeBase::SAMPLED, "In 0", 0.0f, 1, 0.0f, 1.0f);
+        AddInput2(InputTypeBase::SAMPLED_RWA, "In 1", 0.0f, 1, 0.0f, 1.0f);
         AddOutput("Out 0");
         AddOutput("Out 1");
     }

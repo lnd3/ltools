@@ -48,26 +48,6 @@ namespace l::nodegraph {
             mType(type),
             mInputIndex(inputIndex)
         {
-            switch(mType) {
-            case InputTypeBase::INTERP_RWA:
-            case InputTypeBase::INTERP_RWA_MS:
-            case InputTypeBase::CUSTOM_INTERP_RWA_MS:
-                //new (&s.vec) std::vector<int>;
-                new (&mInput.mFilterRWA) l::audio::FilterRWA<float>();
-
-                //mInput.mFilter = l::audio::FilterRWA<float>();
-                break;
-            case InputTypeBase::CUSTOM_INTERP_TWEEN:
-            case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
-                new (&mInput.mTween) l::math::tween::DynamicTween();
-                break;
-            case InputTypeBase::SAMPLED:
-            case InputTypeBase::CONSTANT_VALUE:
-            case InputTypeBase::CONSTANT_ARRAY:
-                new (&mInput.mIterator) NodeDataIterator(nullptr);
-                //mInput.mIterator = NodeInputDataIterator();
-                break;
-            }
         }
         ~NodeGraphInputAccessor() = default;
 

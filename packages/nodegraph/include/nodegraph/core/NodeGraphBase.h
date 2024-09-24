@@ -258,7 +258,7 @@ namespace l::nodegraph {
 
         virtual void Tick(int32_t, float) override;
 
-        int32_t AddInput(
+        int32_t AddInput2(
             InputTypeBase type,
             std::string_view name, 
             float defaultValue = 0.0f, 
@@ -268,7 +268,7 @@ namespace l::nodegraph {
             bool visible = true, 
             bool editable = true);
 
-        int32_t AddConstant(
+        int32_t AddConstant2(
             InputTypeBase type,
             std::string_view name, 
             float defaultValue = 0.0f, 
@@ -278,7 +278,7 @@ namespace l::nodegraph {
             bool visible = true, 
             bool editable = true);
 
-        int32_t AddCustom(
+        int32_t AddCustom2(
             InputTypeBase type);
 
     protected:

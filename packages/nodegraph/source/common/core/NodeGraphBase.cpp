@@ -443,6 +443,7 @@ namespace l::nodegraph {
     void NodeInputManager::SetUpdateRate(int32_t inputIndex, float updateRate) {
         if (inputIndex < gCustomIndexBase) {
             mInputs.at(inputIndex).SetUpdateRate(updateRate);
+            return;
         }
         mCustom.at(inputIndex - gCustomIndexBase).SetUpdateRate(updateRate);
     }
@@ -450,6 +451,7 @@ namespace l::nodegraph {
     void NodeInputManager::SetDuration(int32_t inputIndex, float value, float limit) {
         if (inputIndex < gCustomIndexBase) {
             mInputs.at(inputIndex).SetDuration(value, limit);
+            return;
         }
         mCustom.at(inputIndex - gCustomIndexBase).SetDuration(value, limit);
     }
@@ -457,6 +459,7 @@ namespace l::nodegraph {
     void NodeInputManager::SetTarget(int32_t inputIndex, float value) {
         if (inputIndex < gCustomIndexBase) {
             mInputs.at(inputIndex).SetTarget(value);
+            return;
         }
         mCustom.at(inputIndex - gCustomIndexBase).SetTarget(value);
     }
@@ -464,6 +467,7 @@ namespace l::nodegraph {
     void NodeInputManager::SetValue(int32_t inputIndex, float value) {
         if (inputIndex < gCustomIndexBase) {
             mInputs.at(inputIndex).SetValue(value);
+            return;
         }
         mCustom.at(inputIndex - gCustomIndexBase).SetValue(value);
     }
@@ -474,7 +478,7 @@ namespace l::nodegraph {
 
     }
 
-    int32_t NodeGraphOp2::AddInput(
+    int32_t NodeGraphOp2::AddInput2(
         InputTypeBase type,
         std::string_view name,
         float defaultValue,
@@ -486,7 +490,7 @@ namespace l::nodegraph {
         return mNodeInputManager.AddInput(type, NodeGraphOp::AddInput(name, defaultValue, size, boundMin, boundMax, visible, editable));
     }
 
-    int32_t NodeGraphOp2::AddConstant(
+    int32_t NodeGraphOp2::AddConstant2(
         InputTypeBase type,
         std::string_view name,
         float defaultValue,
@@ -498,7 +502,7 @@ namespace l::nodegraph {
         return mNodeInputManager.AddInput(type, NodeGraphOp::AddConstant(name, defaultValue, size, boundMin, boundMax, visible, editable));
     }
 
-    int32_t NodeGraphOp2::AddCustom(InputTypeBase type) {
+    int32_t NodeGraphOp2::AddCustom2(InputTypeBase type) {
         return mNodeInputManager.AddCustom(type);
     }
 
