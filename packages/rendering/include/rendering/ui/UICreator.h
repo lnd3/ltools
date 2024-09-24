@@ -19,5 +19,5 @@
 
 namespace l::ui {
 
-    UIHandle CreateUINode(UIStorage& uiStorage, l::nodegraph::NodeGraphBase& node, ImVec2 p);
+    UIHandle CreateUINode(UIManager& uiManager, l::nodegraph::NodeGraphBase& node, ImVec2 p);
 }

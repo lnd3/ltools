@@ -182,7 +182,7 @@ namespace l::ui {
                     if (mNGSchema != nullptr) {
                         mNGSchema->RemoveNode(it->GetNodeId());
                     }
-                    DeleteContainer(mUIStorage, it);
+                    DeleteContainer(mUIManager, it);
                 }
                 mSelectedContainers.clear();
                 return true;
@@ -435,7 +435,7 @@ namespace l::ui {
             ImVec2 pT = layoutArea.Transform(pCenter);
             if (OverlapCircle(input.mCurPos, pT, 2.0f * size.x * layoutArea.mScale)) {
                 mDragging = true;
-                mLinkContainer = CreateContainer(mUIStorage, UIContainer_LinkFlag | UIContainer_DrawFlag, UIRenderType::LinkH);
+                mLinkContainer = CreateContainer(mUIManager, UIContainer_LinkFlag | UIContainer_DrawFlag, UIRenderType::LinkH);
                 container.Add(mLinkContainer);
                 return true;
             }
@@ -489,7 +489,7 @@ namespace l::ui {
                     mLinkContainer.Reset();
                 }
                 else {
-                    DeleteContainer(mUIStorage, mLinkContainer.Get());
+                    DeleteContainer(mUIManager, mLinkContainer.Get());
                     mDragging = false;
                     mLinkContainer.Reset();
                     return true;
