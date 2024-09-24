@@ -112,8 +112,9 @@ namespace l::nodegraph {
     float GraphFilterChamberlain2pole::ProcessSignal(float input, float cutoff, float resonance) {
         float inputValueInbetween = (mInputValuePrev + input) * 0.5f;
         float scale = mScaleFilter.Next();
+        resonance *= 0.99f * (cutoff * 0.15f + 0.85f); // adjust resonance slightly down at low frequencies to avoid oscillation
         cutoff *= 0.5f;
-        resonance = 1.0f - resonance;
+        resonance = (1.0f - resonance);
         for (int32_t oversample = 0; oversample < 2; oversample++) {
             mState.at(0) = mState.at(0) + cutoff * mState.at(2);
             mState.at(1) = scale * (oversample == 0 ? inputValueInbetween : input) - mState.at(0) - resonance * mState.at(2);

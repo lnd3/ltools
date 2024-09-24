@@ -73,14 +73,11 @@ namespace l::math::tween {
 	// update rate in audio processing, the number of samples between calls
 	// we can use this to update expensive interpolation here
 	void DynamicTween::Update(float updateRate) {
-		if (updateRate != mUpdateRate) {
-			mUpdateRate = l::math::functions::max(updateRate, 2.0f);
-			mDynamicSmooth = GetRWAFactor(static_cast<int32_t>(mUpdateRate), mDynamicSmoothAccuracy);
-		}
+		mDynamicSmooth = GetRWAFactor(static_cast<int32_t>(updateRate), mDynamicSmoothAccuracy);
 
 		mTarget = mTargetValue;
 		if (mCounter < mUpdateCount) {
-			float t = (mCounter + 0.5f * mUpdateRate) / static_cast<float>(mUpdateCount - 0.5f * mUpdateRate);
+			float t = (mCounter + 0.5f) / static_cast<float>(mUpdateCount - 0.5f);
 			t = l::math::functions::clamp(t, 0.0f, 1.0f);
 			mTarget = mTargetValuePrev + l::math::smooth::smoothPolyh3(t) * (mTargetValue - mTargetValuePrev);
 		}
@@ -95,4 +92,5 @@ namespace l::math::tween {
 	float DynamicTween::Value() {
 		return mValue;
 	}
+
 }

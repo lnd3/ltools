@@ -36,7 +36,7 @@ TEST(NodeGraphBatching, Simple) {
 
 	auto output = &group.GetOutput(0, 8);
 	
-	TEST_FUZZY(0.034771f, output[7], 0.0001f, "");
+	TEST_FUZZY(0.012347f, output[7], 0.0001f, "");
 
 	return 0;
 }

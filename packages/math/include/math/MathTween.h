@@ -45,7 +45,6 @@ namespace l::math::tween {
         float Value();
 
     protected:
-        float mUpdateRate = 0.0f;
         int32_t mUpdateCount = 1;
         float mDynamicSmoothAccuracy = 0.1f;
         float mDynamicSmooth = 0.25f;

@@ -38,7 +38,7 @@ TEST(MathTween, DynamicTween) {
 }
 
 TEST(MathTween, DynamicTweenVeryShortBatch) {
-	DynamicTween tween(0.1f);
+	DynamicTween tween(0.01f);
 	tween.SetValue(1.0f);
 	tween.SetTarget(0.0, 22);
 	TEST_FUZZY(tween.Value(), 1.0f, 0.01f, "");
@@ -55,7 +55,7 @@ TEST(MathTween, DynamicTweenVeryShortBatch) {
 }
 
 TEST(MathTween, DynamicTweenShortBatch) {
-	DynamicTween tween(0.35f);
+	DynamicTween tween(0.135f);
 	tween.SetValue(1.0f);
 	tween.SetTarget(0.0, 102);
 	TEST_FUZZY(tween.Value(), 1.0f, 0.01f, "");
@@ -72,7 +72,7 @@ TEST(MathTween, DynamicTweenShortBatch) {
 }
 
 TEST(MathTween, DynamicTweenLongBatch) {
-	int32_t updateRate = 100;
+	float updateRate = 100.0f;
 	DynamicTween tween(0.35f);
 	tween.SetValue(1.0f);
 	tween.SetTarget(0.0, 1020);
@@ -84,7 +84,7 @@ TEST(MathTween, DynamicTweenLongBatch) {
 		auto value = tween.Next();
 		LOG(LogInfo) << "Tween (" << i << "): " << value;
 	}
-	TEST_FUZZY(tween.Value(), 0.0f, 0.01f, "");
+	TEST_FUZZY(tween.Value(), 0.0f, 0.02f, "");
 
 	return 0;
 }

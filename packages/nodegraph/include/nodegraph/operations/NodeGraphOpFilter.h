@@ -102,7 +102,7 @@ namespace l::nodegraph {
         GraphFilterChamberlain2pole(NodeGraphBase* node) :
             GraphFilterBase(node, "Chamberlin two-pole")
         {
-            AddInput("Mode");
+            mNodeInputManager.AddInput(InputTypeBase::SAMPLED, AddInput("Mode"));
             mState.resize(4);
         }
         virtual ~GraphFilterChamberlain2pole() = default;
