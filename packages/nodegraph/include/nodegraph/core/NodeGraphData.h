@@ -82,9 +82,8 @@ namespace l::nodegraph {
             return 1.0f / mIncrement;
         }
     protected:
-        int32_t mSize = 0;
-        float mIndex = 0.0f;
         float* mData = nullptr;
+        float mIndex = 0.0f;
         float mIncrement = 0.0f;
     };
 
@@ -111,12 +110,12 @@ namespace l::nodegraph {
     };
     /*********************************************************************************/
     enum class InputTypeBase {
-        SAMPLED = 0, // interpolate in a buffer the size of a ProcessSubGraph(size) call. The actual size is defined by the lod factor of the output buffer.
-        SAMPLED_RWA, // todo: add a smoothed sampled variant. Will replace interp_rwa and interp_rwa_ms as we will add a separate config for passing ticks or millis
-        CONSTANT_ARRAY, // Same here, will be replaced
-        CUSTOM_INTERP_TWEEN, // custom input vars should not be used at all
-        CUSTOM_INTERP_TWEEN_MS,
-        CUSTOM_INTERP_RWA_MS
+        SAMPLED = 0, // interpolate in a buffer the size of a ProcessSubGraph(size) call. The actual size is defined by the lod factor of the source output buffer.
+        SAMPLED_RWA, // same as SAMPLED, but it also uses RWA on the output with a smoothing factor defined by the lod factor of the source output buffer
+        CONSTANT_ARRAY, // user defined array for custom usage
+        CUSTOM_INTERP_TWEEN, // custom input vars that tweens the input like a s curve
+        CUSTOM_INTERP_TWEEN_MS, // millisecond synchronized tweening
+        CUSTOM_INTERP_RWA_MS // custom input var for rwa smoothing synchronized to milliseconds
     };
 
     union InputUnion {

@@ -35,7 +35,6 @@ namespace l::audio {
 
         FilterRWA() :
             mSmooth(static_cast<T>(0.005)),
-            mSmoothSkewed(mSmooth * mSmooth),
             mValue(static_cast<T>(0)),
             mTargetValue(static_cast<T>(0)),
             mRWAUpdateRate(static_cast<T>(1.0))
@@ -52,19 +51,16 @@ namespace l::audio {
 
         FilterRWA<T>& SetConvergenceInMs(T convergenceInMS, T limit = static_cast<T>(0.0001), T sampleRate = static_cast<T>(44100.0)) {
             mSmooth = GetRWAFactorFromMS(convergenceInMS, limit, mRWAUpdateRate, sampleRate);
-            mSmoothSkewed = GetRWAFactorFromMSSkewed(convergenceInMS, limit, mRWAUpdateRate, sampleRate);
             return *this;
         }
 
         FilterRWA<T>& SetConvergenceFactor(T smooth = static_cast<T>(0.005)) {
             mSmooth = smooth;
-            mSmoothSkewed = mSmooth * mSmooth;
             return *this;
         }
 
         FilterRWA<T>& SetConvergenceInTicks(T ticks, T limit = static_cast<T>(0.001)) {
             mSmooth = l::math::tween::GetRWAFactor(static_cast<int32_t>(ticks), limit);
-            mSmoothSkewed = mSmooth * mSmooth;
             return *this;
         }
 
@@ -78,17 +74,6 @@ namespace l::audio {
             return *this;
         }
 
-        T NextSkewed() {
-            float delta = mTargetValue - mValue;
-            if (delta < 0) {
-                mValue += mSmooth * delta;
-            }
-            else {
-                mValue += mSmoothSkewed * delta;
-            }
-            return mValue;
-        }
-
         T Next() {
             mValue += mSmooth * (mTargetValue - mValue);
             return mValue;
@@ -100,7 +85,6 @@ namespace l::audio {
 
     protected:
         T mSmooth;
-        T mSmoothSkewed;
         T mValue;
         T mTargetValue;
         T mRWAUpdateRate;

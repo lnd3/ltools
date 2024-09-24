@@ -238,7 +238,7 @@ namespace l::nodegraph {
             mInput.mIterator = input.at(mInputIndex).GetIterator(numSamples);
             break;
         case InputTypeBase::SAMPLED_RWA:
-            mInput.mIteratorRwa = input.at(mInputIndex).GetIterator(numSamples);
+            mInput.mIteratorRwa = NodeDataIteratorRwa(input.at(mInputIndex).GetIterator(numSamples));
             break;
         case InputTypeBase::CONSTANT_ARRAY:
             mInput.mIterator = input.at(mInputIndex).GetArrayIterator();
