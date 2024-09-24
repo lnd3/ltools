@@ -37,10 +37,10 @@ namespace l::nodegraph {
             mDefaultOutStrings.clear();
             mDefaultInData.clear();
 
-            mNodeInputManager.AddInput(InputTypeBase::CONSTANT_VALUE, AddInput("Sync", 0.0f));
+            mNodeInputManager.AddInput(InputTypeBase::SAMPLED, AddInput("Sync", 0.0f));
             mNodeInputManager.AddInput(InputTypeBase::SAMPLED, AddInput("In"));
-            mNodeInputManager.AddInput(InputTypeBase::INTERP_RWA, AddInput("Cutoff", 1.0f));
-            mNodeInputManager.AddInput(InputTypeBase::INTERP_RWA, AddInput("Resonance", 0.0f));
+            mNodeInputManager.AddInput(InputTypeBase::SAMPLED_RWA, AddInput("Cutoff", 1.0f));
+            mNodeInputManager.AddInput(InputTypeBase::SAMPLED_RWA, AddInput("Resonance", 0.0f));
 
             AddOutput("Out", 0.0f);
         }

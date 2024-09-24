@@ -22,7 +22,7 @@ namespace l::nodegraph {
 
         mSamplesUntilUpdate = l::audio::BatchUpdate(mUpdateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
-                mUpdateRate = inputs.at(1).Get();
+                mUpdateRate = mNodeInputManager.GetValueNext(1);
                 mNodeInputManager.NodeUpdate(inputs, mUpdateRate);
 
                 mSmooth = mNodeInputManager.GetValueNext(4);

@@ -76,6 +76,9 @@ namespace l::nodegraph {
         }
 
         float GetStepsPerIncrement() {
+            if (mIncrement == 0.0f) {
+                return 0.0f;
+            }
             return 1.0f / mIncrement;
         }
     protected:
@@ -100,7 +103,7 @@ namespace l::nodegraph {
         void Reset(NodeDataIterator&& iterator) {
             mIterator = std::move(iterator);
             mRwa.Value() = *mIterator;
-            mRwa.SetConvergenceInTicks(iterator.GetStepsPerIncrement(), 0.35f);
+            mRwa.SetConvergenceInTicks(l::math::functions::max(4.0f, iterator.GetStepsPerIncrement()), 0.35f);
         }
     protected:
         NodeDataIterator mIterator;
@@ -110,9 +113,6 @@ namespace l::nodegraph {
     enum class InputTypeBase {
         SAMPLED = 0, // todo: make it interpolate in smaller custom buffers
         SAMPLED_RWA, // todo: add a smoothed sampled variant. Will replace interp_rwa and interp_rwa_ms as we will add a separate config for passing ticks or millis
-        INTERP_RWA, // TBR
-        INTERP_RWA_MS, // TBR
-        CONSTANT_VALUE, // Will basically be replace by sampled as it should be able to handle 1-sized arrays
         CONSTANT_ARRAY, // Same here, will be replaced
         CUSTOM_INTERP_TWEEN, // custom input vars should not be used at all
         CUSTOM_INTERP_TWEEN_MS,

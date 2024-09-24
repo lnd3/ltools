@@ -33,7 +33,7 @@ namespace l::nodegraph {
             mNode->SetInput(1, 0.0f, numSamples);
         }
 
-        auto output = &outputs.at(0).Get(numSamples);
+        auto output = outputs.at(0).GetIterator(numSamples);
 
         mSamplesUntilUpdate = l::audio::BatchUpdate(mUpdateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
@@ -103,9 +103,9 @@ namespace l::nodegraph {
         }
     }
 
-    void GraphFilterChamberlain2pole::UpdateSignal(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
-        mMode = static_cast<int32_t>(3.0f * inputs.at(mNumDefaultInputs + 0).Get() + 0.5f);
-        mScale = l::math::functions::sqrt(mNodeInputManager.GetValue(3));
+    void GraphFilterChamberlain2pole::UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {
+        mMode = static_cast<int32_t>(3.0f * mNodeInputManager.GetValueNext(mNumDefaultInputs + 0) + 0.5f);
+        mScale = l::math::functions::sqrt(mNodeInputManager.GetValueNext(3));
         mScaleFilter.SetConvergenceFactor().SetTarget(mScale).SnapAt();
     }
 

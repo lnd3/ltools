@@ -103,10 +103,6 @@ namespace l::nodegraph {
 
     void NodeGraphInputAccessor::SetUpdateRate(float updateRate) {
         switch (mType) {
-        case InputTypeBase::INTERP_RWA:
-        case InputTypeBase::INTERP_RWA_MS:
-            mInput.mFilterRWA.SetRWAUpdateRate(updateRate);
-            break;
         case InputTypeBase::CUSTOM_INTERP_TWEEN:
         case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
             mInput.mTween.Update(updateRate);
@@ -115,7 +111,6 @@ namespace l::nodegraph {
             mInput.mFilterRWA.SetRWAUpdateRate(updateRate);
             break;
         case InputTypeBase::SAMPLED:
-        case InputTypeBase::CONSTANT_VALUE:
         case InputTypeBase::CONSTANT_ARRAY:
         case InputTypeBase::SAMPLED_RWA:
             break;
@@ -124,10 +119,6 @@ namespace l::nodegraph {
 
     void NodeGraphInputAccessor::SetDuration(int32_t ticks) {
         switch (mType) {
-        case InputTypeBase::INTERP_RWA:
-            mInput.mFilterRWA.SetConvergenceInTicks(static_cast<float>(ticks));
-            break;
-        case InputTypeBase::INTERP_RWA_MS:
         case InputTypeBase::CUSTOM_INTERP_RWA_MS:
             mInput.mFilterRWA.SetConvergenceInTicks(static_cast<float>(ticks));
             break;
@@ -137,19 +128,13 @@ namespace l::nodegraph {
             break;
         case InputTypeBase::SAMPLED:
         case InputTypeBase::SAMPLED_RWA:
-        case InputTypeBase::CONSTANT_VALUE:
         case InputTypeBase::CONSTANT_ARRAY:
-            ASSERT(false) << "Failed to set convergence on a non interpolated input type";
             break;
         }
     }
 
     void NodeGraphInputAccessor::SetDuration(float ms, float limit) {
         switch (mType) {
-        case InputTypeBase::INTERP_RWA:
-            mInput.mFilterRWA.SetConvergenceInMs(ms, limit);
-            break;
-        case InputTypeBase::INTERP_RWA_MS:
         case InputTypeBase::CUSTOM_INTERP_RWA_MS:
             mInput.mFilterRWA.SetConvergenceInMs(ms, limit);
             break;
@@ -159,17 +144,13 @@ namespace l::nodegraph {
             break;
         case InputTypeBase::SAMPLED:
         case InputTypeBase::SAMPLED_RWA:
-        case InputTypeBase::CONSTANT_VALUE:
         case InputTypeBase::CONSTANT_ARRAY:
-            ASSERT(false) << "Failed to set convergence on a non interpolated input type";
             break;
         }
     }
 
     void NodeGraphInputAccessor::SetTarget(float value) {
         switch (mType) {
-        case InputTypeBase::INTERP_RWA:
-        case InputTypeBase::INTERP_RWA_MS:
         case InputTypeBase::CUSTOM_INTERP_RWA_MS:
             mInput.mFilterRWA.SetTarget(value);
             break;
@@ -179,7 +160,6 @@ namespace l::nodegraph {
             break;
         case InputTypeBase::SAMPLED:
         case InputTypeBase::SAMPLED_RWA:
-        case InputTypeBase::CONSTANT_VALUE:
         case InputTypeBase::CONSTANT_ARRAY:
             break;
         }
@@ -187,8 +167,6 @@ namespace l::nodegraph {
 
     void NodeGraphInputAccessor::SetValue(float value) {
         switch (mType) {
-        case InputTypeBase::INTERP_RWA:
-        case InputTypeBase::INTERP_RWA_MS:
         case InputTypeBase::CUSTOM_INTERP_RWA_MS:
             mInput.mFilterRWA.Value() = value;
             break;
@@ -198,7 +176,6 @@ namespace l::nodegraph {
             break;
         case InputTypeBase::SAMPLED:
         case InputTypeBase::SAMPLED_RWA:
-        case InputTypeBase::CONSTANT_VALUE:
         case InputTypeBase::CONSTANT_ARRAY:
             break;
         }
@@ -206,8 +183,6 @@ namespace l::nodegraph {
 
     float NodeGraphInputAccessor::GetValueNext() {
         switch (mType) {
-        case InputTypeBase::INTERP_RWA:
-        case InputTypeBase::INTERP_RWA_MS:
         case InputTypeBase::CUSTOM_INTERP_RWA_MS:
             return mInput.mFilterRWA.Next();
         case InputTypeBase::CUSTOM_INTERP_TWEEN:
@@ -218,23 +193,18 @@ namespace l::nodegraph {
             return *mInput.mIterator++;
         case InputTypeBase::SAMPLED_RWA:
             return mInput.mIteratorRwa++;
-        case InputTypeBase::CONSTANT_VALUE:
-            return *mInput.mIterator;
         }
         return 0.0f;
     }
 
     float NodeGraphInputAccessor::GetValue() {
         switch (mType) {
-        case InputTypeBase::INTERP_RWA:
-        case InputTypeBase::INTERP_RWA_MS:
         case InputTypeBase::CUSTOM_INTERP_RWA_MS:
             return mInput.mFilterRWA.Value();
         case InputTypeBase::CUSTOM_INTERP_TWEEN:
         case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
             return mInput.mTween.Value();
         case InputTypeBase::SAMPLED:
-        case InputTypeBase::CONSTANT_VALUE:
         case InputTypeBase::CONSTANT_ARRAY:
             return *mInput.mIterator;
         case InputTypeBase::SAMPLED_RWA:
@@ -260,10 +230,7 @@ namespace l::nodegraph {
     // run on each new batch call to setup input iterators for buffered data
     void NodeGraphInputAccessor::BatchUpdate(std::vector<NodeGraphInput>& input, int32_t numSamples) {
         switch (mType) {
-        case InputTypeBase::INTERP_RWA:
-        case InputTypeBase::INTERP_RWA_MS:
         case InputTypeBase::CUSTOM_INTERP_RWA_MS:
-            break;
         case InputTypeBase::CUSTOM_INTERP_TWEEN:
         case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
             break;
@@ -273,9 +240,6 @@ namespace l::nodegraph {
         case InputTypeBase::SAMPLED_RWA:
             mInput.mIteratorRwa = input.at(mInputIndex).GetIterator(numSamples);
             break;
-        case InputTypeBase::CONSTANT_VALUE:
-            mInput.mIterator.Reset(&input.at(mInputIndex).Get(), 1);
-            break;
         case InputTypeBase::CONSTANT_ARRAY:
             mInput.mIterator = input.at(mInputIndex).GetArrayIterator();
             break;
@@ -283,21 +247,15 @@ namespace l::nodegraph {
     }
 
     // run on each node update (can be node specific) and will update node rwa filters
-    void NodeGraphInputAccessor::NodeUpdate(std::vector<NodeGraphInput>& input, float updateRate) {
+    void NodeGraphInputAccessor::NodeUpdate(std::vector<NodeGraphInput>&, float updateRate) {
         switch (mType) {
-        case InputTypeBase::INTERP_RWA:
-        case InputTypeBase::INTERP_RWA_MS:
-            mInput.mFilterRWA.SetTarget(input.at(mInputIndex).Get());
-            break;
         case InputTypeBase::CUSTOM_INTERP_TWEEN:
         case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
             mInput.mTween.Update(updateRate);
             break;
         case InputTypeBase::CUSTOM_INTERP_RWA_MS: // must set it manually
-            break;
         case InputTypeBase::SAMPLED:
         case InputTypeBase::SAMPLED_RWA:
-        case InputTypeBase::CONSTANT_VALUE:
         case InputTypeBase::CONSTANT_ARRAY:
             break;
         }

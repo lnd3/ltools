@@ -14,8 +14,8 @@ namespace l::nodegraph {
     void GraphControlBase::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         mNodeInputManager.BatchUpdate(inputs, numSamples);
 
-        float sync = inputs.at(0).Get();
-        mUpdateRate = mNodeInputManager.GetValue(1);
+        float sync = mNodeInputManager.GetValueNext(0);
+        mUpdateRate = mNodeInputManager.GetValueNext(1);
         if (sync > 0.5f) {
             mSamplesUntilUpdate = 0;
         }
@@ -51,11 +51,11 @@ namespace l::nodegraph {
         if (mFreqTarget != 0.0f) {
             mNodeInputManager.SetTarget(100, mFreqTarget);
         }
-        mNodeInputManager.SetDuration(100, 1000.0f * mNodeInputManager.GetValue(3));
-        mAttackFrames = l::audio::GetAudioTicksFromMS(mNodeInputManager.GetValue(4));
-        mReleaseFrames = l::audio::GetAudioTicksFromMS(mNodeInputManager.GetValue(5));
-        mAttackFactor = mNodeInputManager.GetValue(4);
-        mReleaseFactor = mNodeInputManager.GetValue(5);
+        mNodeInputManager.SetDuration(100, 1000.0f * mNodeInputManager.GetValueNext(3));
+        mAttackFrames = l::audio::GetAudioTicksFromMS(mNodeInputManager.GetValueNext(4));
+        mReleaseFrames = l::audio::GetAudioTicksFromMS(mNodeInputManager.GetValueNext(5));
+        mAttackFactor = mNodeInputManager.GetValueNext(4);
+        mReleaseFactor = mNodeInputManager.GetValueNext(5);
 
         mNodeInputManager.SetUpdateRate(100, 1.0f);
         mNodeInputManager.SetUpdateRate(101, 1.0f);
@@ -143,8 +143,8 @@ namespace l::nodegraph {
                 mFreqTarget = l::audio::GetFrequencyFromNote(static_cast<float>(mNotes.at(mNoteIndex)));
                 mNoteIndex++;
 
-                auto velocity = mNodeInputManager.GetValue(2);
-                auto fade = mNodeInputManager.GetValue(3);
+                auto velocity = mNodeInputManager.GetValueNext(2);
+                auto fade = mNodeInputManager.GetValueNext(3);
 
                 mGainTarget = 2.0f * velocity;
                 mFreqSmoothing = fade;
@@ -171,8 +171,8 @@ namespace l::nodegraph {
 
     void GraphControlArpeggio::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         mNodeInputManager.BatchUpdate(inputs, numSamples);
-        float sync = mNodeInputManager.GetValue(0);
-        float bpm = mNodeInputManager.GetValue(1);
+        float sync = mNodeInputManager.GetValueNext(0);
+        float bpm = mNodeInputManager.GetValueNext(1);
         mUpdateRate = 44100.0f * 60.0f / (2.0f * 4.0f * bpm);
         if (sync > 0.5f) {
             mSamplesUntilUpdate = 0;
@@ -217,7 +217,7 @@ namespace l::nodegraph {
         mSamplesUntilUpdate = l::audio::BatchUpdate(mUpdateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
                 mNodeInputManager.NodeUpdate(inputs, mUpdateRate);
-                mUpdateRate = mNodeInputManager.GetValue(1);
+                mUpdateRate = mNodeInputManager.GetValueNext(1);
 
                 UpdateSignal(mNodeInputManager);
                 return mUpdateRate;
@@ -225,7 +225,6 @@ namespace l::nodegraph {
             [&](int32_t start, int32_t end, bool) {
                 for (int32_t i = start; i < end; i++) {
                     float envelope = mNodeInputManager.GetValueNext(100);
-                    //float release = mNodeInputManager.GetValueNext(101);
                     float gain = mGainTarget * envelope;
                     mGain += 0.0025f * (gain - mGain);
 
