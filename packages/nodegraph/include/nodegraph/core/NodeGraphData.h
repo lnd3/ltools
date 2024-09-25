@@ -33,7 +33,7 @@ namespace l::nodegraph {
     enum class OutputType {
         Default, // node will be processed if it is connected to the groups output by some route
         ExternalOutput, // node does not have meaningful output for other nodes but should still be processed (ex speaker output only has input)
-        ExternalVisualOutput,
+        ExternalVisualOutput, // node has visual output that requires special handling, for example the graph plot node
     };
 
     std::pair<float, float> GetInputBounds(InputBound bound);
