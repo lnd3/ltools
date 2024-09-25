@@ -8,7 +8,6 @@ using namespace l;
 using namespace l::nodegraph;
 
 TEST(NodeGraph, BasicFunction) {
-
 	NodeGraph<GraphNumericAdd> node;
 
 	float in2 = 2.3f;
@@ -23,7 +22,6 @@ TEST(NodeGraph, BasicFunction) {
 }
 
 TEST(NodeGraph, SimpleAddNetwork) {
-
 	NodeGraph<GraphNumericAdd> node1;
 	NodeGraph<GraphNumericAdd> node2;
 	NodeGraph<GraphNumericAdd> nodeFinal;
@@ -115,7 +113,6 @@ TEST(NodeGraph, FilterLowpass) {
 }
 
 TEST(NodeGraph, GraphGroups) {
-
 	NodeGraphGroup group;
 
 	float cutoff = 0.8f;
@@ -180,7 +177,6 @@ TEST(NodeGraph, GraphGroups) {
 }
 
 TEST(NodeGraph, SchemaAllNodes) {
-
 	NodeGraphSchema ng;
 
 	std::vector<int32_t> nodeIds;
@@ -203,7 +199,6 @@ TEST(NodeGraph, SchemaAllNodes) {
 	for (auto nodeId : nodeIds) {
 		TEST_TRUE(ng.RemoveNode(nodeId), "");
 	}
-
 
 	return 0;
 }
