@@ -87,13 +87,13 @@ namespace l::nodegraph {
 
     /*********************************************************************/
     void GraphOutputPlot::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        mNodeInputManager.BatchUpdate(inputs, numSamples);
+        mInputManager.BatchUpdate(inputs, numSamples);
 
         int32_t outputSize = outputs.at(0).GetSize();
         float* output = &outputs.at(0).Get(outputSize);
 
         for (int32_t i = 0; i < numSamples; i++) {
-            output[mCurIndex] = mNodeInputManager.GetValueNext(0);
+            output[mCurIndex] = mInputManager.GetValueNext(0);
             mCurIndex = (mCurIndex + 1) % outputSize;
         }
     }

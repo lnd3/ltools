@@ -31,16 +31,16 @@ namespace l::nodegraph {
 
         GraphFilterBase(NodeGraphBase* node, std::string_view name) :
             NodeGraphOp(node, name),
-            mNodeInputManager(*this)
+            mInputManager(*this)
         {
             mDefaultInStrings.clear();
             mDefaultOutStrings.clear();
             mDefaultInData.clear();
 
-            mNodeInputManager.AddInput(InputTypeBase::SAMPLED, AddInput("Sync", 0.0f));
-            mNodeInputManager.AddInput(InputTypeBase::SAMPLED, AddInput("In"));
-            mNodeInputManager.AddInput(InputTypeBase::SAMPLED_RWA, AddInput("Cutoff", 1.0f));
-            mNodeInputManager.AddInput(InputTypeBase::SAMPLED_RWA, AddInput("Resonance", 0.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Sync", 0.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("In"));
+            mInputManager.AddInput(InputIterationType::SAMPLED_RWA, AddInput("Cutoff", 1.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED_RWA, AddInput("Resonance", 0.0f));
 
             AddOutput("Out", 0.0f);
         }
@@ -54,7 +54,7 @@ namespace l::nodegraph {
         virtual void UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
         virtual float ProcessSignal(float input, float cutoff, float resonance) = 0;
     protected:
-        NodeInputManager mNodeInputManager;
+        InputManager mInputManager;
 
         float mSync = 0.0f;
         float mSamplesUntilUpdate = 0.0f;
@@ -102,7 +102,7 @@ namespace l::nodegraph {
         GraphFilterChamberlain2pole(NodeGraphBase* node) :
             GraphFilterBase(node, "Chamberlin two-pole")
         {
-            mNodeInputManager.AddInput(InputTypeBase::SAMPLED, AddInput("Mode"));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Mode"));
             mState.resize(4);
         }
         virtual ~GraphFilterChamberlain2pole() = default;

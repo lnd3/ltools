@@ -15,21 +15,21 @@ public:
     TestOp(NodeGraphBase* node) :
         NodeGraphOp2(node, "TestOp")
     {
-        AddInput2(InputTypeBase::SAMPLED, "In 0", 0.0f, 1, 0.0f, 1.0f);
-        AddInput2(InputTypeBase::SAMPLED_RWA, "In 1", 0.0f, 1, 0.0f, 1.0f);
+        AddInput2(InputIterationType::SAMPLED, "In 0", 0.0f, 1, 0.0f, 1.0f);
+        AddInput2(InputIterationType::SAMPLED_RWA, "In 1", 0.0f, 1, 0.0f, 1.0f);
         AddOutput("Out 0");
         AddOutput("Out 1");
     }
 
     virtual ~TestOp() = default;
     virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-        mNodeInputManager.BatchUpdate(inputs, numSamples);
+        mInputManager.BatchUpdate(inputs, numSamples);
         auto out0 = outputs.at(0).GetIterator(numSamples, 4.0f);
         auto out1 = outputs.at(1).GetIterator(numSamples, 4.0f);
 
         for (int i = 0; i < numSamples; i++) {
-            float value0 = mNodeInputManager.GetValueNext(0);
-            float value1 = mNodeInputManager.GetValueNext(1);
+            float value0 = mInputManager.GetValueNext(0);
+            float value1 = mInputManager.GetValueNext(1);
             *out0++ = value0;
             *out1++ = value1;
 
@@ -71,24 +71,24 @@ public:
     TestOp2(NodeGraphBase* node) :
         NodeGraphOp2(node, "TestOp")
     {
-        AddInput2(InputTypeBase::CUSTOM_INTERP_TWEEN, "In 0", 0.0f, 1, 0.0f, 1.0f);
-        AddInput2(InputTypeBase::CUSTOM_INTERP_TWEEN_MS, "In 1", 0.0f, 1, 0.0f, 1.0f);
+        AddInput2(InputIterationType::CUSTOM_INTERP_TWEEN, "In 0", 0.0f, 1, 0.0f, 1.0f);
+        AddInput2(InputIterationType::CUSTOM_INTERP_TWEEN_MS, "In 1", 0.0f, 1, 0.0f, 1.0f);
         AddOutput("Out 0");
         AddOutput("Out 1");
     }
 
     virtual ~TestOp2() = default;
     virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-        mNodeInputManager.BatchUpdate(inputs, numSamples);
+        mInputManager.BatchUpdate(inputs, numSamples);
         auto out0 = outputs.at(0).GetIterator(numSamples, 4.0f);
         auto out1 = outputs.at(1).GetIterator(numSamples, 4.0f);
 
-        mNodeInputManager.SetDuration(0, 24.0f, 0.1);
-        mNodeInputManager.SetDuration(1, 0.5f, 0.1);
+        mInputManager.SetDuration(0, 24.0f, 0.1);
+        mInputManager.SetDuration(1, 0.5f, 0.1);
 
         for (int i = 0; i < numSamples; i++) {
-            float value0 = mNodeInputManager.GetValueNext(0);
-            float value1 = mNodeInputManager.GetValueNext(1);
+            float value0 = mInputManager.GetValueNext(0);
+            float value1 = mInputManager.GetValueNext(1);
             *out0++ = value0;
             *out1++ = value1;
 

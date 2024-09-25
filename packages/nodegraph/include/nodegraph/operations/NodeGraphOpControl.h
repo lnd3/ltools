@@ -30,16 +30,16 @@ namespace l::nodegraph {
 
         GraphControlBase(NodeGraphBase* node, std::string_view name) :
             NodeGraphOp(node, name),
-            mNodeInputManager(*this)
+            mInputManager(*this)
         {
-            mNodeInputManager.AddInput(InputTypeBase::SAMPLED, AddInput("Sync", 0.0f, 1, 0.0f, 1.0f));
-            mNodeInputManager.AddInput(InputTypeBase::SAMPLED, AddInput("Rate", 256.0f, 1, 1.0f, 2048.0f));
-            mNodeInputManager.AddInput(InputTypeBase::SAMPLED, AddInput("Velocity", 0.5f, 1, 0.0f, 1.0f));
-            mNodeInputManager.AddInput(InputTypeBase::SAMPLED, AddInput("Fade", 0.1f, 1, 0.0001f, 1.0f));
-            mNodeInputManager.AddInput(InputTypeBase::SAMPLED, AddInput("Attack", 50.0f, 1, 1.0f, 10000.0f));
-            mNodeInputManager.AddInput(InputTypeBase::SAMPLED, AddInput("Release", 50.0f, 1, 1.0f, 10000.0f));
-            mNodeInputManager.AddCustom(InputTypeBase::CUSTOM_INTERP_RWA_MS); // 100
-            mNodeInputManager.AddCustom(InputTypeBase::CUSTOM_INTERP_RWA_MS); // 101
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Sync", 0.0f, 1, 0.0f, 1.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Rate", 256.0f, 1, 1.0f, 2048.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Velocity", 0.5f, 1, 0.0f, 1.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Fade", 0.1f, 1, 0.0001f, 1.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Attack", 50.0f, 1, 1.0f, 10000.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Release", 50.0f, 1, 1.0f, 10000.0f));
+            mInputManager.AddCustom(InputIterationType::CUSTOM_INTERP_RWA_MS); // 100
+            mInputManager.AddCustom(InputIterationType::CUSTOM_INTERP_RWA_MS); // 101
 
             AddOutput("Freq");
             AddOutput("Volume");
@@ -49,10 +49,10 @@ namespace l::nodegraph {
 
         virtual ~GraphControlBase() = default;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        virtual void UpdateSignal(NodeInputManager& inputManager) = 0;
-        virtual std::pair<float, float> ProcessSignal(NodeInputManager& inputManager) = 0;
+        virtual void UpdateSignal(InputManager& inputManager) = 0;
+        virtual std::pair<float, float> ProcessSignal(InputManager& inputManager) = 0;
     protected:
-        NodeInputManager mNodeInputManager;
+        InputManager mInputManager;
         float mUpdateRate = 256.0f;
 
         float mDeltaTime = 0.0f;
@@ -65,13 +65,13 @@ namespace l::nodegraph {
         GraphControlEnvelope(NodeGraphBase* node) :
             GraphControlBase(node, "Envelope")
         {
-            mNodeInputManager.AddInput(InputTypeBase::SAMPLED_RWA, AddInput("Freq"));
+            mInputManager.AddInput(InputIterationType::SAMPLED_RWA, AddInput("Freq"));
             mEnvelope = 0.0f;
         }
 
         virtual ~GraphControlEnvelope() = default;
-        virtual void UpdateSignal(NodeInputManager& inputManager) override;
-        virtual std::pair<float, float> ProcessSignal(NodeInputManager& inputManager) override;
+        virtual void UpdateSignal(InputManager& inputManager) override;
+        virtual std::pair<float, float> ProcessSignal(InputManager& inputManager) override;
     protected:
         bool mNoteOn = false;
         int32_t mFrameCount = 0;
@@ -94,18 +94,18 @@ namespace l::nodegraph {
         const static int32_t gPolyphony = 12;
         GraphControlArpeggio(NodeGraphBase* node) :
             NodeGraphOp(node, "Arpeggio"),
-            mNodeInputManager(*this)
+            mInputManager(*this)
         {
-            mNodeInputManager.AddInput(InputTypeBase::SAMPLED, AddInput("Sync", 0.0f, 1, 0.0f, 1.0f));
-            mNodeInputManager.AddInput(InputTypeBase::SAMPLED_RWA, AddInput("Bpm", 60.0f, 1, 1.0f, 1000.0f));
-            mNodeInputManager.AddInput(InputTypeBase::SAMPLED, AddInput("Velocity", 0.5f, 1, 0.0f, 1.0f));
-            mNodeInputManager.AddInput(InputTypeBase::SAMPLED, AddInput("Fade", 1.0f, 1, 0.0001f, 1.0f));
-            mNodeInputManager.AddInput(InputTypeBase::SAMPLED, AddInput("Attack", 5.0f, 1, 1.0f, 10000.0f));
-            mNodeInputManager.AddInput(InputTypeBase::SAMPLED, AddInput("Release", 20.0f, 1, 1.0f, 10000.0f));
-            mNodeInputManager.AddInput(InputTypeBase::CONSTANT_ARRAY, AddInput("Note On", l::audio::gNoNote_f, gPolyphony, -499.0, 500.0));
-            mNodeInputManager.AddInput(InputTypeBase::CONSTANT_ARRAY, AddInput("Note Off", l::audio::gNoNote_f, gPolyphony, -499.0, 500.0));
-            mNodeInputManager.AddCustom(InputTypeBase::CUSTOM_INTERP_RWA_MS); // 100
-            mNodeInputManager.AddCustom(InputTypeBase::CUSTOM_INTERP_RWA_MS); // 101
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Sync", 0.0f, 1, 0.0f, 1.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED_RWA, AddInput("Bpm", 60.0f, 1, 1.0f, 1000.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Velocity", 0.5f, 1, 0.0f, 1.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Fade", 1.0f, 1, 0.0001f, 1.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Attack", 5.0f, 1, 1.0f, 10000.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Release", 20.0f, 1, 1.0f, 10000.0f));
+            mInputManager.AddInput(InputIterationType::CONSTANT_ARRAY, AddInput("Note On", l::audio::gNoNote_f, gPolyphony, -499.0, 500.0));
+            mInputManager.AddInput(InputIterationType::CONSTANT_ARRAY, AddInput("Note Off", l::audio::gNoNote_f, gPolyphony, -499.0, 500.0));
+            mInputManager.AddCustom(InputIterationType::CUSTOM_INTERP_RWA_MS); // 100
+            mInputManager.AddCustom(InputIterationType::CUSTOM_INTERP_RWA_MS); // 101
 
             AddOutput("Freq");
             AddOutput("Volume");
@@ -115,9 +115,9 @@ namespace l::nodegraph {
 
         virtual ~GraphControlArpeggio() = default;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        void UpdateSignal(NodeInputManager& inputManager);
+        void UpdateSignal(InputManager& inputManager);
     protected:
-        NodeInputManager mNodeInputManager;
+        InputManager mInputManager;
 
         float mSamplesUntilUpdate = 0.0f;
         float mUpdateRate = 256.0f;

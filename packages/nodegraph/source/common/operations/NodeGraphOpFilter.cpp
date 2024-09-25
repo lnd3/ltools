@@ -27,7 +27,7 @@ namespace l::nodegraph {
     }
 
     void GraphFilterBase::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        mNodeInputManager.BatchUpdate(inputs, numSamples);
+        mInputManager.BatchUpdate(inputs, numSamples);
         mSync = inputs.at(0).Get();
         if (mSync > 0.5f) {
             mNode->SetInput(1, 0.0f, numSamples);
@@ -37,7 +37,7 @@ namespace l::nodegraph {
 
         mSamplesUntilUpdate = l::audio::BatchUpdate(mUpdateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
-                mNodeInputManager.NodeUpdate(inputs, mUpdateRate);
+                mInputManager.NodeUpdate(inputs, mUpdateRate);
 
                 UpdateSignal(inputs, outputs);
 
@@ -45,8 +45,8 @@ namespace l::nodegraph {
             },
             [&](int32_t start, int32_t end, bool) {
                 for (int32_t i = start; i < end; i++) {
-                    float inputValue = mNodeInputManager.GetValueNext(1);
-                    float signal = ProcessSignal(inputValue, mNodeInputManager.GetValueNext(2), mNodeInputManager.GetValueNext(3));
+                    float inputValue = mInputManager.GetValueNext(1);
+                    float signal = ProcessSignal(inputValue, mInputManager.GetValueNext(2), mInputManager.GetValueNext(3));
                     *output++ = signal;
                 }
             }
@@ -104,8 +104,8 @@ namespace l::nodegraph {
     }
 
     void GraphFilterChamberlain2pole::UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {
-        mMode = static_cast<int32_t>(3.0f * mNodeInputManager.GetValueNext(mNumDefaultInputs + 0) + 0.5f);
-        mScale = l::math::functions::sqrt(mNodeInputManager.GetValueNext(3));
+        mMode = static_cast<int32_t>(3.0f * mInputManager.GetValueNext(mNumDefaultInputs + 0) + 0.5f);
+        mScale = l::math::functions::sqrt(mInputManager.GetValueNext(3));
         mScaleFilter.SetConvergenceFactor().SetTarget(mScale).SnapAt();
     }
 

@@ -109,7 +109,7 @@ namespace l::nodegraph {
         l::audio::FilterRWAFloat mRwa;
     };
     /*********************************************************************************/
-    enum class InputTypeBase {
+    enum class InputIterationType {
         SAMPLED = 0, // interpolate in a buffer the size of a ProcessSubGraph(size) call. The actual size is defined by the lod factor of the source output buffer.
         SAMPLED_RWA, // same as SAMPLED, but it also uses RWA on the output with a smoothing factor defined by the lod factor of the source output buffer
         CONSTANT_ARRAY, // user defined array for custom usage

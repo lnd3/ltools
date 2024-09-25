@@ -42,14 +42,14 @@ namespace l::nodegraph {
 
     /*********************************************************************************/
 
-    class NodeGraphInputAccessor {
+    class InputAccessor {
     public:
-        NodeGraphInputAccessor(InputTypeBase type, int32_t inputIndex) :
+        InputAccessor(InputIterationType type, int32_t inputIndex) :
             mType(type),
             mInputIndex(inputIndex)
         {
         }
-        ~NodeGraphInputAccessor() = default;
+        ~InputAccessor() = default;
 
         void SetUpdateRate(float updateRate);
         void SetDuration(float ms, float limit = 0.001f);
@@ -64,7 +64,7 @@ namespace l::nodegraph {
         void NodeUpdate(std::vector<NodeGraphInput>& input, float updateRate);
 
     protected:
-        InputTypeBase mType;
+        InputIterationType mType;
         int32_t mInputIndex = 0;
         InputUnion mInput;
     };

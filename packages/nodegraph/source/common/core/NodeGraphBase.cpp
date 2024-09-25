@@ -380,21 +380,21 @@ namespace l::nodegraph {
 
     /**********************************************************************************/
 
-    int32_t NodeInputManager::AddInput(InputTypeBase type, int32_t inputIndex) {
+    int32_t InputManager::AddInput(InputIterationType type, int32_t inputIndex) {
         inputIndex = static_cast<int32_t>(mInputs.size());
-        mInputs.emplace_back(NodeGraphInputAccessor{ type, inputIndex });
+        mInputs.emplace_back(InputAccessor{ type, inputIndex });
         mInputs.back().SetValue(mNodeGraphOperation.GetDefaultData(static_cast<int8_t>(inputIndex)));
         mInputs.back().SetTarget(mNodeGraphOperation.GetDefaultData(static_cast<int8_t>(inputIndex)));
         return inputIndex;
     }
 
-    int32_t NodeInputManager::AddCustom(InputTypeBase type) {
+    int32_t InputManager::AddCustom(InputIterationType type) {
         auto inputIndex = static_cast<int32_t>(mCustom.size());
-        mCustom.emplace_back(NodeGraphInputAccessor{ type, inputIndex });
+        mCustom.emplace_back(InputAccessor{ type, inputIndex });
         return inputIndex + gCustomIndexBase;
     }
 
-    void NodeInputManager::BatchUpdate(std::vector<NodeGraphInput>& inputs, int32_t numSamples) {
+    void InputManager::BatchUpdate(std::vector<NodeGraphInput>& inputs, int32_t numSamples) {
         for (auto& input : mInputs) {
             input.BatchUpdate(inputs, numSamples);
         }
@@ -403,7 +403,7 @@ namespace l::nodegraph {
         }
     }
 
-    void NodeInputManager::NodeUpdate(std::vector<NodeGraphInput>& inputs, float updateRate) {
+    void InputManager::NodeUpdate(std::vector<NodeGraphInput>& inputs, float updateRate) {
         for (auto& input : mInputs) {
             input.NodeUpdate(inputs, updateRate);
         }
@@ -412,35 +412,35 @@ namespace l::nodegraph {
         }
     }
 
-    float NodeInputManager::GetValueNext(int32_t inputIndex) {
+    float InputManager::GetValueNext(int32_t inputIndex) {
         if (inputIndex < gCustomIndexBase) {
             return mInputs.at(inputIndex).GetValueNext();
         }
         return mCustom.at(inputIndex - gCustomIndexBase).GetValueNext();
     }
 
-    float NodeInputManager::GetValue(int32_t inputIndex) {
+    float InputManager::GetValue(int32_t inputIndex) {
         if (inputIndex < gCustomIndexBase) {
             return mInputs.at(inputIndex).GetValue();
         }
         return mCustom.at(inputIndex - gCustomIndexBase).GetValue();
     }
 
-    float NodeInputManager::GetArrayValue(int32_t inputIndex, int32_t arrayIndex) {
+    float InputManager::GetArrayValue(int32_t inputIndex, int32_t arrayIndex) {
         if (inputIndex < gCustomIndexBase) {
             return mInputs.at(inputIndex).GetArrayValue(arrayIndex);
         }
         return mCustom.at(inputIndex - gCustomIndexBase).GetArrayValue(arrayIndex);
     }
 
-    float* NodeInputManager::GetArray(int32_t inputIndex) {
+    float* InputManager::GetArray(int32_t inputIndex) {
         if (inputIndex < gCustomIndexBase) {
             return mInputs.at(inputIndex).GetArray();
         }
         return mCustom.at(inputIndex - gCustomIndexBase).GetArray();
     }
 
-    void NodeInputManager::SetUpdateRate(int32_t inputIndex, float updateRate) {
+    void InputManager::SetUpdateRate(int32_t inputIndex, float updateRate) {
         if (inputIndex < gCustomIndexBase) {
             mInputs.at(inputIndex).SetUpdateRate(updateRate);
             return;
@@ -448,7 +448,7 @@ namespace l::nodegraph {
         mCustom.at(inputIndex - gCustomIndexBase).SetUpdateRate(updateRate);
     }
 
-    void NodeInputManager::SetDuration(int32_t inputIndex, float value, float limit) {
+    void InputManager::SetDuration(int32_t inputIndex, float value, float limit) {
         if (inputIndex < gCustomIndexBase) {
             mInputs.at(inputIndex).SetDuration(value, limit);
             return;
@@ -456,7 +456,7 @@ namespace l::nodegraph {
         mCustom.at(inputIndex - gCustomIndexBase).SetDuration(value, limit);
     }
 
-    void NodeInputManager::SetTarget(int32_t inputIndex, float value) {
+    void InputManager::SetTarget(int32_t inputIndex, float value) {
         if (inputIndex < gCustomIndexBase) {
             mInputs.at(inputIndex).SetTarget(value);
             return;
@@ -464,7 +464,7 @@ namespace l::nodegraph {
         mCustom.at(inputIndex - gCustomIndexBase).SetTarget(value);
     }
 
-    void NodeInputManager::SetValue(int32_t inputIndex, float value) {
+    void InputManager::SetValue(int32_t inputIndex, float value) {
         if (inputIndex < gCustomIndexBase) {
             mInputs.at(inputIndex).SetValue(value);
             return;
@@ -479,7 +479,7 @@ namespace l::nodegraph {
     }
 
     int32_t NodeGraphOp2::AddInput2(
-        InputTypeBase type,
+        InputIterationType type,
         std::string_view name,
         float defaultValue,
         int32_t size,
@@ -487,11 +487,11 @@ namespace l::nodegraph {
         float boundMax,
         bool visible,
         bool editable) {
-        return mNodeInputManager.AddInput(type, NodeGraphOp::AddInput(name, defaultValue, size, boundMin, boundMax, visible, editable));
+        return mInputManager.AddInput(type, NodeGraphOp::AddInput(name, defaultValue, size, boundMin, boundMax, visible, editable));
     }
 
     int32_t NodeGraphOp2::AddConstant2(
-        InputTypeBase type,
+        InputIterationType type,
         std::string_view name,
         float defaultValue,
         int32_t size,
@@ -499,11 +499,11 @@ namespace l::nodegraph {
         float boundMax,
         bool visible,
         bool editable) {
-        return mNodeInputManager.AddInput(type, NodeGraphOp::AddConstant(name, defaultValue, size, boundMin, boundMax, visible, editable));
+        return mInputManager.AddInput(type, NodeGraphOp::AddConstant(name, defaultValue, size, boundMin, boundMax, visible, editable));
     }
 
-    int32_t NodeGraphOp2::AddCustom2(InputTypeBase type) {
-        return mNodeInputManager.AddCustom(type);
+    int32_t NodeGraphOp2::AddCustom2(InputIterationType type) {
+        return mInputManager.AddCustom(type);
     }
 
 }

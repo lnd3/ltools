@@ -101,162 +101,162 @@ namespace l::nodegraph {
 
     /*********************************************************************************/
 
-    void NodeGraphInputAccessor::SetUpdateRate(float updateRate) {
+    void InputAccessor::SetUpdateRate(float updateRate) {
         switch (mType) {
-        case InputTypeBase::CUSTOM_INTERP_TWEEN:
-        case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
+        case InputIterationType::CUSTOM_INTERP_TWEEN:
+        case InputIterationType::CUSTOM_INTERP_TWEEN_MS:
             mInput.mTween.Update(updateRate);
             break;
-        case InputTypeBase::CUSTOM_INTERP_RWA_MS: // must set it manually
+        case InputIterationType::CUSTOM_INTERP_RWA_MS: // must set it manually
             mInput.mFilterRWA.SetRWAUpdateRate(updateRate);
             break;
-        case InputTypeBase::SAMPLED:
-        case InputTypeBase::CONSTANT_ARRAY:
-        case InputTypeBase::SAMPLED_RWA:
+        case InputIterationType::SAMPLED:
+        case InputIterationType::CONSTANT_ARRAY:
+        case InputIterationType::SAMPLED_RWA:
             break;
         }
     }
 
-    void NodeGraphInputAccessor::SetDuration(int32_t ticks) {
+    void InputAccessor::SetDuration(int32_t ticks) {
         switch (mType) {
-        case InputTypeBase::CUSTOM_INTERP_RWA_MS:
+        case InputIterationType::CUSTOM_INTERP_RWA_MS:
             mInput.mFilterRWA.SetConvergenceInTicks(static_cast<float>(ticks));
             break;
-        case InputTypeBase::CUSTOM_INTERP_TWEEN:
-        case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
+        case InputIterationType::CUSTOM_INTERP_TWEEN:
+        case InputIterationType::CUSTOM_INTERP_TWEEN_MS:
             mInput.mTween.SetTweenLength(ticks);
             break;
-        case InputTypeBase::SAMPLED:
-        case InputTypeBase::SAMPLED_RWA:
-        case InputTypeBase::CONSTANT_ARRAY:
+        case InputIterationType::SAMPLED:
+        case InputIterationType::SAMPLED_RWA:
+        case InputIterationType::CONSTANT_ARRAY:
             break;
         }
     }
 
-    void NodeGraphInputAccessor::SetDuration(float ms, float limit) {
+    void InputAccessor::SetDuration(float ms, float limit) {
         switch (mType) {
-        case InputTypeBase::CUSTOM_INTERP_RWA_MS:
+        case InputIterationType::CUSTOM_INTERP_RWA_MS:
             mInput.mFilterRWA.SetConvergenceInMs(ms, limit);
             break;
-        case InputTypeBase::CUSTOM_INTERP_TWEEN:
-        case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
+        case InputIterationType::CUSTOM_INTERP_TWEEN:
+        case InputIterationType::CUSTOM_INTERP_TWEEN_MS:
             mInput.mTween.SetTweenLength(l::audio::GetAudioTicksFromMS(ms));
             break;
-        case InputTypeBase::SAMPLED:
-        case InputTypeBase::SAMPLED_RWA:
-        case InputTypeBase::CONSTANT_ARRAY:
+        case InputIterationType::SAMPLED:
+        case InputIterationType::SAMPLED_RWA:
+        case InputIterationType::CONSTANT_ARRAY:
             break;
         }
     }
 
-    void NodeGraphInputAccessor::SetTarget(float value) {
+    void InputAccessor::SetTarget(float value) {
         switch (mType) {
-        case InputTypeBase::CUSTOM_INTERP_RWA_MS:
+        case InputIterationType::CUSTOM_INTERP_RWA_MS:
             mInput.mFilterRWA.SetTarget(value);
             break;
-        case InputTypeBase::CUSTOM_INTERP_TWEEN:
-        case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
+        case InputIterationType::CUSTOM_INTERP_TWEEN:
+        case InputIterationType::CUSTOM_INTERP_TWEEN_MS:
             mInput.mTween.SetTarget(value);
             break;
-        case InputTypeBase::SAMPLED:
-        case InputTypeBase::SAMPLED_RWA:
-        case InputTypeBase::CONSTANT_ARRAY:
+        case InputIterationType::SAMPLED:
+        case InputIterationType::SAMPLED_RWA:
+        case InputIterationType::CONSTANT_ARRAY:
             break;
         }
     }
 
-    void NodeGraphInputAccessor::SetValue(float value) {
+    void InputAccessor::SetValue(float value) {
         switch (mType) {
-        case InputTypeBase::CUSTOM_INTERP_RWA_MS:
+        case InputIterationType::CUSTOM_INTERP_RWA_MS:
             mInput.mFilterRWA.Value() = value;
             break;
-        case InputTypeBase::CUSTOM_INTERP_TWEEN:
-        case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
+        case InputIterationType::CUSTOM_INTERP_TWEEN:
+        case InputIterationType::CUSTOM_INTERP_TWEEN_MS:
             mInput.mTween.Reset(value);
             break;
-        case InputTypeBase::SAMPLED:
-        case InputTypeBase::SAMPLED_RWA:
-        case InputTypeBase::CONSTANT_ARRAY:
+        case InputIterationType::SAMPLED:
+        case InputIterationType::SAMPLED_RWA:
+        case InputIterationType::CONSTANT_ARRAY:
             break;
         }
     }
 
-    float NodeGraphInputAccessor::GetValueNext() {
+    float InputAccessor::GetValueNext() {
         switch (mType) {
-        case InputTypeBase::CUSTOM_INTERP_RWA_MS:
+        case InputIterationType::CUSTOM_INTERP_RWA_MS:
             return mInput.mFilterRWA.Next();
-        case InputTypeBase::CUSTOM_INTERP_TWEEN:
-        case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
+        case InputIterationType::CUSTOM_INTERP_TWEEN:
+        case InputIterationType::CUSTOM_INTERP_TWEEN_MS:
             return mInput.mTween.Next();
-        case InputTypeBase::SAMPLED:
-        case InputTypeBase::CONSTANT_ARRAY:
+        case InputIterationType::SAMPLED:
+        case InputIterationType::CONSTANT_ARRAY:
             return *mInput.mIterator++;
-        case InputTypeBase::SAMPLED_RWA:
+        case InputIterationType::SAMPLED_RWA:
             return mInput.mIteratorRwa++;
         }
         return 0.0f;
     }
 
-    float NodeGraphInputAccessor::GetValue() {
+    float InputAccessor::GetValue() {
         switch (mType) {
-        case InputTypeBase::CUSTOM_INTERP_RWA_MS:
+        case InputIterationType::CUSTOM_INTERP_RWA_MS:
             return mInput.mFilterRWA.Value();
-        case InputTypeBase::CUSTOM_INTERP_TWEEN:
-        case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
+        case InputIterationType::CUSTOM_INTERP_TWEEN:
+        case InputIterationType::CUSTOM_INTERP_TWEEN_MS:
             return mInput.mTween.Value();
-        case InputTypeBase::SAMPLED:
-        case InputTypeBase::CONSTANT_ARRAY:
+        case InputIterationType::SAMPLED:
+        case InputIterationType::CONSTANT_ARRAY:
             return *mInput.mIterator;
-        case InputTypeBase::SAMPLED_RWA:
+        case InputIterationType::SAMPLED_RWA:
             return *mInput.mIteratorRwa;
         }
         return 0.0f;
     }
 
-    float NodeGraphInputAccessor::GetArrayValue(int32_t index) {
-        if (mType == InputTypeBase::CONSTANT_ARRAY) {
+    float InputAccessor::GetArrayValue(int32_t index) {
+        if (mType == InputIterationType::CONSTANT_ARRAY) {
             return mInput.mIterator[index];
         }
         return 0.0f;
     }
 
-    float* NodeGraphInputAccessor::GetArray() {
-        if (mType == InputTypeBase::CONSTANT_ARRAY) {
+    float* InputAccessor::GetArray() {
+        if (mType == InputIterationType::CONSTANT_ARRAY) {
             return mInput.mIterator.data();
         }
         return nullptr;
     }
 
     // run on each new batch call to setup input iterators for buffered data
-    void NodeGraphInputAccessor::BatchUpdate(std::vector<NodeGraphInput>& input, int32_t numSamples) {
+    void InputAccessor::BatchUpdate(std::vector<NodeGraphInput>& input, int32_t numSamples) {
         switch (mType) {
-        case InputTypeBase::CUSTOM_INTERP_RWA_MS:
-        case InputTypeBase::CUSTOM_INTERP_TWEEN:
-        case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
+        case InputIterationType::CUSTOM_INTERP_RWA_MS:
+        case InputIterationType::CUSTOM_INTERP_TWEEN:
+        case InputIterationType::CUSTOM_INTERP_TWEEN_MS:
             break;
-        case InputTypeBase::SAMPLED:
+        case InputIterationType::SAMPLED:
             mInput.mIterator = input.at(mInputIndex).GetIterator(numSamples);
             break;
-        case InputTypeBase::SAMPLED_RWA:
+        case InputIterationType::SAMPLED_RWA:
             mInput.mIteratorRwa = NodeDataIteratorRwa(input.at(mInputIndex).GetIterator(numSamples));
             break;
-        case InputTypeBase::CONSTANT_ARRAY:
+        case InputIterationType::CONSTANT_ARRAY:
             mInput.mIterator = input.at(mInputIndex).GetArrayIterator();
             break;
         }
     }
 
     // run on each node update (can be node specific) and will update node rwa filters
-    void NodeGraphInputAccessor::NodeUpdate(std::vector<NodeGraphInput>&, float updateRate) {
+    void InputAccessor::NodeUpdate(std::vector<NodeGraphInput>&, float updateRate) {
         switch (mType) {
-        case InputTypeBase::CUSTOM_INTERP_TWEEN:
-        case InputTypeBase::CUSTOM_INTERP_TWEEN_MS:
+        case InputIterationType::CUSTOM_INTERP_TWEEN:
+        case InputIterationType::CUSTOM_INTERP_TWEEN_MS:
             mInput.mTween.Update(updateRate);
             break;
-        case InputTypeBase::CUSTOM_INTERP_RWA_MS: // must set it manually
-        case InputTypeBase::SAMPLED:
-        case InputTypeBase::SAMPLED_RWA:
-        case InputTypeBase::CONSTANT_ARRAY:
+        case InputIterationType::CUSTOM_INTERP_RWA_MS: // must set it manually
+        case InputIterationType::SAMPLED:
+        case InputIterationType::SAMPLED_RWA:
+        case InputIterationType::CONSTANT_ARRAY:
             break;
         }
     }

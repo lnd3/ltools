@@ -30,13 +30,13 @@ namespace l::nodegraph {
 
         GraphSignalBase(NodeGraphBase* node, std::string_view name) :
             NodeGraphOp(node, name),
-            mNodeInputManager(*this)
+            mInputManager(*this)
         {
-            mNodeInputManager.AddInput(InputTypeBase::SAMPLED, AddInput("Sync", 0.0f, 1, 0.0f, 1.0f));
-            mNodeInputManager.AddInput(InputTypeBase::SAMPLED, AddInput("Rate", 256.0f, 1, 1.0f, 2048.0f));
-            mNodeInputManager.AddInput(InputTypeBase::SAMPLED_RWA, AddInput("Freq", 0.0f, 1, 0.0f, 22050.0f));
-            mNodeInputManager.AddInput(InputTypeBase::SAMPLED_RWA, AddInput("Volume", 0.0f, 1, 0.0f, 5.0f));
-            mNodeInputManager.AddInput(InputTypeBase::SAMPLED, AddInput("Smooth", 1.0f, 1, 0.0f, 1.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Sync", 0.0f, 1, 0.0f, 1.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Rate", 256.0f, 1, 1.0f, 2048.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED_RWA, AddInput("Freq", 0.0f, 1, 0.0f, 22050.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED_RWA, AddInput("Volume", 0.0f, 1, 0.0f, 5.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Smooth", 1.0f, 1, 0.0f, 1.0f));
 
             AddOutput("Out", 0.0f, 2);
 
@@ -57,7 +57,7 @@ namespace l::nodegraph {
         virtual void UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
         virtual float ProcessSignal(float deltaTime, float freq) = 0;
     protected:
-        NodeInputManager mNodeInputManager;
+        InputManager mInputManager;
 
         float mReset = 0.0f;
         float mFreq = 0.0f;
@@ -76,8 +76,8 @@ namespace l::nodegraph {
         GraphSignalSine2(NodeGraphBase* node) :
             GraphSignalBase(node, "Sine 2")
         {
-            mNodeInputManager.AddInput(InputTypeBase::SAMPLED_RWA, AddInput("Fmod", 0.0f, 1, 0.0f, 1.0f));
-            mNodeInputManager.AddInput(InputTypeBase::SAMPLED_RWA, AddInput("Phase", 0.0f, 1, 0.0f, 1.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED_RWA, AddInput("Fmod", 0.0f, 1, 0.0f, 1.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED_RWA, AddInput("Phase", 0.0f, 1, 0.0f, 1.0f));
         }
 
         virtual ~GraphSignalSine2() = default;
@@ -119,8 +119,8 @@ namespace l::nodegraph {
         GraphSignalSaw2(NodeGraphBase* node) :
             GraphSignalBase(node, "Saw 2")
         {
-            mNodeInputManager.AddInput(InputTypeBase::SAMPLED_RWA, AddInput("Attenuation", 0.0f, 1, 0.0f, 1.0f));
-            mNodeInputManager.AddInput(InputTypeBase::SAMPLED_RWA, AddInput("Cutoff", 0.0f, 1, 0.0f, 1.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED_RWA, AddInput("Attenuation", 0.0f, 1, 0.0f, 1.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED_RWA, AddInput("Cutoff", 0.0f, 1, 0.0f, 1.0f));
         }
 
         virtual ~GraphSignalSaw2() = default;

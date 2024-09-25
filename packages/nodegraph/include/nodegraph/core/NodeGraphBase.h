@@ -216,18 +216,18 @@ namespace l::nodegraph {
     };
 
 
-    class NodeInputManager {
+    class InputManager {
     public:
         const int32_t gCustomIndexBase = 100;
 
-        NodeInputManager(NodeGraphOp& nodeGraphOperation) :
+        InputManager(NodeGraphOp& nodeGraphOperation) :
             mNodeGraphOperation(nodeGraphOperation)
         {
         }
-        ~NodeInputManager() = default;
+        ~InputManager() = default;
 
-        int32_t AddInput(InputTypeBase type, int32_t inputIndex = -1);
-        int32_t AddCustom(InputTypeBase type);
+        int32_t AddInput(InputIterationType type, int32_t inputIndex = -1);
+        int32_t AddCustom(InputIterationType type);
         void BatchUpdate(std::vector<NodeGraphInput>& inputs, int32_t numSamples);
         void NodeUpdate(std::vector<NodeGraphInput>& inputs, float updateRate);
         float GetValueNext(int32_t inputIndex);
@@ -241,8 +241,8 @@ namespace l::nodegraph {
 
     protected:
         NodeGraphOp& mNodeGraphOperation;
-        std::vector<NodeGraphInputAccessor> mInputs;
-        std::vector<NodeGraphInputAccessor> mCustom;
+        std::vector<InputAccessor> mInputs;
+        std::vector<InputAccessor> mCustom;
     };
 
     // Use this when the operation requires dynamic input parameters or when the input data can be sampled scarcily (not every sample etc)
@@ -250,7 +250,7 @@ namespace l::nodegraph {
     public:
         NodeGraphOp2(NodeGraphBase* node, std::string_view name) :
             NodeGraphOp(node, name),
-            mNodeInputManager(*this) {
+            mInputManager(*this) {
 
         }
         ~NodeGraphOp2() {
@@ -260,7 +260,7 @@ namespace l::nodegraph {
         virtual void Tick(int32_t, float) override;
 
         int32_t AddInput2(
-            InputTypeBase type,
+            InputIterationType type,
             std::string_view name, 
             float defaultValue = 0.0f, 
             int32_t size = 1, 
@@ -270,7 +270,7 @@ namespace l::nodegraph {
             bool editable = true);
 
         int32_t AddConstant2(
-            InputTypeBase type,
+            InputIterationType type,
             std::string_view name, 
             float defaultValue = 0.0f, 
             int32_t size = 1, 
@@ -280,10 +280,10 @@ namespace l::nodegraph {
             bool editable = true);
 
         int32_t AddCustom2(
-            InputTypeBase type);
+            InputIterationType type);
 
     protected:
-        NodeInputManager mNodeInputManager;
+        InputManager mInputManager;
         float mStepsUntilUpdate = 0.0f;
         float mUpdateRate = 16.0f;
     };

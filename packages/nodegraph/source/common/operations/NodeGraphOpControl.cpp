@@ -12,10 +12,10 @@ namespace l::nodegraph {
     /*********************************************************************/
 
     void GraphControlBase::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        mNodeInputManager.BatchUpdate(inputs, numSamples);
+        mInputManager.BatchUpdate(inputs, numSamples);
 
-        float sync = mNodeInputManager.GetValueNext(0);
-        mUpdateRate = mNodeInputManager.GetValueNext(1);
+        float sync = mInputManager.GetValueNext(0);
+        mUpdateRate = mInputManager.GetValueNext(1);
         if (sync > 0.5f) {
             mSamplesUntilUpdate = 0;
         }
@@ -26,16 +26,16 @@ namespace l::nodegraph {
 
         mSamplesUntilUpdate = l::audio::BatchUpdate(mUpdateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
-                mNodeInputManager.NodeUpdate(inputs, mUpdateRate);
-                mUpdateRate = mNodeInputManager.GetValue(1);
+                mInputManager.NodeUpdate(inputs, mUpdateRate);
+                mUpdateRate = mInputManager.GetValue(1);
 
-                UpdateSignal(mNodeInputManager);
+                UpdateSignal(mInputManager);
 
                 return mUpdateRate;
             },
             [&](int32_t start, int32_t end, bool) {
                 for (int32_t i = start; i < end; i++) {
-                    auto [out0, out1] = ProcessSignal(mNodeInputManager);
+                    auto [out0, out1] = ProcessSignal(mInputManager);
                     *output0++ = out0;
                     *output1++ = out1;
                 }
@@ -45,24 +45,24 @@ namespace l::nodegraph {
 
     /*********************************************************************/
 
-    void GraphControlEnvelope::UpdateSignal(NodeInputManager&) {
+    void GraphControlEnvelope::UpdateSignal(InputManager&) {
 
-        mFreqTarget = mNodeInputManager.GetValueNext(6);
+        mFreqTarget = mInputManager.GetValueNext(6);
         if (mFreqTarget != 0.0f) {
-            mNodeInputManager.SetTarget(100, mFreqTarget);
+            mInputManager.SetTarget(100, mFreqTarget);
         }
-        mNodeInputManager.SetDuration(100, 1000.0f * mNodeInputManager.GetValueNext(3));
-        mAttackFrames = l::audio::GetAudioTicksFromMS(mNodeInputManager.GetValueNext(4));
-        mReleaseFrames = l::audio::GetAudioTicksFromMS(mNodeInputManager.GetValueNext(5));
-        mAttackFactor = mNodeInputManager.GetValueNext(4);
-        mReleaseFactor = mNodeInputManager.GetValueNext(5);
+        mInputManager.SetDuration(100, 1000.0f * mInputManager.GetValueNext(3));
+        mAttackFrames = l::audio::GetAudioTicksFromMS(mInputManager.GetValueNext(4));
+        mReleaseFrames = l::audio::GetAudioTicksFromMS(mInputManager.GetValueNext(5));
+        mAttackFactor = mInputManager.GetValueNext(4);
+        mReleaseFactor = mInputManager.GetValueNext(5);
 
-        mNodeInputManager.SetUpdateRate(100, 1.0f);
-        mNodeInputManager.SetUpdateRate(101, 1.0f);
+        mInputManager.SetUpdateRate(100, 1.0f);
+        mInputManager.SetUpdateRate(101, 1.0f);
     }
 
-    std::pair<float, float> GraphControlEnvelope::ProcessSignal(NodeInputManager&) {
-        float velocity = mNodeInputManager.GetValueNext(2);
+    std::pair<float, float> GraphControlEnvelope::ProcessSignal(InputManager&) {
+        float velocity = mInputManager.GetValueNext(2);
         float freq = 0.0f;
 
         bool noteOn = mFreqTarget != 0.0f;
@@ -72,8 +72,8 @@ namespace l::nodegraph {
 
             mFreqTargetPrev = mFreqTarget;
 
-            mNodeInputManager.SetDuration(101, mAttackFactor);
-            mNodeInputManager.SetTarget(101, l::math::functions::sqrt(velocity));
+            mInputManager.SetDuration(101, mAttackFactor);
+            mInputManager.SetTarget(101, l::math::functions::sqrt(velocity));
 
             if (mFrameCount == 0) {
                 // if note was off we set freq immediately
@@ -84,8 +84,8 @@ namespace l::nodegraph {
         else if (!noteOn && mNoteOn) {
             mNoteOn = false;
 
-            mNodeInputManager.SetDuration(101, mReleaseFactor);
-            mNodeInputManager.SetTarget(101, 0.0f);
+            mInputManager.SetDuration(101, mReleaseFactor);
+            mInputManager.SetTarget(101, 0.0f);
 
             if (mFrameCount > 0 && mFrameCount < mAttackFrames + 1) {
                 // still in attack so fast forward to release
@@ -114,17 +114,17 @@ namespace l::nodegraph {
             }
         }
 
-        freq = mNodeInputManager.GetValueNext(100);
+        freq = mInputManager.GetValueNext(100);
 
-        float envelope = mNodeInputManager.GetValueNext(101);
+        float envelope = mInputManager.GetValueNext(101);
         return { freq, envelope };
     }
 
     /*********************************************************************/
 
-    void GraphControlArpeggio::UpdateSignal(NodeInputManager&) {
-        float attack = mNodeInputManager.GetValue(4);
-        float release = mNodeInputManager.GetValue(5);
+    void GraphControlArpeggio::UpdateSignal(InputManager&) {
+        float attack = mInputManager.GetValue(4);
+        float release = mInputManager.GetValue(5);
         float attackFactor = l::audio::GetRWAFactorFromMS(attack, 0.001f, gArpeggioUpdateRate);
         float releaseFactor = l::audio::GetRWAFactorFromMS(release, 0.001f, gArpeggioUpdateRate);
         mGainAttack = attackFactor;
@@ -132,10 +132,10 @@ namespace l::nodegraph {
 
         if (mNotes.empty()) {
             mGainTarget = 0.0f;
-            mNodeInputManager.SetDuration(100, release, 0.01f);
-            mNodeInputManager.SetDuration(101, release, 0.01f);
-            mNodeInputManager.SetTarget(100, 0.0f);
-            mNodeInputManager.SetTarget(101, 1.0f);
+            mInputManager.SetDuration(100, release, 0.01f);
+            mInputManager.SetDuration(101, release, 0.01f);
+            mInputManager.SetTarget(100, 0.0f);
+            mInputManager.SetTarget(101, 1.0f);
         }
         else {
             if (mUpdateCounter % 2 == 0) {
@@ -143,44 +143,44 @@ namespace l::nodegraph {
                 mFreqTarget = l::audio::GetFrequencyFromNote(static_cast<float>(mNotes.at(mNoteIndex)));
                 mNoteIndex++;
 
-                auto velocity = mNodeInputManager.GetValueNext(2);
-                auto fade = mNodeInputManager.GetValueNext(3);
+                auto velocity = mInputManager.GetValueNext(2);
+                auto fade = mInputManager.GetValueNext(3);
 
                 mGainTarget = 2.0f * velocity;
                 mFreqSmoothing = fade;
                 mFreqSmoothing *= mFreqSmoothing * 0.5f;
 
-                mNodeInputManager.SetDuration(100, attack, 0.01f);
-                mNodeInputManager.SetDuration(101, attack + release, 0.01f);
-                mNodeInputManager.SetTarget(100, 1.0f);
-                mNodeInputManager.SetTarget(101, 0.0f);
+                mInputManager.SetDuration(100, attack, 0.01f);
+                mInputManager.SetDuration(101, attack + release, 0.01f);
+                mInputManager.SetTarget(100, 1.0f);
+                mInputManager.SetTarget(101, 0.0f);
                 //inputManager.SetValue(100, 0.0f);
                 //inputManager.SetValue(101, 1.0f);
 
                 mUpdateCounter = 0;
             }
             else {
-                mNodeInputManager.SetDuration(100, release, 0.01f);
-                mNodeInputManager.SetDuration(101, release, 0.01f);
-                mNodeInputManager.SetTarget(100, 0.0f);
-                mNodeInputManager.SetTarget(101, 1.0f);
+                mInputManager.SetDuration(100, release, 0.01f);
+                mInputManager.SetDuration(101, release, 0.01f);
+                mInputManager.SetTarget(100, 0.0f);
+                mInputManager.SetTarget(101, 1.0f);
             }
             mUpdateCounter++;
         }
     }
 
     void GraphControlArpeggio::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        mNodeInputManager.BatchUpdate(inputs, numSamples);
-        float sync = mNodeInputManager.GetValueNext(0);
-        float bpm = mNodeInputManager.GetValueNext(1);
+        mInputManager.BatchUpdate(inputs, numSamples);
+        float sync = mInputManager.GetValueNext(0);
+        float bpm = mInputManager.GetValueNext(1);
         mUpdateRate = 44100.0f * 60.0f / (2.0f * 4.0f * bpm);
         if (sync > 0.5f) {
             mSamplesUntilUpdate = 0;
         }
 
         {
-            auto noteIdsOn = mNodeInputManager.GetArray(6);
-            auto noteIdsOff = mNodeInputManager.GetArray(7);
+            auto noteIdsOn = mInputManager.GetArray(6);
+            auto noteIdsOff = mInputManager.GetArray(7);
 
             if (!mNotes.empty()) {
                 for (int32_t i = 0; i < gPolyphony; i++) {
@@ -216,15 +216,15 @@ namespace l::nodegraph {
         auto output1 = outputs.at(1).GetIterator(numSamples, gArpeggioUpdateRate);
         mSamplesUntilUpdate = l::audio::BatchUpdate(mUpdateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
-                mNodeInputManager.NodeUpdate(inputs, mUpdateRate);
-                mUpdateRate = mNodeInputManager.GetValueNext(1);
+                mInputManager.NodeUpdate(inputs, mUpdateRate);
+                mUpdateRate = mInputManager.GetValueNext(1);
 
-                UpdateSignal(mNodeInputManager);
+                UpdateSignal(mInputManager);
                 return mUpdateRate;
             },
             [&](int32_t start, int32_t end, bool) {
                 for (int32_t i = start; i < end; i++) {
-                    float envelope = mNodeInputManager.GetValueNext(100);
+                    float envelope = mInputManager.GetValueNext(100);
                     float gain = mGainTarget * envelope;
                     mGain += 0.0025f * (gain - mGain);
 
