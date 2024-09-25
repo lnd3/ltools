@@ -73,7 +73,7 @@ namespace l::audio {
         AudioStream() = default;
         ~AudioStream() = default;
 
-        bool OpenStream(int32_t dacBufferFrames, float latency = 0.0f, BufferingMode mode = BufferingMode::DOUBLE_BUFFERING, ChannelMode channel = ChannelMode::STEREO);
+        bool OpenStream(int32_t dacFramesPerBufferPart, float latencyMs = 0.0f, BufferingMode mode = BufferingMode::DOUBLE_BUFFERING, ChannelMode channel = ChannelMode::STEREO);
         bool StartStream();
         std::vector<float>& GetWriteBuffer();
         bool CanWrite();

@@ -179,7 +179,7 @@ TEST(NodeGraph, GraphGroups) {
 	return 0;
 }
 
-TEST(NodeGraph, SchemaBasic) {
+TEST(NodeGraph, SchemaAllNodes) {
 
 	NodeGraphSchema ng;
 

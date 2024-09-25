@@ -1,5 +1,7 @@
 #include "rendering/ui/UIVisitors.h"
 #include "hid/KeyboardPiano.h"
+#include "nodegraph/NodeGraphSchema.h"
+
 
 namespace l::ui {
 
@@ -497,6 +499,22 @@ namespace l::ui {
             }
         }
         return false;
+    }
+
+    bool UILinkIO::LinkHandler(int32_t linkInputId, int32_t linkOutputId, int32_t inputChannel, int32_t outputChannel, bool connected) {
+        if (mNGSchema == nullptr) {
+            return false;
+        }
+
+        auto inputNode = mNGSchema->GetNode(linkInputId);
+        if (inputNode == nullptr) {
+            return false;
+        }
+        if (connected) {
+            auto outputNode = mNGSchema->GetNode(linkOutputId);
+            return outputNode != nullptr && inputNode->SetInput(static_cast<int8_t>(inputChannel), *outputNode, static_cast<int8_t>(outputChannel));
+        }
+        return inputNode->ClearInput(static_cast<int8_t>(inputChannel));
     }
 
 }
