@@ -7,8 +7,6 @@
 #include "rendering/ui/UIWindow.h"
 #include "rendering/ui/UICreator.h"
 
-#include "nodegraph/NodeGraph.h"
-#include "nodegraph/NodeGraphOperations.h"
 #include "nodegraph/NodeGraphSchema.h"
 
 #include <functional>
@@ -20,8 +18,8 @@ namespace l::ui {
 
     class UINodeEditor : public UIBase {
     public:
-        UINodeEditor(std::string_view editorName) : mUIWindow(editorName), mLinkIOVisitor(mUIStorage), mSelectVisitor(mUIStorage) {
-            mUIRoot = CreateContainer(mUIStorage, l::ui::UIContainer_DragFlag | l::ui::UIContainer_ZoomFlag);
+        UINodeEditor(std::string_view editorName) : mUIWindow(editorName), mLinkIOVisitor(mUIManager), mSelectVisitor(mUIManager) {
+            mUIRoot = CreateContainer(mUIManager, l::ui::UIContainer_DragFlag | l::ui::UIContainer_ZoomFlag);
             
             mUIWindow.SetContentWindow([&]() {
                 ImGui::PushItemWidth(400);
@@ -47,7 +45,7 @@ namespace l::ui {
 
                 mNGSchema->ForEachNodeType([&](std::string_view typeName, const std::vector<l::nodegraph::UINodeDesc>& types) {
                     if (typeName.empty() || ImGui::TreeNode(typeName.data())) {
-                        for (auto it : types) {
+                        for (auto& it : types) {
                             if (ImGui::MenuItem(it.GetName().data())) {
                                 ImVec2 p = ImVec2(mUIInput.mCurPos.x - mUIWindow.GetPosition().x, mUIInput.mCurPos.y - mUIWindow.GetPosition().y);
                                 p.x -= mUIRoot->GetPosition().x;
@@ -59,7 +57,7 @@ namespace l::ui {
                                 auto nodeId = mNGSchema->NewNode(it.GetId());
                                 auto node = mNGSchema->GetNode(nodeId);
                                 if (node != nullptr) {
-                                    auto uiNode = l::ui::CreateUINode(mUIStorage, *node, p);
+                                    auto uiNode = l::ui::CreateUINode(mUIManager, *node, p);
                                     mUIRoot->Add(uiNode);
                                 }
                             }
@@ -121,7 +119,7 @@ namespace l::ui {
 
     protected:
         UIWindow mUIWindow;
-        UIStorage mUIStorage;
+        UIManager mUIManager;
         UIHandle mUIRoot;
         InputState mUIInput;
 

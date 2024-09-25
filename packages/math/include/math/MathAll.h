@@ -4,3 +4,4 @@
 #include "math/MathSmooth.h"
 #include "math/MathConstants.h"
 #include "math/MathAlgorithm.h"
+#include "math/MathTween.h"

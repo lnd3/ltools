@@ -3,20 +3,13 @@
 #include "logging/LoggingAll.h"
 
 #include "hid/KeyState.h"
+#include "audio/AudioUtils.h"
 
 #include <functional>
 #include <unordered_map>
 #include <array>
 
 namespace l::hid {
-
-	class INoteProcessor {
-	public:
-		virtual ~INoteProcessor() = default;
-		virtual void NoteOn(int32_t) {}
-		virtual void NoteOff() {}
-		virtual void NoteOff(int32_t) {}
-	};
 
 	enum class KeyFunctionTypes {
 		OCTAVE_DOWN = 0,
@@ -30,7 +23,7 @@ namespace l::hid {
 		const std::array<char, 18> charMapFromNoteBUpper = { '1', 'q', '2', 'w', '3', 'e', 'r', '5', 't', '6', 'y', '7', 'u', 'i', '9', 'o', '0', 'p' };
 
 		KeyboardPiano() : KeyboardPiano(nullptr, nullptr) {}
-		KeyboardPiano(l::hid::KeyState* keyState, l::hid::INoteProcessor* instrument) :
+		KeyboardPiano(l::hid::KeyState* keyState, l::audio::INoteProcessor* instrument) :
 			mKeyState(keyState),
 			mNotePlayer(instrument)
 		{
@@ -54,7 +47,7 @@ namespace l::hid {
 		}
 
 		void SetKeyState(KeyState* keyState);
-		void SetNoteProcessor(INoteProcessor* notePlayer);
+		void SetNoteProcessor(l::audio::INoteProcessor* notePlayer);
 		void ForEachNoteChange(std::function<void(int32_t, bool)> noteHandler);
 
 		void Update();
@@ -70,7 +63,7 @@ namespace l::hid {
 		std::unordered_map<int32_t, int32_t> mCharCodeToNote;
 		std::unordered_map<KeyFunctionTypes, int32_t> mKeyFunctions;
 		KeyState* mKeyState = nullptr;
-		INoteProcessor* mNotePlayer = nullptr;
+		l::audio::INoteProcessor* mNotePlayer = nullptr;
 	};
 
 }

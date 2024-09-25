@@ -38,20 +38,9 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(OutputType::Default, 3);
             break;
         case 4:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceTime>(OutputType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceTime>(OutputType::ExternalOutput, mAudioOutput != nullptr ? mAudioOutput->GetSampleRate() : 44100, 60);
             break;
-        case 5:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceSine>(OutputType::Default);
-            break;
-        case 6:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceSineFM>(OutputType::Default);
-            break;
-        case 7:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceSineFM2>(OutputType::Default);
-            break;
-        case 8:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceSineFM3>(OutputType::Default);
-            break;
+
         case 50:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericAdd>(OutputType::Default);
             break;
@@ -76,6 +65,7 @@ namespace l::nodegraph {
         case 57:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericRound>(OutputType::Default);
             break;
+
         case 100:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalAnd>(OutputType::Default);
             break;
@@ -85,9 +75,17 @@ namespace l::nodegraph {
         case 102:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalXor>(OutputType::Default);
             break;
+
         case 150:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterLowpass>(OutputType::Default);
             break;
+        case 151:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterHighpass>(OutputType::Default);
+            break;
+        case 152:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterChamberlain2pole>(OutputType::Default);
+            break;
+
         case 200:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputDebug>(OutputType::ExternalOutput);
             break;
@@ -97,44 +95,88 @@ namespace l::nodegraph {
         case 202:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputPlot>(OutputType::ExternalVisualOutput, 100);
             break;
-        case 250:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterEnvelope>(OutputType::Default);
-            break;
+
         case 251:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectReverb1>(OutputType::Default);
             break;
         case 252:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectReverb2>(OutputType::Default);
             break;
-        case 253:
+        case 254:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectLimiter>(OutputType::Default);
             break;
-        case 254:
+        case 255:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectEnvelopeFollower>(OutputType::Default);
             break;
-        case 255:
+        case 256:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectSaturator>(OutputType::Default);
             break;
+        case 257:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectTranceGate>(OutputType::Default);
+            break;
+
         case 300:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputKeyboardPiano, l::hid::KeyState>(OutputType::Default, 1, mKeyState);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputKeyboardPiano>(OutputType::Default, mKeyState);
             break;
         case 301:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiKeyboard, l::hid::KeyState>(OutputType::Default, mMidiManager);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiKeyboard>(OutputType::Default, mMidiManager);
             break;
         case 302:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiKnobs, l::hid::KeyState>(OutputType::Default, mMidiManager);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiKnobs>(OutputType::Default, mMidiManager);
+            break;
+        case 303:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(OutputType::Default, mMidiManager, 0);
+            break;
+        case 304:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(OutputType::Default, mMidiManager, 1);
+            break;
+        case 305:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(OutputType::Default, mMidiManager, 2);
+            break;
+        case 306:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(OutputType::Default, mMidiManager, 3);
+            break;
+        case 307:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(OutputType::Default, mMidiManager, 4);
+            break;
+
+        case 350:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSine>(OutputType::Default);
+            break;
+        case 351:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSineFM>(OutputType::Default);
+            break;
+        case 352:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSineFM2>(OutputType::Default);
+            break;
+        case 353:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSineFM3>(OutputType::Default);
+            break;
+        case 354:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSaw>(OutputType::Default);
+            break;
+        case 355:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSine2>(OutputType::Default);
+            break;
+        case 356:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSaw2>(OutputType::Default);
+            break;
+
+        case 400:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphControlEnvelope>(OutputType::Default);
+            break;
+        case 401:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphControlArpeggio>(OutputType::Default);
             break;
 
         default:
             ASSERT(typeId < 10000) << "Custom node id's begin at id 1000";
-            ASSERT(mCreateCustomNode != nullptr) << "Custom nodes needs a handler to create them. It's missing.";
-            node = mCreateCustomNode(typeId, mMainNodeGraph);
+            if (mCreateCustomNode) {
+                node = mCreateCustomNode(typeId, mMainNodeGraph);
+            }
             break;
         };
 
-        if (node != nullptr) {
-            node->Reset();
-        }
         return node == nullptr ? 0 : node->GetId();
     }
 
@@ -147,7 +189,7 @@ namespace l::nodegraph {
     }
 
     void NodeGraphSchema::ForEachNodeType(std::function<void(std::string_view, const std::vector<UINodeDesc>&)> cb) const {
-        for (auto it : mRegisteredNodeTypes) {
+        for (auto& it : mRegisteredNodeTypes) {
             cb(it.first, it.second);
         }
     }
@@ -164,7 +206,7 @@ namespace l::nodegraph {
     }
 
     void NodeGraphSchema::ProcessSubGraph(int32_t numSamples) {
-        mMainNodeGraph.ProcessSubGraph(numSamples, true);
+        mMainNodeGraph.ProcessSubGraph(numSamples);
     }
 
 

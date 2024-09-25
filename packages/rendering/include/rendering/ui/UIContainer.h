@@ -413,10 +413,10 @@ namespace l::ui {
         UISplitMode mSplitMode;
     };
 
-    class UIStorage {
+    class UIManager {
     public:
-        UIStorage() = default;
-        ~UIStorage() = default;
+        UIManager() = default;
+        ~UIManager() = default;
 
         UIHandle Add(std::unique_ptr<UIContainer> container);
         void Remove(const UIHandle& handle);
@@ -426,9 +426,9 @@ namespace l::ui {
         int32_t mIdCounter = 1;
     };
 
-    UIHandle CreateContainer(UIStorage& uiStorage, uint32_t flags, UIRenderType renderType = UIRenderType::Rect, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed);
-    UIHandle CreateSplit(UIStorage& uiStorage, uint32_t flags, UIRenderType renderType, UISplitMode splitMode = UISplitMode::AppendV, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed);
-    void DeleteContainer(UIStorage& uiStorage, UIHandle handle);
-    void DeleteContainer(UIStorage& uiStorage, UIContainer* container);
+    UIHandle CreateContainer(UIManager& uiManager, uint32_t flags, UIRenderType renderType = UIRenderType::Rect, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed);
+    UIHandle CreateSplit(UIManager& uiManager, uint32_t flags, UIRenderType renderType, UISplitMode splitMode = UISplitMode::AppendV, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed);
+    void DeleteContainer(UIManager& uiManager, UIHandle handle);
+    void DeleteContainer(UIManager& uiManager, UIContainer* container);
 
 }

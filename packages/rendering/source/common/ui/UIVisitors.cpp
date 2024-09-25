@@ -1,5 +1,7 @@
 #include "rendering/ui/UIVisitors.h"
 #include "hid/KeyboardPiano.h"
+#include "nodegraph/NodeGraphSchema.h"
+
 
 namespace l::ui {
 
@@ -182,7 +184,7 @@ namespace l::ui {
                     if (mNGSchema != nullptr) {
                         mNGSchema->RemoveNode(it->GetNodeId());
                     }
-                    DeleteContainer(mUIStorage, it);
+                    DeleteContainer(mUIManager, it);
                 }
                 mSelectedContainers.clear();
                 return true;
@@ -209,25 +211,38 @@ namespace l::ui {
             if (mNGSchema) {
                 auto node = mNGSchema->GetNode(container.GetNodeId());
                 auto nodeChannel = static_cast<int8_t>(container.GetChannelId());
-                if (nodeChannel < node->GetNumInputs() && node->IsDataEditable(nodeChannel)) {
-                    auto nodeValue = node->GetInput(nodeChannel);
-                    if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftShift)) {
-                        if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftCtrl)) {
-                            nodeValue -= move.y / 100.0f;
+                if (node->IsDataEditable(nodeChannel)) {
+                    float* nodeValue = nullptr;
+                    if (nodeChannel < node->GetNumInputs()) {
+                        nodeValue = &node->GetInput(nodeChannel, 1);
+                    }
+                    else if (nodeChannel < node->GetNumOutputs()) {
+                        nodeValue = &node->GetOutput(nodeChannel, 1);
+                    }
+                    if (nodeValue != nullptr) {
+                        if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftShift)) {
+                            if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftCtrl)) {
+                                *nodeValue -= move.y / 100.0f;
+                            }
+                            else {
+                                *nodeValue -= move.y / 10000.0f;
+                            }
                         }
                         else {
-                            nodeValue -= move.y / 10000.0f;
+                            if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftCtrl)) {
+                                *nodeValue -= move.y;
+                            }
+                            else {
+                                *nodeValue -= 1000.0f * move.y;
+                            }
+                        }
+                        if (nodeChannel < node->GetNumInputs()) {
+                            node->SetInput(nodeChannel, *nodeValue);
+                        }
+                        else if (nodeChannel < node->GetNumOutputs()) {
+                            node->GetOutput(nodeChannel, 1) = *nodeValue;
                         }
                     }
-                    else {
-                        if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftCtrl)) {
-                            nodeValue -= move.y;
-                        }
-                        else {
-                            nodeValue -= 1000.0f * move.y;
-                        }
-                    }
-                    node->SetInput(nodeChannel, nodeValue);
                 }
             }
 
@@ -341,7 +356,7 @@ namespace l::ui {
             if (mNGSchema) {
                 auto node = mNGSchema->GetNode(container.GetNodeId());
                 float nodeValue = 0.0f;
-                if (container.GetChannelId() < node->GetNumInputs() + node->GetNumConstants()) {
+                if (container.GetChannelId() < node->GetNumInputs()) {
                     nodeValue = node->GetInput(static_cast<int8_t>(container.GetChannelId()));
                 }
                 else {
@@ -366,7 +381,7 @@ namespace l::ui {
                         float xpart1 = i / static_cast<float>(nodeValueCount);
                         float xpart2 = (i+1) / static_cast<float>(nodeValueCount);
                         ImVec2 graphP1 = ImVec2(startPos.x + size.x * xpart1, startPos.y + 0.5f * nodeValues[i] * size.y);
-                        ImVec2 graphP2 = ImVec2(startPos.x + size.x * xpart2, startPos.y + 0.5f * nodeValues[i] * size.y);
+                        ImVec2 graphP2 = ImVec2(startPos.x + size.x * xpart2, startPos.y + 0.5f * nodeValues[i+1] * size.y);
                         mDrawList->AddLine(graphP1, graphP2, color, 2.0f * container.GetScale());
                     }
                 }
@@ -422,7 +437,7 @@ namespace l::ui {
             ImVec2 pT = layoutArea.Transform(pCenter);
             if (OverlapCircle(input.mCurPos, pT, 2.0f * size.x * layoutArea.mScale)) {
                 mDragging = true;
-                mLinkContainer = CreateContainer(mUIStorage, UIContainer_LinkFlag | UIContainer_DrawFlag, UIRenderType::LinkH);
+                mLinkContainer = CreateContainer(mUIManager, UIContainer_LinkFlag | UIContainer_DrawFlag, UIRenderType::LinkH);
                 container.Add(mLinkContainer);
                 return true;
             }
@@ -476,7 +491,7 @@ namespace l::ui {
                     mLinkContainer.Reset();
                 }
                 else {
-                    DeleteContainer(mUIStorage, mLinkContainer.Get());
+                    DeleteContainer(mUIManager, mLinkContainer.Get());
                     mDragging = false;
                     mLinkContainer.Reset();
                     return true;
@@ -484,6 +499,22 @@ namespace l::ui {
             }
         }
         return false;
+    }
+
+    bool UILinkIO::LinkHandler(int32_t linkInputId, int32_t linkOutputId, int32_t inputChannel, int32_t outputChannel, bool connected) {
+        if (mNGSchema == nullptr) {
+            return false;
+        }
+
+        auto inputNode = mNGSchema->GetNode(linkInputId);
+        if (inputNode == nullptr) {
+            return false;
+        }
+        if (connected) {
+            auto outputNode = mNGSchema->GetNode(linkOutputId);
+            return outputNode != nullptr && inputNode->SetInput(static_cast<int8_t>(inputChannel), *outputNode, static_cast<int8_t>(outputChannel));
+        }
+        return inputNode->ClearInput(static_cast<int8_t>(inputChannel));
     }
 
 }

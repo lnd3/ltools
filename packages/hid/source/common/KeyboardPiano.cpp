@@ -10,7 +10,7 @@ namespace l::hid {
 		mKeyState = keyState;
 	}
 	
-	void KeyboardPiano::SetNoteProcessor(INoteProcessor* notePlayer) {
+	void KeyboardPiano::SetNoteProcessor(l::audio::INoteProcessor* notePlayer) {
 		mNotePlayer = notePlayer;
 	}
 

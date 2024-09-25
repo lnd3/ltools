@@ -259,9 +259,11 @@ namespace l::ui {
                     break;
                 case UISplitMode::AppendH:
                     current.mPosition.x += content->GetSize().x * mLayoutArea.mScale;
+                    current.mSize.x -= content->GetSize().x * mLayoutArea.mScale;
                     break;
                 case UISplitMode::AppendV:
                     current.mPosition.y += content->GetSize().y * mLayoutArea.mScale;
+                    current.mSize.y -= content->GetSize().y * mLayoutArea.mScale;
                     break;
                 case UISplitMode::EqualResizeH:
                     break;
@@ -278,7 +280,7 @@ namespace l::ui {
         return false;
     }
 
-    UIHandle UIStorage::Add(std::unique_ptr<UIContainer> container) {
+    UIHandle UIManager::Add(std::unique_ptr<UIContainer> container) {
         auto id = mIdCounter++;
         auto stringId = container->GetStringId();
         container->SetId(id);
@@ -286,56 +288,56 @@ namespace l::ui {
         return UIHandle{ id, stringId, mContainers.at(id).get() };
     }
 
-    void UIStorage::Remove(const UIHandle& handle) {
+    void UIManager::Remove(const UIHandle& handle) {
         if (handle.IsValid()) {
             mContainers.erase(handle.GetId());
         }
     }
 
-    void UIStorage::Remove(UIContainer* container) {
+    void UIManager::Remove(UIContainer* container) {
         if (container != nullptr) {
             mContainers.erase(container->GetId());
         }
     }
 
-    UIHandle CreateContainer(UIStorage& uiStorage, uint32_t flags, UIRenderType renderType, UIAlignH alignH, UIAlignV alignV, UILayoutH layoutH, UILayoutV layoutV) {
+    UIHandle CreateContainer(UIManager& uiManager, uint32_t flags, UIRenderType renderType, UIAlignH alignH, UIAlignV alignV, UILayoutH layoutH, UILayoutV layoutV) {
         std::unique_ptr<UIContainer> container = std::make_unique<UIContainer>(flags, renderType, alignH, alignV, layoutH, layoutV);
 
         auto stringId = CreateUniqueStringId<UIContainer>();
         container->SetStringId(stringId);
 
-        return uiStorage.Add(std::move(container));
+        return uiManager.Add(std::move(container));
     }
 
-    UIHandle CreateSplit(UIStorage& uiStorage, uint32_t flags, UIRenderType renderType, UISplitMode splitMode, UILayoutH layoutH, UILayoutV layoutV) {
+    UIHandle CreateSplit(UIManager& uiManager, uint32_t flags, UIRenderType renderType, UISplitMode splitMode, UILayoutH layoutH, UILayoutV layoutV) {
         std::unique_ptr<UISplit> container = std::make_unique<UISplit>(flags, renderType, splitMode, layoutH, layoutV);
 
         auto stringId = CreateUniqueStringId<UIContainer>();
         container->SetStringId(stringId);
 
-        return uiStorage.Add(std::move(container));
+        return uiManager.Add(std::move(container));
     }
 
-    void DeleteContainer(UIStorage& uiStorage, UIHandle handle) {
+    void DeleteContainer(UIManager& uiManager, UIHandle handle) {
         if (handle.IsValid()) {
             ASSERT(handle.Get()->GetParent() != nullptr);
             handle.Get()->GetParent()->Remove(handle);
             handle->ForEachChild([&](UIContainer* container) {
-                uiStorage.Remove(container);
+                uiManager.Remove(container);
                 });
-            uiStorage.Remove(handle);
+            uiManager.Remove(handle);
         }
     }
 
-    void DeleteContainer(UIStorage& uiStorage, UIContainer* container) {
+    void DeleteContainer(UIManager& uiManager, UIContainer* container) {
         if (container != nullptr) {
             ASSERT(container->GetParent() != nullptr);
             container->GetParent()->Remove(container);
             container->ForEachChild([&](UIContainer* c) {
-                uiStorage.Remove(c);
+                uiManager.Remove(c);
                 });
 
-            uiStorage.Remove(container);
+            uiManager.Remove(container);
         }
     }
 }

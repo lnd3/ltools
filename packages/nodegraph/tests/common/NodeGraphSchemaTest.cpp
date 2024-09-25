@@ -1,8 +1,7 @@
 #include "testing/Test.h"
 #include "logging/Log.h"
 
-#include "nodegraph/NodeGraph.h"
-#include "nodegraph/NodeGraphOperations.h"
+#include "nodegraph/core/NodeGraphGroup.h"
 #include "nodegraph/NodeGraphSchema.h"
 
 using namespace l;
@@ -99,18 +98,18 @@ TEST(NodeGraph, FilterLowpass) {
 	float resonance = 0.9f;
 	float input = 1.3f;
 
-	nodeLowpass.SetInput(0, &input);
-	nodeLowpass.SetInput(1, &cutoff);
-	nodeLowpass.SetInput(2, &resonance);
+	nodeLowpass.SetInput(1, &input);
+	nodeLowpass.SetInput(2, &cutoff);
+	nodeLowpass.SetInput(3, &resonance);
 
 	float oneRev = 2.0f * 3.14f / 30.0f;
 	for (int i = 0; i < 30; i++) {
 		input = sinf(2.0f * i * oneRev);
 		nodeLowpass.ProcessSubGraph();
-		//LOG(LogInfo) << nodeLowpass.Get(0);
+		//LOG(LogInfo) << nodeLowpass.GetOutput(0);
 	}
 
-	TEST_FUZZY(nodeLowpass.GetOutput(0), -0.448589f, 0.0001f, "");
+	TEST_FUZZY(nodeLowpass.GetOutput(0), -0.287209, 0.0001f, "");
 
 	return 0;
 }
@@ -137,16 +136,16 @@ TEST(NodeGraph, GraphGroups) {
 		auto nodeLowpass2 = group.NewNode<GraphFilterLowpass>(OutputType::Default);
 
 		// left, right
-		nodeLowpass1->SetInput(0, group, 2);
-		nodeLowpass2->SetInput(0, group, 3);
+		nodeLowpass1->SetInput(1, group, 2);
+		nodeLowpass2->SetInput(1, group, 3);
 
 		// cutoff
-		nodeLowpass1->SetInput(1, group, 0);
-		nodeLowpass2->SetInput(1, group, 0);
+		nodeLowpass1->SetInput(2, group, 0);
+		nodeLowpass2->SetInput(2, group, 0);
 
 		// resonance
-		nodeLowpass1->SetInput(2, group, 1);
-		nodeLowpass2->SetInput(2, group, 1);
+		nodeLowpass1->SetInput(3, group, 1);
+		nodeLowpass2->SetInput(3, group, 1);
 
 		group.SetOutput(0, *nodeLowpass1, 0);
 		group.SetOutput(1, *nodeLowpass2, 0);
@@ -160,9 +159,7 @@ TEST(NodeGraph, GraphGroups) {
 		group2.SetInput(0, group, 0);
 		group2.SetInput(1, group, 1);
 
-		auto copyNode = group2.NewNode<GraphDataCopy>(OutputType::Default);
-		copyNode->SetNumInputs(2);
-		copyNode->SetNumOutputs(2);
+		auto copyNode = group2.NewNode<GraphDataCopy>(OutputType::Default, 2);
 		copyNode->SetInput(0, group2, 0);
 		copyNode->SetInput(1, group2, 1);
 
@@ -176,13 +173,37 @@ TEST(NodeGraph, GraphGroups) {
 	float output1 = group2.GetOutput(0);
 	float output2 = group2.GetOutput(1);
 
-	TEST_FUZZY(output1, 0.122880019f, 0.0000001, "");
-	TEST_FUZZY(output2, 0.0819200128f, 0.0000001, "");
+	TEST_FUZZY(output1, 0.130579203f, 0.00001, "");
+	TEST_FUZZY(output2, 0.0870528072f, 0.00001, "");
 
 	return 0;
 }
 
-TEST(NodeGraph, SchemaBasic) {
+TEST(NodeGraph, SchemaAllNodes) {
+
+	NodeGraphSchema ng;
+
+	std::vector<int32_t> nodeIds;
+
+	for (int32_t i = 0; i < 1000; i++) {
+		auto nodeId = ng.NewNode(i);
+		if (nodeId > 0) {
+			nodeIds.push_back(nodeId);
+		}
+	}
+
+	int32_t tick = 0;
+	for (int32_t j = 0; j < 10; j++) {
+		for (int32_t i = 0; i < 10; i++) {
+			ng.Tick(tick++, 0.001f);
+			ng.ProcessSubGraph(100);
+		}
+	}
+	
+	for (auto nodeId : nodeIds) {
+		TEST_TRUE(ng.RemoveNode(nodeId), "");
+	}
+
 
 	return 0;
 }

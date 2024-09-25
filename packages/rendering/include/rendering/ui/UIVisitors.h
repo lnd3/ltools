@@ -3,10 +3,12 @@
 #include "rendering/ui/UIContainer.h"
 #include "rendering/ui/UIWindow.h"
 
-#include "nodegraph/NodeGraphSchema.h"
-
 #include <unordered_set>
 #include <deque>
+
+namespace l::nodegraph {
+    class NodeGraphSchema;
+}
 
 namespace l::ui {
 
@@ -52,7 +54,7 @@ namespace l::ui {
 
     class UISelect : public UIVisitor {
     public:
-        UISelect(UIStorage& uiStorage) : mUIStorage(uiStorage) {}
+        UISelect(UIManager& uiManager) : mUIManager(uiManager) {}
 
         virtual bool Visit(UIContainer& container, const InputState& input);
 
@@ -61,7 +63,7 @@ namespace l::ui {
         }
     protected:
         std::unordered_set<UIContainer*> mSelectedContainers;
-        UIStorage& mUIStorage;
+        UIManager& mUIManager;
         l::nodegraph::NodeGraphSchema* mNGSchema = nullptr;
     };
 
@@ -102,27 +104,13 @@ namespace l::ui {
     public:
         using HandlerFunctionType = bool(int32_t, int32_t, int32_t, int32_t, bool);
 
-        UILinkIO(UIStorage& uiStorage) : mUIStorage(uiStorage) {}
+        UILinkIO(UIManager& uiManager) : mUIManager(uiManager) {}
         ~UILinkIO() = default;
 
         virtual bool Active(UIContainer& container, const InputState& input);
         virtual bool Visit(UIContainer& container, const InputState& input);
 
-        bool LinkHandler(int32_t linkInputId, int32_t linkOutputId, int32_t inputChannel, int32_t outputChannel, bool connected) {
-            if (mNGSchema == nullptr) {
-                return false;
-            }
-
-            auto inputNode = mNGSchema->GetNode(linkInputId);
-            if (inputNode == nullptr) {
-                return false;
-            }
-            if (connected) {
-                auto outputNode = mNGSchema->GetNode(linkOutputId);
-                return outputNode != nullptr && inputNode->SetInput(static_cast<int8_t>(inputChannel), *outputNode, static_cast<int8_t>(outputChannel));
-            }
-            return inputNode->ClearInput(static_cast<int8_t>(inputChannel));
-        }
+        bool LinkHandler(int32_t linkInputId, int32_t linkOutputId, int32_t inputChannel, int32_t outputChannel, bool connected);
 
         void SetNGSchema(l::nodegraph::NodeGraphSchema* ngSchema) {
             mNGSchema = ngSchema;
@@ -131,7 +119,7 @@ namespace l::ui {
     protected:
         bool mDragging = false;
         UIHandle mLinkContainer;
-        UIStorage& mUIStorage;
+        UIManager& mUIManager;
         l::nodegraph::NodeGraphSchema* mNGSchema = nullptr;
     };
 
