@@ -42,8 +42,8 @@ namespace l::rendering {
 
 			image_u8 new_image(new_width, new_height);
 
-			const uint32_t w = math::functions::min(m_width, new_width);
-			const uint32_t h = math::functions::min(m_height, new_height);
+			const uint32_t w = math::functions::min2(m_width, new_width);
+			const uint32_t h = math::functions::min2(m_height, new_height);
 
 			for (uint32_t y = 0; y < h; y++)
 				for (uint32_t x = 0; x < w; x++)
@@ -131,8 +131,8 @@ namespace l::rendering {
 		void image_metrics::compute(const image_u8& a, const image_u8& b, uint32_t first_channel, uint32_t num_channels) {
 			const bool average_component_error = true;
 
-			const uint32_t width = math::functions::min(a.width(), b.width());
-			const uint32_t height = math::functions::min(a.height(), b.height());
+			const uint32_t width = math::functions::min2(a.width(), b.width());
+			const uint32_t height = math::functions::min2(a.height(), b.height());
 
 			ASSERT((first_channel < 4U) && (first_channel + num_channels <= 4U));
 

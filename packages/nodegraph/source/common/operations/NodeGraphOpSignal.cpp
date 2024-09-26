@@ -64,7 +64,7 @@ namespace l::nodegraph {
     void GraphSignalSine2::UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {
         mFmod = mInputManager.GetValueNext(mNumDefaultInputs + 0);
         mPmod = mInputManager.GetValueNext(mNumDefaultInputs + 1);
-        mFmod *= 0.25f * 0.25f * 0.5f * 44100.0f / l::math::functions::max(mFreq, 1.0f);
+        mFmod *= 0.25f * 0.25f * 0.5f * 44100.0f / l::math::functions::max2(mFreq, 1.0f);
 
         mFilterFmod.SetConvergenceFactor().SetTarget(mFmod);
         mFilterPmod.SetConvergenceFactor().SetTarget(mPmod);
@@ -125,7 +125,7 @@ namespace l::nodegraph {
 
         mSamplesUntilUpdate = l::audio::BatchUpdate(updateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
-                mFreq = l::math::functions::max(static_cast<double>(inputs.at(0).Get()), 0.0);
+                mFreq = l::math::functions::max2(static_cast<double>(inputs.at(0).Get()), 0.0);
                 mVolume = inputs.at(1).Get();
                 mReset = inputs.at(5).Get();
 
@@ -198,7 +198,7 @@ namespace l::nodegraph {
         float updateRate = 256.0f;
         mSamplesUntilUpdate = l::audio::BatchUpdate(updateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
-                mFreq = l::math::functions::max(static_cast<double>(inputs.at(0).Get()), 0.0);
+                mFreq = l::math::functions::max2(static_cast<double>(inputs.at(0).Get()), 0.0);
                 mVolume = inputs.at(1).Get();
                 mReset = inputs.at(8).Get();
 
@@ -253,7 +253,7 @@ namespace l::nodegraph {
         float updateRate = 256.0f;
         mSamplesUntilUpdate = l::audio::BatchUpdate(updateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
-                mFreq = l::math::functions::max(static_cast<double>(inputs.at(0).Get()), 0.0);
+                mFreq = l::math::functions::max2(static_cast<double>(inputs.at(0).Get()), 0.0);
                 mVolume = inputs.at(1).Get();
                 mReset = inputs.at(5).Get();
 
@@ -275,11 +275,11 @@ namespace l::nodegraph {
                 double fmFreq = static_cast<double>(inputs.at(3).Get());
                 double smooth = 0.5 * static_cast<double>(inputs.at(4).Get());
 
-                double limitFmMod = 1.0 / l::math::functions::max(mFreq / 25.0, 1.0);
+                double limitFmMod = 1.0 / l::math::functions::max2(mFreq / 25.0, 1.0);
                 fmMod = 800.0 * fmMod * fmMod * limitFmMod;
 
                 for (int32_t i = start; i < end; i++) {
-                    double maxFmModulation = 1.0 / l::math::functions::max(mFreq * fmFreq * mDeltaLimit, 1.0);
+                    double maxFmModulation = 1.0 / l::math::functions::max2(mFreq * fmFreq * mDeltaLimit, 1.0);
                     maxFmModulation *= maxFmModulation;
                     maxFmModulation *= maxFmModulation;
                     fmFreq = fmFreq * maxFmModulation;
@@ -313,7 +313,7 @@ namespace l::nodegraph {
         float updateRate = 256.0f;
         mSamplesUntilUpdate = l::audio::BatchUpdate(updateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
-                mFreq = l::math::functions::max(static_cast<double>(inputs.at(0).Get()), 0.0);
+                mFreq = l::math::functions::max2(static_cast<double>(inputs.at(0).Get()), 0.0);
                 mVolume = inputs.at(1).Get();
                 mReset = inputs.at(4).Get();
 
@@ -333,7 +333,7 @@ namespace l::nodegraph {
 
                 double fmMod = static_cast<double>(inputs.at(2).Get());
                 double smooth = 0.5 * static_cast<double>(inputs.at(3).Get());
-                double limitFmMod = 1.0 / l::math::functions::max(mFreq / 25.0, 1.0);
+                double limitFmMod = 1.0 / l::math::functions::max2(mFreq / 25.0, 1.0);
                 double fm = 800.0 * fmMod * fmMod * limitFmMod;
 
                 for (int32_t i = start; i < end; i++) {
@@ -364,7 +364,7 @@ namespace l::nodegraph {
         float updateRate = 256.0f;
         mSamplesUntilUpdate = l::audio::BatchUpdate(updateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
-                mFreq = l::math::functions::max(static_cast<double>(inputs.at(0).Get()), 0.0);
+                mFreq = l::math::functions::max2(static_cast<double>(inputs.at(0).Get()), 0.0);
                 mVolume = inputs.at(1).Get();
                 mReset = inputs.at(5).Get();
 

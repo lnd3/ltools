@@ -88,3 +88,10 @@ TEST(MathTween, DynamicTweenLongBatch) {
 
 	return 0;
 }
+
+TEST(MathTween, Math) {
+	float t = 1.0f;
+	float v = l::math::functions::min2(0.0f, t);
+	TEST_FUZZY(0.0f, v, 0.0001f, "");
+	return 0;
+}

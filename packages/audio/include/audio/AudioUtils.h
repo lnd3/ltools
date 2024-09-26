@@ -64,8 +64,8 @@ namespace l::audio {
             return *this;
         }
 
-        FilterRWA<T>& SetRWAUpdateRate(T fetchesPerUpdate = static_cast<float>(1.0)) {
-            mRWAUpdateRate = l::math::functions::max(fetchesPerUpdate, static_cast<float>(1.0));
+        FilterRWA<T>& SetRWAUpdateRate(T fetchesPerUpdate = static_cast<T>(1.0)) {
+            mRWAUpdateRate = l::math::functions::max2(fetchesPerUpdate, static_cast<T>(1.0));
             return *this;
         }
 
