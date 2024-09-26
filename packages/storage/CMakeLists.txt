@@ -4,6 +4,8 @@ set(deps
 	various
 	logging
 	testing
+	serialization
+
 	filesystem
 	memory
 	concurrency

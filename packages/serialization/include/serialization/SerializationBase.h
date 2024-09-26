@@ -1,20 +1,17 @@
 #pragma once
 
-#include "memory/Containers.h"
+#include "logging/LoggingAll.h"
 #include "various/serializer/Serializer.h"
-#include "filesystem/File.h"
 
+#include <iostream>
 #include <string>
 #include <vector>
-#include <filesystem>
 #include <memory>
 #include <optional>
 #include <chrono>
-#include <fstream>
 #include <type_traits>
 
-namespace l {
-namespace storage {
+namespace l::serialization {
 
 	template<class T>
 	void convert(std::stringstream& dst, std::vector<T>& src, size_t count = 0) {
@@ -34,12 +31,6 @@ namespace storage {
 		static_assert(sizeof(T) == sizeof(char));
 		while (src >> tmp) dst.push_back(tmp);
 	}
-
-	bool read(const std::filesystem::path& mLocation, char* dst, size_t count, size_t position = 0);
-	bool write(const std::filesystem::path& mLocation, const char* src, size_t count, size_t position = 0);
-
-	bool read(const std::filesystem::path& mLocation, std::stringstream& data);
-	bool write(const std::filesystem::path& mLocation, std::stringstream& data);
 
 	struct HeaderValidity {
 		static const int32_t kIdentifier = 0x00defa00; // storage base file identifier
@@ -73,12 +64,12 @@ namespace storage {
 		int32_t mVersion;
 	};
 
-	class StorageBase : public zpp::serializer::polymorphic {
+	class SerializationBase : public zpp::serializer::polymorphic {
 	public:
 		using SaveArchive = zpp::serializer::archive<zpp::serializer::lazy_vector_memory_output_archive>;
 		using LoadArchive = zpp::serializer::archive<zpp::serializer::memory_view_input_archive>;
 
-		StorageBase() : 
+		SerializationBase() :
 			mIdentifier(0),
 			mVersion(0),
 			mLatestVersion(mVersion), 
@@ -86,7 +77,7 @@ namespace storage {
 			mUseVersion(false),
 			mUseFiletype(false)
 		{}
-		StorageBase(int32_t minimumVersion, int32_t latestVersion, bool useVersion = true, bool useFiletype = false) : 
+		SerializationBase(int32_t minimumVersion, int32_t latestVersion, bool useVersion = true, bool useFiletype = false) :
 			mIdentifier(0),
 			mVersion(minimumVersion),
 			mLatestVersion(latestVersion),
@@ -97,9 +88,9 @@ namespace storage {
 				ASSERT(minimumVersion <= mLatestVersion);
 			}
 		}
-		virtual ~StorageBase() = default;
+		virtual ~SerializationBase() = default;
 
-		StorageBase& operator=(StorageBase&& other) noexcept {
+		SerializationBase& operator=(SerializationBase&& other) noexcept {
 			mIdentifier = other.mIdentifier;
 			mVersion = other.mVersion;
 			mLatestVersion = other.mLatestVersion;
@@ -109,7 +100,7 @@ namespace storage {
 			mUseFiletype = other.mUseFiletype;
 			return *this;
 		}
-		StorageBase& operator=(const StorageBase& other) noexcept {
+		SerializationBase& operator=(const SerializationBase& other) noexcept {
 			mIdentifier = other.mIdentifier;
 			mVersion = other.mVersion;
 			mLatestVersion = other.mLatestVersion;
@@ -119,10 +110,10 @@ namespace storage {
 			mUseFiletype = other.mUseFiletype;
 			return *this;
 		}
-		StorageBase(StorageBase&& other) noexcept {
+		SerializationBase(SerializationBase&& other) noexcept {
 			*this = std::move(other);
 		}
-		StorageBase(const StorageBase& other) noexcept {
+		SerializationBase(const SerializationBase& other) noexcept {
 			*this = other;
 		}
 
@@ -216,12 +207,12 @@ namespace storage {
 		}
 	};
 
-	class Config : public StorageBase {
+	class Config : public SerializationBase {
 	public:
 		static const int32_t LatestVersion = 1;
 
-		Config() : StorageBase(0, LatestVersion), mName{}, mDefaultUserId{} {}
-		Config(int32_t version, std::string name, std::string defaultUserId) : StorageBase(version, LatestVersion), mName(name), mDefaultUserId(defaultUserId) {}
+		Config() : SerializationBase(0, LatestVersion), mName{}, mDefaultUserId{} {}
+		Config(int32_t version, std::string name, std::string defaultUserId) : SerializationBase(version, LatestVersion), mName(name), mDefaultUserId(defaultUserId) {}
 		virtual ~Config() = default;
 
 		friend zpp::serializer::access;
@@ -240,89 +231,4 @@ namespace storage {
 		std::string mDefaultUserId;
 	};
 
-	class LocalStorage {
-	public:
-		LocalStorage(std::filesystem::path&& location);
-
-		template<class T, class = meta::IsDerived<StorageBase, T>>
-		void Set(const std::string& key, std::unique_ptr<T> value) {
-			mStore.emplace(key, std::move(value));
-		}
-
-		void Erase(const std::string& key) {
-			mStore.erase(key);
-		}
-
-		template<class T>
-		T* Get(const std::string& key) {
-			auto it = mStore.find(key);
-			if (it != mStore.end()) {
-				return reinterpret_cast<T*>(it->second.get());
-			}
-			return nullptr;
-		}
-
-		template<class T, class = meta::IsDerived<StorageBase, T>>
-		bool Save(const std::string& key) {
-			T* data = Get<T>(key);
-			std::vector<unsigned char> bytes;
-
-			data->GetArchiveData(bytes);
-
-			auto name = mLocation.stem().string() + "_" + key;
-			filesystem::File file(mLocation / name);
-
-			file.modeBinary();
-			file.modeWriteTrunc();
-
-			if (!file.open()) {
-				return false;
-			}
-
-			file.write(bytes.data(), bytes.size());
-			file.close();
-
-			return true;
-		}
-
-		template<class T, class = meta::IsDerived<StorageBase, T>>
-		bool Load(const std::string& key) {
-			T* data = Get<T>(key);
-			if (data == nullptr) {
-				Set(key, std::make_unique<T>());
-				data = Get<T>(key);
-			}
-
-			auto name = mLocation.stem().string() + "_" + key;
-			filesystem::File file(mLocation / name);
-			file.modeBinary();
-			file.modeReadPreload();
-
-			if (!file.open()) {
-				return false;
-			}
-
-
-			std::vector<unsigned char> bytes;
-			bytes.resize(file.fileSize());
-			if (file.read(bytes.data(), bytes.size()) != bytes.size()) {
-				return false;
-			}
-
-			file.close();
-
-			data->LoadArchiveData(bytes);
-
-			return true;
-		}
-
-
-	private:
-		void CreatePath();
-
-		std::filesystem::path mLocation;
-		std::map<std::string, std::unique_ptr<StorageBase>> mStore;
-	};
-
-}
 }

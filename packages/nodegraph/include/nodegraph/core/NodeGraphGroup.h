@@ -10,6 +10,7 @@
 #include <memory>
 
 #include "math/MathConstants.h"
+#include "serialization/SerializationBase.h"
 
 #include "nodegraph/core/NodeGraphBase.h"
 
@@ -32,7 +33,7 @@ namespace l::nodegraph {
         void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     };
 
-    class NodeGraphGroup {
+    class NodeGraphGroup : public l::serialization::SerializationBase {
     public:
         NodeGraphGroup() {}
         ~NodeGraphGroup() {

@@ -8,6 +8,7 @@ set(deps
 	testing
 	memory
 	math
+	serialization
 	audio
 	hid
 )
