@@ -42,24 +42,9 @@ namespace l::serialization {
 			archive(self.mIdentifier, self.mVersion);
 		}
 
-		bool Peek(std::vector<unsigned char>& data) {
-			if (data.size() < 4*2) { // identifier + version = 8 bytes
-				return false;
-			}
-			zpp::serializer::memory_input_archive_peek inPeek(data);
-			inPeek(*this);
-			return true;
-		}
-
-		bool IsIdentifierValid() {
-			return mIdentifier == kHeaderIdentifier;
-		}
-		bool IsVersionValid(int32_t latestVersion) {
-			if (mIdentifier != kHeaderIdentifier) {
-				mVersion = mIdentifier; // we might have loaded data without identifier but with version, so check
-			}
-			return mVersion >= 0 && mVersion <= latestVersion;
-		}
+		bool Peek(std::vector<unsigned char>& data);
+		bool IsIdentifierValid();
+		bool IsVersionValid(int32_t latestVersion);
 
 		int32_t mIdentifier;
 		int32_t mVersion;
@@ -91,58 +76,13 @@ namespace l::serialization {
 		}
 		virtual ~SerializationBase() = default;
 
-		SerializationBase& operator=(SerializationBase&& other) noexcept {
-			mIdentifier = other.mIdentifier;
-			mVersion = other.mVersion;
-			mLatestVersion = other.mLatestVersion;
-			mFiletype = other.mFiletype;
-			mUseIdentifier = other.mUseIdentifier;
-			mUseVersion = other.mUseVersion;
-			mUseFiletype = other.mUseFiletype;
-			return *this;
-		}
-		SerializationBase& operator=(const SerializationBase& other) noexcept {
-			mIdentifier = other.mIdentifier;
-			mVersion = other.mVersion;
-			mLatestVersion = other.mLatestVersion;
-			mFiletype = other.mFiletype;
-			mUseIdentifier = other.mUseIdentifier;
-			mUseVersion = other.mUseVersion;
-			mUseFiletype = other.mUseFiletype;
-			return *this;
-		}
-		SerializationBase(SerializationBase&& other) noexcept {
-			*this = std::move(other);
-		}
-		SerializationBase(const SerializationBase& other) noexcept {
-			*this = other;
-		}
+		SerializationBase& operator=(SerializationBase&& other) noexcept;
+		SerializationBase& operator=(const SerializationBase& other) noexcept;
+		SerializationBase(SerializationBase&& other) noexcept;
+		SerializationBase(const SerializationBase& other) noexcept;
 
-		void LoadArchiveData(std::vector<unsigned char>& data) {
-			HeaderValidity headerValidity;
-			bool peekSuccessful = headerValidity.Peek(data);
-			if (peekSuccessful && headerValidity.IsIdentifierValid()) {
-				mUseIdentifier = true;
-				mUseVersion = true;
-			}
-			else {
-				mUseIdentifier = false;
-				if (mUseVersion) {
-					ASSERT(peekSuccessful && headerValidity.IsVersionValid(mLatestVersion));
-				}
-			}
-
-			zpp::serializer::memory_input_archive in(data);
-			in(*this);
-
-			mUseIdentifier = true;
-			mUseVersion = true;
-		}
-
-		void GetArchiveData(std::vector<unsigned char>& data) {
-			zpp::serializer::memory_output_archive out(data);
-			out(*this);
-		}
+		void LoadArchiveData(std::vector<unsigned char>& data);
+		void GetArchiveData(std::vector<unsigned char>& data);
 
 		friend zpp::serializer::access;
 		template <typename Archive, typename Self>
@@ -179,9 +119,7 @@ namespace l::serialization {
 			}
 		}
 
-		int32_t GetVersion() const {
-			return mVersion;
-		}
+		int32_t GetVersion() const;
 
 	protected:
 		virtual void Save(SaveArchive&) const {}
@@ -197,15 +135,7 @@ namespace l::serialization {
 		bool mUseVersion = true;
 		bool mUseFiletype = false;
 
-		void UpgradeToLatest() {
-			mLatestVersion = mVersion > mLatestVersion ? mVersion : mLatestVersion;
-			if (mUseVersion) {
-				for (; mVersion < mLatestVersion; mVersion++) {
-					Upgrade(mVersion);
-				}
-			}
-			mVersion = mVersion < mLatestVersion ? mLatestVersion : mVersion;
-		}
+		void UpgradeToLatest();
 	};
 
 	class Config : public SerializationBase {
