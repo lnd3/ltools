@@ -9,5 +9,6 @@
 #include <ctime>
 
 namespace l::serialization {
+	const int32_t kIdentifier = 0x00defa00; // storage base file identifier
 
 }

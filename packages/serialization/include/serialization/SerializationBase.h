@@ -32,8 +32,9 @@ namespace l::serialization {
 		while (src >> tmp) dst.push_back(tmp);
 	}
 
+	extern const int32_t kHeaderIdentifier;
+
 	struct HeaderValidity {
-		static const int32_t kIdentifier = 0x00defa00; // storage base file identifier
 
 		friend zpp::serializer::access;
 		template <typename Archive, typename Self>
@@ -51,10 +52,10 @@ namespace l::serialization {
 		}
 
 		bool IsIdentifierValid() {
-			return mIdentifier == kIdentifier;
+			return mIdentifier == kHeaderIdentifier;
 		}
 		bool IsVersionValid(int32_t latestVersion) {
-			if (mIdentifier != kIdentifier) {
+			if (mIdentifier != kHeaderIdentifier) {
 				mVersion = mIdentifier; // we might have loaded data without identifier but with version, so check
 			}
 			return mVersion >= 0 && mVersion <= latestVersion;
@@ -151,7 +152,7 @@ namespace l::serialization {
 				*p = self.mLatestVersion;
 
 				if (self.mUseIdentifier) {
-					archive(HeaderValidity::kIdentifier);
+					archive(kHeaderIdentifier);
 				}
 				if (self.mUseVersion) {
 					archive(self.mVersion);
@@ -165,7 +166,7 @@ namespace l::serialization {
 				if (self.mUseIdentifier) {
 					int32_t fileIdentifier;
 					archive(fileIdentifier);
-					ASSERT(fileIdentifier == HeaderValidity::kIdentifier);
+					ASSERT(fileIdentifier == kHeaderIdentifier);
 				}
 				if (self.mUseVersion) {
 					archive(self.mVersion);
