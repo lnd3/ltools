@@ -39,7 +39,9 @@ namespace l::nodegraph {
 
         using CustomCreateFunctionType = NodeGraphBase*(int32_t, NodeGraphGroup&);
 
-        NodeGraphSchema() {
+        NodeGraphSchema(std::string name = "") :
+            mName(name.empty() ? "Schema" : name)
+        {
             RegisterNodeType("Source", 0, "Value [0,1]");
             RegisterNodeType("Source", 1, "Value [-1,1]");
             RegisterNodeType("Source", 2, "Value [0,100]");
@@ -99,6 +101,13 @@ namespace l::nodegraph {
 
         ~NodeGraphSchema() = default;
 
+        void SetName(std::string_view name) {
+            mName = name;
+        }
+        std::string_view GetName() {
+            return mName;
+        }
+
         void SetCustomCreator(std::function<CustomCreateFunctionType> customCreator);
         void SetKeyState(l::hid::KeyState* keyState);
         void SetAudioOutput(l::audio::AudioStream* audioStream);
@@ -114,6 +123,7 @@ namespace l::nodegraph {
         void Tick(int32_t tickCount, float elapsed);
     protected:
         NodeGraphGroup mMainNodeGraph;
+        std::string mName;
 
         std::function<CustomCreateFunctionType> mCreateCustomNode;
         l::hid::KeyState* mKeyState = nullptr;
