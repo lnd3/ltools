@@ -40,6 +40,19 @@ namespace l::nodegraph {
             LOG(LogInfo) << "Node group destroyed";
         }
 
+        NodeGraphGroup& operator=(NodeGraphGroup&&) noexcept {
+            return *this;
+        }
+        NodeGraphGroup& operator=(const NodeGraphGroup&) noexcept {
+            return *this;
+        }
+        NodeGraphGroup(NodeGraphGroup&& other) noexcept {
+            *this = std::move(other);
+        }
+        NodeGraphGroup(const NodeGraphGroup& other) noexcept {
+            *this = other;
+        }
+
         void SetNumInputs(int8_t numInputs);
         void SetNumOutputs(int8_t outputCount);
         void SetInput(int8_t inputChannel, NodeGraphBase& source, int8_t sourceOutputChannel);
@@ -62,7 +75,7 @@ namespace l::nodegraph {
 
         template<class T, class... Params, std::enable_if_t<std::is_base_of_v<NodeGraphOp, T>, int> = 0>
         l::nodegraph::NodeGraphBase* NewNode(OutputType nodeType, Params&&... params) {
-            mNodes.push_back(std::make_unique<l::nodegraph::NodeGraph<T, Params...>>(nodeType, std::forward<Params>(params)...));
+            mNodes.emplace_back(std::make_unique<l::nodegraph::NodeGraph<T, Params...>>(nodeType, std::forward<Params>(params)...));
             auto nodePtr = mNodes.back().get();
             if (nodeType == OutputType::ExternalOutput || nodeType == OutputType::ExternalVisualOutput) {
                 mOutputNodes.push_back(nodePtr);

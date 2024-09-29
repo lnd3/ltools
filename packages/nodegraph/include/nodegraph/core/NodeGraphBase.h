@@ -32,6 +32,33 @@ namespace l::nodegraph {
             LOG(LogInfo) << "Node graph base destroyed";
         }
 
+        NodeGraphBase& operator=(NodeGraphBase&& other) noexcept {
+            this->mId = other.mId;
+            //this->mInputs = std::move(other.mInputs);
+            //this->mOutputs = std::move(other.mOutputs);
+            this->mName = std::move(other.mName);
+            this->mLastTickCount = other.mLastTickCount;
+            this->mOutputType = other.mOutputType;
+            this->mProcessUpdateHasRun = other.mProcessUpdateHasRun;
+            return *this;
+        }
+        NodeGraphBase& operator=(const NodeGraphBase& other) noexcept {
+            this->mId = other.mId;
+            //this->mInputs = std::move(other.mInputs);
+            //this->mOutputs = std::move(other.mOutputs);
+            this->mName = std::move(other.mName);
+            this->mLastTickCount = other.mLastTickCount;
+            this->mOutputType = other.mOutputType;
+            this->mProcessUpdateHasRun = other.mProcessUpdateHasRun;
+            return *this;
+        }
+        NodeGraphBase(NodeGraphBase&& other) noexcept {
+            *this = std::move(other);
+        }
+        NodeGraphBase(const NodeGraphBase& other) noexcept {
+            *this = other;
+        }
+
         virtual void Reset();
         virtual void SetId(int32_t id) { mId = id; }
         virtual int32_t GetId() const { return mId; }

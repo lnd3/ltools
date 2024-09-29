@@ -101,6 +101,33 @@ namespace l::nodegraph {
 
         ~NodeGraphSchema() = default;
 
+        NodeGraphSchema& operator=(NodeGraphSchema&& other) noexcept {
+            mMainNodeGraph = std::move(other.mMainNodeGraph);
+            mName = std::move(other.mName);
+            mRegisteredNodeTypes = std::move(other.mRegisteredNodeTypes);
+            mCreateCustomNode = other.mCreateCustomNode;
+            mKeyState = other.mKeyState;
+            mAudioOutput = other.mAudioOutput;
+            mMidiManager = other.mMidiManager;
+            return *this;
+        }
+        NodeGraphSchema& operator=(const NodeGraphSchema& other) noexcept {
+            mMainNodeGraph = other.mMainNodeGraph;
+            mName = other.mName;
+            mRegisteredNodeTypes = other.mRegisteredNodeTypes;
+            mCreateCustomNode = other.mCreateCustomNode;
+            mKeyState = other.mKeyState;
+            mAudioOutput = other.mAudioOutput;
+            mMidiManager = other.mMidiManager;
+            return *this;
+        }
+        NodeGraphSchema(NodeGraphSchema&& other) noexcept {
+            *this = std::move(other);
+        }
+        NodeGraphSchema(const NodeGraphSchema& other) noexcept {
+            *this = other;
+        }
+
         void SetName(std::string_view name) {
             mName = name;
         }
