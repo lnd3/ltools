@@ -1,8 +1,6 @@
 project (nodegraph)
 
 set(deps
-	various
-
 	logging
 
 	testing
@@ -13,4 +11,4 @@ set(deps
 	hid
 )
 
-bs_generate_package(nodegraph "tier1" "${deps}" "PortAudio")
+bs_generate_package(nodegraph "tier1" "${deps}" "PortAudio;various")
