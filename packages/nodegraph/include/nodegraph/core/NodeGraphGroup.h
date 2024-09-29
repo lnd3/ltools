@@ -49,7 +49,7 @@ namespace l::nodegraph {
         NodeGraphGroup(NodeGraphGroup&& other) noexcept {
             *this = std::move(other);
         }
-        NodeGraphGroup(const NodeGraphGroup& other) noexcept {
+        NodeGraphGroup(const NodeGraphGroup& other) noexcept : SerializationBase(other) {
             *this = other;
         }
 
