@@ -91,5 +91,41 @@ namespace l::nodegraph {
         int32_t mCurIndex = 0;
     };
 
+    /*********************************************************************/
+    class GraphOutputImGuiPlotLine : public NodeGraphOp2 {
+    public:
+        GraphOutputImGuiPlotLine(NodeGraphBase* node) :
+            NodeGraphOp2(node, "ImGui Plot Line")
+        {
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("x", 0.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("y", 0.0f));
+            AddOutput("Lines");
+        }
+        virtual ~GraphOutputImGuiPlotLine() = default;
+
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+    protected:
+    };
+
+    /*********************************************************************/
+    class GraphOutputImGuiPlotCandles : public NodeGraphOp2 {
+    public:
+        GraphOutputImGuiPlotCandles(NodeGraphBase* node) :
+            NodeGraphOp2(node, "ImGui Plot Candles")
+        {
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("unixtime", 0.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("open", 0.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("close", 0.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("high", 0.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("low", 0.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("volume", 0.0f));
+            AddOutput("Candles");
+        }
+        virtual ~GraphOutputImGuiPlotCandles() = default;
+
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+    protected:
+    };
+
 }
 

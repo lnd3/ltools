@@ -95,6 +95,12 @@ namespace l::nodegraph {
         case 202:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputPlot>(OutputType::ExternalVisualOutput, 100);
             break;
+        case 203:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputImGuiPlotLine>(OutputType::ExternalOutput);
+            break;
+        case 204:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputImGuiPlotCandles>(OutputType::ExternalOutput);
+            break;
 
         case 251:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectReverb1>(OutputType::Default);
@@ -167,6 +173,13 @@ namespace l::nodegraph {
             break;
         case 401:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphControlArpeggio>(OutputType::Default);
+            break;
+
+        case 450:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataBusDataIn>(OutputType::Default, 6);
+            break;
+        case 451:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataBusDataOut>(OutputType::ExternalOutput, 6);
             break;
 
         default:
@@ -245,6 +258,8 @@ namespace l::nodegraph {
             RegisterNodeType("Output", 200, "Debug");
             RegisterNodeType("Output", 201, "Speaker");
             RegisterNodeType("Output", 202, "Plot");
+            RegisterNodeType("Output", 203, "ImGui Plot Lines");
+            RegisterNodeType("Output", 204, "ImGui Plot Candles");
         }
         else if (typeGroup == "Effect") {
             RegisterNodeType("Effect", 251, "Reverb1");
@@ -276,6 +291,10 @@ namespace l::nodegraph {
         else if (typeGroup == "Control") {
             RegisterNodeType("Control", 400, "Envelope");
             RegisterNodeType("Control", 401, "Arpeggio");
+        }
+        else if (typeGroup == "Bus") {
+            RegisterNodeType("Bus", 450, "Bus Data In x6");
+            RegisterNodeType("Bus", 451, "Bus Data Out x6");
         }
     }
 

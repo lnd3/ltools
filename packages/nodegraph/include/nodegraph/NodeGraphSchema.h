@@ -12,6 +12,7 @@
 #include "nodegraph/operations/NodeGraphOpOutput.h"
 #include "nodegraph/operations/NodeGraphOpSource.h"
 #include "nodegraph/operations/NodeGraphOpSignal.h"
+#include "nodegraph/operations/NodeGraphOpDataBus.h"
 
 #include <string>
 #include <vector>
@@ -52,6 +53,7 @@ namespace l::nodegraph {
                 RegisterAllOf("Input");
                 RegisterAllOf("Signal");
                 RegisterAllOf("Control");
+                RegisterAllOf("Bus");
             }
         }
 
