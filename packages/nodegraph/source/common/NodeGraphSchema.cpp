@@ -188,6 +188,19 @@ namespace l::nodegraph {
         return mMainNodeGraph.GetNode(nodeId);
     }
 
+    bool NodeGraphSchema::HasNodeType(const std::string& typeGroup, int32_t typeId) {
+        if (mRegisteredNodeTypes[typeGroup].empty()) {
+            return false;
+        }
+
+        for (auto& it : mRegisteredNodeTypes[typeGroup]) {
+            if (it.mId == typeId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     void NodeGraphSchema::ForEachNodeType(std::function<void(std::string_view, const std::vector<UINodeDesc>&)> cb) const {
         for (auto& it : mRegisteredNodeTypes) {
             cb(it.first, it.second);
@@ -195,10 +208,75 @@ namespace l::nodegraph {
     }
 
     void NodeGraphSchema::RegisterNodeType(const std::string& typeGroup, int32_t uniqueTypeId, std::string_view typeName) {
-        UINodeDesc nodeDesc;
-        nodeDesc.mId = uniqueTypeId;
-        nodeDesc.mName = typeName;
-        mRegisteredNodeTypes[typeGroup].push_back(UINodeDesc{ uniqueTypeId, std::string(typeName) });
+        if (!HasNodeType(typeGroup, uniqueTypeId)) {
+            mRegisteredNodeTypes[typeGroup].push_back(UINodeDesc{ uniqueTypeId, std::string(typeName) });
+        }
+    }
+
+    void NodeGraphSchema::RegisterAllOf(const std::string& typeGroup) {
+        if (typeGroup == "Source") {
+            RegisterNodeType("Source", 0, "Value [0,1]");
+            RegisterNodeType("Source", 1, "Value [-1,1]");
+            RegisterNodeType("Source", 2, "Value [0,100]");
+            RegisterNodeType("Source", 3, "Value [-inf,inf]");
+            RegisterNodeType("Source", 4, "Time");
+        }
+        else if (typeGroup == "Numeric") {
+            RegisterNodeType("Numeric", 50, "Add");
+            RegisterNodeType("Numeric", 51, "Subtract");
+            RegisterNodeType("Numeric", 52, "Negate");
+            RegisterNodeType("Numeric", 53, "Multiply");
+            RegisterNodeType("Numeric", 54, "Integral");
+            RegisterNodeType("Numeric", 55, "Multiply3");
+            RegisterNodeType("Numeric", 56, "Multiply & Add");
+            RegisterNodeType("Numeric", 57, "Round");
+        }
+        else if (typeGroup == "Logic") {
+            RegisterNodeType("Logic", 100, "And");
+            RegisterNodeType("Logic", 101, "Or");
+            RegisterNodeType("Logic", 102, "Xor");
+        }
+        else if (typeGroup == "Filter") {
+            RegisterNodeType("Filter", 150, "Lowpass");
+            RegisterNodeType("Filter", 151, "Highpass");
+            RegisterNodeType("Filter", 152, "Chamberlin two-pole (4 mode)");
+        }
+        else if (typeGroup == "Output") {
+            RegisterNodeType("Output", 200, "Debug");
+            RegisterNodeType("Output", 201, "Speaker");
+            RegisterNodeType("Output", 202, "Plot");
+        }
+        else if (typeGroup == "Effect") {
+            RegisterNodeType("Effect", 251, "Reverb1");
+            RegisterNodeType("Effect", 252, "Reverb2");
+            RegisterNodeType("Effect", 254, "Limiter");
+            RegisterNodeType("Effect", 255, "Envelope Follower");
+            RegisterNodeType("Effect", 256, "Saturator");
+            RegisterNodeType("Effect", 257, "Trance Gate");
+        }
+        else if (typeGroup == "Input") {
+            RegisterNodeType("Input", 300, "Keyboard Piano");
+            RegisterNodeType("Input", 301, "Midi Keyboard");
+            RegisterNodeType("Input", 302, "Midi Knobs");
+            RegisterNodeType("Input", 303, "Midi Button Group 1");
+            RegisterNodeType("Input", 304, "Midi Button Group 2");
+            RegisterNodeType("Input", 305, "Midi Button Group 3");
+            RegisterNodeType("Input", 306, "Midi Button Group 4");
+            RegisterNodeType("Input", 307, "Midi Button Group 5");
+        }
+        else if (typeGroup == "Signal") {
+            RegisterNodeType("Signal", 350, "Sine");
+            RegisterNodeType("Signal", 351, "Sine FM 1");
+            RegisterNodeType("Signal", 352, "Sine FM 2");
+            RegisterNodeType("Signal", 353, "Sine FM 3");
+            RegisterNodeType("Signal", 354, "Saw");
+            RegisterNodeType("Signal", 355, "Sine 2");
+            RegisterNodeType("Signal", 356, "Saw 2");
+        }
+        else if (typeGroup == "Control") {
+            RegisterNodeType("Control", 400, "Envelope");
+            RegisterNodeType("Control", 401, "Arpeggio");
+        }
     }
 
     void NodeGraphSchema::Tick(int32_t tickCount, float deltaTime) {
