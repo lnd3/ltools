@@ -176,7 +176,7 @@ namespace l::nodegraph {
             break;
 
         case 450:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataBusDataIn>(NodeType::Default, 6);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataBusDataIn>(NodeType::ExternalInput, 6);
             break;
         case 451:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataBusDataOut>(NodeType::ExternalOutput, 6);
