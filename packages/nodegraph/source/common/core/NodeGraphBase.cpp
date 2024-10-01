@@ -264,7 +264,7 @@ namespace l::nodegraph {
         return mOutputs.at(outputChannel).IsPolled();
     }
 
-    OutputType NodeGraphBase::GetOutputType() {
+    NodeType NodeGraphBase::GetOutputType() {
         return mOutputType;
     }
 

@@ -12,12 +12,12 @@ TEST(NodeGraphBatching, Simple) {
 	NodeGraphGroup group;
 	group.SetNumOutputs(1);
 
-	auto nodeSine = group.NewNode<GraphSignalSine2>(OutputType::Default);
+	auto nodeSine = group.NewNode<GraphSignalSine2>(NodeType::Default);
 	nodeSine->SetInput(1, 4.0f); // sine update rate
 	nodeSine->SetInput(2, 1400.0f); // sine freq
 	nodeSine->SetInput(3, 0.5f); // sine freq
 
-	auto nodeLowpass = group.NewNode<GraphFilterLowpass>(OutputType::Default);
+	auto nodeLowpass = group.NewNode<GraphFilterLowpass>(NodeType::Default);
 
 	nodeLowpass->SetInput(1, *nodeSine, 0);
 	group.SetOutput(0, *nodeLowpass, 0);

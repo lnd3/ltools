@@ -101,6 +101,8 @@ namespace l::nodegraph {
         int32_t NewNode(int32_t typeId);
         bool RemoveNode(int32_t nodeId);
         NodeGraphBase* GetNode(int32_t nodeId);
+        void ForEachInputNode(std::function<void(NodeGraphBase*)> cb);
+        void ForEachOutputNode(std::function<void(NodeGraphBase*)> cb);
 
         bool HasNodeType(const std::string& typeGroup, int32_t typeId);
         void ForEachNodeType(std::function<void(std::string_view, const std::vector<UINodeDesc>&)> cb) const;

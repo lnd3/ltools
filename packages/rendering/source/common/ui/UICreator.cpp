@@ -88,7 +88,7 @@ namespace l::ui {
                 }
             }
 
-            if (node.GetOutputType() == l::nodegraph::OutputType::ExternalVisualOutput) {
+            if (node.GetOutputType() == l::nodegraph::NodeType::ExternalVisualOutput) {
                 auto row = CreateContainer(uiManager, l::ui::UIContainer_DrawFlag, l::ui::UIRenderType::Rect, l::ui::UIAlignH::Left, l::ui::UIAlignV::Bottom, l::ui::UILayoutH::Parent, l::ui::UILayoutV::Parent);
                 row->SetPosition(ImVec2(0.0f, 0.0f));
                 row->GetContainerArea().mMargin = ioSize;

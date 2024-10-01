@@ -1,6 +1,7 @@
 #pragma once
 
 #include "logging/LoggingAll.h"
+#include "meta/Reflection.h"
 
 #include <string>
 #include <vector>
@@ -26,8 +27,12 @@ namespace l::nodegraph {
     /**********************************************************************************/
     class NodeGraphBase {
     public:
-        NodeGraphBase(OutputType outputType) : mId(CreateUniqueId()), mOutputType(outputType) {
-        }
+        NodeGraphBase(NodeType outputType) : 
+            mId(CreateUniqueId()), 
+            mOutputType(outputType),
+			mOperationTypeHash(l::meta::class_hash<NodeGraphBase>())
+        {}
+
         virtual ~NodeGraphBase() {
             LOG(LogInfo) << "Node graph base destroyed";
         }
@@ -40,6 +45,7 @@ namespace l::nodegraph {
             this->mLastTickCount = other.mLastTickCount;
             this->mOutputType = other.mOutputType;
             this->mProcessUpdateHasRun = other.mProcessUpdateHasRun;
+            this->mOperationTypeHash = other.mOperationTypeHash;
             return *this;
         }
         NodeGraphBase& operator=(const NodeGraphBase& other) noexcept {
@@ -50,6 +56,7 @@ namespace l::nodegraph {
             this->mLastTickCount = other.mLastTickCount;
             this->mOutputType = other.mOutputType;
             this->mProcessUpdateHasRun = other.mProcessUpdateHasRun;
+            this->mOperationTypeHash = other.mOperationTypeHash;
             return *this;
         }
         NodeGraphBase(NodeGraphBase&& other) noexcept {
@@ -100,7 +107,12 @@ namespace l::nodegraph {
         virtual bool IsDataEditable(int8_t num);
         virtual bool IsOutputPolled(int8_t outputChannel);
 
-        virtual OutputType GetOutputType();
+        virtual NodeType GetOutputType();
+
+        template<class T>
+		bool IsOfOperation() {
+			return l::meta::template class_hash<T> == mOperationTypeId;
+		}
 
     protected:
         virtual void SetNumInputs(int8_t numInputs);
@@ -114,9 +126,10 @@ namespace l::nodegraph {
         std::vector<NodeGraphOutput> mOutputs;
 
         int32_t mId = -1;
-        OutputType mOutputType;
+        NodeType mOutputType;
 
         std::string mName;
+        size_t mOperationTypeHash;
     };
 
     /**********************************************************************************/
@@ -168,9 +181,10 @@ namespace l::nodegraph {
     template<class T, class... Params>
     class NodeGraph : public NodeGraphBase {
     public:
-        NodeGraph(OutputType outputType = OutputType::Default, Params&&... params) :
+        NodeGraph(NodeType outputType = NodeType::Default, Params&&... params) :
             NodeGraphBase(outputType),
-            mOperation(this, std::forward<Params>(params)...)
+            mOperation(this, std::forward<Params>(params)...),
+            mOperationTypeId = typeid(T)
         {
             SetNumInputs(mOperation.GetNumInputs());
             SetNumOutputs(mOperation.GetNumOutputs());
