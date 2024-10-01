@@ -35,6 +35,7 @@ namespace l::nodegraph {
                 AddOutput("Out " + std::to_string(i), 0.0f, 2);
             }
         }
+        virtual ~GraphDataBusDataIn() = default;
 
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
@@ -53,6 +54,7 @@ namespace l::nodegraph {
             }
             AddOutput("Bus Data", 0.0f, 2);
         }
+        virtual ~GraphDataBusDataOut() = default;
 
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:

@@ -280,7 +280,7 @@ namespace l::nodegraph {
             mInputManager(*this) {
 
         }
-        ~NodeGraphOp2() {
+        virtual ~NodeGraphOp2() {
 
         }
 
