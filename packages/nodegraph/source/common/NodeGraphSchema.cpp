@@ -65,6 +65,12 @@ namespace l::nodegraph {
         case 57:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericRound>(NodeType::Default);
             break;
+        case 58:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericDerivate>(NodeType::Default);
+            break;
+        case 59:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericChange>(NodeType::Default);
+            break;
 
         case 100:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalAnd>(NodeType::Default);
@@ -251,6 +257,8 @@ namespace l::nodegraph {
             RegisterNodeType("Numeric", 55, "Multiply3");
             RegisterNodeType("Numeric", 56, "Multiply & Add");
             RegisterNodeType("Numeric", 57, "Round");
+            RegisterNodeType("Numeric", 58, "Derivate");
+            RegisterNodeType("Numeric", 59, "Change");
         }
         else if (typeGroup == "Logic") {
             RegisterNodeType("Logic", 100, "And");
