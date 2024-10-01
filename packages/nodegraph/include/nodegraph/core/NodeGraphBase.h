@@ -111,7 +111,7 @@ namespace l::nodegraph {
 
         template<class T>
 		bool IsOfOperation() {
-			return l::meta::template class_hash<T> == mOperationTypeHash;
+			return l::meta::class_hash<T>() == mOperationTypeHash;
 		}
 
     protected:
