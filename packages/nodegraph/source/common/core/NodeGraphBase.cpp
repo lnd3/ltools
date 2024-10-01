@@ -330,35 +330,35 @@ namespace l::nodegraph {
     }
 
     bool NodeGraphOp::IsDataConstant(int8_t channel) {
-        if (channel < mDefaultInData.size()) {
+        if (static_cast<size_t>(channel) < mDefaultInData.size()) {
             return std::get<4>(mDefaultInData.at(channel));
         }
         return false;
     }
 
     bool NodeGraphOp::IsDataVisible(int8_t channel) {
-        if (channel < mDefaultInData.size()) {
+        if (static_cast<size_t>(channel) < mDefaultInData.size()) {
             return std::get<5>(mDefaultInData.at(channel));
         }
         return false;
     }
 
     bool NodeGraphOp::IsDataEditable(int8_t channel) {
-        if (channel < mDefaultInData.size()) {
+        if (static_cast<size_t>(channel) < mDefaultInData.size()) {
             return std::get<6>(mDefaultInData.at(channel));
         }
         return false;
     }
 
     std::string_view NodeGraphOp::GetInputName(int8_t inputChannel) {
-        if (inputChannel < mDefaultInStrings.size()) {
+        if (static_cast<size_t>(inputChannel) < mDefaultInStrings.size()) {
             return mDefaultInStrings[inputChannel];
         }
         return "";
     }
 
     std::string_view NodeGraphOp::GetOutputName(int8_t outputChannel) {
-        if (outputChannel < mDefaultOutStrings.size()) {
+        if (static_cast<size_t>(outputChannel) < mDefaultOutStrings.size()) {
             return mDefaultOutStrings[outputChannel];
         }
         return "";
@@ -369,7 +369,7 @@ namespace l::nodegraph {
     }
 
     float NodeGraphOp::GetDefaultData(int8_t inputChannel) {
-        if (inputChannel < mDefaultInData.size()) {
+        if (static_cast<size_t>(inputChannel) < mDefaultInData.size()) {
             return std::get<0>(mDefaultInData.at(inputChannel));
         }
         return 0.0f;
