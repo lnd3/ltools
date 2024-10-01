@@ -111,7 +111,7 @@ namespace l::nodegraph {
 
         template<class T>
 		bool IsOfOperation() {
-			return l::meta::template class_hash<T> == mOperationTypeId;
+			return l::meta::template class_hash<T> == mOperationTypeHash;
 		}
 
     protected:
@@ -183,9 +183,10 @@ namespace l::nodegraph {
     public:
         NodeGraph(NodeType outputType = NodeType::Default, Params&&... params) :
             NodeGraphBase(outputType),
-            mOperation(this, std::forward<Params>(params)...),
-            mOperationTypeId = typeid(T)
+            mOperation(this, std::forward<Params>(params)...)
         {
+            mOperationTypeHash = l::meta::class_hash<T>();
+
             SetNumInputs(mOperation.GetNumInputs());
             SetNumOutputs(mOperation.GetNumOutputs());
 
