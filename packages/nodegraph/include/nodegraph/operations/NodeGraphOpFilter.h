@@ -120,5 +120,25 @@ namespace l::nodegraph {
         l::audio::FilterRWA<float> mScaleFilter;
     };
 
+
+    /*********************************************************************/
+    class GraphFilterMovingAverage : public GraphFilterBase {
+    public:
+        GraphFilterMovingAverage(NodeGraphBase* node, int32_t kernelSize) :
+            GraphFilterBase(node, "Moving Average"),
+            mKernelSize(kernelSize)
+        {
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Kernel Size", 1.0f, 1, 1.0f, static_cast<float>(mKernelSize)));
+        }
+        virtual ~GraphFilterMovingAverage() = default;
+
+        virtual void ResetInput() override;
+        virtual void ResetSignal() override;
+        virtual float ProcessSignal(float input, float cutoff, float resonance) override;
+    protected:
+        int32_t mKernelSize = 150;
+        int32_t mFilterStateIndex = -1;
+        std::vector<float> mFilterState;
+    };
 }
 

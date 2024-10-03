@@ -91,6 +91,9 @@ namespace l::nodegraph {
         case 152:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterChamberlain2pole>(NodeType::Default);
             break;
+        case 153:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterMovingAverage>(NodeType::Default, 150);
+            break;
 
         case 200:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputDebug>(NodeType::ExternalOutput);
@@ -269,6 +272,7 @@ namespace l::nodegraph {
             RegisterNodeType("Filter", 150, "Lowpass");
             RegisterNodeType("Filter", 151, "Highpass");
             RegisterNodeType("Filter", 152, "Chamberlin two-pole (4 mode)");
+            RegisterNodeType("Filter", 153, "Moving Average");
         }
         else if (typeGroup == "Output") {
             RegisterNodeType("Output", 200, "Debug");
