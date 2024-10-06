@@ -132,7 +132,7 @@ namespace l::nodegraph {
 
     float GraphFilterMovingAverage::ProcessSignal(float input, float, float) {
         if (mFilterStateIndex < 0) {
-            for (int32_t i = 0; i < mFilterState.size(); i++) {
+            for (size_t i = 0; i < mFilterState.size(); i++) {
                 mFilterState.at(i) = input;
             }
             mFilterStateIndex = 0;
