@@ -145,6 +145,9 @@ namespace l::nodegraph {
                 *output++ = mOutput;
             }
         }
+		virtual void Reset() override {
+			mOutput = 0.0f;
+		}
     protected:
         float mOutput = 0.0f;
     };

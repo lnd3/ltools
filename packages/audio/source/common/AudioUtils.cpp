@@ -8,6 +8,21 @@
 
 #include <math.h>
 
+
+namespace l::audio {
+#ifdef BSYSTEM_PLATFORM_Windows
+#include <Windows.h>
+	void PCBeep(int32_t freq, int32_t duration) {
+		Beep(freq, duration);
+	}
+#else
+#include <stdio.h>
+	void PCBeep(int32_t, int32_t) {
+		system("echo -e "\007" >/dev/tty10");
+	}
+#endif
+}
+
 namespace l::audio {
 	const float gNoNote_f = -500.0f;
 	const int32_t gNoNote = -500;

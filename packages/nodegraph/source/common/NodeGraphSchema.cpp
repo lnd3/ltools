@@ -110,6 +110,9 @@ namespace l::nodegraph {
         case 204:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputImGuiPlotCandles>(NodeType::ExternalOutput);
             break;
+        case 205:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputPCBeep>(NodeType::ExternalOutput);
+            break;
 
         case 251:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectReverb1>(NodeType::Default);
@@ -280,6 +283,7 @@ namespace l::nodegraph {
             RegisterNodeType("Output", 202, "Plot");
             RegisterNodeType("Output", 203, "ImGui Plot Lines");
             RegisterNodeType("Output", 204, "ImGui Plot Candles");
+            RegisterNodeType("Output", 205, "PC Beep");
         }
         else if (typeGroup == "Effect") {
             RegisterNodeType("Effect", 251, "Reverb1");

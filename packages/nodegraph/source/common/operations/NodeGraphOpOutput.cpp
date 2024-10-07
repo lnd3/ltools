@@ -126,4 +126,28 @@ namespace l::nodegraph {
         }
     }
 
+    /*********************************************************************/
+
+    void GraphOutputPCBeep::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
+        if (mTimer <= 0.0f) {
+            float value = inputs.at(0).Get();
+            if (value > 0.5f && !mTriggered) {
+                mTriggered = true;
+
+                int32_t freq = static_cast<int32_t>(inputs.at(1).Get());
+                int32_t duration = static_cast<int32_t>(inputs.at(2).Get());
+
+                mTimer = duration / 1000.0f;
+
+                l::audio::PCBeep(freq, duration);
+            }
+            if (value < 0.5f && mTriggered) {
+                mTriggered = false;
+            }
+        }
+    }
+
+	void GraphOutputPCBeep::Tick(int32_t, float elapsed) {
+        mTimer -= elapsed;
+	}
 }

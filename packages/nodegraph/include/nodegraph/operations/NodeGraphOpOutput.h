@@ -127,5 +127,23 @@ namespace l::nodegraph {
     protected:
     };
 
+    /*********************************************************************/
+    class GraphOutputPCBeep : public NodeGraphOp {
+    public:
+        GraphOutputPCBeep(NodeGraphBase* node) :
+            NodeGraphOp(node, "PC Beep")
+        {
+            AddInput("Trigger", 0.0f, 1, 0.0f, 1.0f);
+            AddInput("Freq", 5000.0f, 1, 20.0f, 10000.0f);
+            AddInput("Duration", 150.0f, 1, 1.0f, 10000.0f);
+        }
+        virtual ~GraphOutputPCBeep() = default;
+
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+		virtual void Tick(int32_t numSamples, float dt) override;
+    protected:
+        bool mTriggered = false;
+        float mTimer = 0.0f;
+    };
 }
 

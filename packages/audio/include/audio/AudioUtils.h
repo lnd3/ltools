@@ -6,6 +6,8 @@
 
 namespace l::audio {
 
+    void PCBeep(int32_t freq, int32_t duration);
+
     class INoteProcessor {
     public:
         virtual ~INoteProcessor() = default;
