@@ -18,7 +18,9 @@ namespace l::audio {
 #else
 #include <stdio.h>
 	void PCBeep(int32_t, int32_t) {
-		system("echo -e "\007" >/dev/tty10");
+		char d = (char)(7);
+		printf("%c\n", d);
+		//system("echo -e "\007" >/dev/tty10");
 	}
 #endif
 }
