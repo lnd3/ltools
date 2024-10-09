@@ -1,5 +1,3 @@
-#pragma once
-
 #include "memory/Arena.h"
 
 #include "logging/Log.h"
