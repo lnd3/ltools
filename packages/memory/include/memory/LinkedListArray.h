@@ -15,4 +15,19 @@
 
 namespace l::container {
 
+	union LLData {
+		struct Node {
+			Node* next;
+			Node* prev;
+		};
+		struct LinkedList {
+			Node* head;
+			Node* tail;
+		};
+		struct LinkedListNode {
+			Node* next;
+			Node* prev;
+			int value;
+		};
+	};
 }
