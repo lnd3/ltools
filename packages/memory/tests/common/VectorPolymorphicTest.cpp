@@ -1,7 +1,7 @@
 #include "testing/Test.h"
 #include "logging/Log.h"
 
-#include "memory/VectorPolymorphic.h"
+#include "memory/VectorAny.h"
 
 using namespace l;
 
@@ -28,6 +28,18 @@ TEST(Container, Polymorphic) {
 		int derived;
 	};
 
+	class Derived2 : public Base {
+	public:
+		Derived2() {
+			base = 3;
+			derived2 = 3;
+		}
+		virtual ~Derived2() {
+			std::cout << "~Derived2()" << std::endl;
+		}
+		int derived2;
+	};
+
 	class DoubleDerived : public Derived {
 	public:
 		DoubleDerived() {
@@ -45,12 +57,13 @@ TEST(Container, Polymorphic) {
 		static_assert(sizeof(Base) <= 16);
 		static_assert(sizeof(Derived) <= 24);
 		static_assert(sizeof(DoubleDerived) <= 32);
-		auto storage = container::VectorPolymorphic<32>(256);
+		auto storage = container::VectorAny<48>(256);
 		storage.push_back(Base());
 		storage.push_back(Derived());
 		storage.push_back(DoubleDerived());
 
-		auto a = storage[0].get<Base>();
+		auto it = storage[0];
+		auto a = it.get<Base>();
 		TEST_TRUE(a != nullptr, "");
 		TEST_TRUE(a->base == 0, "");
 
