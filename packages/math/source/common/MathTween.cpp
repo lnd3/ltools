@@ -58,7 +58,7 @@ namespace l::math::tween {
 	}
 
 	void DynamicTween::SetTweenLength(int32_t tweenCount) {
-		mUpdateCount = l::math::functions::max(tweenCount, 4);
+		mUpdateCount = l::math::functions::max2(tweenCount, 4);
 	}
 
 	void DynamicTween::SetTarget(float target, int32_t tweenCount) {
@@ -66,7 +66,7 @@ namespace l::math::tween {
 		mTargetValue = target;
 		mCounter = 0;
 		if (tweenCount >= 4) {
-			mUpdateCount = l::math::functions::max(tweenCount, 4);
+			mUpdateCount = l::math::functions::max2(tweenCount, 4);
 		}
 	}
 

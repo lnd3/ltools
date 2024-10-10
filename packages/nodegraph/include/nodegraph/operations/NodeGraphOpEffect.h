@@ -167,7 +167,7 @@ namespace l::nodegraph {
         uint32_t GetFramesPerRoomSize(float roomSize) {
             const float metersPerFrame = 334.0f / 44100.0f; // (m/s)/(frames/s) = m/frames;
             const float metersToWallPerFrame = metersPerFrame / 2.0f; // half the distance to wall for the bounced distance
-            const float framesPerRoom = l::math::functions::min(5.0f, roomSize / metersToWallPerFrame);
+            const float framesPerRoom = roomSize / metersToWallPerFrame;
             return static_cast<uint32_t>(framesPerRoom);
         }
 
