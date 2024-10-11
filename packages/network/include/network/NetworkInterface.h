@@ -77,7 +77,7 @@ namespace l::network {
 			int32_t numMaxParallellRequestConnections,
 			int32_t defaultResponseSize,
 			int32_t timeout,
-			std::function<l::concurrency::RunnableResult(bool success, std::string_view queryArguments, l::network::Request<T>&)> handler
+			std::function<l::concurrency::RunnableResult(bool success, std::string_view queryArguments, l::network::Request<T>&)> handler = nullptr
 		) {
 			auto network = mNetworkManager.lock();
 			if (network) {
@@ -85,13 +85,19 @@ namespace l::network {
 				if (it != mInterfaces.end()) {
 					it->second.AddEndpoint(queryName, endpointString);
 
-					auto handlerWrapped = [&, cb = handler, name = std::string(interfaceName)](bool success, std::string_view args, l::network::Request<T>& request) {
-						SetNetworkStatus(name, success);
-						return cb(success, args, request);
-						};
-
-					for (int i = 0; i < numMaxParallellRequestConnections; i++) {
-						network->CreateRequestTemplate(std::make_unique<l::network::Request<T>>(queryName, "", defaultResponseSize, handlerWrapped, timeout));
+					if (handler) {
+						auto handlerWrapped = [&, cb = handler, name = std::string(interfaceName)](bool success, std::string_view args, l::network::Request<T>& request) {
+							SetNetworkStatus(name, success);
+							return cb(success, args, request);
+							};
+						for (int i = 0; i < numMaxParallellRequestConnections; i++) {
+							network->CreateRequestTemplate(std::make_unique<l::network::Request<T>>(queryName, "", defaultResponseSize, handlerWrapped, timeout));
+						}
+					}
+					else {
+						for (int i = 0; i < numMaxParallellRequestConnections; i++) {
+							network->CreateRequestTemplate(std::make_unique<l::network::Request<T>>(queryName, "", defaultResponseSize, nullptr, timeout));
+						}
 					}
 				}
 			}
