@@ -35,8 +35,8 @@ namespace l::nodegraph {
 
                 float attackMs = 40.0f;
                 float releaseMs = 40.0f;
-                mAttack = l::math::functions::pow(0.001f, 1.0f / (attackMs * 44100.0f * 0.001f));
-                mRelease = l::math::functions::pow(0.001f, 1.0f / (releaseMs * 44100.0f * 0.001f));
+                mAttack = l::math::pow(0.001f, 1.0f / (attackMs * 44100.0f * 0.001f));
+                mRelease = l::math::pow(0.001f, 1.0f / (releaseMs * 44100.0f * 0.001f));
                 mAttack = 0.01f;
                 mRelease = 0.01f;
 
@@ -60,7 +60,7 @@ namespace l::nodegraph {
 
                     float out0 = 0.0f;
                     float out1 = 0.0f;
-                    float envelopeAbs = l::math::functions::abs(mEnvelope);
+                    float envelopeAbs = l::math::abs(mEnvelope);
                     if (envelopeAbs > limit) {
                         if (envelopeAbs > 1.0f) {
                             out0 = inVal0 / mEnvelope;

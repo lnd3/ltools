@@ -44,7 +44,7 @@ namespace l::audio {
         ~FilterRWA() = default;
 
         bool SnapAt(T value = static_cast<T>(0), T proximity = static_cast<T>(0.00001)) {
-            if (l::math::functions::abs(mValue - value) < proximity) {
+            if (l::math::abs(mValue - value) < proximity) {
                 mValue = value;
                 return true;
             }
@@ -67,7 +67,7 @@ namespace l::audio {
         }
 
         FilterRWA<T>& SetRWAUpdateRate(T fetchesPerUpdate = static_cast<T>(1.0)) {
-            mRWAUpdateRate = l::math::functions::max2(fetchesPerUpdate, static_cast<T>(1.0));
+            mRWAUpdateRate = l::math::max2(fetchesPerUpdate, static_cast<T>(1.0));
             return *this;
         }
 

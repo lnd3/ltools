@@ -13,7 +13,7 @@
 
 #include "math/MathConstants.h"
 
-namespace l::math::functions {
+namespace l::math {
 
 	template<class T>
 	auto abs(T val) {
@@ -36,23 +36,6 @@ namespace l::math::functions {
 	}
 
 	template<class T>
-	auto equal(T a, T b, T accuracy = static_cast<T>(0.0001)) {
-		return functions::abs(a - b) < accuracy;
-	}
-
-	template <class T>
-	auto samesign(T a, T b) {
-		return a * b >= static_cast<T>(0.0);
-	}
-
-	template<class T>
-	void swap(T& val1, T& val2) {
-		T tmp = std::move(val1);
-		val1 = std::move(val2);
-		val2 = std::move(tmp);
-	}
-
-	template<class T>
 	auto min2(T val1, T val2) {
 		return val1 < val2 ? val1 : val2;
 	}
@@ -68,7 +51,7 @@ namespace l::math::functions {
 	}
 
 	template<class T>
-	requires std::is_floating_point_v<T>
+		requires std::is_floating_point_v<T>
 	auto floor(T val) {
 		if constexpr (std::is_floating_point_v<T>) {
 			if constexpr (sizeof(T) == 4) {
@@ -224,6 +207,36 @@ namespace l::math::functions {
 		}
 	}
 
+	// Sinc curve
+// A phase shifted sinc curve can be useful if it starts at zeroand ends at zero, for some bouncing behaviors(suggested by Hubert - Jan).Give k different integer values to tweak the amount of bounces.It peaks at 1.0, but that take negative values, which can make it unusable in some applications.
+	template<class T>
+	auto sinc(T x, T k)
+	{
+		const T a = math::constants::PI * (k * x - static_cast<T>(1.0));
+		return math::sin(a) / a;
+	}
+
+}
+
+namespace l::math::functions {
+
+	template<class T>
+	auto equal(T a, T b, T accuracy = static_cast<T>(0.0001)) {
+		return math::abs(a - b) < accuracy;
+	}
+
+	template <class T>
+	auto samesign(T a, T b) {
+		return a * b >= static_cast<T>(0.0);
+	}
+
+	template<class T>
+	void swap(T& val1, T& val2) {
+		T tmp = std::move(val1);
+		val1 = std::move(val2);
+		val2 = std::move(tmp);
+	}
+
 	// source https://iquilezles.org/articles/functions/
 
 	// Almost Identity(I)
@@ -244,7 +257,7 @@ namespace l::math::functions {
 	template<class T>
 	auto almostIdentity2(T x, T n)
 	{
-		return functions::sqrt(x * x + n);
+		return math::sqrt(x * x + n);
 	}
 
 	// Almost Unit Identity
@@ -271,7 +284,7 @@ namespace l::math::functions {
 	auto expImpulse(T x, T k) 
 	{
 		const T h = k * x;
-		return h * functions::exp(static_cast<T>(1.0) - h);
+		return h * math::exp(static_cast<T>(1.0) - h);
 	}
 
 	// Polynomial Impulse
@@ -279,14 +292,14 @@ namespace l::math::functions {
 	template<class T>
 	auto quaImpulse(T k, T x)
 	{
-		return static_cast<T>(1.0) * functions::sqrt(k) * x / (static_cast<T>(1.0) + k * x * x);
+		return static_cast<T>(1.0) * math::sqrt(k) * x / (static_cast<T>(1.0) + k * x * x);
 	}
 
 	// You can easily generalize it to other powers to get different falloff shapes, where n is the degree of the polynomial :
 	template<class T>
 	auto polyImpulse(T k, T n, T x)
 	{
-		return (n / (n - static_cast<T>(1.0))) * functions::pow((n - static_cast<T>(1.0)) * k, static_cast<T>(1.0) / n) * x / (static_cast<T>(1.0) + k * functions::pow(x, n));
+		return (n / (n - static_cast<T>(1.0))) * math::pow((n - static_cast<T>(1.0)) * k, static_cast<T>(1.0) / n) * x / (static_cast<T>(1.0) + k * math::pow(x, n));
 	}
 
 	// Sustained Impulse
@@ -294,10 +307,10 @@ namespace l::math::functions {
 	template<class T>
 	auto expSustainedImpulse(T x, T f, T k)
 	{
-		auto s = functions::max2(x - f, static_cast<T>(0.0));
+		auto s = math::max2(x - f, static_cast<T>(0.0));
 		auto a = x * x / (f * f);
-		auto b = static_cast<T>(1.0) + (static_cast<T>(2.0) / f) * s * functions::exp(-k * s);
-		return functions::min2(a, b);
+		auto b = static_cast<T>(1.0) + (static_cast<T>(2.0) / f) * s * math::exp(-k * s);
+		return math::min2(a, b);
 	}
 
 	// Cubic Pulse
@@ -305,7 +318,7 @@ namespace l::math::functions {
 	template<class T>
 	auto cubicPulse(T c, T w, T x)
 	{
-		x = functions::abs(x - c);
+		x = math::abs(x - c);
 		if (x > w) return static_cast<T>(0.0);
 		x /= w;
 		return static_cast<T>(1.0) - x * x * (static_cast<T>(3.0) - static_cast<T>(2.0) * x);
@@ -316,7 +329,7 @@ namespace l::math::functions {
 	template<class T>
 	auto expStep(T x, T k, T n)
 	{
-		return functions::exp(-k * functions::pow(x, n));
+		return math::exp(-k * math::pow(x, n));
 	}
 
 	// Gain
@@ -324,7 +337,7 @@ namespace l::math::functions {
 	template<class T>
 	auto gain(T x, T k)
 	{
-		const T a = static_cast<T>(0.5) * functions::pow(static_cast<T>(2.0) * ((x < static_cast<T>(0.5)) ? x : static_cast<T>(1.0) - x), k);
+		const T a = static_cast<T>(0.5) * math::pow(static_cast<T>(2.0) * ((x < static_cast<T>(0.5)) ? x : static_cast<T>(1.0) - x), k);
 		return (x < static_cast<T>(0.5)) ? a : static_cast<T>(1.0) - a;
 	}
 
@@ -333,7 +346,7 @@ namespace l::math::functions {
 	template<class T>
 	auto parabola(T x, T k)
 	{
-		return functions::pow(4.0 * x * (static_cast<T>(1.0) - x), k);
+		return math::pow(4.0 * x * (static_cast<T>(1.0) - x), k);
 	}
 
 	// Power curve
@@ -341,22 +354,13 @@ namespace l::math::functions {
 	template<class T>
 	auto pcurve(T x, T a, T b)
 	{
-		const T k = functions::pow(a + b, a + b) / (functions::pow(a, a) * functions::pow(b, b));
-		return k * functions::pow(x, a) * functions::pow(1.0 - x, b);
-	}
-
-	// Sinc curve
-	// A phase shifted sinc curve can be useful if it starts at zeroand ends at zero, for some bouncing behaviors(suggested by Hubert - Jan).Give k different integer values to tweak the amount of bounces.It peaks at 1.0, but that take negative values, which can make it unusable in some applications.
-	template<class T>
-	auto sinc(T x, T k)
-	{
-		const T a = math::constants::PI * (k * x - static_cast<T>(1.0));
-		return functions::sin(a) / a;
+		const T k = math::pow(a + b, a + b) / (math::pow(a, a) * math::pow(b, b));
+		return k * math::pow(x, a) * math::pow(1.0 - x, b);
 	}
 
 	template<class T>
 	auto sigmoid(T x, T k) {
-		return static_cast<T>(static_cast<T>(1.0) / (static_cast<T>(1.0) + functions::exp(-x * k)));
+		return static_cast<T>(static_cast<T>(1.0) / (static_cast<T>(1.0) + math::exp(-x * k)));
 	}
 
 	template<class T>

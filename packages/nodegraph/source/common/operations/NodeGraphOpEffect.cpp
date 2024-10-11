@@ -59,11 +59,11 @@ namespace l::nodegraph {
         mBufSizeLimit = GetFramesPerRoomSize(roomSize);
 
         d0 = inputs.at(mNumDefaultInputs+2).Get();
-        fb0 = 0.5f * 0.5f * math::functions::max2(inputs.at(mNumDefaultInputs+3).Get(), 1.0f);
+        fb0 = 0.5f * 0.5f * math::max2(inputs.at(mNumDefaultInputs+3).Get(), 1.0f);
         d1 = inputs.at(mNumDefaultInputs+4).Get();
-        fb1 = 0.5f * 0.5f * math::functions::max2(inputs.at(mNumDefaultInputs+5).Get(), 1.0f);
+        fb1 = 0.5f * 0.5f * math::max2(inputs.at(mNumDefaultInputs+5).Get(), 1.0f);
         d2 = inputs.at(mNumDefaultInputs+6).Get();
-        fb2 = 0.5f * 0.5f * math::functions::max2(inputs.at(mNumDefaultInputs+7).Get(), 1.0f);
+        fb2 = 0.5f * 0.5f * math::max2(inputs.at(mNumDefaultInputs+7).Get(), 1.0f);
 
         mDelay0 = (int(mBufIndex + d0 * mBufSizeLimit)) % mBufSizeLimit;
         mDelay1 = (int(mBufIndex + d1 * mBufSizeLimit)) % mBufSizeLimit;
@@ -97,11 +97,11 @@ namespace l::nodegraph {
         uint32_t bufSizeLimit = GetFramesPerRoomSize(roomSize);
 
         d0 = inputs.at(5).Get();
-        fb0 = 0.5f * 0.5f * math::functions::max2(inputs.at(6).Get(), 1.0f);
+        fb0 = 0.5f * 0.5f * math::max2(inputs.at(6).Get(), 1.0f);
         d1 = inputs.at(7).Get();
-        fb1 = 0.5f * 0.5f * math::functions::max2(inputs.at(8).Get(), 1.0f);
+        fb1 = 0.5f * 0.5f * math::max2(inputs.at(8).Get(), 1.0f);
         d2 = inputs.at(9).Get();
-        fb2 = 0.5f * 0.5f * math::functions::max2(inputs.at(10).Get(), 1.0f);
+        fb2 = 0.5f * 0.5f * math::max2(inputs.at(10).Get(), 1.0f);
 
         float dry = 1.0f - *wet;
 
@@ -265,7 +265,7 @@ namespace l::nodegraph {
             mEnvelope = mRelease * (mEnvelope - inVal) + inVal;
         }
 
-        float envelopeAbs = l::math::functions::abs(mEnvelope);
+        float envelopeAbs = l::math::abs(mEnvelope);
         float out0;
         float out1;
         if (envelopeAbs > limit) {
@@ -302,7 +302,7 @@ namespace l::nodegraph {
             mEnvelope = release * (mEnvelope - inVal) + inVal;
         }
 
-        float envelopeAbs = l::math::functions::abs(mEnvelope);
+        float envelopeAbs = l::math::abs(mEnvelope);
         return { envelopeAbs * value0, envelopeAbs * value1 };
     }
 

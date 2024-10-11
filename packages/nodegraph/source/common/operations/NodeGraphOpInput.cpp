@@ -120,7 +120,7 @@ namespace l::nodegraph {
             *input2++ = l::audio::gNoNote_f;
             *input3++ = l::audio::gNoNote_f;
         }
-        outputs.at(4).mOutput = l::math::functions::round(inputs.at(4).Get());
+        outputs.at(4).mOutput = l::math::round(inputs.at(4).Get());
     }
 
     void GraphInputMidiKeyboard::Tick(int32_t, float) {

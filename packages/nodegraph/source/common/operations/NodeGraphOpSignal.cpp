@@ -64,7 +64,7 @@ namespace l::nodegraph {
     void GraphSignalSine2::UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {
         mFmod = mInputManager.GetValueNext(mNumDefaultInputs + 0);
         mPmod = mInputManager.GetValueNext(mNumDefaultInputs + 1);
-        mFmod *= 0.25f * 0.25f * 0.5f * 44100.0f / l::math::functions::max2(mFreq, 1.0f);
+        mFmod *= 0.25f * 0.25f * 0.5f * 44100.0f / l::math::max2(mFreq, 1.0f);
 
         mFilterFmod.SetConvergenceFactor().SetTarget(mFmod);
         mFilterPmod.SetConvergenceFactor().SetTarget(mPmod);
@@ -72,20 +72,20 @@ namespace l::nodegraph {
 
     float GraphSignalSine2::ProcessSignal(float deltaTime, float freq) {
         mPhaseFmod += deltaTime * freq;
-        mPhaseFmod = l::math::functions::mod(mPhaseFmod, 1.0f);
+        mPhaseFmod = l::math::mod(mPhaseFmod, 1.0f);
         float fmod = mFilterFmod.Next();
-        float modulation = 0.5f * (fmod + fmod * l::math::functions::cos(l::math::constants::PI_f * mPhaseFmod * 2.0f));
-        //float modulation = (0.5f - deltaPhase) + (mFmod) * 0.5f * l::math::functions::cos(l::math::constants::PI_f * mPhaseFmod * 2.0f);
+        float modulation = 0.5f * (fmod + fmod * l::math::cos(l::math::constants::PI_f * mPhaseFmod * 2.0f));
+        //float modulation = (0.5f - deltaPhase) + (mFmod) * 0.5f * l::math::cos(l::math::constants::PI_f * mPhaseFmod * 2.0f);
 
 
         mPhase = mPhaseFmod;
         mPhase += modulation;
-        mPhase -= l::math::functions::floor(mPhase);
+        mPhase -= l::math::floor(mPhase);
 
         float phaseMod = mPhaseFmod + mFilterPmod.Next() * modulation * 4.0f;
-        phaseMod -= l::math::functions::floor(phaseMod);
+        phaseMod -= l::math::floor(phaseMod);
 
-        return 0.5f * (l::math::functions::sin(l::math::constants::PI_f * mPhase * 2.0f) + l::math::functions::sin(l::math::constants::PI_f * phaseMod * 2.0f));
+        return 0.5f * (l::math::sin(l::math::constants::PI_f * mPhase * 2.0f) + l::math::sin(l::math::constants::PI_f * phaseMod * 2.0f));
     }
 
     /*********************************************************************/
@@ -125,7 +125,7 @@ namespace l::nodegraph {
 
         mSamplesUntilUpdate = l::audio::BatchUpdate(updateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
-                mFreq = l::math::functions::max2(static_cast<double>(inputs.at(0).Get()), 0.0);
+                mFreq = l::math::max2(static_cast<double>(inputs.at(0).Get()), 0.0);
                 mVolume = inputs.at(1).Get();
                 mReset = inputs.at(5).Get();
 
@@ -150,37 +150,37 @@ namespace l::nodegraph {
                 double fmodRange = 16.0;
                 mFmod = mFmod > 1.0 ? fmodRange * (mFmod - 1.0) : 1.0 / (1.0 + fmodRange * (1.0 - mFmod));
 
-                //double limitFmMod = 1.0 / l::math::functions::max(mFreq / 25.0, 1.0);
+                //double limitFmMod = 1.0 / l::math::max(mFreq / 25.0, 1.0);
                 //mPmod = 800.0 * fmMod * fmMod * limitFmMod;
 
-                //double limitFmMod = 1.0 / l::math::functions::max(mFreq / 25.0, 1.0);
+                //double limitFmMod = 1.0 / l::math::max(mFreq / 25.0, 1.0);
                 //mFmod = 800.0 * mFmod * mFmod * limitFmMod;
 
                 for (int32_t i = start; i < end; i++) {
                     double phaseDelta = mDeltaTime * mFreq;
 
                     mPhaseFmod += phaseDelta;
-                    mPhaseFmod = l::math::functions::mod(mPhaseFmod, 1.0);
-                    double modulation = mFmod * (1.0 + 0.5 * l::math::functions::sin(l::math::constants::PI * mPhaseFmod * 2.0));
+                    mPhaseFmod = l::math::mod(mPhaseFmod, 1.0);
+                    double modulation = mFmod * (1.0 + 0.5 * l::math::sin(l::math::constants::PI * mPhaseFmod * 2.0));
 
                     mPhase += phaseDelta * modulation;
-                    mPhase = l::math::functions::mod(mPhase, 1.0);
+                    mPhase = l::math::mod(mPhase, 1.0);
 
                     double phaseMod = mPhase + mPmod;
-                    phaseMod = l::math::functions::mod(phaseMod, 1.0);
+                    phaseMod = l::math::mod(phaseMod, 1.0);
 
                     mWave += smooth * (mPhase + phaseMod - mWave);
-                    double sine = l::math::functions::sin(l::math::constants::PI * mWave);
+                    double sine = l::math::sin(l::math::constants::PI * mWave);
 
                     /*
                     double phaseDelta = mDeltaTime * mFreq;
                     mPhase += phaseDelta * mFmod;
-                    mPhase = l::math::functions::mod(mPhase, 1.0);
+                    mPhase = l::math::mod(mPhase, 1.0);
 
                     double phaseMod = mPhase + mPmod;
-                    phaseMod = l::math::functions::mod(phaseMod, 1.0);
+                    phaseMod = l::math::mod(phaseMod, 1.0);
 
-                    double sine = l::math::functions::sin(l::math::constants::PI * (mPhase + phaseMod));
+                    double sine = l::math::sin(l::math::constants::PI * (mPhase + phaseMod));
                     */
 
                     mVol += (1.0f / 256.0f) * (mVolume - mVol);
@@ -198,7 +198,7 @@ namespace l::nodegraph {
         float updateRate = 256.0f;
         mSamplesUntilUpdate = l::audio::BatchUpdate(updateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
-                mFreq = l::math::functions::max2(static_cast<double>(inputs.at(0).Get()), 0.0);
+                mFreq = l::math::max2(static_cast<double>(inputs.at(0).Get()), 0.0);
                 mVolume = inputs.at(1).Get();
                 mReset = inputs.at(8).Get();
 
@@ -225,18 +225,18 @@ namespace l::nodegraph {
                 for (int32_t i = start; i < end; i++) {
                     double phaseDelta2 = mDeltaTime * mFreq * mFmodFrq;
                     mPhaseFmod += phaseDelta2;
-                    mPhaseFmod = l::math::functions::mod(mPhaseFmod, 1.0);
-                    double modWave = fmodGain * l::math::functions::sin(l::math::constants::PI * mPhaseFmod * 0.5);
+                    mPhaseFmod = l::math::mod(mPhaseFmod, 1.0);
+                    double modWave = fmodGain * l::math::sin(l::math::constants::PI * mPhaseFmod * 0.5);
                     double fmod = (mFmodOfs + 1.0) * mFmodVol + mFmodVol * modWave;
-                    fmod = l::math::functions::clamp(fmod, 0.0, 500.0);
+                    fmod = l::math::clamp(fmod, 0.0, 500.0);
 
                     double phaseDelta = mDeltaTime * mFreq * (fmod + 1.0) * (mFmod + 1.0);
-                    phaseDelta = l::math::functions::clamp(phaseDelta, phaseDelta2, 0.5);
+                    phaseDelta = l::math::clamp(phaseDelta, phaseDelta2, 0.5);
                     mPhase += phaseDelta;
-                    mPhase = l::math::functions::mod(mPhase, 1.0);
+                    mPhase = l::math::mod(mPhase, 1.0);
 
                     mWave += smooth * (mPhase - mWave);
-                    double out = l::math::functions::sin(l::math::constants::PI * mWave * 2.0);
+                    double out = l::math::sin(l::math::constants::PI * mWave * 2.0);
 
                     mVol += (1.0f / 256.0f) * (mVolume - mVol);
 
@@ -253,7 +253,7 @@ namespace l::nodegraph {
         float updateRate = 256.0f;
         mSamplesUntilUpdate = l::audio::BatchUpdate(updateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
-                mFreq = l::math::functions::max2(static_cast<double>(inputs.at(0).Get()), 0.0);
+                mFreq = l::math::max2(static_cast<double>(inputs.at(0).Get()), 0.0);
                 mVolume = inputs.at(1).Get();
                 mReset = inputs.at(5).Get();
 
@@ -275,11 +275,11 @@ namespace l::nodegraph {
                 double fmFreq = static_cast<double>(inputs.at(3).Get());
                 double smooth = 0.5 * static_cast<double>(inputs.at(4).Get());
 
-                double limitFmMod = 1.0 / l::math::functions::max2(mFreq / 25.0, 1.0);
+                double limitFmMod = 1.0 / l::math::max2(mFreq / 25.0, 1.0);
                 fmMod = 800.0 * fmMod * fmMod * limitFmMod;
 
                 for (int32_t i = start; i < end; i++) {
-                    double maxFmModulation = 1.0 / l::math::functions::max2(mFreq * fmFreq * mDeltaLimit, 1.0);
+                    double maxFmModulation = 1.0 / l::math::max2(mFreq * fmFreq * mDeltaLimit, 1.0);
                     maxFmModulation *= maxFmModulation;
                     maxFmModulation *= maxFmModulation;
                     fmFreq = fmFreq * maxFmModulation;
@@ -287,16 +287,16 @@ namespace l::nodegraph {
                     double fmNote = mFreq * fmFreq;
                     double phaseDelta2 = mDeltaTime * fmNote;
                     mPhaseFmod += phaseDelta2;
-                    mPhaseFmod = l::math::functions::mod(mPhaseFmod, 1.0);
-                    mFmod = (fmMod + fmMod * l::math::functions::sin(l::math::constants::PI * mPhaseFmod * 2.0));
+                    mPhaseFmod = l::math::mod(mPhaseFmod, 1.0);
+                    mFmod = (fmMod + fmMod * l::math::sin(l::math::constants::PI * mPhaseFmod * 2.0));
 
                     double phaseDelta = mDeltaTime * mFreq * (mFmod + 1.0) / (fmMod + 1.0);
 
                     mPhase += phaseDelta;
-                    mPhase = l::math::functions::mod(mPhase, 1.0);
+                    mPhase = l::math::mod(mPhase, 1.0);
                     mWave += smooth * (mPhase - mWave);
 
-                    double out = l::math::functions::sin(l::math::constants::PI * mWave * 2.0);
+                    double out = l::math::sin(l::math::constants::PI * mWave * 2.0);
 
                     mVol += (1.0f / 256.0f) * (mVolume - mVol);
 
@@ -313,7 +313,7 @@ namespace l::nodegraph {
         float updateRate = 256.0f;
         mSamplesUntilUpdate = l::audio::BatchUpdate(updateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
-                mFreq = l::math::functions::max2(static_cast<double>(inputs.at(0).Get()), 0.0);
+                mFreq = l::math::max2(static_cast<double>(inputs.at(0).Get()), 0.0);
                 mVolume = inputs.at(1).Get();
                 mReset = inputs.at(4).Get();
 
@@ -333,21 +333,21 @@ namespace l::nodegraph {
 
                 double fmMod = static_cast<double>(inputs.at(2).Get());
                 double smooth = 0.5 * static_cast<double>(inputs.at(3).Get());
-                double limitFmMod = 1.0 / l::math::functions::max2(mFreq / 25.0, 1.0);
+                double limitFmMod = 1.0 / l::math::max2(mFreq / 25.0, 1.0);
                 double fm = 800.0 * fmMod * fmMod * limitFmMod;
 
                 for (int32_t i = start; i < end; i++) {
                     double phaseDelta2 = mDeltaTime * mFreq;
                     mPhaseFmod += phaseDelta2;
-                    mPhaseFmod = l::math::functions::mod(mPhaseFmod, 1.0);
-                    double modulation = fm * l::math::functions::sin(l::math::constants::PI * mPhaseFmod * 2.0);
+                    mPhaseFmod = l::math::mod(mPhaseFmod, 1.0);
+                    double modulation = fm * l::math::sin(l::math::constants::PI * mPhaseFmod * 2.0);
 
                     double phaseDelta = mDeltaTime * mFreq * modulation;
                     mPhase += phaseDelta;
-                    mPhase = l::math::functions::mod(mPhase, 1.0);
+                    mPhase = l::math::mod(mPhase, 1.0);
 
                     mWave += smooth * (mPhase - mWave);
-                    double out = l::math::functions::sin(l::math::constants::PI * mWave * 2.0);
+                    double out = l::math::sin(l::math::constants::PI * mWave * 2.0);
 
                     mVol += (1.0f / 256.0f) * (mVolume - mVol);
 
@@ -364,7 +364,7 @@ namespace l::nodegraph {
         float updateRate = 256.0f;
         mSamplesUntilUpdate = l::audio::BatchUpdate(updateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
-                mFreq = l::math::functions::max2(static_cast<double>(inputs.at(0).Get()), 0.0);
+                mFreq = l::math::max2(static_cast<double>(inputs.at(0).Get()), 0.0);
                 mVolume = inputs.at(1).Get();
                 mReset = inputs.at(5).Get();
 
@@ -393,14 +393,14 @@ namespace l::nodegraph {
                     double phaseDelta = mDeltaTime * mFreq;
 
                     mPhaseFmod += phaseDelta;
-                    mPhaseFmod = l::math::functions::mod(mPhaseFmod, 1.0);
+                    mPhaseFmod = l::math::mod(mPhaseFmod, 1.0);
                     double modulation = mFmod * mPhaseFmod;
 
                     mPhase += phaseDelta * modulation;
-                    mPhase = l::math::functions::mod(mPhase, 1.0);
+                    mPhase = l::math::mod(mPhase, 1.0);
 
                     double phaseMod = mPhase + mPmod;
-                    phaseMod = l::math::functions::mod(phaseMod, 1.0);
+                    phaseMod = l::math::mod(phaseMod, 1.0);
 
                     double saw = mPhase + phaseMod;
                     mWave += smooth * (saw - mWave);

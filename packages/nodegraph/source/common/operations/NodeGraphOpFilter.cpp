@@ -100,7 +100,7 @@ namespace l::nodegraph {
 
     void GraphFilterChamberlain2pole::UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {
         mMode = static_cast<int32_t>(3.0f * mInputManager.GetValueNext(mNumDefaultInputs + 0) + 0.5f);
-        mScale = l::math::functions::sqrt(mInputManager.GetValueNext(3));
+        mScale = l::math::sqrt(mInputManager.GetValueNext(3));
         mScaleFilter.SetConvergenceFactor().SetTarget(mScale).SnapAt();
     }
 

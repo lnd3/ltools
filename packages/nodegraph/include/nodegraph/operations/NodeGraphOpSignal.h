@@ -161,33 +161,33 @@ namespace l::nodegraph {
 
                 if (b->phase >= 1.0)
                     b->phase -= 1.0;
-                double cpsClamped = l::math::functions::clamp(cps, 2.0 / 44100, 0.5);
+                double cpsClamped = l::math::clamp(cps, 2.0 / 44100, 0.5);
                 b->curcps = cpsClamped;        /* this cycle\'s frequency */
                 b->curper = 1.0 / cpsClamped;  /* this cycle\'s period */
 
                 P2 = b->curper / 2.0;
-                b->N = 1.0 + l::math::functions::floor(P2); /* # of partials incl. dc */
+                b->N = 1.0 + l::math::floor(P2); /* # of partials incl. dc */
 
                 /* find the roll-off parameter which gives
                  * the desired attenuation at nyquist
                  */
 
-                b->a = l::math::functions::pow(b->aNQ, 1.0 / P2);
-                b->aN = l::math::functions::pow(b->a, b->N);
+                b->a = l::math::pow(b->aNQ, 1.0 / P2);
+                b->aN = l::math::pow(b->a, b->N);
             }
 
             beta = 2.0 * l::math::constants::PI * b->phase;
 
             Nbeta = b->N * beta;
-            cosbeta = l::math::functions::cos(beta);
+            cosbeta = l::math::cos(beta);
 
             /* The dsf blit is scaled by 1 / period to give approximately the same
              * peak-to-peak over a wide range of frequencies.
              */
 
             n = 1.0 -
-                b->aN * l::math::functions::cos(Nbeta) -
-                b->a * (cosbeta - b->aN * l::math::functions::cos(Nbeta - beta));
+                b->aN * l::math::cos(Nbeta) -
+                b->a * (cosbeta - b->aN * l::math::cos(Nbeta - beta));
             d = b->curper * (1.0 + b->a * (-2.0 * cosbeta + b->a));
 
             b->phase += b->curcps; /* update phase */
@@ -207,7 +207,7 @@ namespace l::nodegraph {
         }
 
         void UpdateLowpass(LowpassType* lp, double cutoff) {
-            double Omega = l::math::functions::atan(l::math::constants::PI * cutoff);
+            double Omega = l::math::atan(l::math::constants::PI * cutoff);
             lp->a = -(1.0 - Omega) / (1.0 + Omega);
             lp->b = (1.0 - lp->b) / 2.0;
         }

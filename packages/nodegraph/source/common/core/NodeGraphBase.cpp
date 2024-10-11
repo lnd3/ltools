@@ -179,7 +179,7 @@ namespace l::nodegraph {
             return false;
         }
         auto& input = mInputs.at(inputChannel);
-        initialValue = l::math::functions::clamp(initialValue, input.mBoundMin, input.mBoundMax);
+        initialValue = l::math::clamp(initialValue, input.mBoundMin, input.mBoundMax);
         if (size <= 1) {
             input.mInput.mInputFloatConstant = initialValue;
             input.mInputType = InputType::INPUT_CONSTANT;
