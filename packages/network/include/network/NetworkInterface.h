@@ -66,7 +66,7 @@ namespace l::network {
 			int32_t retries, 
 			int32_t expectedResponseSize,
 			int32_t timeOut,
-			std::function<void(bool, std::string_view)> cb);
+			std::function<void(bool, std::string_view)> cb = nullptr);
 		bool NetworkStatus(std::string_view interfaceName);
 
 		template<class T>
