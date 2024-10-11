@@ -28,7 +28,7 @@ namespace l::serialization {
 
 		std::unordered_map<uint32_t, std::string> map;
 
-		for (int i = 0; i < out.size() / 2; i++) {
+		for (size_t i = 0; i < out.size() / 2; i++) {
 			uint32_t key = l::string::string_id(out[i * 2]);
 			map[key] = out[i * 2 + 1];
 		}

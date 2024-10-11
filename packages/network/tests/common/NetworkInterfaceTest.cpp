@@ -39,9 +39,10 @@ TEST(NetworkInterface, Setup) {
 
 	std::string chatId = "6640331275"; // TradeFlowGroup
 	std::string args;
-	std::string message = "NetworkInterface";
+	std::string message = "NetworkInterface tester app";
 	args += "chat_id=" + chatId;
-	args += "&text=" + message;
+	args += "&text=" + l::string::encode_html(message);
+	args += "&parse_mode=HTML";
 
 	networkInterface->SendRequest("Telegram", "TradeFlowBot1", args, 1, 2000, 5, nullptr);
 
