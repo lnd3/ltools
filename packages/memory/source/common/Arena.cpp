@@ -19,13 +19,16 @@ namespace l::memory {
 		mBlocks.reserve(16);
 
 	}
+	Arena::Arena(void* ptr, uint64_t size) {
+		mBlocks.push_back({ ptr, size });
+	}
 
 	Arena::~Arena() {
 
 	}
 
-	std::unique_ptr<Arena> CreateArena() {
-		return std::make_unique<Arena>();
+	std::unique_ptr<Arena> CreateArena(void* ptr, uint64_t size) {
+		return std::make_unique<Arena>(ptr, size);
 	}
 
 

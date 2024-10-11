@@ -6,7 +6,7 @@
 
 #include "logging/String.h"
 
-namespace l::storage {
+namespace l::serialization {
 
 	template<size_t size>
 	std::pair<size_t, std::vector<std::string>> ParseTrivialData(std::stringstream& data, std::string_view separators) {

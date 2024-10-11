@@ -25,12 +25,13 @@ namespace l::memory {
 	class Arena {
 	public:
 		Arena();
+		Arena(void* ptr, uint64_t size);
 		~Arena();
 
 		std::vector<MemoryBlock> mBlocks;
 	};
 
-	std::unique_ptr<Arena> CreateArena();
+	std::unique_ptr<Arena> CreateArena(void* ptr = nullptr, uint64_t size = 0);
 
 	// push some bytes onto the 'stack' - the way to allocate
 	void* ArenaPush(Arena* arena, uint64_t size);
