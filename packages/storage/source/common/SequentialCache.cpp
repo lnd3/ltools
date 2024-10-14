@@ -11,10 +11,14 @@ namespace l::filecache {
 		return position - blockWidth * (position / blockWidth);
 	}
 
-	int32_t GetClampedIndex(int32_t position, int32_t blockWidth, int32_t numBlockEntries) {
-		auto clampPosition = GetClampedPosition(position, blockWidth);
-		auto clampedOffset = position - clampPosition;
-		return numBlockEntries * clampedOffset / blockWidth;
+	int32_t GetIndexFromPosition(int32_t position, int32_t blockWidth, int32_t numBlockEntries) {
+		auto offset = static_cast<int64_t>(GetClampedPositionOffset(position, blockWidth));
+		auto index = static_cast<int32_t>(numBlockEntries * offset / blockWidth);
+		return index;
+	}
+
+	int32_t GetClampedPositionOffsetFromIndex(int32_t index, int32_t blockWidth, int32_t numBlockEntries) {
+		return blockWidth * index / numBlockEntries;
 	}
 
 	std::string GetCacheBlockName(std::string_view prefix, int32_t blockWidth, int32_t clampedPos) {
