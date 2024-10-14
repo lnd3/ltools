@@ -5,8 +5,7 @@
 #include <functional>
 #include <memory>
 
-namespace l {
-namespace memory {
+namespace l::memory {
 
     template<class T>
     class Handle {
@@ -76,5 +75,4 @@ namespace memory {
         T* mInstance;
     };
 
-}
 }

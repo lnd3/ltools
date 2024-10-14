@@ -38,7 +38,10 @@ namespace string {
 	std::string get_local_time_string(const int32_t unixtime, std::string_view format = "%Y-%m-%d %X");
 
 	size_t get_local_time_string_verbose(char* buf, size_t maxSize);
-		
+	
+	uint32_t string_id(std::string_view string);
+
+	std::string encode_html(const std::string& input);
 
 	template<class T>
 	T get_number(std::string_view number) {

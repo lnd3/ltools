@@ -23,6 +23,7 @@ else()
 		testing
 		meta
 		memory
+		serialization
 		math
 		audio
 		hid
