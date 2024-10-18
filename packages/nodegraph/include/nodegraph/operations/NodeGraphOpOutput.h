@@ -91,5 +91,59 @@ namespace l::nodegraph {
         int32_t mCurIndex = 0;
     };
 
+    /*********************************************************************/
+    class GraphOutputImGuiPlotLine : public NodeGraphOp2 {
+    public:
+        GraphOutputImGuiPlotLine(NodeGraphBase* node) :
+            NodeGraphOp2(node, "ImGui Plot Line")
+        {
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("x", 0.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("y", 0.0f));
+            AddOutput("Lines");
+        }
+        virtual ~GraphOutputImGuiPlotLine() = default;
+
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+    protected:
+    };
+
+    /*********************************************************************/
+    class GraphOutputImGuiPlotCandles : public NodeGraphOp2 {
+    public:
+        GraphOutputImGuiPlotCandles(NodeGraphBase* node) :
+            NodeGraphOp2(node, "ImGui Plot Candles")
+        {
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("unixtime", 0.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("open", 0.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("close", 0.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("high", 0.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("low", 0.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("volume", 0.0f));
+            AddOutput("Candles");
+        }
+        virtual ~GraphOutputImGuiPlotCandles() = default;
+
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+    protected:
+    };
+
+    /*********************************************************************/
+    class GraphOutputPCBeep : public NodeGraphOp {
+    public:
+        GraphOutputPCBeep(NodeGraphBase* node) :
+            NodeGraphOp(node, "PC Beep")
+        {
+            AddInput("Trigger", 0.0f, 1, 0.0f, 1.0f);
+            AddInput("Freq", 5000.0f, 1, 20.0f, 10000.0f);
+            AddInput("Duration", 150.0f, 1, 1.0f, 10000.0f);
+        }
+        virtual ~GraphOutputPCBeep() = default;
+
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+		virtual void Tick(int32_t numSamples, float dt) override;
+    protected:
+        bool mTriggered = false;
+        float mTimer = 0.0f;
+    };
 }
 

@@ -308,6 +308,53 @@ namespace string {
 		return static_cast<size_t>(count);
 	}
 
+	uint32_t string_id(std::string_view string) {
+		return static_cast<uint32_t>(std::hash<std::string_view>{}(string));
+	}
+
+	std::string encode_html(const std::string& input) {
+		std::string output;
+		for (auto it : input) {
+			if (it == ' ') {
+				output += "%20";
+			}
+			else if (it == ',') {
+				output += "%2C";
+			}
+			else if (it == '.') {
+				output += "%2E";
+			}
+			else if (it == ':') {
+				output += "%3A";
+			}
+			else if (it == '/') {
+				output += "%2F";
+			}
+			else if (it == '?') {
+				output += "%3F";
+			}
+			else if (it == '=') {
+				output += "%3D";
+			}
+			else if (it == '&') {
+				output += "%26";
+			}
+			else if (it == '+') {
+				output += "%2B";
+			}
+			else if (it == '\r') {
+				output += "%0D";
+			}
+			else if (it == '\n') {
+				output += "%0A";
+			}
+			else {
+				output += it;
+			}
+		}
+		return output;
+	}
+
 	bool cstring_equal(const char* a, const char* b, size_t a_offset, size_t b_offset, size_t maxCount) {
 		return !strncmp(a + a_offset, b + b_offset, maxCount);
 	}

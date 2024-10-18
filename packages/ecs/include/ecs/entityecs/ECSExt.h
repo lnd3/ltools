@@ -1,5 +1,17 @@
 #pragma once
 
+#include <functional>
+#include <tuple>
+#include <typeinfo>
+#include <vector>
+#include <map>
+#include <unordered_map>
+#include <type_traits>
+#include <memory>
+#include <sstream>
+#include <algorithm>
+#include <iostream>
+
 struct TickData {
 	float elapsedTime;
 	float deltaTime;
@@ -9,16 +21,28 @@ struct TickData {
 #define ECS_TICK_TYPE TickData
 #endif
 
+template<class T>
+class DefaultAllocator : public std::allocator<T> {
+public:
+	DefaultAllocator() noexcept {}
+	DefaultAllocator(const DefaultAllocator& other) noexcept : std::allocator<T>(other) {}
+	template<class U>
+	DefaultAllocator(const DefaultAllocator<U>& other) noexcept : std::allocator<T>(other) {}
+	~DefaultAllocator() {}
+
+	void deallocate(T* const ptr, const size_t count) {
+		std::allocator<T>::deallocate(ptr, count);
+	}
+
+	T* allocate(const size_t count) {
+		return std::allocator<T>::allocate(count);
+	}
+};
+
+#define ECS_ALLOCATOR_TYPE DefaultAllocator<l::ecs::Entity>
+
 #include "ECS.h"
 #include "logging/LoggingAll.h"
-
-#include <functional>
-#include <tuple>
-#include <typeinfo>
-#include <vector>
-#include <map>
-#include <unordered_map>
-#include <type_traits>
 
 namespace l::ecs {
 

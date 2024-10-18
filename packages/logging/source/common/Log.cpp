@@ -105,6 +105,10 @@ namespace logging {
 		}
 	};
 	Logger::~Logger() {
+		if (mCondition && (mLevel == LogLevel::LogExpection || mLevel == LogLevel::LogAssertion)) {
+			return;
+		}
+
 		mStream.flush();
 		std::string msg = mStream.str();
 		mStream.str("");
@@ -116,24 +120,25 @@ namespace logging {
 		case LogLevel::LogWarning:
 		case LogLevel::LogError:
 		case LogLevel::LogTest:
+		case LogLevel::LogTitle:
 			break;
 		case LogLevel::LogExpection:
 			if (!mCondition) {
 				// Breaking runtime condition, show popup?
 			}
-			else {
-				msg.clear(); // Error message should not be displayed if condition was right
-			}
+			// already handled in early return
+			//else {
+			//	msg.clear(); // Error message should not be displayed if condition was right
+			//}
 			break;
 		case LogLevel::LogAssertion:
 			if (!mCondition) {
 				DEBUG_BREAK;
 			}
-			else {
-				msg.clear(); // Error message should not be displayed if condition was right
-			}
-			break;
-		case LogLevel::LogTitle:
+			// already handled in early return
+			//else {
+			//	msg.clear(); // Error message should not be displayed if condition was right
+			//}
 			break;
 		}
 

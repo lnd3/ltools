@@ -214,17 +214,11 @@ namespace l::nodegraph {
     }
 
     float InputAccessor::GetArrayValue(int32_t index) {
-        if (mType == InputIterationType::CONSTANT_ARRAY) {
-            return mInput.mIterator[index];
-        }
-        return 0.0f;
+        return mInput.mIterator[index];
     }
 
     float* InputAccessor::GetArray() {
-        if (mType == InputIterationType::CONSTANT_ARRAY) {
-            return mInput.mIterator.data();
-        }
-        return nullptr;
+        return mInput.mIterator.data();
     }
 
     // run on each new batch call to setup input iterators for buffered data

@@ -24,13 +24,13 @@ namespace l::nodegraph {
 
     void NodeGraphGroup::SetNumInputs(int8_t numInputs) {
         if (!mInputNode) {
-            mInputNode = NewNode<GraphDataCopy>(OutputType::Default, numInputs);
+            mInputNode = NewNode<GraphDataCopy>(NodeType::Default, numInputs);
         }
     }
 
     void NodeGraphGroup::SetNumOutputs(int8_t numOutput) {
         if (!mOutputNode) {
-            mOutputNode = NewNode<GraphDataCopy>(OutputType::ExternalOutput, numOutput);
+            mOutputNode = NewNode<GraphDataCopy>(NodeType::ExternalOutput, numOutput);
         }
     }
 
@@ -119,6 +119,18 @@ namespace l::nodegraph {
             return false;
             });
         return count > 0 ? true : false;
+    }
+
+    void NodeGraphGroup::ForEachInputNode(std::function<void(NodeGraphBase*)> cb) {
+        for (auto& it : mInputNodes) {
+            cb(it);
+        }
+    }
+
+    void NodeGraphGroup::ForEachOutputNode(std::function<void(NodeGraphBase*)> cb) {
+        for (auto& it : mOutputNodes) {
+            cb(it);
+        }
     }
 
     void NodeGraphGroup::ClearProcessFlags() {

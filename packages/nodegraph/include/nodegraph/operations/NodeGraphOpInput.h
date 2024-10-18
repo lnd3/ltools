@@ -318,5 +318,37 @@ namespace l::nodegraph {
         std::vector<int8_t> mButtonStates;
         int32_t mInitCounter = 0;
     };
+
+    /*********************************************************************/
+    class GraphInputMic : public NodeGraphOp {
+    public:
+        GraphInputMic(NodeGraphBase* node, l::audio::AudioStream* stream = nullptr) :
+            NodeGraphOp(node, "Mic"),
+            mAudioStream(stream),
+            mCurrentStereoPosition(0)
+        {
+            AddInput("Volume", 0.5f, 1, 0.0f, 1.0f);
+
+            AddOutput("Left");
+            AddOutput("Right");
+
+            mEnvelope = 0.0f;
+            mFilterEnvelope.SetConvergenceFactor();
+        }
+        virtual ~GraphInputMic() = default;
+
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+    protected:
+        l::audio::AudioStream* mAudioStream;
+        float mSamplesUntilUpdate = 0.0f;
+
+        int32_t mCurrentStereoPosition;
+        float mEnvelope = 0.0f;
+        float mAttack = 1.0f;
+        float mRelease = 1.0f;
+        l::audio::FilterRWA<float> mFilterEnvelope;
+    };
+
+
 }
 

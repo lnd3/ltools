@@ -73,7 +73,7 @@ namespace l::nodegraph {
             mFreqTargetPrev = mFreqTarget;
 
             mInputManager.SetDuration(101, mAttackFactor);
-            mInputManager.SetTarget(101, l::math::functions::sqrt(velocity));
+            mInputManager.SetTarget(101, l::math::sqrt(velocity));
 
             if (mFrameCount == 0) {
                 // if note was off we set freq immediately
