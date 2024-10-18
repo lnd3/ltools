@@ -12,7 +12,7 @@ TEST(PortAudio, Setup) {
         return 0;
     }
 
-    auto stream = manager.GetStream("speaker");
+    auto stream = manager.GetAudioStream("speaker");
 
     if (!stream->OpenStream(2048, 20.0f, l::audio::BufferingMode::TRIPLE_BUFFERING)) {
         return 0;
@@ -61,7 +61,7 @@ TEST(PortAudio, Setup) {
         LOG(LogError) << "Failed to stop stream";
     }
 
-    manager.CloseStream("speaker");
+    manager.CloseOutStream("speaker");
 
     return 0;
 }

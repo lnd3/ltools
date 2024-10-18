@@ -13,20 +13,20 @@ namespace l::audio {
 #define PA_SAMPLE_TYPE      paFloat32
 
     static int gNumNoInputs = 0;
-    static int audioCallback(const void*, void* outputBuffer,
+    static int audioCallback(const void* inputBuffer, void* outputBuffer,
         unsigned long framesPerBuffer,
         const PaStreamCallbackTimeInfo* timeInfo,
         PaStreamCallbackFlags statusFlags,
         void* userData)
     {
+        float* in = (float*)inputBuffer;
         float* out = (float*)outputBuffer;
-        unsigned int i;
         (void)statusFlags;
 
         AudioStreamData* audioStreamData = nullptr;
 
         if (userData == nullptr) {
-            for (i = 0; i < framesPerBuffer; i++) {
+            for (uint32_t i = 0; i < framesPerBuffer; i++) {
                 *out++ = 0;  /* left - silent */
                 *out++ = 0;  /* right - silent */
             }
@@ -39,14 +39,29 @@ namespace l::audio {
                 audioStreamData->mDacOutputTimeAtLastCallback = timeInfo->outputBufferDacTime;
                 ASSERT(audioStreamData->mDacFramesPerBufferPart == static_cast<int32_t>(framesPerBuffer));
 
-                float* buffer = audioStreamData->GetCurrentBufferPosition();
-                
+                float* outbuffer = audioStreamData->GetCurrentOutputPosition();
+                float* inbuffer = audioStreamData->GetCurrentInputPosition();
+
                 audioStreamData->NextPart();
                 audioStreamData->NextPartCanBeWritten();
 
-                for (i = 0; i < framesPerBuffer; i++) {
-                    *out++ = *buffer++;
-                    *out++ = *buffer++;
+                if (outbuffer != nullptr) {
+                    for (uint32_t i = 0; i < framesPerBuffer; i++) {
+                        *out++ = *outbuffer++;
+                        *out++ = *outbuffer++;
+                    }
+                }
+                else {
+                    for (uint32_t i = 0; i < framesPerBuffer; i++) {
+                        *out++ = 0;
+                        *out++ = 0;
+                    }
+                }
+                if (inbuffer != nullptr) {
+                    for (uint32_t i = 0; i < framesPerBuffer; i++) {
+                        *inbuffer++ = *in++;
+                        *inbuffer++ = *in++;
+                    }
                 }
             }
         }
@@ -55,7 +70,13 @@ namespace l::audio {
     }
 
     bool AudioStream::OpenStream(int32_t dacFramesPerBufferPart, float latencyMs, BufferingMode mode, ChannelMode channel) {
+        auto maxDevices = Pa_GetDeviceCount();
+        for (int32_t index = 0; index < maxDevices; index++) {
+            auto deviceInfo = Pa_GetDeviceInfo(index);
+            LOG(LogInfo) << "Audio device " << index << ": " << deviceInfo->name;
+        }
 
+        mInputParameters.device = Pa_GetDefaultInputDevice(); /* default input device */
         mOutputParameters.device = Pa_GetDefaultOutputDevice(); /* default output device */
         if (mOutputParameters.device == paNoDevice) {
             LOG(LogError) << "Error: No default output device.";
@@ -65,18 +86,24 @@ namespace l::audio {
         switch (channel) {
         case ChannelMode::MONO:
             mOutputParameters.channelCount = 1;
+            mInputParameters.channelCount = 1;
             break;
         case ChannelMode::STEREO:
         default:
             mOutputParameters.channelCount = 2;
+            mInputParameters.channelCount = 2;
             break;
         }
 
+        mInputParameters.sampleFormat = PA_SAMPLE_TYPE;
         mOutputParameters.sampleFormat = PA_SAMPLE_TYPE;
         PaTime defaultLatency = Pa_GetDeviceInfo(mOutputParameters.device)->defaultLowOutputLatency;
         ASSERT(latencyMs >= 0.0f && latencyMs < 1000.0f) << "Latency is allowed between 0ms to 1000ms";
         if (latencyMs > 0.0f) {
             mOutputParameters.suggestedLatency = latencyMs / 1000.0f;
+
+            //auto inputInfo = Pa_GetDeviceInfo(mInputParameters.device);
+            mInputParameters.suggestedLatency = latencyMs / 1000.0f; // inputInfo->defaultHighInputLatency;
             LOG(LogInfo) << "Port Audio set latency ms: " << static_cast<int32_t>(latencyMs);
         }
         else {
@@ -106,11 +133,14 @@ namespace l::audio {
         mAudioStreamData.mNumChannels = static_cast<int32_t>(mOutputParameters.channelCount);
 
         mOutputBufferInterleaved.resize(mAudioStreamData.mTotalBufferSize);
-        mAudioStreamData.mBuffer = mOutputBufferInterleaved.data();
+        mInputBufferInterleaved.resize(mAudioStreamData.mTotalBufferSize);
+        mAudioStreamData.mOutputBuffer = mOutputBufferInterleaved.data();
+        mAudioStreamData.mInputBuffer = mInputBufferInterleaved.data();
+
 
         auto err = Pa_OpenStream(
             &mPaStream,
-            NULL,
+            &mInputParameters,
             &mOutputParameters,
             SAMPLE_RATE,
             mAudioStreamData.mDacFramesPerBufferPart,
@@ -137,6 +167,9 @@ namespace l::audio {
         if (mWriteBuffer.size() != bufferSize) {
             mWriteBuffer.resize(bufferSize);
         }
+        if (mReadBuffer.size() != bufferSize) {
+            mReadBuffer.resize(bufferSize);
+        }
 
         return true;
     }
@@ -145,17 +178,31 @@ namespace l::audio {
         return mWriteBuffer;
     }
 
+    std::vector<float>& AudioStream::GetReadBuffer() {
+        return mReadBuffer;
+    }
+
     bool AudioStream::CanWrite() {
         return mAudioStreamData.CanWrite();
     }
 
     void AudioStream::Write() {
-        float* buffer = mAudioStreamData.GetCurrentBufferPosition();
+        float* buffer = mAudioStreamData.GetCurrentOutputPosition();
 
         float* outPtr = mWriteBuffer.data();
         for (int i = 0; i < mAudioStreamData.mDacFramesPerBufferPart; i++) {
             *buffer++ = *outPtr++;
             *buffer++ = *outPtr++;
+        }
+    }
+
+    void AudioStream::Read() {
+        float* buffer = mAudioStreamData.GetCurrentInputPosition();
+
+        float* inPtr = mReadBuffer.data();
+        for (int i = 0; i < mAudioStreamData.mDacFramesPerBufferPart; i++) {
+            *inPtr++ = *buffer++;
+            *inPtr++ = *buffer++;
         }
     }
 
@@ -196,7 +243,7 @@ namespace l::audio {
         return true;
     }
 
-    AudioStream* AudioManager::GetStream(std::string_view name) {
+    AudioStream* AudioManager::GetAudioStream(std::string_view name) {
         auto h = std::hash<std::string_view>{}(name);
         if (!mStreams.contains(h)) {
             mStreams.insert_or_assign(h, std::make_unique<AudioStream>());
@@ -204,7 +251,7 @@ namespace l::audio {
         return mStreams.at(h).get();
     }
 
-    void AudioManager::CloseStream(std::string_view name) {
+    void AudioManager::CloseOutStream(std::string_view name) {
         auto h = std::hash<std::string_view>{}(name);
         mStreams.erase(h);
     }

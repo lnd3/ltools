@@ -157,6 +157,9 @@ namespace l::nodegraph {
         case 307:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(NodeType::Default, mMidiManager, 4);
             break;
+        case 308:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMic>(NodeType::Default, mAudioOutput);
+            break;
 
         case 350:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSine>(NodeType::Default);
@@ -302,6 +305,7 @@ namespace l::nodegraph {
             RegisterNodeType("Input", 305, "Midi Button Group 3");
             RegisterNodeType("Input", 306, "Midi Button Group 4");
             RegisterNodeType("Input", 307, "Midi Button Group 5");
+            RegisterNodeType("Input", 308, "Mic");
         }
         else if (typeGroup == "Signal") {
             RegisterNodeType("Signal", 350, "Sine");
