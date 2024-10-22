@@ -91,8 +91,8 @@ namespace l::audio {
         int32_t GetNumFramesPerPart();
         int32_t GetSampleRate();
     protected:
-        PaStreamParameters mInputParameters{ 0 };
-        PaStreamParameters mOutputParameters{ 0 };
+        PaStreamParameters mInputParameters{ 0,0,0,0.0,nullptr };
+        PaStreamParameters mOutputParameters{ 0,0,0,0.0,nullptr };
         PaStream* mPaStream = nullptr;
 
         AudioStreamData mAudioStreamData;
