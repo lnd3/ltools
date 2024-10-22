@@ -179,7 +179,7 @@ namespace l::nodegraph {
             return false;
         }
         auto& input = mInputs.at(inputChannel);
-        initialValue = l::math::functions::clamp(initialValue, input.mBoundMin, input.mBoundMax);
+        initialValue = l::math::clamp(initialValue, input.mBoundMin, input.mBoundMax);
         if (size <= 1) {
             input.mInput.mInputFloatConstant = initialValue;
             input.mInputType = InputType::INPUT_CONSTANT;
@@ -264,7 +264,7 @@ namespace l::nodegraph {
         return mOutputs.at(outputChannel).IsPolled();
     }
 
-    OutputType NodeGraphBase::GetOutputType() {
+    NodeType NodeGraphBase::GetOutputType() {
         return mOutputType;
     }
 
@@ -306,7 +306,7 @@ namespace l::nodegraph {
 
     /**********************************************************************************/
 
-    void NodeGraphOp::Reset() {
+    void NodeGraphOp::DefaultDataInit() {
         for (int8_t i = 0; i < static_cast<int8_t>(mDefaultInData.size()); i++) {
             auto& e = mDefaultInData.at(i);
             mNode->SetInput(i, std::get<0>(e), std::get<1>(e));
@@ -330,23 +330,38 @@ namespace l::nodegraph {
     }
 
     bool NodeGraphOp::IsDataConstant(int8_t channel) {
-        return std::get<4>(mDefaultInData.at(channel));
+        if (static_cast<size_t>(channel) < mDefaultInData.size()) {
+            return std::get<4>(mDefaultInData.at(channel));
+        }
+        return false;
     }
 
     bool NodeGraphOp::IsDataVisible(int8_t channel) {
-        return std::get<5>(mDefaultInData.at(channel));
+        if (static_cast<size_t>(channel) < mDefaultInData.size()) {
+            return std::get<5>(mDefaultInData.at(channel));
+        }
+        return false;
     }
 
     bool NodeGraphOp::IsDataEditable(int8_t channel) {
-        return std::get<6>(mDefaultInData.at(channel));
+        if (static_cast<size_t>(channel) < mDefaultInData.size()) {
+            return std::get<6>(mDefaultInData.at(channel));
+        }
+        return false;
     }
 
     std::string_view NodeGraphOp::GetInputName(int8_t inputChannel) {
-        return mDefaultInStrings[inputChannel];
+        if (static_cast<size_t>(inputChannel) < mDefaultInStrings.size()) {
+            return mDefaultInStrings[inputChannel];
+        }
+        return "";
     }
 
     std::string_view NodeGraphOp::GetOutputName(int8_t outputChannel) {
-        return mDefaultOutStrings[outputChannel];
+        if (static_cast<size_t>(outputChannel) < mDefaultOutStrings.size()) {
+            return mDefaultOutStrings[outputChannel];
+        }
+        return "";
     }
 
     std::string_view NodeGraphOp::GetName() {
@@ -354,7 +369,10 @@ namespace l::nodegraph {
     }
 
     float NodeGraphOp::GetDefaultData(int8_t inputChannel) {
-        return std::get<0>(mDefaultInData.at(inputChannel));
+        if (static_cast<size_t>(inputChannel) < mDefaultInData.size()) {
+            return std::get<0>(mDefaultInData.at(inputChannel));
+        }
+        return 0.0f;
     }
 
     int32_t NodeGraphOp::AddInput(std::string_view name, float defaultValue, int32_t size, float boundMin, float boundMax, bool visible, bool editable) {

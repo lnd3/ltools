@@ -1,8 +1,6 @@
 project (tools)
 
 set(deps
-	various
-
 	logging
 	testing
 	memory
@@ -11,4 +9,4 @@ set(deps
 	storage
 )
 
-bs_generate_package(tools "tier2" "${deps}" "")
+bs_generate_package(tools "tier2" "${deps}" "various")

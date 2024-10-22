@@ -35,8 +35,8 @@ namespace l::nodegraph {
 
                 float attackMs = 40.0f;
                 float releaseMs = 40.0f;
-                mAttack = l::math::functions::pow(0.001f, 1.0f / (attackMs * 44100.0f * 0.001f));
-                mRelease = l::math::functions::pow(0.001f, 1.0f / (releaseMs * 44100.0f * 0.001f));
+                mAttack = l::math::pow(0.001f, 1.0f / (attackMs * 44100.0f * 0.001f));
+                mRelease = l::math::pow(0.001f, 1.0f / (releaseMs * 44100.0f * 0.001f));
                 mAttack = 0.01f;
                 mRelease = 0.01f;
 
@@ -60,7 +60,7 @@ namespace l::nodegraph {
 
                     float out0 = 0.0f;
                     float out1 = 0.0f;
-                    float envelopeAbs = l::math::functions::abs(mEnvelope);
+                    float envelopeAbs = l::math::abs(mEnvelope);
                     if (envelopeAbs > limit) {
                         if (envelopeAbs > 1.0f) {
                             out0 = inVal0 / mEnvelope;
@@ -98,4 +98,56 @@ namespace l::nodegraph {
         }
     }
 
+    /*********************************************************************/
+    void GraphOutputImGuiPlotLine::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        mInputManager.BatchUpdate(inputs, numSamples);
+
+        float* output = &outputs.at(0).Get(2 * numSamples);
+
+        for (int32_t i = 0; i < numSamples; i++) {
+            output[2 * i + 0] = mInputManager.GetValueNext(0);
+            output[2 * i + 1] = mInputManager.GetValueNext(1);
+        }
+    }
+
+    /*********************************************************************/
+    void GraphOutputImGuiPlotCandles::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        mInputManager.BatchUpdate(inputs, numSamples);
+
+        float* output = &outputs.at(0).Get(6 * numSamples);
+
+        for (int32_t i = 0; i < numSamples; i++) {
+            output[6 * i + 0] = mInputManager.GetValueNext(0);
+            output[6 * i + 1] = mInputManager.GetValueNext(1);
+            output[6 * i + 2] = mInputManager.GetValueNext(2);
+            output[6 * i + 3] = mInputManager.GetValueNext(3);
+            output[6 * i + 4] = mInputManager.GetValueNext(4);
+            output[6 * i + 5] = mInputManager.GetValueNext(5);
+        }
+    }
+
+    /*********************************************************************/
+
+    void GraphOutputPCBeep::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
+        if (mTimer <= 0.0f) {
+            float value = inputs.at(0).Get();
+            if (value > 0.5f && !mTriggered) {
+                mTriggered = true;
+
+                int32_t freq = static_cast<int32_t>(inputs.at(1).Get());
+                int32_t duration = static_cast<int32_t>(inputs.at(2).Get());
+
+                mTimer = duration / 1000.0f;
+
+                l::audio::PCBeep(freq, duration);
+            }
+            if (value < 0.5f && mTriggered) {
+                mTriggered = false;
+            }
+        }
+    }
+
+	void GraphOutputPCBeep::Tick(int32_t, float elapsed) {
+        mTimer -= elapsed;
+	}
 }

@@ -34,7 +34,7 @@ namespace l::ui {
                 connector1Text->GetContainerArea().mRender.mColor = ImColor(ImVec4(0.5f, 1.0f, 0.4f, 1.0f));
                 row0->Add(connector1Text);
             }
-            for (int8_t i = 0; i < numInputChannels || i < numOutputChannels || i < numInputChannels || i < numOutputChannels; i++) {
+            for (int8_t i = 0; i < numInputChannels || i < numOutputChannels; i++) {
                 auto row = CreateContainer(uiManager, 0, l::ui::UIRenderType::Rect, l::ui::UIAlignH::Left, l::ui::UIAlignV::Top, l::ui::UILayoutH::Parent, l::ui::UILayoutV::Fixed);
                 row->GetContainerArea().mMargin = ioSize;
                 node4->Add(row);
@@ -88,7 +88,7 @@ namespace l::ui {
                 }
             }
 
-            if (node.GetOutputType() == l::nodegraph::OutputType::ExternalVisualOutput) {
+            if (node.GetOutputType() == l::nodegraph::NodeType::ExternalVisualOutput) {
                 auto row = CreateContainer(uiManager, l::ui::UIContainer_DrawFlag, l::ui::UIRenderType::Rect, l::ui::UIAlignH::Left, l::ui::UIAlignV::Bottom, l::ui::UILayoutH::Parent, l::ui::UILayoutV::Parent);
                 row->SetPosition(ImVec2(0.0f, 0.0f));
                 row->GetContainerArea().mMargin = ioSize;

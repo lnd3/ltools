@@ -233,7 +233,10 @@ namespace l::network {
 				CompleteRequest(mSuccess);
 			}
 
-			auto result = mHandler(mSuccess, mRequestQueryArgs, *this);
+			l::concurrency::RunnableResult result = mSuccess ? l::concurrency::RunnableResult::SUCCESS : l::concurrency::RunnableResult::FAILURE;
+			if (mHandler) {
+				result = mHandler(mSuccess, mRequestQueryArgs, *this);
+			}
 			if (cb) {
 				cb(result == l::concurrency::RunnableResult::SUCCESS, mRequestQueryArgs);
 			}

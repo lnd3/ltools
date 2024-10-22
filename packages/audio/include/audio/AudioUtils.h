@@ -6,6 +6,8 @@
 
 namespace l::audio {
 
+    void PCBeep(int32_t freq, int32_t duration);
+
     class INoteProcessor {
     public:
         virtual ~INoteProcessor() = default;
@@ -42,7 +44,7 @@ namespace l::audio {
         ~FilterRWA() = default;
 
         bool SnapAt(T value = static_cast<T>(0), T proximity = static_cast<T>(0.00001)) {
-            if (l::math::functions::abs(mValue - value) < proximity) {
+            if (l::math::abs(mValue - value) < proximity) {
                 mValue = value;
                 return true;
             }
@@ -64,8 +66,8 @@ namespace l::audio {
             return *this;
         }
 
-        FilterRWA<T>& SetRWAUpdateRate(T fetchesPerUpdate = static_cast<float>(1.0)) {
-            mRWAUpdateRate = l::math::functions::max(fetchesPerUpdate, static_cast<float>(1.0));
+        FilterRWA<T>& SetRWAUpdateRate(T fetchesPerUpdate = static_cast<T>(1.0)) {
+            mRWAUpdateRate = l::math::max2(fetchesPerUpdate, static_cast<T>(1.0));
             return *this;
         }
 
