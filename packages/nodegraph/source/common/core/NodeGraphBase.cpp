@@ -306,7 +306,7 @@ namespace l::nodegraph {
 
     /**********************************************************************************/
 
-    void NodeGraphOp::Reset() {
+    void NodeGraphOp::DefaultDataInit() {
         for (int8_t i = 0; i < static_cast<int8_t>(mDefaultInData.size()); i++) {
             auto& e = mDefaultInData.at(i);
             mNode->SetInput(i, std::get<0>(e), std::get<1>(e));

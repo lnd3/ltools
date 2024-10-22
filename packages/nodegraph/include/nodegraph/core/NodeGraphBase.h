@@ -67,6 +67,7 @@ namespace l::nodegraph {
         }
 
         virtual void Reset();
+        virtual void DefaultDataInit() {};
         virtual void SetId(int32_t id) { mId = id; }
         virtual int32_t GetId() const { return mId; }
 
@@ -144,7 +145,8 @@ namespace l::nodegraph {
             LOG(LogInfo) << "Node operation destroyed";
         }
 
-        virtual void Reset();
+        virtual void DefaultDataInit();
+        virtual void Reset() {};
         virtual void Process(int32_t, std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
         virtual void Tick(int32_t, float) {}
 
@@ -190,7 +192,7 @@ namespace l::nodegraph {
             SetNumInputs(mOperation.GetNumInputs());
             SetNumOutputs(mOperation.GetNumOutputs());
 
-            Reset();
+            DefaultDataInit();
         }
         virtual ~NodeGraph() {
             LOG(LogInfo) << "Node destroyed";
@@ -206,6 +208,11 @@ namespace l::nodegraph {
 
         virtual bool IsDataEditable(int8_t num) override {
             return mOperation.IsDataEditable(num);
+        }
+
+        virtual void DefaultDataInit() override {
+            NodeGraphBase::DefaultDataInit();
+            mOperation.DefaultDataInit();
         }
 
         virtual void Reset() override {

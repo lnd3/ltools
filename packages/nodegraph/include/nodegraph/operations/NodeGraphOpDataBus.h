@@ -36,7 +36,6 @@ namespace l::nodegraph {
             }
         }
         virtual ~GraphDataBusDataIn() = default;
-
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         int32_t mInputDataStride = 1;

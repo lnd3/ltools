@@ -48,7 +48,9 @@ namespace l::nodegraph {
 
     /*********************************************************************/
 
-    void GraphSignalSine2::ResetInput() {
+    void GraphSignalSine2::DefaultDataInit() {
+        NodeGraphOp::DefaultDataInit();
+
         mNode->SetInput(mNumDefaultInputs + 0, 0.0f);
         mNode->SetInput(mNumDefaultInputs + 1, 0.0f);
         mNode->SetInputBound(mNumDefaultInputs + 0, InputBound::INPUT_0_TO_1);
@@ -56,7 +58,7 @@ namespace l::nodegraph {
         mUpdateRate = 16.0f;
     }
 
-    void GraphSignalSine2::ResetSignal() {
+    void GraphSignalSine2::Reset() {
         mPhaseFmod = 0.0f;
         mPhase = 0.0f;
     }
@@ -98,7 +100,7 @@ namespace l::nodegraph {
         mUpdateRate = 16.0f;
     }
 
-    void GraphSignalSaw2::ResetSignal() {
+    void GraphSignalSaw2::Reset() {
         InitSaw(&mSaw, 0.0, 0.0);
     }
 

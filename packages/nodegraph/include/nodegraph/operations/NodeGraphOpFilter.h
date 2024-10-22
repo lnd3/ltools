@@ -46,11 +46,9 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphFilterBase() = default;
-        virtual void Reset() override final;
+        virtual void DefaultDataInit() override;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override final;
 
-        virtual void ResetInput() {};
-        virtual void ResetSignal() {};
         virtual void UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
         virtual float ProcessSignal(float input, float cutoff, float resonance) = 0;
     protected:
@@ -68,9 +66,8 @@ namespace l::nodegraph {
             GraphFilterBase(node, "Lowpass")
         {}
         virtual ~GraphFilterLowpass() = default;
+        virtual void Reset() override;
 
-        virtual void ResetInput() override;
-        virtual void ResetSignal() override;
         virtual float ProcessSignal(float input, float cutoff, float resonance) override;
     protected:
         float mInputValuePrev = 0.0f;
@@ -86,8 +83,8 @@ namespace l::nodegraph {
         {}
         virtual ~GraphFilterHighpass() = default;
 
-        virtual void ResetInput() override;
-        virtual void ResetSignal() override;
+        virtual void Reset() override;
+
         virtual float ProcessSignal(float input, float cutoff, float resonance) override;
     protected:
         float mInputValuePrev = 0.0f;
@@ -107,8 +104,9 @@ namespace l::nodegraph {
         }
         virtual ~GraphFilterChamberlain2pole() = default;
 
-        virtual void ResetInput() override;
-        virtual void ResetSignal() override;
+        virtual void DefaultDataInit() override;
+        virtual void Reset() override;
+
         virtual void UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) override;
         virtual float ProcessSignal(float input, float cutoff, float resonance) override;
     protected:
@@ -124,20 +122,22 @@ namespace l::nodegraph {
     /*********************************************************************/
     class GraphFilterMovingAverage : public GraphFilterBase {
     public:
-        GraphFilterMovingAverage(NodeGraphBase* node, int32_t kernelSize) :
+        GraphFilterMovingAverage(NodeGraphBase* node, int32_t kernelSize, float undefinedValue = 0.0f) :
             GraphFilterBase(node, "Moving Average"),
-            mKernelSize(kernelSize)
+            mKernelSize(kernelSize),
+            mUndefinedValue(undefinedValue)
         {
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Kernel Size", 1.0f, 1, 1.0f, static_cast<float>(mKernelSize)));
         }
         virtual ~GraphFilterMovingAverage() = default;
+        virtual void Reset() override;
 
-        virtual void ResetInput() override;
-        virtual void ResetSignal() override;
         virtual float ProcessSignal(float input, float cutoff, float resonance) override;
     protected:
         int32_t mKernelSize = 150;
         int32_t mFilterStateIndex = -1;
+        float mUndefinedValue = 0.0f;
+        bool mFilterInit = false;
         std::vector<float> mFilterState;
     };
 }

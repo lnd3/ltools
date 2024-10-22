@@ -11,14 +11,13 @@ namespace l::nodegraph {
 
     /* Stateful filtering operations */
         /*********************************************************************/
-    void GraphFilterBase::Reset() {
-		NodeGraphOp::Reset();
+    void GraphFilterBase::DefaultDataInit() {
+		NodeGraphOp::DefaultDataInit();
 
         mSync = 0.0f;
         mSamplesUntilUpdate = 0.0f;
 
-        ResetInput();
-        ResetSignal();
+        Reset();
     }
 
     void GraphFilterBase::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
@@ -48,10 +47,7 @@ namespace l::nodegraph {
         );
     }
     /*********************************************************************/
-    void GraphFilterLowpass::ResetInput() {
-    }
-
-    void GraphFilterLowpass::ResetSignal() {
+    void GraphFilterLowpass::Reset() {
         mState0 = 0.0f;
         mState1 = 0.0f;
     }
@@ -67,10 +63,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphFilterHighpass::ResetInput() {
-    }
-
-    void GraphFilterHighpass::ResetSignal() {
+    void GraphFilterHighpass::Reset() {
         mState0 = 0.0f;
         mState1 = 0.0f;
     }
@@ -87,12 +80,14 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphFilterChamberlain2pole::ResetInput() {
+    void GraphFilterChamberlain2pole::DefaultDataInit() {
+        GraphFilterBase::DefaultDataInit();
+
         mNode->SetInput(mNumDefaultInputs + 0, 0.0f);
         mNode->SetInputBound(mNumDefaultInputs + 0, InputBound::INPUT_0_TO_1);
     }
 
-    void GraphFilterChamberlain2pole::ResetSignal() {
+    void GraphFilterChamberlain2pole::Reset() {
         for (int32_t i = 0; i < 4; i++) {
             mState.at(i) = 0.0f;
         }
@@ -122,20 +117,15 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphFilterMovingAverage::ResetInput() {
-    }
-
-    void GraphFilterMovingAverage::ResetSignal() {
+    void GraphFilterMovingAverage::Reset() {
         mFilterState.resize(mKernelSize);
-        mFilterStateIndex = -1;
+        mFilterStateIndex = 0;
+        mFilterInit = true;
     }
 
     float GraphFilterMovingAverage::ProcessSignal(float input, float, float) {
-        if (mFilterStateIndex < 0) {
-            for (size_t i = 0; i < mFilterState.size(); i++) {
-                mFilterState.at(i) = input;
-            }
-            mFilterStateIndex = 0;
+        if (mUndefinedValue == input) {
+            return input;
         }
 
         mFilterState[mFilterStateIndex] = input;
@@ -147,10 +137,19 @@ namespace l::nodegraph {
             return input;
         }
 
+        if (mFilterInit) {
+            if (mFilterStateIndex + 1 < widthInt) {
+                widthInt = mFilterStateIndex + 1;
+            }
+            else {
+                mFilterInit = false;
+            }
+        }
+
         float outVal = 0.0;
         for (int32_t i = 0; i < widthInt; i++) {
             outVal += mFilterState[i];
         }
-        return outVal / width;
+        return outVal / static_cast<float>(widthInt);
     }
 }

@@ -53,7 +53,6 @@ namespace l::nodegraph {
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
 
         virtual void ResetInput() {};
-        virtual void ResetSignal() {};
         virtual void UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
         virtual float ProcessSignal(float deltaTime, float freq) = 0;
     protected:
@@ -81,8 +80,8 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphSignalSine2() = default;
-        void ResetInput() override;
-        void ResetSignal() override;
+        void DefaultDataInit() override;
+        void Reset() override;
         void UpdateSignal(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         float ProcessSignal(float deltaTime, float freq) override;
     protected:
@@ -125,7 +124,7 @@ namespace l::nodegraph {
 
         virtual ~GraphSignalSaw2() = default;
         void ResetInput() override;
-        void ResetSignal() override;
+        void Reset() override;
         void UpdateSignal(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         float ProcessSignal(float deltaTime, float freq) override;
 
