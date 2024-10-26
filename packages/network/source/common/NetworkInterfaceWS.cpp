@@ -16,37 +16,25 @@ namespace l::network {
 		uint32_t port, 
 		int32_t networkStatusInterval) {
 		if (!mInterfaces.contains(interfaceName.data())) {
-			auto pingHandler = [&, name = std::string(interfaceName)](bool success, std::string_view, l::network::RequestStringStream&) {
-				SetNetworkStatus(name, success);
-				if (success) {
-					return l::concurrency::RunnableResult::SUCCESS;
-				}
-				return l::concurrency::RunnableResult::FAILURE;
-				};
-
 			mInterfaces.emplace(std::string(interfaceName), HostInfo(protocol, host, port, networkStatusInterval) );
-
-			std::string endpointName = interfaceName.data();
-			endpointName += "Ping";
-			CreateWebSocketTemplate<std::stringstream>(interfaceName, endpointName, "", 1, 5000, 3, pingHandler);
 		}
 	}
 
 	void NetworkInterfaceWS::Shutdown() {
-
+		auto networkManager = mNetworkManager.lock();
+		if (networkManager) {
+			networkManager->WSClose();
+		}
 	}
 
-	bool NetworkInterfaceWS::Connect(std::string_view ,
-		std::string_view ) {
-
-		return false;
+	void NetworkInterfaceWS::Disconnect(std::string_view queryName) {
+		auto networkManager = mNetworkManager.lock();
+		if (networkManager) {
+			networkManager->WSClose(queryName);
+		}
 	}
 
-	void NetworkInterfaceWS::Disconnect(std::string_view ,
-		std::string_view ) {
-	}
-
-	bool NetworkInterfaceWS::Send(std::string_view interfaceName,
+	bool NetworkInterfaceWS::Connect(std::string_view interfaceName,
 		std::string_view queryName,
 		std::string_view queryArguments,
 		int32_t retries,
@@ -69,6 +57,35 @@ namespace l::network {
 		}
 		return result;
 	}
+
+	int32_t NetworkInterfaceWS::Read(std::string_view interfaceName, std::string_view queryName, char* buffer, size_t size) {
+		int32_t read = 0;
+		auto it = mInterfaces.find(interfaceName.data());
+		if (it != mInterfaces.end()) {
+			if (NetworkStatus(interfaceName)) {
+				auto networkManager = mNetworkManager.lock();
+				if (networkManager) {
+					read = networkManager->WSRead(queryName, buffer, size);
+				}
+			}
+		}
+		return read;
+	}
+
+	bool NetworkInterfaceWS::Write(std::string_view interfaceName, std::string_view queryName, char* buffer, size_t size) {
+		bool result = false;
+		auto it = mInterfaces.find(interfaceName.data());
+		if (it != mInterfaces.end()) {
+			if (NetworkStatus(interfaceName)) {
+				auto networkManager = mNetworkManager.lock();
+				if (networkManager) {
+					result = networkManager->WSWrite(queryName, buffer, size);
+				}
+			}
+		}
+		return result;
+	}
+
 
 	bool NetworkInterfaceWS::NetworkStatus(std::string_view interfaceName) {
 		auto it = mInterfaces.find(interfaceName.data());

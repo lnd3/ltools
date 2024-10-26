@@ -38,7 +38,7 @@ namespace l::network {
 		int32_t CompletedRequestCount();
 		void ToggleVerboseLogging();
 
-		bool CreateRequestTemplate(std::unique_ptr<RequestBase> request);
+		bool CreateRequestTemplate(std::unique_ptr<ConnectionBase> request);
 		bool PostQuery(std::string_view queryName,
 			std::string_view queryArguments, 
 			int32_t maxTries = 3, 
@@ -47,10 +47,14 @@ namespace l::network {
 			int32_t timeOut = -1,
 			std::function<void(bool, std::string_view)> cb = nullptr);
 
+		void WSClose(std::string_view queryName = "");
+		bool WSWrite(std::string_view queryName, char* buffer, size_t size);
+		int32_t WSRead(std::string_view queryName, char* buffer, size_t size);
+
 	protected:
 		std::thread mCurlPerformer;
 		std::mutex mConnectionsMutex;
-		std::vector<std::unique_ptr<RequestBase>> mConnections;
+		std::vector<std::unique_ptr<ConnectionBase>> mConnections;
 		std::unique_ptr<l::concurrency::ExecutorService> mJobManager;
 
 		int32_t mPostedRequests;

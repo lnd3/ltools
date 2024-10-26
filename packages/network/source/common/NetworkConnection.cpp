@@ -3,7 +3,7 @@
 namespace l::network {
 
 	int CurlClientCloseSocket(void* userdata, curl_socket_t item) {
-		auto request = reinterpret_cast<RequestBase*>(userdata);
+		auto request = reinterpret_cast<ConnectionBase*>(userdata);
 		if (request != nullptr) {
 			request->NotifyClose();
 		}
@@ -12,7 +12,7 @@ namespace l::network {
 	}
 
 	size_t CurlClientWriteHeader(char* contents, size_t size, size_t nitems, void* userdata) {
-		auto request = reinterpret_cast<RequestBase*>(userdata);
+		auto request = reinterpret_cast<ConnectionBase*>(userdata);
 		if (request != nullptr) {
 			request->NotifyAppendHeader(contents, size * nitems);
 		}
@@ -20,7 +20,7 @@ namespace l::network {
 	}
 
 	size_t CurlClientWriteCallback(char* contents, size_t size, size_t nmemb, void* userdata) {
-		auto request = reinterpret_cast<RequestBase*>(userdata);
+		auto request = reinterpret_cast<ConnectionBase*>(userdata);
 		if (request != nullptr) {
 			if (request->IsWebSocket()) {
 				auto wssMeta = request->GetWebSocketMeta();
@@ -46,11 +46,11 @@ namespace l::network {
 
 
 
-	std::string_view RequestBase::GetRequestName() {
+	std::string_view ConnectionBase::GetRequestName() {
 		return mName;
 	}
 
-	bool RequestBase::TryReservingRequest() {
+	bool ConnectionBase::TryReservingRequest() {
 		bool available = false;
 		if (mCompletedRequest && mOngoingRequest.compare_exchange_strong(available, true)) {
 			mCompletedRequest = false;
@@ -60,7 +60,7 @@ namespace l::network {
 		return false;
 	}
 
-	l::concurrency::RunnableResult RequestBase::SendAndUnReserveRequest(
+	l::concurrency::RunnableResult ConnectionBase::SendAndUnReserveRequest(
 		CURLM* multiHandle,
 		const l::concurrency::RunState& state,
 		const std::string& queryArguments,
@@ -137,7 +137,17 @@ namespace l::network {
 				LOG(LogError) << "Curl failure  " << std::to_string(curlMCode) << ": " << mRequestQueryArgs;
 				mSuccess = false;
 			}
+		}
+		else {
+			auto curlCode = curl_easy_perform(mCurl);
+			//curl_easy_header()
+			if (curlCode != CURLE_OK) {
+				LOG(LogError) << "Curl failure  " << std::to_string(curlCode) << ": " << mRequestQueryArgs;
+				mSuccess = false;
+			}
+		}
 
+		if (IsWebSocket() || multiHandle != nullptr) {
 			do {
 				std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
@@ -150,12 +160,7 @@ namespace l::network {
 			} while (!mCompletedRequest);
 		}
 		else {
-			auto curlCode = curl_easy_perform(mCurl);
-			//curl_easy_header()
-			if (curlCode != CURLE_OK) {
-				LOG(LogError) << "Curl failure  " << std::to_string(curlCode) << ": " << mRequestQueryArgs;
-				mSuccess = false;
-			}
+			// notify manually since easy perform blocks until completed for single connections mode
 			NotifyCompleteRequest(mSuccess);
 		}
 
@@ -178,7 +183,7 @@ namespace l::network {
 		return result;
 	}
 
-	void RequestBase::NotifyCompleteRequest(bool success) {
+	void ConnectionBase::NotifyCompleteRequest(bool success) {
 		bool completed = false;
 		if (mOngoingRequest && mCompletedRequest.compare_exchange_strong(completed, true)) {
 			mSuccess = success;
@@ -186,14 +191,14 @@ namespace l::network {
 		}
 	}
 
-	bool RequestBase::IsHandle(CURL* handle) {
+	bool ConnectionBase::IsHandle(CURL* handle) {
 		if (mCurl == handle) {
 			return true;
 		}
 		return false;
 	}
 
-	bool RequestBase::HasExpired() {
+	bool ConnectionBase::HasExpired() {
 		if (mOngoingRequest && mTimeout > 0) {
 			auto timeWaitingMs = static_cast<int32_t>(l::string::get_unix_epoch_ms() - mStarted);
 			auto expired = timeWaitingMs > mTimeout * 1000;
@@ -202,38 +207,47 @@ namespace l::network {
 		return false;
 	}
 
-	void RequestBase::NotifyClose() {
+	void ConnectionBase::NotifyClose() {
 
 	}
 
-	bool RequestBase::IsWebSocket() {
+	bool ConnectionBase::IsWebSocket() {
 		return mIsWebSocket;
 	}
 
-	const curl_ws_frame* RequestBase::GetWebSocketMeta() {
+	const curl_ws_frame* ConnectionBase::GetWebSocketMeta() {
 		const struct curl_ws_frame* m = curl_ws_meta(mCurl);
 		return m;
 	}
 
-	bool RequestBase::WSWrite(char* buffer, size_t size) {
+	bool ConnectionBase::WSWrite(char* buffer, size_t size) {
+		if (HasExpired() || mCurl == nullptr) {
+			return false;
+		}
 		size_t sentBytes = 0;
 		auto res = curl_ws_send(mCurl, buffer, size, &sentBytes, 0, CURLWS_TEXT);
 		ASSERT(sentBytes == size);
 		return res == CURLE_OK;
 	}
 
-	size_t RequestBase::WSRead(char* buffer, size_t size) {
+	int32_t ConnectionBase::WSRead(char* buffer, size_t size) {
+		if (HasExpired()) {
+			return -2;
+		}
+		if (mCurl == nullptr) {
+			return -3;
+		}
 		const struct curl_ws_frame* meta;
 		size_t readBytes = 0;
 		auto res = curl_ws_recv(mCurl, buffer, size, &readBytes, &meta);
-		return res == CURLE_OK ? readBytes : -1;
+		return res == CURLE_OK ? static_cast<int32_t>(readBytes) : -1;
 	}
 
-	void RequestBase::WSClose() {
-
+	void ConnectionBase::WSClose() {
+		NotifyCompleteRequest(true);
 	}
 
-	void RequestBase::NotifyAppendHeader(const char* contents, size_t size) {
+	void ConnectionBase::NotifyAppendHeader(const char* contents, size_t size) {
 		ASSERT(mOngoingRequest);
 
 		if (mCompletedRequest) {
@@ -262,7 +276,7 @@ namespace l::network {
 		}
 	}
 
-	void RequestBase::NotifyAppendResponse(const char* contents, size_t size) {
+	void ConnectionBase::NotifyAppendResponse(const char* contents, size_t size) {
 		ASSERT(mOngoingRequest);
 
 		if (mCompletedRequest) {
@@ -273,7 +287,7 @@ namespace l::network {
 		SetResponseData(contents, size);
 	}
 
-	uint32_t RequestBase::GetResponseSize() {
+	uint32_t ConnectionBase::GetResponseSize() {
 		return mResponseSize;
 	}
 

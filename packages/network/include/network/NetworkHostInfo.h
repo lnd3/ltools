@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <map>
 #include <functional>
+#include <atomic>
 
 namespace l::network {
 

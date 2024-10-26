@@ -5,6 +5,7 @@
 #include <sstream>
 #include <functional>
 #include <vector>
+#include <atomic>
 
 #include "curl/curl.h"
 
@@ -27,9 +28,19 @@ namespace l::network {
 		size_t size;
 	};
 
-	class RequestBase {
+	class ConnectionBase {
 	public:
-		RequestBase(
+		ConnectionBase() :
+			mCurl(nullptr),
+			mOngoingRequest(false),
+			mResponseSize(0),
+			mDefaultResponseSize(4000),
+			mTimeout(0),
+			mCompletedRequest(true),
+			mStarted(0),
+			mSuccess(false)
+		{}
+		ConnectionBase(
 			std::string_view name,
 			std::string_view query,
 			int32_t defaultResponseSize,
@@ -47,7 +58,7 @@ namespace l::network {
 			mSuccess(false)
 		{}
 
-		virtual ~RequestBase() {
+		virtual ~ConnectionBase() {
 			if (mCurl) {
 				curl_easy_cleanup(mCurl);
 			}
@@ -68,7 +79,7 @@ namespace l::network {
 		bool HasExpired();
 
 		bool WSWrite(char* buffer, size_t size);
-		size_t WSRead(char* buffer, size_t size);
+		int32_t WSRead(char* buffer, size_t size);
 		void WSClose();
 
 		const curl_ws_frame* GetWebSocketMeta();
@@ -105,7 +116,7 @@ namespace l::network {
 	};
 
 	template<class T>
-	class Request : public RequestBase {
+	class Request : public ConnectionBase {
 	public:
 		Request(
 			std::string_view name, 
@@ -113,7 +124,7 @@ namespace l::network {
 			int32_t defaultResponseSize,
 			std::function<l::concurrency::RunnableResult(bool success, std::string_view queryArguments, Request<T>&)> handler,
 			int32_t timeout = 0 // no timeout
-		) : RequestBase(name, query, defaultResponseSize, timeout),
+		) : ConnectionBase(name, query, defaultResponseSize, timeout),
 			mHandler(handler)
 		{
 			if constexpr (std::is_same_v<std::vector<unsigned char>, T>) {
@@ -131,13 +142,13 @@ namespace l::network {
 			this->mHandler = std::move(other.mHandler);
 			this->mResponse = std::move(other.mResponse);
 			this->mOngoingRequest = false;
-			this->mResponseSize = other->mResponseSize;
-			this->mDefaultResponseSize = other->mDefaultResponseSize;
-			this->mTimeout.store(other->mTimeout);
-			this->mCompletedRequest = other->mCompletedRequest;
-			this->mRequestQueryArgs = other->mRequestQueryArgs;
-			this->mStarted = other->mStarted;
-			this->mSuccess = other->mSuccess;
+			this->mResponseSize = other.mResponseSize;
+			this->mDefaultResponseSize = other.mDefaultResponseSize;
+			this->mTimeout.store(other.mTimeout);
+			this->mCompletedRequest = other.mCompletedRequest;
+			this->mRequestQueryArgs = other.mRequestQueryArgs;
+			this->mStarted = other.mStarted;
+			this->mSuccess = other.mSuccess;
 			return *this;
 		}
 		Request& operator=(const Request& other) noexcept {
@@ -147,13 +158,13 @@ namespace l::network {
 			this->mResponse.str("");
 			this->mResponse << other.mResponse.rdbuf();
 			this->mOngoingRequest = false;
-			this->mResponseSize = other->mResponseSize;
-			this->mDefaultResponseSize = other->mDefaultResponseSize;
-			this->mTimeout.store(other->mTimeout);
-			this->mCompletedRequest = other->mCompletedRequest;
-			this->mRequestQueryArgs = other->mRequestQueryArgs;
-			this->mStarted = other->mStarted;
-			this->mSuccess = other->mSuccess;
+			this->mResponseSize = other.mResponseSize;
+			this->mDefaultResponseSize = other.mDefaultResponseSize;
+			this->mTimeout.store(other.mTimeout);
+			this->mCompletedRequest = other.mCompletedRequest;
+			this->mRequestQueryArgs = other.mRequestQueryArgs;
+			this->mStarted = other.mStarted;
+			this->mSuccess = other.mSuccess;
 			return *this;
 		}
 		Request(Request&& other) noexcept {
@@ -211,5 +222,6 @@ namespace l::network {
 
 	using RequestStringStream = Request<std::stringstream>;
 	using RequestBinaryStream = Request<std::vector<unsigned char>>;
+	using WebSocket = Request<std::stringstream>;
 
 }
