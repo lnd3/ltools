@@ -11,7 +11,7 @@ using namespace l;
 
 TEST(NetworkWebSocket, Setup) {
 
-	auto networkManager = l::network::CreateNetworkManager(1, false);
+	auto networkManager = l::network::CreateNetworkManager(1, true);
 	auto networkInterfaceWS = l::network::CreateNetworkInterfaceWS(networkManager);
 
 	bool failed = false;
@@ -34,7 +34,7 @@ TEST(NetworkWebSocket, Setup) {
 
 	char buffer[1024];
 	int32_t read = 0;
-	int32_t readCount = 10;
+	int32_t readCount = 20;
 	do {
 		read = networkInterfaceWS->Read("Websocket", "wsstest", &buffer[0], 1024);
 		std::this_thread::sleep_for(std::chrono::milliseconds(50));
