@@ -50,9 +50,9 @@ namespace l::network {
 					it->second.AddEndpoint(queryName, endpointString);
 
 					if (handler) {
-						auto handlerWrapped = [&, cb = handler, name = std::string(interfaceName)](bool success, std::string_view args, l::network::Request<T>& request) {
-							SetNetworkStatus(name, success);
-							return cb(success, args, request);
+						auto handlerWrapped = [&, chandler = handler, cname = std::string(interfaceName)](bool success, std::string_view args, l::network::Request<T>& request) {
+							SetNetworkStatus(cname, success);
+							return chandler(success, args, request);
 							};
 						for (int i = 0; i < numMaxParallellRequestConnections; i++) {
 							network->CreateRequestTemplate(std::make_unique<l::network::Request<T>>(queryName, "", defaultResponseSize, handlerWrapped, timeout));
