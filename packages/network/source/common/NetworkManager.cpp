@@ -6,20 +6,62 @@ namespace l::network {
 		return std::make_shared<NetworkManager>(numThreads, multiplex);
 	}
 
-	size_t CurlClientWriteCallback(char* contents, size_t size, size_t nmemb, void* userp) {
-		auto request = reinterpret_cast<RequestBase*>(userp);
-		if (request != nullptr) {
-			request->AppendResponse(contents, size * nmemb);
-			return size * nmemb;
-		}
-		return size * nmemb;
-	}
+	void NetworkManager::Startup(int numThreads, bool multiplex) {
+		CURLcode res = curl_global_init(CURL_GLOBAL_ALL);
+		ASSERT(res == CURLE_OK) << "Failed to init curl global";
 
-	size_t CurlClientProgressCallback(void* clientp, double dltotal, double dlnow, double, double) {
-		auto progress = reinterpret_cast<Progress*>(clientp);
-		double progressTotal = dlnow / dltotal;
-		LOG(LogDebug) << "downloaded " << progress->size << " bytes" << " and progress at " << std::to_string(int(progressTotal * 100)) << "%";
-		return 0;
+		mJobManager = std::make_unique< l::concurrency::ExecutorService>("NetworkManager", numThreads);
+		mJobManager->startJobs();
+
+		mMultiHandle = nullptr;
+		if (multiplex) {
+			mMultiHandle = curl_multi_init();
+		}
+
+		if (mMultiHandle != nullptr) {
+			curl_multi_setopt(mMultiHandle, CURLMOPT_PIPELINING, CURLPIPE_MULTIPLEX);
+			mCurlPerformer = std::thread([&]() {
+				int32_t runningHandles = 0;
+				CURLMcode mc;
+				do {
+					mc = curl_multi_perform(mMultiHandle, &runningHandles);
+					if (mc == CURLM_OK) {
+						int32_t messagesInQueue;
+						struct CURLMsg* m;
+						do {
+							m = curl_multi_info_read(mMultiHandle, &messagesInQueue);
+							if (m && (m->msg == CURLMSG_DONE)) {
+								CURL* e = m->easy_handle;
+								bool success = true;
+								if (m->data.result != CURLE_OK) {
+									success = false;
+								}
+								bool foundHandle = false;
+								for (auto& it : mConnections) {
+									if (it->IsHandle(e)) {
+										foundHandle = true;
+										it->NotifyCompleteRequest(success);
+									}
+								}
+								ASSERT(foundHandle);
+							}
+							else if (m) {
+								LOG(LogWarning) << "Not done";
+							}
+						} while (m != nullptr && messagesInQueue > 0);
+
+						int numfds;
+						mc = curl_multi_poll(mMultiHandle, NULL, 0, 1000, &numfds);
+						if (mc != CURLM_OK) {
+							LOG(LogError) << "curl_multi_poll failed, code " << mc;
+						}
+					}
+					else {
+						LOG(LogError) << "curl_multi_perform failed, code " << mc;
+					}
+				} while (runningHandles > 0 || mJobManager.get() != nullptr || !mConnections.empty());
+				});
+		}
 	}
 
 	void NetworkManager::ClearJobs() {
@@ -79,7 +121,7 @@ namespace l::network {
 		return true;
 	}
 
-	bool NetworkManager::PostQuery(std::string_view requestName, 
+	bool NetworkManager::PostQuery(std::string_view queryName,
 		std::string_view queryArguments, 
 		int32_t maxTries, 
 		std::string_view query, 
@@ -89,9 +131,9 @@ namespace l::network {
 		if (!mJobManager) {
 			return false;
 		}
-		return mJobManager->queueJob(
-			std::make_unique<l::concurrency::Worker>(requestName, [
-				crequestName = std::string(requestName), 
+
+		auto job = [
+				cqueryName = std::string(queryName),
 				cqueryArguments = std::string(queryArguments),
 				cquery = std::string(query),
 				cexpectedResponseSize = expectedResponseSize,
@@ -101,14 +143,13 @@ namespace l::network {
 				&cmConnections = mConnections,
 				&cmMultiHandle = mMultiHandle,
 				&cmPostedRequests = mPostedRequests
-			](const l::concurrency::RunState& state
-					) {
+			](const l::concurrency::RunState& state) {
 				std::unique_lock lock(cmConnectionsMutex);
 				auto it = std::find_if(cmConnections.begin(), cmConnections.end(), [&](std::unique_ptr<RequestBase>& request) {
-					if (crequestName != request->GetRequestName()) {
+					if (cqueryName != request->GetRequestName()) {
 						return false;
 					}
-					if(request->TryReservingRequest()) {
+					if (request->TryReservingRequest()) {
 						return true;
 					}
 					return false;
@@ -125,7 +166,10 @@ namespace l::network {
 					cmPostedRequests++;
 				}
 				return result;
-				},
-				maxTries));
+			};
+
+		auto work = std::make_unique<l::concurrency::Worker>(queryName, std::move(job), maxTries);
+
+		return mJobManager->queueJob(std::move(work));
 	}
 }

@@ -1,4 +1,4 @@
-﻿#include "network/NetworkInterface.h"
+﻿#include "network/NetworkInterfaceWS.h"
 
 #include "logging/String.h"
 
@@ -6,11 +6,11 @@
 
 namespace l::network {
 
-	std::shared_ptr<NetworkInterface> CreateNetworkInterface(std::weak_ptr<l::network::NetworkManager> networkManager) {
-		return std::make_shared<NetworkInterface>(networkManager);
+	std::shared_ptr<NetworkInterfaceWS> CreateNetworkInterfaceWS(std::weak_ptr<l::network::NetworkManager> networkManager) {
+		return std::make_shared<NetworkInterfaceWS>(networkManager);
 	}
 
-	void NetworkInterface::CreateInterface(std::string_view interfaceName, 
+	void NetworkInterfaceWS::CreateInterface(std::string_view interfaceName, 
 		std::string_view protocol, 
 		std::string_view host, 
 		uint32_t port, 
@@ -26,17 +26,27 @@ namespace l::network {
 
 			mInterfaces.emplace(std::string(interfaceName), HostInfo(protocol, host, port, networkStatusInterval) );
 
-			std::string queryName = interfaceName.data();
-			queryName += "Ping";
-			CreateRequestTemplate<std::stringstream>(interfaceName, queryName, "", 1, 5000, 3, pingHandler);
+			std::string endpointName = interfaceName.data();
+			endpointName += "Ping";
+			CreateWebSocketTemplate<std::stringstream>(interfaceName, endpointName, "", 1, 5000, 3, pingHandler);
 		}
 	}
 
-	void NetworkInterface::Shutdown() {
+	void NetworkInterfaceWS::Shutdown() {
 
 	}
 
-	bool NetworkInterface::SendRequest(std::string_view interfaceName,
+	bool NetworkInterfaceWS::Connect(std::string_view ,
+		std::string_view ) {
+
+		return false;
+	}
+
+	void NetworkInterfaceWS::Disconnect(std::string_view ,
+		std::string_view ) {
+	}
+
+	bool NetworkInterfaceWS::Send(std::string_view interfaceName,
 		std::string_view queryName,
 		std::string_view queryArguments,
 		int32_t retries,
@@ -60,7 +70,7 @@ namespace l::network {
 		return result;
 	}
 
-	bool NetworkInterface::NetworkStatus(std::string_view interfaceName) {
+	bool NetworkInterfaceWS::NetworkStatus(std::string_view interfaceName) {
 		auto it = mInterfaces.find(interfaceName.data());
 		if (it != mInterfaces.end()) {
 			return it->second.Status();
@@ -68,7 +78,7 @@ namespace l::network {
 		return false;
 	}
 
-	void NetworkInterface::SetNetworkStatus(std::string_view interfaceName, bool isup) {
+	void NetworkInterfaceWS::SetNetworkStatus(std::string_view interfaceName, bool isup) {
 		auto it = mInterfaces.find(interfaceName.data());
 		if (it != mInterfaces.end()) {
 			it->second.SetStatus(isup);

@@ -11,12 +11,12 @@
 
 namespace l::network {
 
-	class NetworkInterface {
+	class NetworkInterfaceWS {
 	public:
-		NetworkInterface(std::weak_ptr<l::network::NetworkManager> networkManager) :
+		NetworkInterfaceWS(std::weak_ptr<l::network::NetworkManager> networkManager) :
 			mNetworkManager(networkManager)
 		{}
-		~NetworkInterface() {}
+		~NetworkInterfaceWS() {}
 
 		void CreateInterface(std::string_view interfaceName, 
 			std::string_view protocol, 
@@ -24,7 +24,9 @@ namespace l::network {
 			uint32_t port = 0,
 			int32_t networkStatusInterval = 20);
 		void Shutdown();
-		bool SendRequest(std::string_view interfaceName,
+		bool Connect(std::string_view interfaceName, std::string_view queryName);
+		void Disconnect(std::string_view interfaceName, std::string_view queryName);
+		bool Send(std::string_view interfaceName,
 			std::string_view queryName,
 			std::string_view arguments = "",
 			int32_t retries = 3,
@@ -34,7 +36,7 @@ namespace l::network {
 		bool NetworkStatus(std::string_view interfaceName);
 
 		template<class T>
-		void CreateRequestTemplate(
+		void CreateWebSocketTemplate(
 			std::string_view interfaceName,
 			std::string_view queryName,
 			std::string_view endpointString,
@@ -74,6 +76,6 @@ namespace l::network {
 		std::map<std::string, HostInfo> mInterfaces;
 	};
 
-	std::shared_ptr<NetworkInterface> CreateNetworkInterface(std::weak_ptr<l::network::NetworkManager> networkManager);
+	std::shared_ptr<NetworkInterfaceWS> CreateNetworkInterfaceWS(std::weak_ptr<l::network::NetworkManager> networkManager);
 
 }

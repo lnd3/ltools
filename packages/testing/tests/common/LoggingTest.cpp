@@ -78,16 +78,16 @@ TEST(Logging, StringComparisons) {
 		std::string_view e = "cdf";
 		std::string_view f = "fbcd";
 
-		TEST_TRUE(l::string::partial_equality(a, b), "");
-		TEST_TRUE(l::string::partial_equality(a, c, 2), "");
-		TEST_FALSE(l::string::partial_equality(a, d), "");
-		TEST_FALSE(l::string::partial_equality(a, e), "");
+		TEST_TRUE(l::string::equal_partial(a, b), "");
+		TEST_TRUE(l::string::equal_partial(a, c, 2), "");
+		TEST_FALSE(l::string::equal_partial(a, d), "");
+		TEST_FALSE(l::string::equal_partial(a, e), "");
 
-		TEST_TRUE(l::string::partial_equality(a, b, 1, 1), "");
-		TEST_TRUE(l::string::partial_equality(a, c, 2, 0), "");
-		TEST_FALSE(l::string::partial_equality(a, d, 3, 2), "");
-		TEST_TRUE(l::string::partial_equality(d, e, 2, 0), "");
-		TEST_TRUE(l::string::partial_equality(d, f, 1, 1), "");
+		TEST_TRUE(l::string::equal_partial(a, b, 1, 1), "");
+		TEST_TRUE(l::string::equal_partial(a, c, 2, 0), "");
+		TEST_FALSE(l::string::equal_partial(a, d, 3, 2), "");
+		TEST_TRUE(l::string::equal_partial(d, e, 2, 0), "");
+		TEST_TRUE(l::string::equal_partial(d, f, 1, 1), "");
 	}
 
 	{
@@ -98,21 +98,21 @@ TEST(Logging, StringComparisons) {
 		const char* e = "cdf";
 		const char* f = "fbcd";
 
-		TEST_TRUE(l::string::partial_equality(a, b), "");
-		TEST_TRUE(l::string::partial_equality(a, c, 2), "");
-		TEST_FALSE(l::string::partial_equality(a, d), "");
-		TEST_FALSE(l::string::partial_equality(a, e), "");
+		TEST_TRUE(l::string::equal_partial(a, b), "");
+		TEST_TRUE(l::string::equal_partial(a, c, 2), "");
+		TEST_FALSE(l::string::equal_partial(a, d), "");
+		TEST_FALSE(l::string::equal_partial(a, e), "");
 
-		TEST_TRUE(l::string::partial_equality(a, b, 1, 1), "");
-		TEST_TRUE(l::string::partial_equality(a, c, 2, 0), "");
-		TEST_FALSE(l::string::partial_equality(a, d, 3, 2), "");
-		TEST_TRUE(l::string::partial_equality(d, e, 2, 0), "");
-		TEST_TRUE(l::string::partial_equality(d, f, 1, 1), "");
+		TEST_TRUE(l::string::equal_partial(a, b, 1, 1), "");
+		TEST_TRUE(l::string::equal_partial(a, c, 2, 0), "");
+		TEST_FALSE(l::string::equal_partial(a, d, 3, 2), "");
+		TEST_TRUE(l::string::equal_partial(d, e, 2, 0), "");
+		TEST_TRUE(l::string::equal_partial(d, f, 1, 1), "");
 	}
 	{
 		std::string a = "asdgkösd";
-		TEST_TRUE(l::string::cstring_equal(a.c_str(), "asdg34643", 0, 0, 4), "");
-		TEST_FALSE(l::string::cstring_equal(a.c_str(), "asdg34643", 0, 0, 5), "");
+		TEST_TRUE(l::string::equal(a.c_str(), "asdg34643", 0, 0, 4), "");
+		TEST_FALSE(l::string::equal(a.c_str(), "asdg34643", 0, 0, 5), "");
 	}
 
 	return 0;

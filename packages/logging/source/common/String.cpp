@@ -355,11 +355,11 @@ namespace string {
 		return output;
 	}
 
-	bool cstring_equal(const char* a, const char* b, size_t a_offset, size_t b_offset, size_t maxCount) {
+	bool equal(const char* a, const char* b, size_t a_offset, size_t b_offset, size_t maxCount) {
 		return !strncmp(a + a_offset, b + b_offset, maxCount);
 	}
 
-	bool partial_equality(const char* a, const char* b, size_t a_offset, size_t b_offset, size_t maxCount) {
+	bool equal_partial(const char* a, const char* b, size_t a_offset, size_t b_offset, size_t maxCount) {
 		for (size_t i = 0; i < a_offset && i < maxCount; i++) { // check for missed null terminators before a_offset
 			if (a[i] == 0) {
 				return false;
@@ -385,7 +385,7 @@ namespace string {
 		return true;
 	}
 
-	bool partial_equality(std::string_view a, std::string_view b, size_t a_offset, size_t b_offset) {
+	bool equal_partial(std::string_view a, std::string_view b, size_t a_offset, size_t b_offset) {
 		size_t i = 0;
 		for (i = 0; (i < a.size() - a_offset) && (i < b.size() - b_offset); i++) {
 			if (a.data()[i + a_offset] != b.data()[i + b_offset]) {
@@ -446,6 +446,7 @@ namespace string {
 			if (*it == escapeChar) {
 				insert(&*start, it - start);
 				start = it + 1;
+
 				escape = !escape;
 			}
 			else if(!escape){
