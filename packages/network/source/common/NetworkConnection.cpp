@@ -220,27 +220,41 @@ namespace l::network {
 		return m;
 	}
 
-	bool ConnectionBase::WSWrite(char* buffer, size_t size) {
-		if (HasExpired() || mCurl == nullptr) {
-			return false;
+	int32_t ConnectionBase::WSWrite(char* buffer, size_t size) {
+		if (HasExpired()) {
+			LOG(LogError) << "Failed wss write, connection expired";
+			return -2;
+		}
+		if (mCurl == nullptr) {
+			LOG(LogError) << "Failed wss write, no curl instance";
+			return -3;
 		}
 		size_t sentBytes = 0;
 		auto res = curl_ws_send(mCurl, buffer, size, &sentBytes, 0, CURLWS_TEXT);
 		ASSERT(sentBytes == size);
-		return res == CURLE_OK;
+		if (res != CURLE_OK) {
+			LOG(LogError) << "Failed wss write, error: " << res;
+		}
+		return res == CURLE_OK ? static_cast<int32_t>(sentBytes) : -1;
 	}
 
 	int32_t ConnectionBase::WSRead(char* buffer, size_t size) {
 		if (HasExpired()) {
+			LOG(LogError) << "Failed wss read, connection expired";
 			return -2;
 		}
 		if (mCurl == nullptr) {
+			LOG(LogError) << "Failed wss read, no curl instance";
 			return -3;
 		}
 		const struct curl_ws_frame* meta;
 		size_t readBytes = 0;
 		auto res = curl_ws_recv(mCurl, buffer, size, &readBytes, &meta);
-		return res == CURLE_OK ? static_cast<int32_t>(readBytes) : -1;
+		if (res == CURLE_AGAIN || res == CURLE_OK){
+			return static_cast<int32_t>(readBytes);
+		}
+		//LOG(LogError) << "Failed wss read, error: " << res;
+		return -1;
 	}
 
 	void ConnectionBase::WSClose() {
@@ -289,6 +303,10 @@ namespace l::network {
 
 	uint32_t ConnectionBase::GetResponseSize() {
 		return mResponseSize;
+	}
+
+	std::string_view ConnectionBase::GetHeader(const std::string& key) {
+		return mHeaderMap.at(key);
 	}
 
 

@@ -10,4 +10,4 @@ set(deps
 	concurrency
 )
 
-bs_generate_package(network "tier2" "${deps}" "libcurl;mongoose")
+bs_generate_package(network "tier2" "${deps}" "libcurl;mongoose;jsonxx")

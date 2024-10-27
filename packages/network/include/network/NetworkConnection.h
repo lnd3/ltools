@@ -78,7 +78,7 @@ namespace l::network {
 		bool IsWebSocket();
 		bool HasExpired();
 
-		bool WSWrite(char* buffer, size_t size);
+		int32_t WSWrite(char* buffer, size_t size);
 		int32_t WSRead(char* buffer, size_t size);
 		void WSClose();
 
@@ -88,6 +88,8 @@ namespace l::network {
 		void NotifyCompleteRequest(bool success);
 		void NotifyAppendHeader(const char* contents, size_t size);
 		void NotifyAppendResponse(const char* contents, size_t size);
+
+		std::string_view GetHeader(const std::string& key);
 
 		uint32_t GetResponseSize();
 

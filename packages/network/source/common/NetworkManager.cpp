@@ -40,7 +40,9 @@ namespace l::network {
 								for (auto& it : mConnections) {
 									if (it->IsHandle(e)) {
 										foundHandle = true;
-										it->NotifyCompleteRequest(success);
+										if (!it->IsWebSocket()) {
+											it->NotifyCompleteRequest(success);
+										}
 									}
 								}
 								ASSERT(foundHandle);
@@ -206,43 +208,37 @@ namespace l::network {
 		}
 	}
 
-	bool NetworkManager::WSWrite(std::string_view queryName, char* buffer, size_t size) {
+	int32_t NetworkManager::WSWrite(std::string_view queryName, char* buffer, size_t size) {
 		std::unique_lock lock(mConnectionsMutex);
 		auto it = std::find_if(mConnections.begin(), mConnections.end(), [&](std::unique_ptr<ConnectionBase>& request) {
-			if (queryName != request->GetRequestName()) {
-				return false;
-			}
-			if (!request->HasExpired()) {
+			if (queryName == request->GetRequestName()) {
 				return true;
 			}
 			return false;
 			});
 
 		if (it == mConnections.end()) {
-			return false;
+			LOG(LogError) << "Failed wss write, query not found";
+			return -4;
 		}
 		auto request = it->get();
 		lock.unlock();
 
-		request->WSWrite(buffer, size);
-
-		return true;
+		return request->WSWrite(buffer, size);
 	}
 
 	int32_t NetworkManager::WSRead(std::string_view queryName, char* buffer, size_t size) {
 		std::unique_lock lock(mConnectionsMutex);
 		auto it = std::find_if(mConnections.begin(), mConnections.end(), [&](std::unique_ptr<ConnectionBase>& request) {
-			if (queryName != request->GetRequestName()) {
-				return false;
-			}
-			if (!request->HasExpired()) {
+			if (queryName == request->GetRequestName()) {
 				return true;
 			}
 			return false;
 			});
 
 		if (it == mConnections.end()) {
-			return 0;
+			LOG(LogError) << "Failed wss read, query not found";
+			return -4;
 		}
 		auto request = it->get();
 		lock.unlock();

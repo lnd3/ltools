@@ -79,7 +79,7 @@ namespace l::network {
 			if (NetworkStatus(interfaceName)) {
 				auto networkManager = mNetworkManager.lock();
 				if (networkManager) {
-					result = networkManager->WSWrite(queryName, buffer, size);
+					result = networkManager->WSWrite(queryName, buffer, size) == 0;
 				}
 			}
 		}
