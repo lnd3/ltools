@@ -38,7 +38,7 @@ namespace l::network {
 		int32_t CompletedRequestCount();
 		void ToggleVerboseLogging();
 
-		bool CreateRequestTemplate(std::unique_ptr<ConnectionBase> request);
+		bool CreateRequest(std::unique_ptr<ConnectionBase> request);
 		bool PostQuery(std::string_view queryName,
 			std::string_view queryArguments, 
 			int32_t maxTries = 3, 

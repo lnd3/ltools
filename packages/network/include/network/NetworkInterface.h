@@ -34,7 +34,7 @@ namespace l::network {
 		bool NetworkStatus(std::string_view interfaceName);
 
 		template<class T>
-		void CreateRequestTemplate(
+		void CreateRequest(
 			std::string_view interfaceName,
 			std::string_view queryName,
 			std::string_view endpointString,
@@ -55,12 +55,12 @@ namespace l::network {
 							return chandler(success, args, request);
 							};
 						for (int i = 0; i < numMaxParallellRequestConnections; i++) {
-							network->CreateRequestTemplate(std::make_unique<l::network::Request<T>>(queryName, "", defaultResponseSize, handlerWrapped, timeout));
+							network->CreateRequest(std::make_unique<l::network::Request<T>>(queryName, "", defaultResponseSize, handlerWrapped, timeout));
 						}
 					}
 					else {
 						for (int i = 0; i < numMaxParallellRequestConnections; i++) {
-							network->CreateRequestTemplate(std::make_unique<l::network::Request<T>>(queryName, "", defaultResponseSize, nullptr, timeout));
+							network->CreateRequest(std::make_unique<l::network::Request<T>>(queryName, "", defaultResponseSize, nullptr, timeout));
 						}
 					}
 				}

@@ -37,19 +37,18 @@ namespace l::network {
 
 		bool NetworkStatus(std::string_view interfaceName);
 
-		template<class T>
-		void CreateWebSocketTemplate(
+		void CreateWebSocket(
 			std::string_view interfaceName,
 			std::string_view queryName,
 			std::string_view endpointString,
-			std::function<l::concurrency::RunnableResult(bool success, std::string_view queryArguments, l::network::Request<T>&)> handler = nullptr
+			std::function<l::concurrency::RunnableResult(bool success, std::string_view queryArguments, l::network::WebSocket&)> handler = nullptr
 		) {
 			auto network = mNetworkManager.lock();
 			if (network) {
 				auto it = mInterfaces.find(interfaceName.data());
 				if (it != mInterfaces.end()) {
 					it->second.AddEndpoint(queryName, endpointString);
-					network->CreateRequestTemplate(std::make_unique<l::network::Request<T>>(queryName, "", 0, handler));
+					network->CreateRequest(std::make_unique<l::network::WebSocket>(queryName, "", 0, handler));
 				}
 			}
 		}

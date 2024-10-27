@@ -45,7 +45,7 @@ TEST(NetworkInterface, Setup) {
 		};
 
 	networkInterface->CreateInterface("Telegram", "https", "api.telegram.org");
-	networkInterface->CreateRequestTemplate<std::stringstream>("Telegram", "TradeFlowBot1", query, 1, 2000, 5, telegramHandler);
+	networkInterface->CreateRequest<std::stringstream>("Telegram", "TradeFlowBot1", query, 1, 2000, 5, telegramHandler);
 
 	std::string args;
 	std::string message = "NetworkInterface tester app";

@@ -118,7 +118,7 @@ namespace l::network {
 		mJobManager->gDebugLogging = !mJobManager->gDebugLogging;
 	}
 
-	bool NetworkManager::CreateRequestTemplate(std::unique_ptr<ConnectionBase> request) {
+	bool NetworkManager::CreateRequest(std::unique_ptr<ConnectionBase> request) {
 		std::lock_guard lock(mConnectionsMutex);
 		mConnections.emplace_back(std::move(request));
 		return true;

@@ -27,7 +27,7 @@ TEST(NetworkWebSocket, Setup) {
 		};
 
 	networkInterfaceWS->CreateInterface("Websocket", "wss", "echo.websocket.org");
-	networkInterfaceWS->CreateWebSocketTemplate<std::stringstream>("Websocket", "wsstest", "", websocketHandler);
+	networkInterfaceWS->CreateWebSocket<std::stringstream>("Websocket", "wsstest", "", websocketHandler);
 	networkInterfaceWS->Connect("Websocket", "wsstest");
 
 	char buffer[1024];
@@ -73,7 +73,7 @@ TEST(NetworkWebSocket, Binance) {
 
 	networkInterfaceWS->CreateInterface("Binance", "wss", "testnet.binance.vision");
 	//networkInterfaceWS->CreateInterface("Binance", "wss", "stream.binance.com", 443);
-	networkInterfaceWS->CreateWebSocketTemplate<std::stringstream>("Binance", "binance", "ws", websocketHandler);
+	networkInterfaceWS->CreateWebSocket<std::stringstream>("Binance", "binance", "ws", websocketHandler);
 	networkInterfaceWS->Connect("Binance", "binance");
 
 	char buffer[1024];

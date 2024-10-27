@@ -40,8 +40,8 @@ TEST(NetworkManager, Setup) {
 		}
 	);
 
-	networkManager->CreateRequestTemplate(std::move(request1));
-	networkManager->CreateRequestTemplate(std::move(request2));
+	networkManager->CreateRequest(std::move(request1));
+	networkManager->CreateRequest(std::move(request2));
 	networkManager->PostQuery("requestName", "user defined query id");
 	networkManager->PostQuery("requestName", "custom queries on predefined requests", 3, "https://httpbin.org/anything");
 
@@ -71,7 +71,7 @@ TEST(NetworkManager, Setup) {
 					return l::concurrency::RunnableResult::SUCCESS;
 				}
 			);
-			networkManager->CreateRequestTemplate(std::move(request3));
+			networkManager->CreateRequest(std::move(request3));
 			networkManager->PostQuery("TelegramBot", args, 3);
 			TEST_TRUE(networkManager->TotalRequestCount() == 3, "");
 		}

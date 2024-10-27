@@ -28,7 +28,7 @@ namespace l::network {
 
 			std::string queryName = interfaceName.data();
 			queryName += "Ping";
-			CreateRequestTemplate<std::stringstream>(interfaceName, queryName, "", 1, 5000, 3, pingHandler);
+			CreateRequest<std::stringstream>(interfaceName, queryName, "", 1, 5000, 3, pingHandler);
 		}
 	}
 
