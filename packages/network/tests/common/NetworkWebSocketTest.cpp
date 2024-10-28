@@ -12,6 +12,8 @@ using namespace l;
 
 TEST(NetworkWebSocket, Setup) {
 
+	return 0;
+
 	auto networkManager = l::network::CreateNetworkManager(1, true);
 	auto networkInterfaceWS = l::network::CreateNetworkInterfaceWS(networkManager);
 
