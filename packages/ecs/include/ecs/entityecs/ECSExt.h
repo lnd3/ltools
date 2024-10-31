@@ -199,10 +199,10 @@ namespace l::ecs {
 
 		template<class T>
 		int32_t registerListener(std::function<void(const T&)> listener) {
-			if constexpr (std::is_same<T, Events::OnComponentAssigned2>){
+			if constexpr (std::is_same_v<T, Events::OnComponentAssigned2>){
 				mEventListenersAssign.push_back({ mIdEnumerator, listener });
 			}
-			else if constexpr (std::is_same<T, Events::OnComponentRemoved2>){
+			else if constexpr (std::is_same_v<T, Events::OnComponentRemoved2>){
 				mEventListenersRemove.push_back({ mIdEnumerator, listener });
 			}
 			else {
@@ -213,7 +213,7 @@ namespace l::ecs {
 
 		template<class T>
 		void unregisterListener(int32_t id) {
-			if constexpr (std::is_same<T, Events::OnComponentAssigned2>){
+			if constexpr (std::is_same_v<T, Events::OnComponentAssigned2>){
 				std::erase_if(mEventListenersAssign, [cid = id](auto& listener) {
 					if (listener.first == cid) {
 						return true;
@@ -221,7 +221,7 @@ namespace l::ecs {
 					return false;
 					});
 			}
-			else if constexpr (std::is_same<T, Events::OnComponentRemoved2>){
+			else if constexpr (std::is_same_v<T, Events::OnComponentRemoved2>){
 				std::erase_if(mEventListenersRemove, [cid = id](auto& listener) {
 					if (listener.first == cid) {
 						return true;

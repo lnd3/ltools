@@ -29,7 +29,7 @@ TEST(NetworkWebSocket, Setup) {
 		};
 
 	networkInterfaceWS->CreateInterface("Websocket", "wss", "echo.websocket.org");
-	networkInterfaceWS->CreateWebSocket<std::stringstream>("Websocket", "wsstest", "", websocketHandler);
+	networkInterfaceWS->CreateWebSocket("Websocket", "wsstest", "", websocketHandler);
 	networkInterfaceWS->Connect("Websocket", "wsstest");
 
 	char buffer[1024];
@@ -75,7 +75,7 @@ TEST(NetworkWebSocket, Binance) {
 
 	networkInterfaceWS->CreateInterface("Binance", "wss", "testnet.binance.vision");
 	//networkInterfaceWS->CreateInterface("Binance", "wss", "stream.binance.com", 443);
-	networkInterfaceWS->CreateWebSocket<std::stringstream>("Binance", "binance", "ws", websocketHandler);
+	networkInterfaceWS->CreateWebSocket("Binance", "binance", "ws", websocketHandler);
 	networkInterfaceWS->Connect("Binance", "binance");
 
 	char buffer[1024];
@@ -92,12 +92,6 @@ TEST(NetworkWebSocket, Binance) {
 	subscribeStream += "],\n";
 	subscribeStream += "\"id\" : 1\n";
 	subscribeStream += "}\n";
-
-	std::string listSubscriptions;
-	listSubscriptions += "{\n";
-	listSubscriptions += "\"method\": \"LIST_SUBSCRIPTIONS\",\n";
-	listSubscriptions += "\"id\" : 2\n";
-	listSubscriptions += "}\n";
 
 	int32_t read = 0;
 	int32_t readCount = 3;
