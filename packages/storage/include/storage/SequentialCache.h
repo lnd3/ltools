@@ -19,7 +19,6 @@ namespace l::filecache {
 
 	int32_t GetClampedPosition(int32_t position, int32_t blockWidth);
 	int32_t GetClampedPositionOffset(int32_t position, int32_t blockWidth);
-	int32_t GetIndexFromPosition(int32_t position, int32_t blockWidth, int32_t numBlockEntries);
 	int32_t GetClampedPositionOffsetFromIndex(int32_t index, int32_t blockWidth, int32_t numBlockEntries);
 
 	std::string GetCacheBlockName(

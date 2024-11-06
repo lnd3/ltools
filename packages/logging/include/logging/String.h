@@ -8,9 +8,49 @@
 #include <vector>
 #include <string_view>
 #include <string>
+#include <memory>
 
 namespace l {
 namespace string {
+
+	class stackstringview {
+	public:
+		stackstringview() = default;
+		~stackstringview() = default;
+
+		std::string_view view() {
+			return std::string_view(mBufPtr, mSize);
+		}
+	protected:
+		size_t mSize = 0;
+		char* mBufPtr = nullptr;
+	};
+
+	template<size_t size>
+	class stackstring : stackstringview {
+	public:
+		stackstring() {
+			mSize = size - 1;
+			mBufPtr = mBuf[0];
+			std::memset(mBufPtr, 0, size);
+		}
+		~stackstring() = default;
+
+		stackstring(const stackstring& other) {
+			auto size = other.mSize <= mSize ? other.mSize : mSize;
+			memcpy(mBuf, other.mBuf, size);
+			mBuf[size] = 0;
+		}
+		stackstring& operator=(const stackstring& other) {
+			auto size = other.mSize <= mSize ? other.mSize : mSize;
+			memcpy(mBuf, other.mBuf, size);
+			mBuf[size] = 0;
+			return *this;
+		}
+	protected:
+		char mBuf[size];
+	};
+
 	int32_t get_local_timezone();
 	int32_t get_local_daylight_savings(bool inHours = false);
 
@@ -157,3 +197,4 @@ namespace string {
 	std::wstring_view rcut(std::wstring_view s, const wchar_t ch);
 }
 }
+
