@@ -36,19 +36,19 @@ namespace string {
 		}
 		~stackstring() = default;
 
-		stackstring(const stackstring& other) {
+		stackstring(const stackstring& other) : stackstring() {
 			auto size = other.mSize <= mSize ? other.mSize : mSize;
-			memcpy(mBuf, other.mBuf, size);
+			memcpy(mBufPtr, &other.mBufPtr, size);
 			mBuf[size] = 0;
 		}
 		stackstring& operator=(const stackstring& other) {
 			auto size = other.mSize <= mSize ? other.mSize : mSize;
-			memcpy(mBuf, other.mBuf, size);
+			memcpy(mBufPtr, other.mBufPtr, size);
 			mBuf[size] = 0;
 			return *this;
 		}
 	protected:
-		char mBuf[size];
+		char mBuf[SIZE];
 	};
 
 	int32_t get_local_timezone();
