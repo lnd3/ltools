@@ -32,7 +32,7 @@ namespace string {
 		stackstring() {
 			mSize = size - 1;
 			mBufPtr = mBuf[0];
-			std::memset(mBufPtr, 0, size);
+			memset(mBufPtr, 0, size);
 		}
 		~stackstring() = default;
 
