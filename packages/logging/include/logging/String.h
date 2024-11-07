@@ -26,13 +26,13 @@ namespace string {
 		char* mBufPtr = nullptr;
 	};
 
-	template<size_t size>
+	template<size_t SIZE>
 	class stackstring : stackstringview {
 	public:
 		stackstring() {
-			mSize = size - 1;
-			mBufPtr = mBuf[0];
-			memset(mBufPtr, 0, size);
+			mSize = SIZE - 1u;
+			mBufPtr = &mBuf[0];
+			memset(mBufPtr, 0, SIZE);
 		}
 		~stackstring() = default;
 
