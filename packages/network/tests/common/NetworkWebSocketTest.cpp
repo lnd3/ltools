@@ -21,7 +21,7 @@ TEST(NetworkWebSocket, Setup) {
 	bool failed = false;
 	auto websocketHandler = [&](
 		bool success,
-		std::string_view queryArguments,
+		std::string_view,
 		l::network::WebSocket& ws) {
 			TEST_TRUE_NO_RET(success, "");
 			TEST_TRUE_NO_RET(ws.IsWebSocket(), "");
@@ -66,7 +66,7 @@ TEST(NetworkWebSocket, BinanceKlines) {
 	bool failed = false;
 	auto websocketHandler = [&](
 		bool success,
-		std::string_view queryArguments,
+		std::string_view,
 		l::network::WebSocket& ws) {
 			failed = !success;
 			LOG(LogInfo) << "Success: " << success;
