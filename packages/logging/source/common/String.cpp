@@ -14,6 +14,8 @@
 #include <cstring>
 #include <iostream>
 #include <time.h>
+#include <atomic>
+#include <time.h>
 
 namespace {
 	constexpr size_t buffer_size = 1024;
@@ -51,7 +53,7 @@ namespace string {
 		auto res = _get_timezone(&time);
 		ASSERT(res == 0);
 #else
-		auto time = *_timezone();
+		auto time = timezone;
 #endif
 		return static_cast<int32_t>(- time); // negate since timezone is how to get utc time from local time (local time - utc time)
 	}
@@ -63,7 +65,7 @@ namespace string {
 		auto res = _get_daylight(&time);
 		ASSERT(res == 0);
 #else
-		auto time = *_daylight();
+		auto time = daylight;
 #endif
 		return static_cast<int32_t>(inHours ? time : time * 3600);
 	}
