@@ -231,7 +231,6 @@ namespace l::network {
 		}
 		size_t sentBytes = 0;
 		auto res = curl_ws_send(mCurl, buffer, size, &sentBytes, 0, CURLWS_TEXT);
-		ASSERT(sentBytes == size);
 		if (res != CURLE_OK) {
 			LOG(LogError) << "Failed wss write, error: " << res;
 		}

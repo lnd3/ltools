@@ -291,7 +291,7 @@ namespace l::filecache {
 							break;
 						}
 					}
-					if (static_cast<int64_t>(beginPosition + cacheBlockWidth) >= l::math::constants::INTMAX) {
+					if (static_cast<int64_t>(beginPosition) + cacheBlockWidth >= l::math::constants::INTMAX) {
 						break;
 					}
 					beginPosition += cacheBlockWidth;
@@ -305,7 +305,7 @@ namespace l::filecache {
 							break;
 						}
 					}
-					if (static_cast<int64_t>(beginPosition - cacheBlockWidth) <= l::math::constants::INTMIN) {
+					if (static_cast<int64_t>(beginPosition) - cacheBlockWidth<= l::math::constants::INTMIN) {
 						break;
 					}
 					beginPosition -= cacheBlockWidth;
@@ -370,7 +370,7 @@ namespace l::filecache {
 							break;
 						}
 					}
-					if (static_cast<int64_t>(beginPosition + cacheBlockWidth1) >= l::math::constants::INTMAX) {
+					if (static_cast<int64_t>(beginPosition) + cacheBlockWidth1 >= l::math::constants::INTMAX) {
 						break;
 					}
 					beginPosition += cacheBlockWidth1;
@@ -387,7 +387,7 @@ namespace l::filecache {
 							break;
 						}
 					}
-					if (static_cast<int64_t>(beginPosition - cacheBlockWidth1) <= l::math::constants::INTMIN) {
+					if (static_cast<int64_t>(beginPosition) - cacheBlockWidth1 <= l::math::constants::INTMIN) {
 						break;
 					}
 					beginPosition -= cacheBlockWidth1;
