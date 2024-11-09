@@ -5,4 +5,4 @@ set(deps
 	testing
 )
 
-bs_generate_package(serialization "tier1" "${deps}" "various")
+bs_generate_package(serialization "tier1" "${deps}" "various;jsonxx")

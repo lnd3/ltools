@@ -51,6 +51,7 @@ namespace string {
 		char mBuf[SIZE];
 	};
 
+	void init_timezone();
 	int32_t get_local_timezone();
 	int32_t get_local_daylight_savings(bool inHours = false);
 
