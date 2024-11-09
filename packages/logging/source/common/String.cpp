@@ -18,6 +18,8 @@
 namespace {
 	constexpr size_t buffer_size = 1024;
 
+	std::atomic_bool timezoneInited = false;
+
 	std::mutex bufferMutex;
 	char buffer[buffer_size];
 
@@ -29,24 +31,39 @@ namespace {
 namespace l {
 namespace string {
 
+	void init_timezone() {
+		if (timezoneInited) {
+			return;
+		}
+		timezoneInited = true;
+
+#ifdef WIN32
+		_tzset();
+#else
+		tzset();
+#endif
+	}
+
 	int32_t get_local_timezone() {
+		init_timezone();
 #ifdef WIN32
 		long time;
 		auto res = _get_timezone(&time);
 		ASSERT(res == 0);
 #else
-		auto time = __timezone;
+		auto time = *_timezone();
 #endif
 		return static_cast<int32_t>(- time); // negate since timezone is how to get utc time from local time (local time - utc time)
 	}
 
 	int32_t get_local_daylight_savings(bool inHours) {
+		init_timezone();
 #ifdef WIN32
 		int time;
 		auto res = _get_daylight(&time);
 		ASSERT(res == 0);
 #else
-		auto time = __daylight;
+		auto time = *_daylight();
 #endif
 		return static_cast<int32_t>(inHours ? time : time * 3600);
 	}
