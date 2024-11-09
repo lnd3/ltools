@@ -5,6 +5,7 @@ set(deps
 	testing
 	serialization
 
+	math
 	filesystem
 	memory
 	concurrency

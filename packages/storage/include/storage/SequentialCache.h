@@ -11,8 +11,10 @@
 #include <optional>
 
 #include "logging/LoggingAll.h"
+#include "math/MathConstants.h"
 #include "various/serializer/Serializer.h"
 #include "concurrency/ObjectLock.h"
+
 #include "LocalStore.h"
 
 namespace l::filecache {
@@ -289,6 +291,9 @@ namespace l::filecache {
 							break;
 						}
 					}
+					if (static_cast<int64_t>(beginPosition + cacheBlockWidth) >= l::math::constants::INTMAX) {
+						break;
+					}
 					beginPosition += cacheBlockWidth;
 				} while (beginPosition < endPosition + cacheBlockWidth);
 			}
@@ -299,6 +304,9 @@ namespace l::filecache {
 						if (!callback(cacheBlock)) {
 							break;
 						}
+					}
+					if (static_cast<int64_t>(beginPosition - cacheBlockWidth) <= l::math::constants::INTMIN) {
+						break;
 					}
 					beginPosition -= cacheBlockWidth;
 				} while (beginPosition > endPosition - cacheBlockWidth);
@@ -362,6 +370,9 @@ namespace l::filecache {
 							break;
 						}
 					}
+					if (static_cast<int64_t>(beginPosition + cacheBlockWidth1) >= l::math::constants::INTMAX) {
+						break;
+					}
 					beginPosition += cacheBlockWidth1;
 				} while (beginPosition < endPosition + cacheBlockWidth1);
 			}
@@ -375,6 +386,9 @@ namespace l::filecache {
 						if (!callback(cacheBlock1, cacheBlock2)) {
 							break;
 						}
+					}
+					if (static_cast<int64_t>(beginPosition - cacheBlockWidth1) <= l::math::constants::INTMIN) {
+						break;
 					}
 					beginPosition -= cacheBlockWidth1;
 				} while (beginPosition > endPosition - cacheBlockWidth1);

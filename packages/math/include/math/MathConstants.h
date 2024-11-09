@@ -37,5 +37,5 @@ namespace l::math::constants {
 	const float FLTMAX = 3.402823466e+38F;
 	const float FLTMIN = 1.175494351e-38F;
 	const int32_t INTMAX = 2147483647;
-	const int32_t INTMIN = (-2147483647 - 1);
+	const int32_t INTMIN = (- (2147483647 - 1));
 }
