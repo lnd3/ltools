@@ -3,6 +3,7 @@
 
 #include "jsonxx/jsonxx.h"
 
+#include <cstring>
 #include <string>
 #include <string_view>
 #include <memory>
