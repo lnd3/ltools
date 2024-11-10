@@ -78,7 +78,7 @@ namespace l::network {
 		bool IsWebSocket();
 		bool HasExpired();
 
-		int32_t WSWrite(char* buffer, size_t size);
+		int32_t WSWrite(const char* buffer, size_t size);
 		int32_t WSRead(char* buffer, size_t size);
 		void WSClose();
 

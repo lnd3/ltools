@@ -27,16 +27,14 @@ namespace l::network {
 		}
 	}
 
-	void NetworkInterfaceWS::Disconnect(std::string_view queryName) {
+	void NetworkInterfaceWS::Disconnect(std::string_view interfaceName) {
 		auto networkManager = mNetworkManager.lock();
 		if (networkManager) {
-			networkManager->WSClose(queryName);
+			networkManager->WSClose(interfaceName);
 		}
 	}
 
 	bool NetworkInterfaceWS::Connect(std::string_view interfaceName,
-		std::string_view queryName,
-		std::string_view queryArguments,
 		int32_t retries,
 		int32_t expectedResponseSize,
 		int32_t timeOut,
@@ -46,11 +44,11 @@ namespace l::network {
 		auto it = mInterfaces.find(interfaceName.data());
 		if (it != mInterfaces.end()) {
 			if (NetworkStatus(interfaceName)) {
-				auto query = it->second.GetQuery(queryName, queryArguments);
+				auto query = it->second.GetQuery(interfaceName);
 				if (!query.empty()) {
 					auto networkManager = mNetworkManager.lock();
 					if (networkManager) {
-						result = networkManager->PostQuery(queryName, queryArguments, retries, query, expectedResponseSize, timeOut, cb);
+						result = networkManager->PostQuery(interfaceName, "", retries, query, expectedResponseSize, timeOut, cb);
 					}
 				}
 			}
@@ -58,28 +56,48 @@ namespace l::network {
 		return result;
 	}
 
-	int32_t NetworkInterfaceWS::Read(std::string_view interfaceName, std::string_view queryName, char* buffer, size_t size) {
+	int32_t NetworkInterfaceWS::Read(std::string_view interfaceName, char* buffer, size_t size) {
 		int32_t read = 0;
 		auto it = mInterfaces.find(interfaceName.data());
 		if (it != mInterfaces.end()) {
 			if (NetworkStatus(interfaceName)) {
 				auto networkManager = mNetworkManager.lock();
 				if (networkManager) {
-					read = networkManager->WSRead(queryName, buffer, size);
+					read = networkManager->WSRead(interfaceName, buffer, size);
 				}
+			}
+			auto& queue = it->second.GetQueue();
+			if (read == 0 && !queue.empty()) {
+				// everything has been read so write next command if any
+				auto& command = queue.front();
+				auto result = Write(interfaceName, command.c_str(), command.size());
+				if (!result) {
+					LOG(LogWarning) << "Failed to write to: " << interfaceName << " : " << command;
+				}
+				queue.pop_front();
 			}
 		}
 		return read;
 	}
 
-	bool NetworkInterfaceWS::Write(std::string_view interfaceName, std::string_view queryName, char* buffer, size_t size) {
+	void NetworkInterfaceWS::QueueWrite(std::string_view interfaceName, const char* buffer, size_t size) {
+		auto it = mInterfaces.find(interfaceName.data());
+		if (it != mInterfaces.end()) {
+			if (NetworkStatus(interfaceName)) {
+				auto& queue = it->second.GetQueue();
+				queue.push_back(std::string(buffer, size));
+			}
+		}
+	}
+
+	bool NetworkInterfaceWS::Write(std::string_view interfaceName, const char* buffer, size_t size) {
 		bool result = false;
 		auto it = mInterfaces.find(interfaceName.data());
 		if (it != mInterfaces.end()) {
 			if (NetworkStatus(interfaceName)) {
 				auto networkManager = mNetworkManager.lock();
 				if (networkManager) {
-					result = networkManager->WSWrite(queryName, buffer, size) == 0;
+					result = networkManager->WSWrite(interfaceName, buffer, size) == 0;
 				}
 			}
 		}

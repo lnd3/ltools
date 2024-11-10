@@ -55,4 +55,8 @@ namespace l::network {
 		return query.str();
 	}
 
+	std::deque<std::string>& HostInfo::GetQueue() {
+		return mWriteQueue;
+	}
+
 }

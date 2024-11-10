@@ -220,7 +220,7 @@ namespace l::network {
 		return m;
 	}
 
-	int32_t ConnectionBase::WSWrite(char* buffer, size_t size) {
+	int32_t ConnectionBase::WSWrite(const char* buffer, size_t size) {
 		if (HasExpired()) {
 			LOG(LogError) << "Failed wss write, connection expired";
 			return -2;

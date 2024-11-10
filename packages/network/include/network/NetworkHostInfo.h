@@ -6,6 +6,8 @@
 #include <map>
 #include <functional>
 #include <atomic>
+#include <deque>
+#include <string>
 
 namespace l::network {
 
@@ -37,6 +39,8 @@ namespace l::network {
 		void AddEndpoint(std::string_view queryName, std::string_view endpointString);
 		std::string GetQuery(std::string_view queryName = "", std::string_view arguments = "");
 
+		std::deque<std::string>& GetQueue();
+
 	protected:
 		std::string mProtocol; // http, https etc
 		std::string mHost; // host url/server etc
@@ -45,6 +49,7 @@ namespace l::network {
 		std::atomic_bool mIsHostResponding;
 		std::atomic_int32_t mLastStatusCheck;
 		int32_t mNetworkStatusInterval;
+		std::deque<std::string> mWriteQueue;
 	};
 
 }

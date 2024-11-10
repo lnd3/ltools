@@ -208,7 +208,7 @@ namespace l::network {
 		}
 	}
 
-	int32_t NetworkManager::WSWrite(std::string_view queryName, char* buffer, size_t size) {
+	int32_t NetworkManager::WSWrite(std::string_view queryName, const char* buffer, size_t size) {
 		std::unique_lock lock(mConnectionsMutex);
 		auto it = std::find_if(mConnections.begin(), mConnections.end(), [&](std::unique_ptr<ConnectionBase>& request) {
 			if (queryName == request->GetRequestName()) {

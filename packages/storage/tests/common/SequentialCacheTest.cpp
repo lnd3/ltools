@@ -10,6 +10,7 @@
 class Data {
 public:
 	Data() = default;
+	Data(int32_t) {};
 	~Data() = default;
 
 	friend zpp::serializer::access;

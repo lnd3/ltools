@@ -48,7 +48,7 @@ namespace l::network {
 			std::function<void(bool, std::string_view)> cb = nullptr);
 
 		void WSClose(std::string_view queryName = "");
-		int32_t WSWrite(std::string_view queryName, char* buffer, size_t size);
+		int32_t WSWrite(std::string_view queryName, const char* buffer, size_t size);
 		int32_t WSRead(std::string_view queryName, char* buffer, size_t size);
 
 	protected:

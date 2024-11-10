@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <map>
 #include <functional>
+#include <deque>
 
 namespace l::network {
 
@@ -25,21 +26,19 @@ namespace l::network {
 			int32_t networkStatusInterval = 20);
 		void Shutdown();
 		bool Connect(std::string_view interfaceName,
-			std::string_view queryName,
-			std::string_view arguments = "",
 			int32_t retries = 3,
 			int32_t expectedResponseSize = 0,
 			int32_t timeOut = -1,
 			std::function<void(bool, std::string_view)> cb = nullptr);
 		void Disconnect(std::string_view queryName);
-		int32_t Read(std::string_view interfaceName, std::string_view queryName, char* buffer, size_t size);
-		bool Write(std::string_view interfaceName, std::string_view queryName, char* buffer, size_t size);
+		int32_t Read(std::string_view interfaceName, char* buffer, size_t size);
+		void QueueWrite(std::string_view interfaceName, const char* buffer, size_t size);
+		bool Write(std::string_view interfaceName, const char* buffer, size_t size);
 
 		bool NetworkStatus(std::string_view interfaceName);
 
 		void CreateWebSocket(
 			std::string_view interfaceName,
-			std::string_view queryName,
 			std::string_view endpointString,
 			std::function<l::concurrency::RunnableResult(bool success, std::string_view queryArguments, l::network::WebSocket&)> handler = nullptr
 		) {
@@ -47,8 +46,8 @@ namespace l::network {
 			if (network) {
 				auto it = mInterfaces.find(interfaceName.data());
 				if (it != mInterfaces.end()) {
-					it->second.AddEndpoint(queryName, endpointString);
-					network->CreateRequest(std::make_unique<l::network::WebSocket>(queryName, "", 0, handler));
+					it->second.AddEndpoint(interfaceName, endpointString);
+					network->CreateRequest(std::make_unique<l::network::WebSocket>(interfaceName, "", 0, handler));
 				}
 			}
 		}

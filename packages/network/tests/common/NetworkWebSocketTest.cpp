@@ -30,22 +30,22 @@ TEST(NetworkWebSocket, Setup) {
 		};
 
 	networkInterfaceWS->CreateInterface("Websocket", "wss", "echo.websocket.org");
-	networkInterfaceWS->CreateWebSocket("Websocket", "wsstest", "", websocketHandler);
-	networkInterfaceWS->Connect("Websocket", "wsstest");
+	networkInterfaceWS->CreateWebSocket("Websocket", "", websocketHandler);
+	networkInterfaceWS->Connect("Websocket");
 
 	char buffer[1024];
 	int32_t read = 0;
 	int32_t readCount = 20;
 	do {
 		std::this_thread::sleep_for(std::chrono::milliseconds(50));
-		read = networkInterfaceWS->Read("Websocket", "wsstest", &buffer[0], 1024);
+		read = networkInterfaceWS->Read("Websocket", &buffer[0], 1024);
 	} while (read <= 0 && readCount-- >= 0);
 
 	TEST_TRUE(read > 0, "");
 
 	LOG(LogInfo) << std::string_view(buffer, read);
 
-	networkInterfaceWS->Disconnect("wsstest");
+	networkInterfaceWS->Disconnect("Websocket");
 
 	networkInterfaceWS->Shutdown();
 	networkManager->ClearJobs();
@@ -76,8 +76,8 @@ TEST(NetworkWebSocket, BinanceKlines) {
 
 	networkInterfaceWS->CreateInterface("Binance", "wss", "testnet.binance.vision");
 	//networkInterfaceWS->CreateInterface("Binance", "wss", "stream.binance.com", 443);
-	networkInterfaceWS->CreateWebSocket("Binance", "binance", "ws", websocketHandler);
-	networkInterfaceWS->Connect("Binance", "binance");
+	networkInterfaceWS->CreateWebSocket("Binance", "ws", websocketHandler);
+	networkInterfaceWS->Connect("Binance");
 
 	char buffer[1024];
 	int32_t write = 0;
@@ -98,19 +98,19 @@ TEST(NetworkWebSocket, BinanceKlines) {
 	int32_t readCount = 3;
 	do {
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-		read = networkInterfaceWS->Read("Binance", "binance", &buffer[0], 1024);
+		read = networkInterfaceWS->Read("Binance", &buffer[0], 1024);
 		if (read > 0) {
 			LOG(LogInfo) << std::string_view(buffer, read);
 		}
 	} while (readCount-- >= 0);
 
-	networkInterfaceWS->Write("Binance", "binance", subscribeStream.data(), subscribeStream.size());
+	networkInterfaceWS->Write("Binance", subscribeStream.data(), subscribeStream.size());
 
 
 	readCount = 60;
 	do {
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-		read = networkInterfaceWS->Read("Binance", "binance", &buffer[0], 1024);
+		read = networkInterfaceWS->Read("Binance", &buffer[0], 1024);
 		if (read > 0) {
 			LOG(LogInfo) << std::string_view(buffer, read);
 		}
@@ -119,7 +119,7 @@ TEST(NetworkWebSocket, BinanceKlines) {
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-	networkInterfaceWS->Disconnect("binance");
+	networkInterfaceWS->Disconnect("Binance");
 
 	networkInterfaceWS->Shutdown();
 	networkManager->ClearJobs();
@@ -151,8 +151,8 @@ TEST(NetworkWebSocket, BinanceUIKlines) {
 	// wss://testnet.binance.vision/ws-api/v3
 	networkInterfaceWS->CreateInterface("Binance", "wss", "testnet.binance.vision");
 	//networkInterfaceWS->CreateInterface("Binance", "wss", "stream.binance.com", 443);
-	networkInterfaceWS->CreateWebSocket("Binance", "binance", "ws-api/v3", websocketHandler);
-	networkInterfaceWS->Connect("Binance", "binance");
+	networkInterfaceWS->CreateWebSocket("Binance", "ws-api/v3", websocketHandler);
+	networkInterfaceWS->Connect("Binance");
 
 	char buffer[1024];
 	int32_t write = 0;
@@ -178,19 +178,19 @@ TEST(NetworkWebSocket, BinanceUIKlines) {
 	int32_t readCount = 3;
 	do {
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-		read = networkInterfaceWS->Read("Binance", "binance", &buffer[0], 1024);
+		read = networkInterfaceWS->Read("Binance", &buffer[0], 1024);
 		if (read > 0) {
 			LOG(LogInfo) << std::string_view(buffer, read);
 		}
 	} while (readCount-- >= 0);
 
-	networkInterfaceWS->Write("Binance", "binance", requestKlines.data(), requestKlines.size());
+	networkInterfaceWS->Write("Binance", requestKlines.data(), requestKlines.size());
 
 
 	readCount = 60;
 	do {
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-		read = networkInterfaceWS->Read("Binance", "binance", &buffer[0], 1024);
+		read = networkInterfaceWS->Read("Binance", &buffer[0], 1024);
 		if (read > 0) {
 			LOG(LogInfo) << std::string_view(buffer, read);
 		}
@@ -199,7 +199,7 @@ TEST(NetworkWebSocket, BinanceUIKlines) {
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-	networkInterfaceWS->Disconnect("binance");
+	networkInterfaceWS->Disconnect("Binance");
 
 	networkInterfaceWS->Shutdown();
 	networkManager->ClearJobs();
