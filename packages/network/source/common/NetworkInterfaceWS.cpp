@@ -72,9 +72,11 @@ namespace l::network {
 				auto& command = queue.front();
 				auto result = Write(interfaceName, command.c_str(), command.size());
 				if (!result) {
-					LOG(LogWarning) << "Failed to write to: " << interfaceName << " : " << command;
+					//LOG(LogWarning) << "Failed to write to: " << interfaceName << " : " << command;
 				}
-				queue.pop_front();
+				else {
+					queue.pop_front();
+				}
 			}
 		}
 		return read;
@@ -97,7 +99,7 @@ namespace l::network {
 			if (NetworkStatus(interfaceName)) {
 				auto networkManager = mNetworkManager.lock();
 				if (networkManager) {
-					result = networkManager->WSWrite(interfaceName, buffer, size) == 0;
+					result = networkManager->WSWrite(interfaceName, buffer, size) >= 0;
 				}
 			}
 		}
