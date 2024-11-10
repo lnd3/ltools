@@ -155,7 +155,7 @@ namespace l::filecache {
 		void AllocateBlockData() {
 			std::lock_guard<std::mutex> lock(mDataMutex);
 			if (!mData) {
-				mData = std::make_unique<T>();
+				mData = std::make_unique<T>(mBlockWidth);
 			}
 		}
 
@@ -172,7 +172,7 @@ namespace l::filecache {
 			mBlockWidth = blockWidth;
 		}
 	protected:
-		int32_t mBlockWidth;
+		int32_t mBlockWidth = 1; // at least its one data element wide
 
 		std::mutex mDataMutex;
 		std::unique_ptr<T> mData;
