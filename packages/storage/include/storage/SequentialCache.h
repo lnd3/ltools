@@ -164,7 +164,16 @@ namespace l::filecache {
 			return l::concurrency::ObjectLock<T>(mDataMutex, mData.get());
 		}
 
+		int32_t GetBlockWidth() {
+			return mBlockWidth;
+		}
+
+		void SetBlockWidth(int32_t blockWidth) {
+			mBlockWidth = blockWidth;
+		}
 	protected:
+		int32_t mBlockWidth;
+
 		std::mutex mDataMutex;
 		std::unique_ptr<T> mData;
 
@@ -287,6 +296,7 @@ namespace l::filecache {
 				do {
 					cacheBlock = sequentialCacheMap->Get(beginPosition);
 					if (cacheBlock != nullptr) {
+						cacheBlock->SetBlockWidth(cacheBlockWidth);
 						if (!callback(cacheBlock)) {
 							break;
 						}
@@ -301,6 +311,7 @@ namespace l::filecache {
 				do {
 					cacheBlock = sequentialCacheMap->Get(beginPosition);
 					if (cacheBlock != nullptr) {
+						cacheBlock->SetBlockWidth(cacheBlockWidth);
 						if (!callback(cacheBlock)) {
 							break;
 						}
@@ -365,7 +376,11 @@ namespace l::filecache {
 					if (cacheBlock1 != nullptr) {
 						if (sequentialCacheMap2 != nullptr) {
 							cacheBlock2 = sequentialCacheMap2->Get(beginPosition);
+							if (cacheBlock2 != nullptr) {
+								cacheBlock2->SetBlockWidth(cacheBlockWidth1);
+							}
 						}
+						cacheBlock1->SetBlockWidth(cacheBlockWidth1);
 						if (!callback(cacheBlock1, cacheBlock2)) {
 							break;
 						}
@@ -382,7 +397,11 @@ namespace l::filecache {
 					if (cacheBlock1 != nullptr) {
 						if (sequentialCacheMap2 != nullptr) {
 							cacheBlock2 = sequentialCacheMap2->Get(beginPosition);
+							if (cacheBlock2 != nullptr) {
+								cacheBlock2->SetBlockWidth(cacheBlockWidth1);
+							}
 						}
+						cacheBlock1->SetBlockWidth(cacheBlockWidth1);
 						if (!callback(cacheBlock1, cacheBlock2)) {
 							break;
 						}
