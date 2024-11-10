@@ -106,6 +106,7 @@ namespace l::filecache {
 			auto clampedPosition = std::atoi(parts.at(indexClampedPosition).data());
 			auto cacheBlockWidth = std::atoi(parts.at(indexBlockWidth).data());
 
+
 			handler(clampedPosition, cacheBlockWidth);
 		}
 	}
