@@ -28,8 +28,8 @@ TEST(ColladaLoaderTest, LoadAndVerify) {
 
     auto colladaNodes = l::rendering::LoadColladaAsset("./tests/data/modelformats/old_truck/old_truck_2.dae");
 
-    TEST_TRUE(l::string::cstring_equal(colladaNodes.mGeometryNodes[0].mId.c_str(), "TruckMat2-mesh"), "");
-    TEST_TRUE(l::string::cstring_equal(colladaNodes.mGeometryNodes[0].mSourceNodes[0].mId.c_str(), "TruckMat2-mesh-positions"), "");
+    TEST_TRUE(l::string::equal(colladaNodes.mGeometryNodes[0].mId.c_str(), "TruckMat2-mesh"), "");
+    TEST_TRUE(l::string::equal(colladaNodes.mGeometryNodes[0].mSourceNodes[0].mId.c_str(), "TruckMat2-mesh-positions"), "");
     TEST_TRUE(colladaNodes.mGeometryNodes[0].mSourceNodes[0].mFloatArray.mFloatArray[1] == -4.67387009f, "");
 
     return 0;

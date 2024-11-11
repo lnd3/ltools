@@ -11,19 +11,13 @@ namespace l::nodegraph {
 
     /* Stateful filtering operations */
         /*********************************************************************/
-    void GraphFilterBase::Reset() {
+    void GraphFilterBase::DefaultDataInit() {
+		NodeGraphOp::DefaultDataInit();
+
         mSync = 0.0f;
         mSamplesUntilUpdate = 0.0f;
 
-        mNode->SetInput(0, 0.0f);
-        mNode->SetInput(2, 0.5f);
-        mNode->SetInput(3, 0.5f);
-        mNode->SetInputBound(0, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(2, InputBound::INPUT_0_TO_1);
-        mNode->SetInputBound(3, InputBound::INPUT_0_TO_1);
-
-        ResetInput();
-        ResetSignal();
+        Reset();
     }
 
     void GraphFilterBase::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
@@ -53,10 +47,7 @@ namespace l::nodegraph {
         );
     }
     /*********************************************************************/
-    void GraphFilterLowpass::ResetInput() {
-    }
-
-    void GraphFilterLowpass::ResetSignal() {
+    void GraphFilterLowpass::Reset() {
         mState0 = 0.0f;
         mState1 = 0.0f;
     }
@@ -72,10 +63,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphFilterHighpass::ResetInput() {
-    }
-
-    void GraphFilterHighpass::ResetSignal() {
+    void GraphFilterHighpass::Reset() {
         mState0 = 0.0f;
         mState1 = 0.0f;
     }
@@ -92,12 +80,14 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphFilterChamberlain2pole::ResetInput() {
+    void GraphFilterChamberlain2pole::DefaultDataInit() {
+        GraphFilterBase::DefaultDataInit();
+
         mNode->SetInput(mNumDefaultInputs + 0, 0.0f);
         mNode->SetInputBound(mNumDefaultInputs + 0, InputBound::INPUT_0_TO_1);
     }
 
-    void GraphFilterChamberlain2pole::ResetSignal() {
+    void GraphFilterChamberlain2pole::Reset() {
         for (int32_t i = 0; i < 4; i++) {
             mState.at(i) = 0.0f;
         }
@@ -105,7 +95,7 @@ namespace l::nodegraph {
 
     void GraphFilterChamberlain2pole::UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {
         mMode = static_cast<int32_t>(3.0f * mInputManager.GetValueNext(mNumDefaultInputs + 0) + 0.5f);
-        mScale = l::math::functions::sqrt(mInputManager.GetValueNext(3));
+        mScale = l::math::sqrt(mInputManager.GetValueNext(3));
         mScaleFilter.SetConvergenceFactor().SetTarget(mScale).SnapAt();
     }
 
@@ -124,5 +114,42 @@ namespace l::nodegraph {
         mInputValuePrev = input;
 
         return mState.at(mMode);
+    }
+
+    /*********************************************************************/
+    void GraphFilterMovingAverage::Reset() {
+        mFilterState.resize(mKernelSize);
+        mFilterStateIndex = 0;
+        mFilterInit = true;
+    }
+
+    float GraphFilterMovingAverage::ProcessSignal(float input, float, float) {
+        if (mUndefinedValue == input) {
+            return input;
+        }
+
+        mFilterState[mFilterStateIndex] = input;
+        float width = mInputManager.GetValueNext(mNumDefaultInputs + 0);
+        int32_t widthInt = static_cast<int32_t>(width);
+        mFilterStateIndex = (mFilterStateIndex + 1) % widthInt;
+
+        if (widthInt == 1) {
+            return input;
+        }
+
+        if (mFilterInit) {
+            if (mFilterStateIndex + 1 < widthInt) {
+                widthInt = mFilterStateIndex + 1;
+            }
+            else {
+                mFilterInit = false;
+            }
+        }
+
+        float outVal = 0.0;
+        for (int32_t i = 0; i < widthInt; i++) {
+            outVal += mFilterState[i];
+        }
+        return outVal / static_cast<float>(widthInt);
     }
 }

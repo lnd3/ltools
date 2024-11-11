@@ -39,21 +39,21 @@ namespace rendering {
 	}
 
 	bool ColladaLoader::for_each(pugi::xml_node& node) {
-		if (string::cstring_equal(node.name(), "COLLADA")) {
+		if (string::equal(node.name(), "COLLADA")) {
 			mFoundError = false;
 		}
-		else if (string::cstring_equal(node.name(), "library_lights")) {
+		else if (string::equal(node.name(), "library_lights")) {
 		}
-		else if (string::cstring_equal(node.name(), "library_effects")) {
+		else if (string::equal(node.name(), "library_effects")) {
 		}
-		else if (string::cstring_equal(node.name(), "library_materials")) {
+		else if (string::equal(node.name(), "library_materials")) {
 		}
-		else if (string::cstring_equal(node.name(), "library_geometries")) {
+		else if (string::equal(node.name(), "library_geometries")) {
 		}
 
 		// geometry node allocation
-		else if (string::cstring_equal(node.parent().name(), "library_geometries")
-			&& string::cstring_equal(node.name(), "geometry")) {
+		else if (string::equal(node.parent().name(), "library_geometries")
+			&& string::equal(node.name(), "geometry")) {
 
 			auto id = node.attribute("id").as_string();
 			auto name = node.attribute("name").as_string();
@@ -61,16 +61,16 @@ namespace rendering {
 		}
 
 		// source node allocation
-		else if (string::cstring_equal(node.parent().name(), "mesh")
-			&& string::cstring_equal(node.name(), "source")) {
+		else if (string::equal(node.parent().name(), "mesh")
+			&& string::equal(node.name(), "source")) {
 
 			auto& geometryNode = mColladaNodes.mGeometryNodes.back();
 			auto id = node.attribute("id").as_string();
 			geometryNode.mSourceNodes.emplace_back(SourceNode{ id, {FloatArrayNode{}}, {AccessorNode{}} });
 		}
 		// source content
-		else if (string::cstring_equal(node.parent().name(), "source")
-			&& string::cstring_equal(node.name(), "float_array")) {
+		else if (string::equal(node.parent().name(), "source")
+			&& string::equal(node.name(), "float_array")) {
 
 			auto& sourceNode = mColladaNodes.mGeometryNodes.back().mSourceNodes.back();
 			auto id = node.attribute("id").as_string();
@@ -82,9 +82,9 @@ namespace rendering {
 			sourceNode.mFloatArray.mFloatArray.reserve(count);
 			string::cstring_to_numbers<float>(content, count, ' ', sourceNode.mFloatArray.mFloatArray);
 		}
-		else if (string::cstring_equal(node.parent().parent().name(), "source")
-			&& string::cstring_equal(node.parent().name(), "technique_common")
-			&& string::cstring_equal(node.name(), "accessor")) {
+		else if (string::equal(node.parent().parent().name(), "source")
+			&& string::equal(node.parent().name(), "technique_common")
+			&& string::equal(node.name(), "accessor")) {
 
 			auto& sourceNode = mColladaNodes.mGeometryNodes.back().mSourceNodes.back();
 			auto count = node.attribute("count").as_uint();
@@ -93,9 +93,9 @@ namespace rendering {
 		}
 
 		// vertices input mapping
-		else if (string::cstring_equal(node.parent().parent().name(), "mesh")
-			&& string::cstring_equal(node.parent().name(), "vertices")
-			&& string::cstring_equal(node.name(), "input")) {
+		else if (string::equal(node.parent().parent().name(), "mesh")
+			&& string::equal(node.parent().name(), "vertices")
+			&& string::equal(node.name(), "input")) {
 			auto& geometryNode = mColladaNodes.mGeometryNodes.back();
 			auto id = node.parent().attribute("id").as_string();
 			auto semantic = node.attribute("semantic").as_string();
@@ -104,8 +104,8 @@ namespace rendering {
 		}
 
 		// triangles node allocation
-		else if (string::cstring_equal(node.parent().name(), "mesh")
-			&& (string::cstring_equal(node.name(), "triangles") || string::cstring_equal(node.name(), "polylist"))) {
+		else if (string::equal(node.parent().name(), "mesh")
+			&& (string::equal(node.name(), "triangles") || string::equal(node.name(), "polylist"))) {
 
 			auto& geometryNode = mColladaNodes.mGeometryNodes.back();
 			auto material = node.attribute("material").as_string();
@@ -114,8 +114,8 @@ namespace rendering {
 			geometryNode.mTrianglesNodes.emplace_back(TrianglesNode{ material, indicesCount, {}, {}, {} });
 		}
 		// triangles content
-		else if ((string::cstring_equal(node.parent().name(), "triangles") || string::cstring_equal(node.parent().name(), "polylist"))
-			&& string::cstring_equal(node.name(), "input")) {
+		else if ((string::equal(node.parent().name(), "triangles") || string::equal(node.parent().name(), "polylist"))
+			&& string::equal(node.name(), "input")) {
 
 			auto& trianglesNode = mColladaNodes.mGeometryNodes.back().mTrianglesNodes.back();
 			auto semantic = node.attribute("semantic").as_string();
@@ -123,8 +123,8 @@ namespace rendering {
 			auto source = node.attribute("source").as_string();
 			trianglesNode.mInputNodes.emplace_back(TrianglesInputNode{ semantic, source, offset });
 		}
-		else if ((string::cstring_equal(node.parent().name(), "triangles") || string::cstring_equal(node.parent().name(), "polylist"))
-			&& string::cstring_equal(node.name(), "vcount")) {
+		else if ((string::equal(node.parent().name(), "triangles") || string::equal(node.parent().name(), "polylist"))
+			&& string::equal(node.name(), "vcount")) {
 
 			//auto& trianglesNode = mColladaNodes.mGeometryNodes.back().mTrianglesNodes.back();
 			//auto content = node.text().as_string();
@@ -135,8 +135,8 @@ namespace rendering {
 			//}
 			//trianglesNode.mIndiceCountPerPrimitive.clear();
 		}
-		else if ((string::cstring_equal(node.parent().name(), "triangles") || string::cstring_equal(node.parent().name(), "polylist"))
-			&& string::cstring_equal(node.name(), "p")) {
+		else if ((string::equal(node.parent().name(), "triangles") || string::equal(node.parent().name(), "polylist"))
+			&& string::equal(node.name(), "p")) {
 
 			auto& trianglesNode = mColladaNodes.mGeometryNodes.back().mTrianglesNodes.back();
 			auto content = node.text().as_string();

@@ -20,12 +20,18 @@ namespace l::audio {
         int32_t mFramePosition = 0;
         int32_t mDacFramesPerBufferPart = 0;
         int32_t mNumChannels = 0;
-        float* mBuffer = nullptr;
+        float* mOutputBuffer = nullptr;
+        float* mInputBuffer = nullptr;
         std::binary_semaphore mDacWriteReady{ 0 };
 
-        float* GetCurrentBufferPosition() {
+        float* GetCurrentOutputPosition() {
             auto framePos = mFramePosition;
-            return mBuffer + framePos * mNumChannels;
+            return mOutputBuffer + framePos * mNumChannels;
+        }
+
+        float* GetCurrentInputPosition() {
+            auto framePos = mFramePosition;
+            return mInputBuffer + framePos * mNumChannels;
         }
 
         void NextPart() {
@@ -76,19 +82,24 @@ namespace l::audio {
         bool OpenStream(int32_t dacFramesPerBufferPart, float latencyMs = 0.0f, BufferingMode mode = BufferingMode::DOUBLE_BUFFERING, ChannelMode channel = ChannelMode::STEREO);
         bool StartStream();
         std::vector<float>& GetWriteBuffer();
+        std::vector<float>& GetReadBuffer();
         bool CanWrite();
         void Write();
+        void Read();
         bool StopStream();
         int32_t GetPartTotalSize();
         int32_t GetNumFramesPerPart();
         int32_t GetSampleRate();
     protected:
-        PaStreamParameters mOutputParameters;
-        PaStream* mPaStream;
+        PaStreamParameters mInputParameters{ 0,0,0,0.0,nullptr };
+        PaStreamParameters mOutputParameters{ 0,0,0,0.0,nullptr };
+        PaStream* mPaStream = nullptr;
 
         AudioStreamData mAudioStreamData;
         std::vector<float> mOutputBufferInterleaved;
+        std::vector<float> mInputBufferInterleaved;
         std::vector<float> mWriteBuffer;
+        std::vector<float> mReadBuffer;
     };
 
     class AudioManager {
@@ -97,8 +108,8 @@ namespace l::audio {
         ~AudioManager();
 
         bool Init();
-        AudioStream* GetStream(std::string_view name);
-        void CloseStream(std::string_view name);
+        AudioStream* GetAudioStream(std::string_view name);
+        void CloseOutStream(std::string_view name);
     protected:
         std::unordered_map<size_t, std::unique_ptr<AudioStream>> mStreams;
     };

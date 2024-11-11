@@ -11,13 +11,18 @@
 #include <optional>
 
 #include "logging/LoggingAll.h"
+#include "math/MathConstants.h"
 #include "various/serializer/Serializer.h"
 #include "concurrency/ObjectLock.h"
+
 #include "LocalStore.h"
 
 namespace l::filecache {
 
 	int32_t GetClampedPosition(int32_t position, int32_t blockWidth);
+	int32_t GetClampedPositionOffset(int32_t position, int32_t blockWidth);
+	int32_t GetClampedPositionOffsetFromIndex(int32_t index, int32_t blockWidth, int32_t numBlockEntries);
+
 	std::string GetCacheBlockName(
 		std::string_view prefix, 
 		int32_t blockWidth, 
@@ -147,10 +152,10 @@ namespace l::filecache {
 			return mData != nullptr;
 		}
 
-		void AllocateBlockData() {
+		void AllocateBlockData(int32_t blockSize = 1) {
 			std::lock_guard<std::mutex> lock(mDataMutex);
 			if (!mData) {
-				mData = std::make_unique<T>();
+				mData = std::make_unique<T>(blockSize);
 			}
 		}
 
@@ -281,10 +286,13 @@ namespace l::filecache {
 			if (beginPosition < endPosition) {
 				do {
 					cacheBlock = sequentialCacheMap->Get(beginPosition);
-					if (cacheBlock != nullptr && cacheBlock->HasData()) {
+					if (cacheBlock != nullptr) {
 						if (!callback(cacheBlock)) {
 							break;
 						}
+					}
+					if (static_cast<int64_t>(beginPosition) + cacheBlockWidth >= l::math::constants::INTMAX) {
+						break;
 					}
 					beginPosition += cacheBlockWidth;
 				} while (beginPosition < endPosition + cacheBlockWidth);
@@ -292,10 +300,13 @@ namespace l::filecache {
 			else {
 				do {
 					cacheBlock = sequentialCacheMap->Get(beginPosition);
-					if (cacheBlock != nullptr && cacheBlock->HasData()) {
+					if (cacheBlock != nullptr) {
 						if (!callback(cacheBlock)) {
 							break;
 						}
+					}
+					if (static_cast<int64_t>(beginPosition) - cacheBlockWidth<= l::math::constants::INTMIN) {
+						break;
 					}
 					beginPosition -= cacheBlockWidth;
 				} while (beginPosition > endPosition - cacheBlockWidth);
@@ -351,7 +362,7 @@ namespace l::filecache {
 			if (beginPosition < endPosition) {
 				do {
 					cacheBlock1 = sequentialCacheMap1->Get(beginPosition);
-					if (cacheBlock1 != nullptr && cacheBlock1->HasData()) {
+					if (cacheBlock1 != nullptr) {
 						if (sequentialCacheMap2 != nullptr) {
 							cacheBlock2 = sequentialCacheMap2->Get(beginPosition);
 						}
@@ -359,19 +370,25 @@ namespace l::filecache {
 							break;
 						}
 					}
+					if (static_cast<int64_t>(beginPosition) + cacheBlockWidth1 >= l::math::constants::INTMAX) {
+						break;
+					}
 					beginPosition += cacheBlockWidth1;
 				} while (beginPosition < endPosition + cacheBlockWidth1);
 			}
 			else {
 				do {
 					cacheBlock1 = sequentialCacheMap1->Get(beginPosition);
-					if (cacheBlock1 != nullptr && cacheBlock1->HasData()) {
+					if (cacheBlock1 != nullptr) {
 						if (sequentialCacheMap2 != nullptr) {
 							cacheBlock2 = sequentialCacheMap2->Get(beginPosition);
 						}
 						if (!callback(cacheBlock1, cacheBlock2)) {
 							break;
 						}
+					}
+					if (static_cast<int64_t>(beginPosition) - cacheBlockWidth1 <= l::math::constants::INTMIN) {
+						break;
 					}
 					beginPosition -= cacheBlockWidth1;
 				} while (beginPosition > endPosition - cacheBlockWidth1);

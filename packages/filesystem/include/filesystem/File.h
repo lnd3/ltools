@@ -14,6 +14,18 @@
 namespace l {
 namespace filesystem {
 
+	template<class T, const size_t SIZE>
+	void convert(std::stringstream& dst, std::array<T, SIZE>& src, size_t count = 0) {
+		static_assert(sizeof(T) == sizeof(char));
+		dst.write(reinterpret_cast<char*>(src.data()), count > 0 ? count : src.size());
+	}
+
+	bool read(const std::filesystem::path& mLocation, char* dst, size_t count, size_t position = 0);
+	bool write(const std::filesystem::path& mLocation, const char* src, size_t count, size_t position = 0);
+
+	bool read(const std::filesystem::path& mLocation, std::stringstream& data);
+	bool write(const std::filesystem::path& mLocation, std::stringstream& data);
+
 	std::time_t getTime(std::filesystem::file_time_type tp);
 	std::string toString(std::time_t t, std::string format = "%Y-%m-%d %X");
 

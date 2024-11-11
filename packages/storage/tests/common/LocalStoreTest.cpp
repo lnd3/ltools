@@ -1,32 +1,14 @@
 #include "testing/Test.h"
 
+#include "serialization/SerializationBase.h"
 #include "storage/LocalStore.h"
 
 #include <memory>
 #include <filesystem>
 
 using namespace l;
+using namespace serialization;
 using namespace storage;
-
-class Storage : public SerializationBase {
-public:
-	Storage(int32_t version, int a, bool useVersion) : SerializationBase(version, 5, useVersion, false), mA(a) {}
-	virtual ~Storage() = default;
-
-	friend zpp::serializer::access;
-	virtual void Save(SaveArchive& archive) const {
-		archive(mA);
-	}
-	virtual void Load(LoadArchive& archive) {
-		archive(mA);
-	}
-
-	virtual void Upgrade(int32_t) {
-
-	}
-
-	int mA;
-};
 
 class Config3 : public SerializationBase {
 public:
@@ -80,63 +62,6 @@ public:
 	std::string mId2;
 	Config3 mConfig;
 };
-
-TEST(SerializationBase, Basics) {
-
-	std::vector<unsigned char> dataNoVersion = { 0xa, 0x0, 0x0, 0x0 };
-	std::vector<unsigned char> dataOnlyVersion = { 0x5, 0x0, 0x0, 0x0, 0xb, 0x0, 0x0, 0x0 };
-	std::vector<unsigned char> dataHeaderAndVersion;
-	
-	{ // load simple data
-		Storage storage(3, 10, false);
-		storage.LoadArchiveData(dataNoVersion);
-		TEST_TRUE(dataNoVersion.empty(), "");
-		TEST_TRUE(storage.GetVersion() == 5, "");
-		TEST_TRUE(storage.mA == 10, "");
-
-		// serialize and verify header
-		storage.GetArchiveData(dataHeaderAndVersion);
-		TEST_TRUE(dataHeaderAndVersion.size() == 12, "");
-		TEST_TRUE(dataHeaderAndVersion.at(0) == 0, "");
-		TEST_TRUE(dataHeaderAndVersion.at(1) == 0xfa, "");
-		TEST_TRUE(dataHeaderAndVersion.at(2) == 0xde, "");
-		TEST_TRUE(dataHeaderAndVersion.at(3) == 0, "");
-
-		Storage storage2(0, 0, false);
-		storage2.LoadArchiveData(dataHeaderAndVersion);
-		TEST_TRUE(storage2.GetVersion() == 5, "");
-		TEST_TRUE(storage2.mA == 10, "");
-
-		// serialize and verify header
-		storage2.GetArchiveData(dataHeaderAndVersion);
-		TEST_TRUE(dataHeaderAndVersion.size() == 12, "");
-		TEST_TRUE(dataHeaderAndVersion.at(0) == 0, "");
-		TEST_TRUE(dataHeaderAndVersion.at(1) == 0xfa, "");
-		TEST_TRUE(dataHeaderAndVersion.at(2) == 0xde, "");
-		TEST_TRUE(dataHeaderAndVersion.at(3) == 0, "");
-		dataHeaderAndVersion.clear();
-	}
-	{ // have to explicitly set use version to true for versioned only data
-		Storage storage(0, 0, true);
-		storage.LoadArchiveData(dataOnlyVersion);
-		TEST_TRUE(dataOnlyVersion.empty(), "");
-		TEST_TRUE(storage.GetVersion() == 5, "");
-		TEST_TRUE(storage.mA == 11, "");
-
-		// serialize and verify header
-		storage.GetArchiveData(dataHeaderAndVersion);
-		TEST_TRUE(dataHeaderAndVersion.size() == 12, "");
-		TEST_TRUE(dataHeaderAndVersion.at(0) == 0, "");
-		TEST_TRUE(dataHeaderAndVersion.at(1) == 0xfa, "");
-		TEST_TRUE(dataHeaderAndVersion.at(2) == 0xde, "");
-		TEST_TRUE(dataHeaderAndVersion.at(3) == 0, "");
-		dataHeaderAndVersion.clear();
-	}
-
-
-	return 0;
-}
-
 
 TEST(Storage, Serialization) {
 

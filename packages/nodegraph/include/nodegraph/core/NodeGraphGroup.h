@@ -10,6 +10,7 @@
 #include <memory>
 
 #include "math/MathConstants.h"
+#include "serialization/SerializationBase.h"
 
 #include "nodegraph/core/NodeGraphBase.h"
 
@@ -32,11 +33,24 @@ namespace l::nodegraph {
         void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     };
 
-    class NodeGraphGroup {
+    class NodeGraphGroup : public l::serialization::SerializationBase {
     public:
         NodeGraphGroup() {}
         ~NodeGraphGroup() {
             LOG(LogInfo) << "Node group destroyed";
+        }
+
+        NodeGraphGroup& operator=(NodeGraphGroup&&) noexcept {
+            return *this;
+        }
+        NodeGraphGroup& operator=(const NodeGraphGroup&) noexcept {
+            return *this;
+        }
+        NodeGraphGroup(NodeGraphGroup&& other) noexcept {
+            *this = std::move(other);
+        }
+        NodeGraphGroup(const NodeGraphGroup& other) noexcept : SerializationBase(other) {
+            *this = other;
         }
 
         void SetNumInputs(int8_t numInputs);
@@ -60,14 +74,21 @@ namespace l::nodegraph {
         bool RemoveNode(int32_t id);
 
         template<class T, class... Params, std::enable_if_t<std::is_base_of_v<NodeGraphOp, T>, int> = 0>
-        l::nodegraph::NodeGraphBase* NewNode(OutputType nodeType, Params&&... params) {
-            mNodes.push_back(std::make_unique<l::nodegraph::NodeGraph<T, Params...>>(nodeType, std::forward<Params>(params)...));
+        l::nodegraph::NodeGraphBase* NewNode(NodeType nodeType, Params&&... params) {
+            mNodes.emplace_back(std::make_unique<l::nodegraph::NodeGraph<T, Params...>>(nodeType, std::forward<Params>(params)...));
             auto nodePtr = mNodes.back().get();
-            if (nodeType == OutputType::ExternalOutput || nodeType == OutputType::ExternalVisualOutput) {
+            if (nodeType == NodeType::ExternalOutput || nodeType == NodeType::ExternalVisualOutput) {
                 mOutputNodes.push_back(nodePtr);
+			}
+			else if (nodeType == NodeType::ExternalInput) {
+                mInputNodes.push_back(nodePtr);
             }
+
             return nodePtr;
         }
+
+        void ForEachInputNode(std::function<void(NodeGraphBase*)> cb);
+        void ForEachOutputNode(std::function<void(NodeGraphBase*)> cb);
 
         void ClearProcessFlags();
         void ProcessSubGraph(int32_t numSamples);
@@ -78,6 +99,7 @@ namespace l::nodegraph {
 
         std::vector<std::unique_ptr<NodeGraphBase>> mNodes;
         std::vector<NodeGraphBase*> mOutputNodes;
+		std::vector<NodeGraphBase*> mInputNodes;
 
         int32_t mLastTickCount = 0;
     };

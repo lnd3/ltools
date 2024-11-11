@@ -14,9 +14,13 @@
 #include <cstring>
 #include <iostream>
 #include <time.h>
+#include <atomic>
+#include <time.h>
 
 namespace {
 	constexpr size_t buffer_size = 1024;
+
+	std::atomic_bool timezoneInited = false;
 
 	std::mutex bufferMutex;
 	char buffer[buffer_size];
@@ -29,24 +33,39 @@ namespace {
 namespace l {
 namespace string {
 
+	void init_timezone() {
+		if (timezoneInited) {
+			return;
+		}
+		timezoneInited = true;
+
+#ifdef WIN32
+		_tzset();
+#else
+		tzset();
+#endif
+	}
+
 	int32_t get_local_timezone() {
+		init_timezone();
 #ifdef WIN32
 		long time;
 		auto res = _get_timezone(&time);
 		ASSERT(res == 0);
 #else
-		auto time = __timezone;
+		auto time = timezone;
 #endif
 		return static_cast<int32_t>(- time); // negate since timezone is how to get utc time from local time (local time - utc time)
 	}
 
 	int32_t get_local_daylight_savings(bool inHours) {
+		init_timezone();
 #ifdef WIN32
 		int time;
 		auto res = _get_daylight(&time);
 		ASSERT(res == 0);
 #else
-		auto time = __daylight;
+		auto time = daylight;
 #endif
 		return static_cast<int32_t>(inHours ? time : time * 3600);
 	}
@@ -308,11 +327,60 @@ namespace string {
 		return static_cast<size_t>(count);
 	}
 
-	bool cstring_equal(const char* a, const char* b, size_t a_offset, size_t b_offset, size_t maxCount) {
+	uint32_t string_id(std::string_view string) {
+		std::hash<std::string_view> hasher;
+		auto id = hasher(string);
+		return static_cast<uint32_t>(id);
+	}
+
+	std::string encode_html(const std::string& input) {
+		std::string output;
+		for (auto it : input) {
+			if (it == ' ') {
+				output += "%20";
+			}
+			else if (it == ',') {
+				output += "%2C";
+			}
+			else if (it == '.') {
+				output += "%2E";
+			}
+			else if (it == ':') {
+				output += "%3A";
+			}
+			else if (it == '/') {
+				output += "%2F";
+			}
+			else if (it == '?') {
+				output += "%3F";
+			}
+			else if (it == '=') {
+				output += "%3D";
+			}
+			else if (it == '&') {
+				output += "%26";
+			}
+			else if (it == '+') {
+				output += "%2B";
+			}
+			else if (it == '\r') {
+				output += "%0D";
+			}
+			else if (it == '\n') {
+				output += "%0A";
+			}
+			else {
+				output += it;
+			}
+		}
+		return output;
+	}
+
+	bool equal(const char* a, const char* b, size_t a_offset, size_t b_offset, size_t maxCount) {
 		return !strncmp(a + a_offset, b + b_offset, maxCount);
 	}
 
-	bool partial_equality(const char* a, const char* b, size_t a_offset, size_t b_offset, size_t maxCount) {
+	bool equal_partial(const char* a, const char* b, size_t a_offset, size_t b_offset, size_t maxCount) {
 		for (size_t i = 0; i < a_offset && i < maxCount; i++) { // check for missed null terminators before a_offset
 			if (a[i] == 0) {
 				return false;
@@ -338,7 +406,7 @@ namespace string {
 		return true;
 	}
 
-	bool partial_equality(std::string_view a, std::string_view b, size_t a_offset, size_t b_offset) {
+	bool equal_partial(std::string_view a, std::string_view b, size_t a_offset, size_t b_offset) {
 		size_t i = 0;
 		for (i = 0; (i < a.size() - a_offset) && (i < b.size() - b_offset); i++) {
 			if (a.data()[i + a_offset] != b.data()[i + b_offset]) {
@@ -399,6 +467,7 @@ namespace string {
 			if (*it == escapeChar) {
 				insert(&*start, it - start);
 				start = it + 1;
+
 				escape = !escape;
 			}
 			else if(!escape){

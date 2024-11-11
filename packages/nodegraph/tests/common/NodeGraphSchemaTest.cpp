@@ -8,7 +8,6 @@ using namespace l;
 using namespace l::nodegraph;
 
 TEST(NodeGraph, BasicFunction) {
-
 	NodeGraph<GraphNumericAdd> node;
 
 	float in2 = 2.3f;
@@ -23,7 +22,6 @@ TEST(NodeGraph, BasicFunction) {
 }
 
 TEST(NodeGraph, SimpleAddNetwork) {
-
 	NodeGraph<GraphNumericAdd> node1;
 	NodeGraph<GraphNumericAdd> node2;
 	NodeGraph<GraphNumericAdd> nodeFinal;
@@ -115,7 +113,6 @@ TEST(NodeGraph, FilterLowpass) {
 }
 
 TEST(NodeGraph, GraphGroups) {
-
 	NodeGraphGroup group;
 
 	float cutoff = 0.8f;
@@ -132,8 +129,8 @@ TEST(NodeGraph, GraphGroups) {
 		group.SetInput(2, &input1);
 		group.SetInput(3, &input2);
 
-		auto nodeLowpass1 = group.NewNode<GraphFilterLowpass>(OutputType::Default);
-		auto nodeLowpass2 = group.NewNode<GraphFilterLowpass>(OutputType::Default);
+		auto nodeLowpass1 = group.NewNode<GraphFilterLowpass>(NodeType::Default);
+		auto nodeLowpass2 = group.NewNode<GraphFilterLowpass>(NodeType::Default);
 
 		// left, right
 		nodeLowpass1->SetInput(1, group, 2);
@@ -159,7 +156,7 @@ TEST(NodeGraph, GraphGroups) {
 		group2.SetInput(0, group, 0);
 		group2.SetInput(1, group, 1);
 
-		auto copyNode = group2.NewNode<GraphDataCopy>(OutputType::Default, 2);
+		auto copyNode = group2.NewNode<GraphDataCopy>(NodeType::Default, 2);
 		copyNode->SetInput(0, group2, 0);
 		copyNode->SetInput(1, group2, 1);
 
@@ -180,7 +177,6 @@ TEST(NodeGraph, GraphGroups) {
 }
 
 TEST(NodeGraph, SchemaAllNodes) {
-
 	NodeGraphSchema ng;
 
 	std::vector<int32_t> nodeIds;
@@ -203,7 +199,6 @@ TEST(NodeGraph, SchemaAllNodes) {
 	for (auto nodeId : nodeIds) {
 		TEST_TRUE(ng.RemoveNode(nodeId), "");
 	}
-
 
 	return 0;
 }

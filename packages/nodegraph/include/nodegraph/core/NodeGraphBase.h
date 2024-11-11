@@ -1,6 +1,7 @@
 #pragma once
 
 #include "logging/LoggingAll.h"
+#include "meta/Reflection.h"
 
 #include <string>
 #include <vector>
@@ -26,13 +27,47 @@ namespace l::nodegraph {
     /**********************************************************************************/
     class NodeGraphBase {
     public:
-        NodeGraphBase(OutputType outputType) : mId(CreateUniqueId()), mOutputType(outputType) {
-        }
+        NodeGraphBase(NodeType outputType) : 
+            mId(CreateUniqueId()), 
+            mOutputType(outputType),
+			mOperationTypeHash(l::meta::class_hash<NodeGraphBase>())
+        {}
+
         virtual ~NodeGraphBase() {
             LOG(LogInfo) << "Node graph base destroyed";
         }
 
+        NodeGraphBase& operator=(NodeGraphBase&& other) noexcept {
+            this->mId = other.mId;
+            //this->mInputs = std::move(other.mInputs);
+            //this->mOutputs = std::move(other.mOutputs);
+            this->mName = std::move(other.mName);
+            this->mLastTickCount = other.mLastTickCount;
+            this->mOutputType = other.mOutputType;
+            this->mProcessUpdateHasRun = other.mProcessUpdateHasRun;
+            this->mOperationTypeHash = other.mOperationTypeHash;
+            return *this;
+        }
+        NodeGraphBase& operator=(const NodeGraphBase& other) noexcept {
+            this->mId = other.mId;
+            //this->mInputs = std::move(other.mInputs);
+            //this->mOutputs = std::move(other.mOutputs);
+            this->mName = std::move(other.mName);
+            this->mLastTickCount = other.mLastTickCount;
+            this->mOutputType = other.mOutputType;
+            this->mProcessUpdateHasRun = other.mProcessUpdateHasRun;
+            this->mOperationTypeHash = other.mOperationTypeHash;
+            return *this;
+        }
+        NodeGraphBase(NodeGraphBase&& other) noexcept {
+            *this = std::move(other);
+        }
+        NodeGraphBase(const NodeGraphBase& other) noexcept {
+            *this = other;
+        }
+
         virtual void Reset();
+        virtual void DefaultDataInit() {};
         virtual void SetId(int32_t id) { mId = id; }
         virtual int32_t GetId() const { return mId; }
 
@@ -73,7 +108,12 @@ namespace l::nodegraph {
         virtual bool IsDataEditable(int8_t num);
         virtual bool IsOutputPolled(int8_t outputChannel);
 
-        virtual OutputType GetOutputType();
+        virtual NodeType GetOutputType();
+
+        template<class T>
+		bool IsOfOperation() {
+			return l::meta::class_hash<T>() == mOperationTypeHash;
+		}
 
     protected:
         virtual void SetNumInputs(int8_t numInputs);
@@ -87,9 +127,10 @@ namespace l::nodegraph {
         std::vector<NodeGraphOutput> mOutputs;
 
         int32_t mId = -1;
-        OutputType mOutputType;
+        NodeType mOutputType;
 
         std::string mName;
+        size_t mOperationTypeHash;
     };
 
     /**********************************************************************************/
@@ -104,7 +145,8 @@ namespace l::nodegraph {
             LOG(LogInfo) << "Node operation destroyed";
         }
 
-        virtual void Reset();
+        virtual void DefaultDataInit();
+        virtual void Reset() {};
         virtual void Process(int32_t, std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
         virtual void Tick(int32_t, float) {}
 
@@ -141,14 +183,16 @@ namespace l::nodegraph {
     template<class T, class... Params>
     class NodeGraph : public NodeGraphBase {
     public:
-        NodeGraph(OutputType outputType = OutputType::Default, Params&&... params) :
+        NodeGraph(NodeType outputType = NodeType::Default, Params&&... params) :
             NodeGraphBase(outputType),
             mOperation(this, std::forward<Params>(params)...)
         {
+            mOperationTypeHash = l::meta::class_hash<T>();
+
             SetNumInputs(mOperation.GetNumInputs());
             SetNumOutputs(mOperation.GetNumOutputs());
 
-            Reset();
+            DefaultDataInit();
         }
         virtual ~NodeGraph() {
             LOG(LogInfo) << "Node destroyed";
@@ -164,6 +208,11 @@ namespace l::nodegraph {
 
         virtual bool IsDataEditable(int8_t num) override {
             return mOperation.IsDataEditable(num);
+        }
+
+        virtual void DefaultDataInit() override {
+            NodeGraphBase::DefaultDataInit();
+            mOperation.DefaultDataInit();
         }
 
         virtual void Reset() override {
@@ -253,7 +302,7 @@ namespace l::nodegraph {
             mInputManager(*this) {
 
         }
-        ~NodeGraphOp2() {
+        virtual ~NodeGraphOp2() {
 
         }
 

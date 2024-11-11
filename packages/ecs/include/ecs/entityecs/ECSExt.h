@@ -1,5 +1,17 @@
 #pragma once
 
+#include <functional>
+#include <tuple>
+#include <typeinfo>
+#include <vector>
+#include <map>
+#include <unordered_map>
+#include <type_traits>
+#include <memory>
+#include <sstream>
+#include <algorithm>
+#include <iostream>
+
 struct TickData {
 	float elapsedTime;
 	float deltaTime;
@@ -9,16 +21,28 @@ struct TickData {
 #define ECS_TICK_TYPE TickData
 #endif
 
+template<class T>
+class DefaultAllocator : public std::allocator<T> {
+public:
+	DefaultAllocator() noexcept {}
+	DefaultAllocator(const DefaultAllocator& other) noexcept : std::allocator<T>(other) {}
+	template<class U>
+	DefaultAllocator(const DefaultAllocator<U>& other) noexcept : std::allocator<T>(other) {}
+	~DefaultAllocator() {}
+
+	void deallocate(T* const ptr, const size_t count) {
+		std::allocator<T>::deallocate(ptr, count);
+	}
+
+	T* allocate(const size_t count) {
+		return std::allocator<T>::allocate(count);
+	}
+};
+
+#define ECS_ALLOCATOR_TYPE DefaultAllocator<l::ecs::Entity>
+
 #include "ECS.h"
 #include "logging/LoggingAll.h"
-
-#include <functional>
-#include <tuple>
-#include <typeinfo>
-#include <vector>
-#include <map>
-#include <unordered_map>
-#include <type_traits>
 
 namespace l::ecs {
 
@@ -158,17 +182,62 @@ namespace l::ecs {
 		}
 
 		virtual void receive(World*, const Events::OnComponentAssigned2& event) {
-			tryAdd(event.entity);
+			if (tryAdd(event.entity)) {
+				for (auto& listener : mEventListenersAssign) {
+					listener.second(event);
+				}
+			}
 		}
 
 		virtual void receive(World*, const Events::OnComponentRemoved2& event) {
-			tryRemove(event.entity);
+			if (tryRemove(event.entity)) {
+				for (auto& listener : mEventListenersRemove) {
+					listener.second(event);
+				}
+			}
 		}
 
+		template<class T>
+		int32_t registerListener(std::function<void(const T&)> listener) {
+			if constexpr (std::is_same_v<T, Events::OnComponentAssigned2>){
+				mEventListenersAssign.push_back({ mIdEnumerator, listener });
+			}
+			else if constexpr (std::is_same_v<T, Events::OnComponentRemoved2>){
+				mEventListenersRemove.push_back({ mIdEnumerator, listener });
+			}
+			else {
+				return -1;
+			}
+			return mIdEnumerator++;
+		}
+
+		template<class T>
+		void unregisterListener(int32_t id) {
+			if constexpr (std::is_same_v<T, Events::OnComponentAssigned2>){
+				std::erase_if(mEventListenersAssign, [cid = id](auto& listener) {
+					if (listener.first == cid) {
+						return true;
+					}
+					return false;
+					});
+			}
+			else if constexpr (std::is_same_v<T, Events::OnComponentRemoved2>){
+				std::erase_if(mEventListenersRemove, [cid = id](auto& listener) {
+					if (listener.first == cid) {
+						return true;
+					}
+					return false;
+					});
+			}
+		}
 	protected:
 
 		std::vector<std::tuple<Entity*, ComponentHandle<Types>...>> mComponents;
 		std::map<Entity*, std::tuple<ComponentHandle<Types>...>> mComponentMap;
+
+		int32_t mIdEnumerator = 0;
+		std::vector<std::pair<int32_t, std::function<void(const Events::OnComponentAssigned2&)>>> mEventListenersAssign;
+		std::vector<std::pair<int32_t, std::function<void(const Events::OnComponentRemoved2&)>>> mEventListenersRemove;
 	};
 
 	class EntitySystem2 : public l::ecs::EntitySystem

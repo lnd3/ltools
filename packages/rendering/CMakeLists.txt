@@ -9,9 +9,10 @@ set(deps
 
 	testing
 	memory
+	math
 	audio
-	nodegraph
 	hid
+	nodegraph
 
 	filesystem
 	tools

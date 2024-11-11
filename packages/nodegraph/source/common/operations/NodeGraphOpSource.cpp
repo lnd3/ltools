@@ -12,12 +12,12 @@ namespace l::nodegraph {
     /* Mathematical operations */
 
     /*********************************************************************/
-    void GraphSourceConstants::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        auto input0 = inputs.at(0).GetIterator(numSamples);
-        auto output0 = outputs.at(0).GetIterator(numSamples);
+    void GraphSourceConstants::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        auto input0 = inputs.at(0).GetIterator(1);
+        auto output0 = outputs.at(0).GetIterator(1);
 
         for (int8_t i = 0; i < mNumOutputs; i++) {
-            *output0++ = *input0++;
+            *output0 = *input0;
         }
     }
 

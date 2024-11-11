@@ -83,8 +83,8 @@ public:
         auto out0 = outputs.at(0).GetIterator(numSamples, 4.0f);
         auto out1 = outputs.at(1).GetIterator(numSamples, 4.0f);
 
-        mInputManager.SetDuration(0, 24.0f, 0.1);
-        mInputManager.SetDuration(1, 0.5f, 0.1);
+        mInputManager.SetDuration(0, 24.0f, 0.1f);
+        mInputManager.SetDuration(1, 0.5f, 0.1f);
 
         for (int i = 0; i < numSamples; i++) {
             float value0 = mInputManager.GetValueNext(0);

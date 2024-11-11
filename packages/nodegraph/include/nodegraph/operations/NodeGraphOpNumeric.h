@@ -30,7 +30,7 @@ namespace l::nodegraph {
         {
             AddInput("In 1");
             AddInput("In 2");
-            AddInput("Lod", 0.0f, 1, 0.0f, 8.0f);
+            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
             AddOutput("Out");
         }
         virtual ~GraphNumericAdd() = default;
@@ -38,7 +38,7 @@ namespace l::nodegraph {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto input1 = inputs.at(1).GetIterator(numSamples);
             auto lodExp = inputs.at(2).Get();
-            auto lodFactor = l::math::functions::pow(2.0f, l::math::functions::round(lodExp));
+            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
             auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
 
             for (int32_t i = 0; i < numSamples; i++) {
@@ -55,7 +55,7 @@ namespace l::nodegraph {
         {
             AddInput("In 1");
             AddInput("In 2");
-            AddInput("Lod", 0.0f, 1, 0.0f, 8.0f);
+            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
             AddOutput("Out");
         }
 
@@ -64,7 +64,7 @@ namespace l::nodegraph {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto input1 = inputs.at(1).GetIterator(numSamples);
             auto lodExp = inputs.at(2).Get();
-            auto lodFactor = l::math::functions::pow(2.0f, l::math::functions::round(lodExp));
+            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
             auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
 
             for (int32_t i = 0; i < numSamples; i++) {
@@ -81,7 +81,7 @@ namespace l::nodegraph {
         {
             AddInput("In 1");
             AddInput("In 2");
-            AddInput("Lod", 0.0f, 1, 0.0f, 8.0f);
+            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
             AddOutput("Out");
         }
         virtual ~GraphNumericSubtract() = default;
@@ -89,7 +89,7 @@ namespace l::nodegraph {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto input1 = inputs.at(1).GetIterator(numSamples);
             auto lodExp = inputs.at(2).Get();
-            auto lodFactor = l::math::functions::pow(2.0f, l::math::functions::round(lodExp));
+            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
             auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
 
             for (int32_t i = 0; i < numSamples; i++) {
@@ -105,7 +105,7 @@ namespace l::nodegraph {
             NodeGraphOp(node, "Negate")
         {
             AddInput("In");
-            AddInput("Lod", 0.0f, 1, 0.0f, 8.0f);
+            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
             AddOutput("Out");
         }
 
@@ -113,7 +113,7 @@ namespace l::nodegraph {
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto lodExp = inputs.at(1).Get();
-            auto lodFactor = l::math::functions::pow(2.0f, l::math::functions::round(lodExp));
+            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
             auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
 
             for (int32_t i = 0; i < numSamples; i++) {
@@ -129,7 +129,7 @@ namespace l::nodegraph {
             NodeGraphOp(node, "Integral")
         {
             AddInput("In", 0.0f, 1);
-            AddInput("Lod", 0.0f, 1, 0.0f, 8.0f);
+            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
             AddOutput("Out", 0.0f, 1);
         }
 
@@ -137,7 +137,7 @@ namespace l::nodegraph {
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto lodExp = inputs.at(1).Get();
-            auto lodFactor = l::math::functions::pow(2.0f, l::math::functions::round(lodExp));
+            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
             auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
 
             for (int32_t i = 0; i < numSamples; i++) {
@@ -145,6 +145,9 @@ namespace l::nodegraph {
                 *output++ = mOutput;
             }
         }
+		virtual void Reset() override {
+			mOutput = 0.0f;
+		}
     protected:
         float mOutput = 0.0f;
     };
@@ -158,7 +161,7 @@ namespace l::nodegraph {
             AddInput("In 1");
             AddInput("In 2");
             AddInput("In 3");
-            AddInput("Lod", 0.0f, 1, 0.0f, 8.0f);
+            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
             AddOutput("Out");
         }
 
@@ -168,7 +171,7 @@ namespace l::nodegraph {
             auto input1 = inputs.at(1).GetIterator(numSamples);
             auto input2 = inputs.at(2).GetIterator(numSamples);
             auto lodExp = inputs.at(3).Get();
-            auto lodFactor = l::math::functions::pow(2.0f, l::math::functions::round(lodExp));
+            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
             auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
 
             for (int32_t i = 0; i < numSamples; i++) {
@@ -186,7 +189,7 @@ namespace l::nodegraph {
             AddInput("In 1");
             AddInput("In 2");
             AddInput("In 3");
-            AddInput("Lod", 0.0f, 1, 0.0f, 8.0f);
+            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
             AddOutput("Out");
         }
 
@@ -196,7 +199,7 @@ namespace l::nodegraph {
             auto input1 = inputs.at(1).GetIterator(numSamples);
             auto input2 = inputs.at(2).GetIterator(numSamples);
             auto lodExp = inputs.at(3).Get();
-            auto lodFactor = l::math::functions::pow(2.0f, l::math::functions::round(lodExp));
+            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
             auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
 
             for (int32_t i = 0; i < numSamples; i++) {
@@ -212,23 +215,95 @@ namespace l::nodegraph {
             NodeGraphOp(node, "Round")
         {
             AddInput("In");
-            AddInput("Lod", 0.0f, 1, 0.0f, 8.0f);
+            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
             AddOutput("Out");
         }
 
         virtual ~GraphNumericRound() = default;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            outputs.at(0).mOutput = l::math::functions::round(inputs.at(0).Get());
+            outputs.at(0).mOutput = l::math::round(inputs.at(0).Get());
 
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto lodExp = inputs.at(1).Get();
-            auto lodFactor = l::math::functions::pow(2.0f, l::math::functions::round(lodExp));
+            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
             auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
 
             for (int32_t i = 0; i < numSamples; i++) {
-                *output++ = l::math::functions::round(*input0++);
+                *output++ = l::math::round(*input0++);
             }
         }
+    };
+
+    /*********************************************************************/
+    class GraphNumericDerivate : public NodeGraphOp {
+    public:
+        GraphNumericDerivate(NodeGraphBase* node) :
+            NodeGraphOp(node, "Derivate")
+        {
+            AddInput("In", 0.0f, 1);
+            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
+            AddOutput("Out", 0.0f, 1);
+        }
+
+        virtual ~GraphNumericDerivate() = default;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+            auto input0 = inputs.at(0).GetIterator(numSamples);
+            auto lodExp = inputs.at(1).Get();
+            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
+            auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
+
+            for (int32_t i = 0; i < numSamples; i++) {
+                float input = *input0++;
+                float value = input - mInputPrev;
+                value = value / (l::math::abs(input) + l::math::abs(mInputPrev));
+                mInputPrev = input;
+                *output++ = value;
+            }
+        }
+    protected:
+        float mInputPrev = 0.0f;
+    };
+
+    /*********************************************************************/
+    class GraphNumericChange : public NodeGraphOp {
+    public:
+        GraphNumericChange(NodeGraphBase* node) :
+            NodeGraphOp(node, "Change")
+        {
+            AddInput("In", 0.0f, 1);
+            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
+            AddOutput("Out", 0.0f, 1);
+        }
+
+        virtual ~GraphNumericChange() = default;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+            auto input0 = inputs.at(0).GetIterator(numSamples);
+            auto lodExp = inputs.at(1).Get();
+            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
+            auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
+
+            for (int32_t i = 0; i < numSamples; i++) {
+                float input = *input0++;
+                float value = mInputPrev;
+                if (mInputPrev != 0.0f) {
+                    if (input > 0.0f && mInputPrev > 0.0f) {
+                        value = input / mInputPrev;
+                        value = value - 1.0f;
+                    }
+                    else if (input < 0.0f && mInputPrev < 0.0f) {
+                        value = input / mInputPrev;
+                        value = (value - 1.0f);
+                    }
+                    else {
+                        value = 0.0f;
+                    }
+                }
+                mInputPrev = input;
+                *output++ = value;
+            }
+        }
+    protected:
+        float mInputPrev = 0.0f;
     };
 
 }

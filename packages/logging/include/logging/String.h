@@ -8,9 +8,50 @@
 #include <vector>
 #include <string_view>
 #include <string>
+#include <memory>
 
 namespace l {
 namespace string {
+
+	class stackstringview {
+	public:
+		stackstringview() = default;
+		~stackstringview() = default;
+
+		std::string_view view() {
+			return std::string_view(mBufPtr, mSize);
+		}
+	protected:
+		size_t mSize = 0;
+		char* mBufPtr = nullptr;
+	};
+
+	template<size_t SIZE>
+	class stackstring : stackstringview {
+	public:
+		stackstring() {
+			mSize = SIZE - 1u;
+			mBufPtr = &mBuf[0];
+			memset(mBufPtr, 0, SIZE);
+		}
+		~stackstring() = default;
+
+		stackstring(const stackstring& other) : stackstring() {
+			auto size = other.mSize <= mSize ? other.mSize : mSize;
+			memcpy(mBufPtr, &other.mBufPtr, size);
+			mBuf[size] = 0;
+		}
+		stackstring& operator=(const stackstring& other) {
+			auto size = other.mSize <= mSize ? other.mSize : mSize;
+			memcpy(mBufPtr, other.mBufPtr, size);
+			mBuf[size] = 0;
+			return *this;
+		}
+	protected:
+		char mBuf[SIZE];
+	};
+
+	void init_timezone();
 	int32_t get_local_timezone();
 	int32_t get_local_daylight_savings(bool inHours = false);
 
@@ -38,7 +79,10 @@ namespace string {
 	std::string get_local_time_string(const int32_t unixtime, std::string_view format = "%Y-%m-%d %X");
 
 	size_t get_local_time_string_verbose(char* buf, size_t maxSize);
-		
+	
+	uint32_t string_id(std::string_view string);
+
+	std::string encode_html(const std::string& input);
 
 	template<class T>
 	T get_number(std::string_view number) {
@@ -58,9 +102,9 @@ namespace string {
 		}
 	}
 
-	bool cstring_equal(const char* a, const char* b, size_t a_offset = 0, size_t b_offset = 0, size_t maxCount = 20);
-	bool partial_equality(const char* a, const char* b, size_t a_offset = 0, size_t b_offset = 0, size_t maxCount = 20);
-	bool partial_equality(std::string_view a, std::string_view b, size_t a_offset = 0, size_t b_offset = 0);
+	bool equal(const char* a, const char* b, size_t a_offset = 0, size_t b_offset = 0, size_t maxCount = 20);
+	bool equal_partial(const char* a, const char* b, size_t a_offset = 0, size_t b_offset = 0, size_t maxCount = 20);
+	bool equal_partial(std::string_view a, std::string_view b, size_t a_offset = 0, size_t b_offset = 0);
 
 	std::vector<std::wstring_view> split(std::wstring_view text, std::wstring_view delim = L" \t\n", char escapeChar = '\"');
 	std::vector<std::string_view> split(std::string_view text, std::string_view delim = " \t\n", char escapeChar = '\"');
@@ -154,3 +198,4 @@ namespace string {
 	std::wstring_view rcut(std::wstring_view s, const wchar_t ch);
 }
 }
+
