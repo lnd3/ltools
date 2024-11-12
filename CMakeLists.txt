@@ -21,6 +21,7 @@ else()
 		logging
 
 		testing
+		crypto
 		meta
 		memory
 		serialization
