@@ -1,115 +1,29 @@
 #pragma once
 
-#include <math.h>
 #include <string>
-#include <map>
-#include <chrono>
 
-#include "logging/Log.h"
-#include "logging/Static.h"
-#include "logging/Macro.h"
+#include "logging/LoggingAll.h"
+#include "ed25519/src/ed25519.h"
 
-#include "testing/Timer.h"
+namespace l::crypto {
+	// example
+	//"apiKey": "T59MTDLWlpRW16JVeZ2Nju5A5C98WkMm8CSzWC4oqynUlTm1zXOxyauT8LmwXEv9",
+	//"signature" : "5942ad337e6779f2f4c62cd1c26dba71c91514400a24990a3e7f5edec9323f90"
+	class Crypto {
+	public:
+		bool Init();
+		std::string Sign(std::string_view message, std::string_view pubKey, std::string_view priKey) {
+			if (pubKey.size() != 64 && priKey.size() != 64) {
+				return "";
+			}
 
-namespace l {
-namespace testing {
-    int add_test(const std::string& groupName, const std::string& testName, std::function<int(void)> f);
-    int add_perf(const std::string& groupName, const std::string& perfName, std::function<int(void)> f);
+			auto messagePtr = reinterpret_cast<const unsigned char*>(message.data());
+			ed25519_sign(mSign, messagePtr, message.size(), reinterpret_cast<const unsigned char*>(pubKey.data()), reinterpret_cast<const unsigned char*>(priKey.data()));
+			return std::string(&mSign[0], 64);
+		}
+	protected:
+		unsigned char mSeed[32];
+		unsigned char mSign[64];
+	};
 
-    bool run_tests(const char* app);
-    bool run_perfs(const char* app);
 }
-}
-
-#define ADDTEST(testgroup, testname, function) static int UNIQUE(block) = l::testing::add_test(testgroup, testname, function); \
-
-#define TESTNAME(group, name) CONCATE(Test, CONCATE(group, name)) \
-
-#define TEST(testgroup, testname) \
-	int TESTNAME(testgroup, testname)(); \
-	ADDTEST(STRINGIFY(testgroup), STRINGIFY(testname), TESTNAME(testgroup, testname)) \
-	int TESTNAME(testgroup, testname)() \
-
-
-
-#define ADDPERF(perfgroup, perfname, function) static int UNIQUE(block) = l::testing::add_perf(perfgroup, perfname, function); \
-
-#define PERFNAME(group, name) CONCATE(Perf, CONCATE(group, name)) \
-
-#define PERFNAMEWRAPPER(group, name) CONCATE(Perf, CONCATE(group, CONCATE(name, Wrapper))) \
-
-#define PERF_TEST(perfgroup, perfname) \
-	int PERFNAME(perfgroup, perfname)(); \
-	int PERFNAMEWRAPPER(perfgroup, perfname)() {l::testing::get_current_test_group()=#perfgroup;return PERFNAME(perfgroup, perfname)();} \
-	ADDPERF(STRINGIFY(perfgroup), STRINGIFY(perfname), PERFNAMEWRAPPER(perfgroup, perfname)) \
-	int PERFNAME(perfgroup, perfname)() \
-
-#ifndef _DEBUG
-#define TEST_TRUE(expr, msg) \
-    if (!(expr)) { LOG(LogError) << msg; LOG(LogTest) << "Test failed"; return 1;} \
-
-#define TEST_FALSE(expr, msg) \
-    if (!!(expr)) { LOG(LogError) << msg; LOG(LogTest) << "Test failed"; return 1;} \
-
-#define TEST_EQ(expr1, expr2, msg) \
-    if (expr1 != expr2) { LOG(LogError) << msg; LOG(LogTest) << "Test failed"; return 1;} \
-
-#define TEST_FUZZY(expr1, expr2, tolerance, msg) \
-    if (sqrt((expr1 - expr2)*(expr1 - expr2)) > tolerance) { LOG(LogError) << "TEST_FUZZY(" << std::to_string(expr1) << ", " << std::to_string(expr2) << ")" << msg; LOG(LogTest) << "Test failed: "; return 1;} \
-
-#define TEST_FUZZY2(expr1, expr2, msg) \
-    if (sqrt((expr1 - expr2)*(expr1 - expr2)) > 0.000000001) { LOG(LogError) << "TEST_FUZZY(" << std::to_string(expr1) << ", " << std::to_string(expr2) << ")" << msg; LOG(LogTest) << "Test failed: "; return 1;} \
-
-#define TEST_TRUE_NO_RET(expr, msg) \
-    if (!(expr)) { LOG(LogError) << msg; LOG(LogTest) << "Test failed";} \
-
-#define TEST_FALSE_NO_RET(expr, msg) \
-    if (!!(expr)) { LOG(LogError) << msg; LOG(LogTest) << "Test failed";} \
-
-#define TEST_EQ_NO_RET(expr1, expr2, msg) \
-    if (expr1 != expr2) { LOG(LogError) << msg; LOG(LogTest) << "Test failed";} \
-
-#define TEST_FUZZY_NO_RET(expr1, expr2, tolerance, msg) \
-    if (sqrt((expr1 - expr2)*(expr1 - expr2)) > tolerance) { LOG(LogError) << "TEST_FUZZY(" << std::to_string(expr1) << ", " << std::to_string(expr2) << ")" << msg; LOG(LogTest) << "Test failed: ";} \
-
-#define TEST_FUZZY2_NO_RET(expr1, expr2, msg) \
-    if (sqrt((expr1 - expr2)*(expr1 - expr2)) > 0.000000001) { LOG(LogError) << "TEST_FUZZY(" << std::to_string(expr1) << ", " << std::to_string(expr2) << ")" << msg; LOG(LogTest) << "Test failed: ";} \
-
-
-#else
-#define TEST_TRUE(expr, msg) \
-    if (!(expr)) { LOG(LogError) << "TEST_TRUE(" << std::to_string(expr) << ") " << msg; LOG(LogTest) << "Test failed"; DEBUG_BREAK;return 1;} \
-
-#define TEST_FALSE(expr, msg) \
-    if (!!(expr)) { LOG(LogError) << "TEST_FALSE(" << std::to_string(expr) << ") " << msg; LOG(LogTest) << "Test failed"; DEBUG_BREAK;return 1;} \
-
-#define TEST_EQ(expr1, expr2, msg) \
-    if (expr1 != expr2) { LOG(LogError) << "TEST_EQ(" << std::to_string(expr1) << ", " << std::to_string(expr2) << ") " << msg; LOG(LogTest) << "Test failed"; DEBUG_BREAK;return 1;} \
-
-#define TEST_FUZZY(expr1, expr2, tolerance, msg) \
-    if (sqrt((expr1 - expr2)*(expr1 - expr2)) > tolerance) { LOG(LogError) << "TEST_FUZZY(" << std::to_string(expr1) << ", " << std::to_string(expr2) << ") " << msg; LOG(LogTest) << "Test failed: "; DEBUG_BREAK;return 1;} \
-
-#define TEST_FUZZY2(expr1, expr2, msg) \
-    if (sqrt((expr1 - expr2)*(expr1 - expr2)) > 0.000000001) { LOG(LogError) << "TEST_FUZZY(" << std::to_string(expr1) << ", " << std::to_string(expr2) << ") " << msg; LOG(LogTest) << "Test failed: "; DEBUG_BREAK;return 1;} \
-
-#define TEST_TRUE_NO_RET(expr, msg) \
-    if (!(expr)) { LOG(LogError) << "TEST_TRUE(" << std::to_string(expr) << ") " << msg; LOG(LogTest) << "Test failed"; DEBUG_BREAK;} \
-
-#define TEST_FALSE_NO_RET(expr, msg) \
-    if (!!(expr)) { LOG(LogError) << "TEST_FALSE(" << std::to_string(expr) << ") " << msg; LOG(LogTest) << "Test failed"; DEBUG_BREAK;} \
-
-#define TEST_EQ_NO_RET(expr1, expr2, msg) \
-    if (expr1 != expr2) { LOG(LogError) << "TEST_EQ(" << std::to_string(expr1) << ", " << std::to_string(expr2) << ") " << msg; LOG(LogTest) << "Test failed"; DEBUG_BREAK;} \
-
-#define TEST_FUZZY_NO_RET(expr1, expr2, tolerance, msg) \
-    if (sqrt((expr1 - expr2)*(expr1 - expr2)) > tolerance) { LOG(LogError) << "TEST_FUZZY(" << std::to_string(expr1) << ", " << std::to_string(expr2) << ") " << msg; LOG(LogTest) << "Test failed: "; DEBUG_BREAK;} \
-
-#define TEST_FUZZY2_NO_RET(expr1, expr2, msg) \
-    if (sqrt((expr1 - expr2)*(expr1 - expr2)) > 0.000000001) { LOG(LogError) << "TEST_FUZZY(" << std::to_string(expr1) << ", " << std::to_string(expr2) << ") " << msg; LOG(LogTest) << "Test failed: "; DEBUG_BREAK;} \
-
-
-#endif
-
-#define TEST_RUN(app) \
-	if (!l::testing::run_tests(app)) { LOG(LogTest) << "Test run failed"; return 1;} \
-	if (!l::testing::run_perfs(app)) { LOG(LogTest) << "Perf run failed"; return 1;}
