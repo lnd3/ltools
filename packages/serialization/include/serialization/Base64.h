@@ -8,6 +8,6 @@
 #include "logging/String.h"
 
 namespace l::serialization {
-	std::string base64_encode(const std::string& in);
-	std::string base64_decode(const std::string& in);
+	std::string base64_encode(std::string_view in);
+	std::string base64_decode(std::string_view in);
 }

@@ -1,5 +1,7 @@
 #include "crypto/Crypto.h"
 
+#include "serialization/Base64.h"
+
 namespace l::crypto {
 
 	bool CryptoED25519::Init() {
@@ -17,8 +19,24 @@ namespace l::crypto {
 		return result;
 	}
 
-	void CryptoED25519::CreateKeys() {
-		ed25519_create_keypair(mPubKey, mPriKey, mSeed);
+	void CryptoED25519::CreateKeys(std::string_view pubKeyBase64, std::string_view priKeyBase64) {
+		if (pubKeyBase64.empty() && priKeyBase64.empty()) {
+			ed25519_create_keypair(mPubKey, mPriKey, mSeed);
+		}
+		else {
+			if (!pubKeyBase64.empty()) {
+				auto pubKey = l::serialization::base64_decode(pubKeyBase64);
+				if (pubKey.size() == 32) {
+					memcpy(mPubKey, pubKey.c_str(), pubKey.size());
+				}
+			}
+			if (!priKeyBase64.empty()) {
+				auto priKey = l::serialization::base64_decode(priKeyBase64);
+				if (priKey.size() == 64) {
+					memcpy(mPriKey, priKey.c_str(), priKey.size());
+				}
+			}
+		}
 	}
 
 	std::string_view CryptoED25519::Sign(std::string_view message) {
@@ -27,8 +45,14 @@ namespace l::crypto {
 		return std::string_view(reinterpret_cast<const char*>(mSign), 64);
 	}
 
-	std::string_view CryptoED25519::GetPublicKey() {
-		return std::string_view(reinterpret_cast<const char*>(mPubKey), 32);
+	std::string CryptoED25519::GetPriKeyBase64() {
+		auto priKey = std::string_view(reinterpret_cast<const char*>(mPriKey), 64);
+		return l::serialization::base64_encode(priKey);
+	}
+
+	std::string CryptoED25519::GetPubKeyBase64() {
+		auto pubKey = std::string_view(reinterpret_cast<const char*>(mPubKey), 32);
+		return l::serialization::base64_encode(pubKey);
 	}
 
 	bool CryptoED25519::Verify(std::string_view signature, std::string_view message, std::string_view publicKey) {

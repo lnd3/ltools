@@ -15,9 +15,10 @@ namespace l::crypto {
 		~CryptoED25519() = default;
 
 		bool Init();
-		void CreateKeys();
+		void CreateKeys(std::string_view pubKeyBase64 = "", std::string_view priKeyBase64 = "");
 		std::string_view Sign(std::string_view message);
-		std::string_view GetPublicKey();
+		std::string GetPriKeyBase64();
+		std::string GetPubKeyBase64();
 		bool Verify(std::string_view signature, std::string_view message, std::string_view publicKey = "");
 	protected:
 		unsigned char mPubKey[32];

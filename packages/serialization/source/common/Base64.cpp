@@ -7,7 +7,7 @@
 #include <sstream>
 
 namespace l::serialization {
-	std::string base64_encode(const std::string& in) {
+	std::string base64_encode(std::string_view in) {
 		std::string out;
 
 		int val = 0, valb = -6;
@@ -28,7 +28,7 @@ namespace l::serialization {
 		return out;
 	}
 
-	std::string base64_decode(const std::string& in) {
+	std::string base64_decode(std::string_view in) {
 		std::string out;
 
 		std::vector<int> T(256, -1);
