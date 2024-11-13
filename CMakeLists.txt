@@ -21,10 +21,10 @@ else()
 		logging
 
 		testing
-		crypto
 		meta
 		memory
 		serialization
+		crypto
 		math
 		audio
 		hid
