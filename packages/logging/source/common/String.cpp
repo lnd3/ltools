@@ -557,5 +557,28 @@ namespace string {
 		return s;
 	}
 
+	std::string to_hex2(unsigned char* buf, size_t hex_len) {
+		static const char* digits = "0123456789abcdef";
+		std::string rc(hex_len * 2, '0');
+		for (size_t i = 0; i < hex_len * 2; i += 2) {
+			rc[i + 0] = digits[(*buf >> 4) & 0x0f];
+			rc[i + 1] = digits[(*buf) & 0x0f];
+			buf++;
+		}
+		return rc;
+	}
+
+	std::string to_hex2(std::string_view str) {
+		static const char* digits = "0123456789abcdef";
+		std::string rc(str.size() * 2, '0');
+		char* buf = const_cast<char*>(str.data());
+		for (size_t i = 0; i < str.size() * 2; i += 2) {
+			rc[i + 0] = digits[(*buf >> 4) & 0x0f];
+			rc[i + 1] = digits[(*buf) & 0x0f];
+			buf++;
+		}
+		return rc;
+	}
+
 }
 }

@@ -191,6 +191,9 @@ namespace string {
 		return rc;
 	}
 
+	std::string to_hex2(unsigned char* buf, size_t hex_len);
+	std::string to_hex2(std::string_view str);
+
 	std::string_view cut(std::string_view s, const char ch);
 	std::wstring_view cut(std::wstring_view s, const wchar_t ch);
 
