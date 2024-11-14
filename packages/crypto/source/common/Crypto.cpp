@@ -29,7 +29,13 @@ namespace l::crypto {
 			if (!pubKeyBase64.empty()) {
 				auto pubKey = l::serialization::base64_decode(pubKeyBase64);
 				if (pubKey.size() == 32) {
+					// raw key
 					memcpy(mPubKey, pubKey.c_str(), pubKey.size());
+				}
+				else if (pubKey.size() == 44) {
+					// rsa/pem encoded, first 12 bytes are id bytes
+					LOG(LogInfo) << "Loaded public key of type '" << std::string_view(pubKey.c_str(), 12) << "'";
+					memcpy(mPubKey, pubKey.c_str() + 12, pubKey.size() - 12);
 				}
 			}
 			if (!priKeyBase64.empty()) {

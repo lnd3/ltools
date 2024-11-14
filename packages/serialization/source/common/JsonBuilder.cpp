@@ -50,6 +50,17 @@ namespace l::serialization {
         dataGenerator(mJson);
         mJson << "\"";
     }
+    void JsonBuilder::AddJson(std::string_view json) {
+        if (json.empty()) {
+            return;
+        }
+        if (mNestingItemCount.back() > 1) {
+            mJson << ",";
+            Indent();
+        }
+        mNestingItemCount.back()++;
+        mJson << json;
+    }
     void JsonBuilder::Reset() {
         mJson.str("");
         mJson.clear();

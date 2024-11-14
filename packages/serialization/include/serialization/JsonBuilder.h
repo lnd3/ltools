@@ -20,6 +20,7 @@ namespace l::serialization {
 
         void Begin(std::string_view name, bool array = false);
         void End(bool array = false);
+        void AddJson(std::string_view json);
         void AddString(std::string_view name, std::string_view data);
         void AddString(std::string_view name, std::function<void(std::stringstream& json)> dataGenerator);
 
