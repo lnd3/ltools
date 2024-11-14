@@ -25,7 +25,7 @@ namespace l::serialization {
 
         template<class T>
         void AddNumber(std::string_view name, T value, bool asString = false) {
-            if (mNestingItemCount.back() > 0) {
+            if (mNestingItemCount.back() > 1) {
                 mJson << ",";
                 Indent();
             }

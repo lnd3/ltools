@@ -68,7 +68,7 @@ namespace l::serialization {
         if (!mPretty) {
             return;
         }
-        for (int i = 1; i < mNestingItemCount.size(); i++) {
+        for (size_t i = 1; i < mNestingItemCount.size(); i++) {
             mJson << "  ";
         }
     }
