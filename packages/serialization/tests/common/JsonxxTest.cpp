@@ -1,6 +1,8 @@
 #include "testing/Test.h"
 #include "logging/Log.h"
 
+#include "serialization/JsonBuilder.h"
+
 #include "jsonxx/jsonxx.h"
 
 #include <cstring>
@@ -34,6 +36,36 @@ TEST(Jsonxx, Parse) {
 	TEST_TRUE(o.parse(stream), "");
 
 
+	return 0;
+}
+
+TEST(JsonBuilder, Basic) {
+
+	l::serialization::JsonBuilder json;
+
+	json.Begin("");
+	{
+		json.AddString("a", "astring");
+		json.AddString("b", "bstring");
+		json.Begin("c");
+		{
+			json.AddString("ca", "dastring");
+			json.AddNumber("cb", 2);
+		}
+		json.End();
+
+		json.Begin("d", true);
+		{
+			json.AddString("", "dastring");
+			json.AddNumber("", 2);
+		}
+		json.End(true);
+	}
+	json.End();
+	LOG(LogTest) << "\n" << json.GetStream().str();
+
+	std::string_view correct = "{\"a\":\"astring\",\"b\":\"bstring\",\"c\":{\"ca\":\"dastring\",\"cb\":2},\"d\":[\"dastring\",2]}";
+	TEST_TRUE(correct == json.GetStream().str(), "");
 	return 0;
 }
 
