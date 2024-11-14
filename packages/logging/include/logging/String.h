@@ -102,6 +102,7 @@ namespace string {
 		}
 	}
 
+
 	bool equal(const char* a, const char* b, size_t a_offset = 0, size_t b_offset = 0, size_t maxCount = 20);
 	bool equal_partial(const char* a, const char* b, size_t a_offset = 0, size_t b_offset = 0, size_t maxCount = 20);
 	bool equal_partial(std::string_view a, std::string_view b, size_t a_offset = 0, size_t b_offset = 0);

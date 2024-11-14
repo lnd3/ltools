@@ -17,6 +17,7 @@ namespace l::crypto {
 		bool Init();
 		void CreateKeys(std::string_view pubKeyBase64 = "", std::string_view priKeyBase64 = "");
 		std::string GetSignBase64(std::string_view message);
+		std::string GetSignHex(std::string_view message);
 		std::string GetPriKeyBase64();
 		std::string GetPubKeyBase64();
 		std::string GetPriKeyHex();

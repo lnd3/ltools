@@ -54,6 +54,13 @@ namespace l::crypto {
 		return l::serialization::base64_encode(sign);
 	}
 
+	std::string CryptoED25519::GetSignHex(std::string_view message) {
+		auto messagePtr = reinterpret_cast<const unsigned char*>(message.data());
+		ed25519_sign(mSign, messagePtr, message.size(), mPubKey, mPriKey);
+		auto sign = std::string_view(reinterpret_cast<const char*>(mSign), 64);
+		return l::string::to_hex2(sign);
+	}
+
 	std::string CryptoED25519::GetPriKeyBase64() {
 		auto priKey = std::string_view(reinterpret_cast<const char*>(mPriKey), 64);
 		return l::serialization::base64_encode(priKey);
