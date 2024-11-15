@@ -149,10 +149,7 @@ namespace l::network {
 			](const l::concurrency::RunState& state) {
 				std::unique_lock lock(cmConnectionsMutex);
 				auto it = std::find_if(cmConnections.begin(), cmConnections.end(), [&](std::unique_ptr<ConnectionBase>& request) {
-					if (cqueryName != request->GetRequestName()) {
-						return false;
-					}
-					if (request->TryReservingRequest()) {
+					if (cqueryName == request->GetRequestName() && request->TryReservingRequest()) {
 						return true;
 					}
 					return false;
@@ -189,8 +186,8 @@ namespace l::network {
 		}
 		else {
 			auto it = std::find_if(mConnections.begin(), mConnections.end(), [&](std::unique_ptr<ConnectionBase>& request) {
-				if (queryName != request->GetRequestName()) {
-					return false;
+				if (queryName == request->GetRequestName()) {
+					return true;
 				}
 				return false;
 				});

@@ -64,18 +64,19 @@ namespace l::network {
 				auto networkManager = mNetworkManager.lock();
 				if (networkManager) {
 					read = networkManager->WSRead(interfaceName, buffer, size);
-				}
-			}
-			auto& queue = it->second.GetQueue();
-			if (read == 0 && !queue.empty()) {
-				// everything has been read so write next command if any
-				auto& command = queue.front();
-				auto result = Write(interfaceName, command.c_str(), command.size());
-				if (result > 0) {
-					queue.pop_front();
-				}
-				else {
-					LOG(LogWarning) << "Failed to write to: " << interfaceName << " : command: " << command;
+
+					auto& queue = it->second.GetQueue();
+					if (read == 0 && !queue.empty()) {
+						// everything has been read so write next command if any
+						auto& command = queue.front();
+						auto result = Write(interfaceName, command.c_str(), command.size());
+						if (result > 0) {
+							queue.pop_front();
+						}
+						else {
+							LOG(LogWarning) << "Failed to write to: " << interfaceName << " : command: " << command;
+						}
+					}
 				}
 			}
 		}

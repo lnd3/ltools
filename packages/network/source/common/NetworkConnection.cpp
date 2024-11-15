@@ -244,7 +244,7 @@ namespace l::network {
 		if (res == CURLE_OK) {
 			return static_cast<int32_t>(sentBytes);
 		}
-		//LOG(LogError) << "Failed wss write, error: " << res;
+		LOG(LogError) << "Failed wss write, error: " << res;
 		return -res;
 	}
 
