@@ -40,11 +40,17 @@ namespace l::crypto {
 			}
 			if (!priKeyBase64.empty()) {
 				auto priKey = l::serialization::base64_decode(priKeyBase64);
-				if (priKey.size() == 64) {
-					memcpy(mPriKey, priKey.c_str(), priKey.size());
-				}
+				memset(mPriKey, 0, 64);
+				memcpy(mPriKey + (64-priKey.size()), priKey.c_str(), priKey.size());
 			}
 		}
+	}
+
+	std::string CryptoED25519::GetSign(std::string_view message) {
+		auto messagePtr = reinterpret_cast<const unsigned char*>(message.data());
+		ed25519_sign(mSign, messagePtr, message.size(), mPubKey, mPriKey);
+		auto sign = std::string_view(reinterpret_cast<const char*>(mSign), 64);
+		return std::string(sign);
 	}
 
 	std::string CryptoED25519::GetSignBase64(std::string_view message) {
@@ -109,14 +115,13 @@ namespace l::crypto {
 	
 	
 	*/
-	bool CryptoED25519::Verify(std::string_view signatureBase64, std::string_view message, std::string_view publicKey) {
+	bool CryptoED25519::Verify(std::string_view signature, std::string_view message, std::string_view publicKey) {
 		unsigned char* pubKey = reinterpret_cast<unsigned char*>(const_cast<char*>(publicKey.data()));
 		if (publicKey.empty()) {
 			pubKey = mPubKey;
 		}
 
-		auto sign = l::serialization::base64_decode(signatureBase64);
-		auto signPtr = reinterpret_cast<const unsigned char*>(sign.data());
+		auto signPtr = reinterpret_cast<const unsigned char*>(signature.data());
 		auto messagePtr = reinterpret_cast<const unsigned char*>(message.data());
 		auto result = ed25519_verify(signPtr, messagePtr, message.size(), pubKey);
 		return result != 0;
