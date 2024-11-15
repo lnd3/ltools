@@ -219,7 +219,7 @@ namespace l::network {
 
 		if (it == mConnections.end()) {
 			LOG(LogError) << "Failed wss write, query not found";
-			return -4;
+			return -201;
 		}
 		auto request = it->get();
 		lock.unlock();
@@ -238,7 +238,7 @@ namespace l::network {
 
 		if (it == mConnections.end()) {
 			LOG(LogError) << "Failed wss read, query not found";
-			return -4;
+			return -201;
 		}
 		auto request = it->get();
 		lock.unlock();

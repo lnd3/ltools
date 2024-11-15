@@ -71,11 +71,11 @@ namespace l::network {
 				// everything has been read so write next command if any
 				auto& command = queue.front();
 				auto result = Write(interfaceName, command.c_str(), command.size());
-				if (!result) {
-					//LOG(LogWarning) << "Failed to write to: " << interfaceName << " : " << command;
+				if (result > 0) {
+					queue.pop_front();
 				}
 				else {
-					queue.pop_front();
+					LOG(LogWarning) << "Failed to write to: " << interfaceName << " : command: " << command;
 				}
 			}
 		}
@@ -92,18 +92,21 @@ namespace l::network {
 		}
 	}
 
-	bool NetworkInterfaceWS::Write(std::string_view interfaceName, const char* buffer, size_t size) {
-		bool result = false;
+	int32_t NetworkInterfaceWS::Write(std::string_view interfaceName, const char* buffer, size_t size) {
+		int32_t written = false;
 		auto it = mInterfaces.find(interfaceName.data());
 		if (it != mInterfaces.end()) {
 			if (NetworkStatus(interfaceName)) {
 				auto networkManager = mNetworkManager.lock();
 				if (networkManager) {
-					result = networkManager->WSWrite(interfaceName, buffer, size) >= 0;
+					written = networkManager->WSWrite(interfaceName, buffer, size) >= 0;
+					if (written < 0) {
+						LOG(LogWarning) << "Failed to write to: " << interfaceName << " : error: " << written;
+					}
 				}
 			}
 		}
-		return result;
+		return written;
 	}
 
 

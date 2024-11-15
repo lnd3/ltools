@@ -192,7 +192,7 @@ namespace l::network {
 			if (mHandler) {
 				return mHandler(mSuccess, mRequestQueryArgs, *this);
 			}
-			return l::concurrency::RunnableResult::CANCELLED;
+			return l::concurrency::RunnableResult::SUCCESS;
 		}
 
 		void SetResponseData(const char* contents, size_t size) {
