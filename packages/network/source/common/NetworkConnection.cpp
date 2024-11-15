@@ -177,7 +177,7 @@ namespace l::network {
 		if (multiHandle != nullptr) {
 			curl_multi_remove_handle(multiHandle, mCurl);
 		}
-		else {
+		if (IsWebSocket()) {
 			curl_easy_cleanup(mCurl);
 			mCurl = nullptr;
 		}
