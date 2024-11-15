@@ -64,18 +64,19 @@ namespace l::network {
 				auto networkManager = mNetworkManager.lock();
 				if (networkManager) {
 					read = networkManager->WSRead(interfaceName, buffer, size);
-				}
-			}
-			auto& queue = it->second.GetQueue();
-			if (read == 0 && !queue.empty()) {
-				// everything has been read so write next command if any
-				auto& command = queue.front();
-				auto result = Write(interfaceName, command.c_str(), command.size());
-				if (!result) {
-					//LOG(LogWarning) << "Failed to write to: " << interfaceName << " : " << command;
-				}
-				else {
-					queue.pop_front();
+
+					auto& queue = it->second.GetQueue();
+					if (read == 0 && !queue.empty()) {
+						// everything has been read so write next command if any
+						auto& command = queue.front();
+						auto result = Write(interfaceName, command.c_str(), command.size());
+						if (result > 0) {
+							queue.pop_front();
+						}
+						else {
+							LOG(LogWarning) << "Failed to write to: " << interfaceName << " : command: " << command;
+						}
+					}
 				}
 			}
 		}
@@ -92,20 +93,33 @@ namespace l::network {
 		}
 	}
 
-	bool NetworkInterfaceWS::Write(std::string_view interfaceName, const char* buffer, size_t size) {
-		bool result = false;
+	int32_t NetworkInterfaceWS::Write(std::string_view interfaceName, const char* buffer, size_t size) {
+		int32_t written = false;
 		auto it = mInterfaces.find(interfaceName.data());
 		if (it != mInterfaces.end()) {
 			if (NetworkStatus(interfaceName)) {
 				auto networkManager = mNetworkManager.lock();
 				if (networkManager) {
-					result = networkManager->WSWrite(interfaceName, buffer, size) >= 0;
+					written = networkManager->WSWrite(interfaceName, buffer, size) >= 0;
+					if (written < 0) {
+						LOG(LogWarning) << "Failed to write to: " << interfaceName << " : error: " << written;
+					}
 				}
 			}
 		}
-		return result;
+		return written;
 	}
 
+	bool NetworkInterfaceWS::IsConnected(std::string_view interfaceName) {
+		auto it = mInterfaces.find(interfaceName.data());
+		if (it != mInterfaces.end()) {
+			auto networkManager = mNetworkManager.lock();
+			if (networkManager) {
+				return networkManager->WSConnected(interfaceName);
+			}
+		}
+		return false;
+	}
 
 	bool NetworkInterfaceWS::NetworkStatus(std::string_view interfaceName) {
 		auto it = mInterfaces.find(interfaceName.data());

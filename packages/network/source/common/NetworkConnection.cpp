@@ -177,6 +177,12 @@ namespace l::network {
 		if (multiHandle != nullptr) {
 			curl_multi_remove_handle(multiHandle, mCurl);
 		}
+		if (IsWebSocket()) {
+			curl_easy_cleanup(mCurl);
+			mCurl = nullptr;
+			mWebSocketReceivingData = false;
+		}
+
 		ASSERT(mCompletedRequest);
 
 		mOngoingRequest = false;
@@ -215,6 +221,10 @@ namespace l::network {
 		return mIsWebSocket;
 	}
 
+	bool ConnectionBase::IsWebSocketAlive() {
+		return mWebSocketReceivingData;
+	}
+
 	const curl_ws_frame* ConnectionBase::GetWebSocketMeta() {
 		const struct curl_ws_frame* m = curl_ws_meta(mCurl);
 		return m;
@@ -223,37 +233,41 @@ namespace l::network {
 	int32_t ConnectionBase::WSWrite(const char* buffer, size_t size) {
 		if (HasExpired()) {
 			LOG(LogError) << "Failed wss write, connection expired";
-			return -2;
+			return -101;
 		}
 		if (mCurl == nullptr) {
 			LOG(LogError) << "Failed wss write, no curl instance";
-			return -3;
+			return -102;
 		}
 		size_t sentBytes = 0;
 		auto res = curl_ws_send(mCurl, buffer, size, &sentBytes, 0, CURLWS_TEXT);
-		if (res != CURLE_OK) {
-			LOG(LogError) << "Failed wss write, error: " << res;
+		if (res == CURLE_OK) {
+			return static_cast<int32_t>(sentBytes);
 		}
-		return res == CURLE_OK ? static_cast<int32_t>(sentBytes) : -1;
+		LOG(LogError) << "Failed wss write, error: " << res;
+		return -res;
 	}
 
 	int32_t ConnectionBase::WSRead(char* buffer, size_t size) {
 		if (HasExpired()) {
 			LOG(LogError) << "Failed wss read, connection expired";
-			return -2;
+			return -101;
 		}
 		if (mCurl == nullptr) {
 			LOG(LogError) << "Failed wss read, no curl instance";
-			return -3;
+			return -102;
 		}
 		const struct curl_ws_frame* meta;
 		size_t readBytes = 0;
 		auto res = curl_ws_recv(mCurl, buffer, size, &readBytes, &meta);
 		if (res == CURLE_AGAIN || res == CURLE_OK){
+			if (readBytes > 0) {
+				mWebSocketReceivingData = true;
+			}
 			return static_cast<int32_t>(readBytes);
 		}
 		//LOG(LogError) << "Failed wss read, error: " << res;
-		return -1;
+		return -res;
 	}
 
 	void ConnectionBase::WSClose() {

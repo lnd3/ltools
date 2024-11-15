@@ -6,22 +6,31 @@
 #include "ed25519/src/ed25519.h"
 
 namespace l::crypto {
-	// example
-	//"apiKey": "T59MTDLWlpRW16JVeZ2Nju5A5C98WkMm8CSzWC4oqynUlTm1zXOxyauT8LmwXEv9",
-	//"signature" : "5942ad337e6779f2f4c62cd1c26dba71c91514400a24990a3e7f5edec9323f90"
-	class Crypto {
+	class CryptoED25519 {
 	public:
-		bool Init();
-		std::string Sign(std::string_view message, std::string_view pubKey, std::string_view priKey) {
-			if (pubKey.size() != 64 && priKey.size() != 64) {
-				return "";
-			}
 
-			auto messagePtr = reinterpret_cast<const unsigned char*>(message.data());
-			ed25519_sign(mSign, messagePtr, message.size(), reinterpret_cast<const unsigned char*>(pubKey.data()), reinterpret_cast<const unsigned char*>(priKey.data()));
-			return std::string(&mSign[0], 64);
+		CryptoED25519() {
+			Init();
 		}
+		~CryptoED25519() = default;
+
+		bool Init();
+		void CreateKeys(std::string_view pubKeyBase64 = "", std::string_view priKeyBase64 = "");
+		std::string GetSign(std::string_view message);
+		std::string GetSignBase64(std::string_view message);
+		std::string GetSignHex(std::string_view message);
+		std::string GetPriKeyBase64();
+		std::string GetPubKeyBase64();
+		std::string GetPriKeyHex();
+		std::string GetPubKeyHex();
+		std::string GetPubKeyPem();
+		std::string GetPubKeyPem2();
+
+		bool Verify(std::string_view signature, std::string_view message, std::string_view publicKey = "");
 	protected:
+		unsigned char mPemKey[64];
+		unsigned char mPubKey[32];
+		unsigned char mPriKey[64];
 		unsigned char mSeed[32];
 		unsigned char mSign[64];
 	};
