@@ -76,6 +76,7 @@ namespace l::network {
 			std::function<void(bool, std::string_view)> cb = nullptr);
 		bool IsHandle(CURL* handle);
 		bool IsWebSocket();
+		bool IsWebSocketAlive();
 		bool HasExpired();
 
 		int32_t WSWrite(const char* buffer, size_t size);
@@ -115,6 +116,7 @@ namespace l::network {
 		int64_t mStarted;
 		std::atomic_bool mSuccess;
 		bool mIsWebSocket = false;
+		bool mWebSocketReceivingData = false;
 	};
 
 	template<class T>

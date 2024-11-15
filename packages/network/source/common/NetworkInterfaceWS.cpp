@@ -109,6 +109,16 @@ namespace l::network {
 		return written;
 	}
 
+	bool NetworkInterfaceWS::IsConnected(std::string_view interfaceName) {
+		auto it = mInterfaces.find(interfaceName.data());
+		if (it != mInterfaces.end()) {
+			auto networkManager = mNetworkManager.lock();
+			if (networkManager) {
+				return networkManager->WSConnected(interfaceName);
+			}
+		}
+		return false;
+	}
 
 	bool NetworkInterfaceWS::NetworkStatus(std::string_view interfaceName) {
 		auto it = mInterfaces.find(interfaceName.data());

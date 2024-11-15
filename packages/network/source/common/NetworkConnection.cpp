@@ -180,6 +180,7 @@ namespace l::network {
 		if (IsWebSocket()) {
 			curl_easy_cleanup(mCurl);
 			mCurl = nullptr;
+			mWebSocketReceivingData = false;
 		}
 
 		ASSERT(mCompletedRequest);
@@ -220,6 +221,10 @@ namespace l::network {
 		return mIsWebSocket;
 	}
 
+	bool ConnectionBase::IsWebSocketAlive() {
+		return mWebSocketReceivingData;
+	}
+
 	const curl_ws_frame* ConnectionBase::GetWebSocketMeta() {
 		const struct curl_ws_frame* m = curl_ws_meta(mCurl);
 		return m;
@@ -256,6 +261,9 @@ namespace l::network {
 		size_t readBytes = 0;
 		auto res = curl_ws_recv(mCurl, buffer, size, &readBytes, &meta);
 		if (res == CURLE_AGAIN || res == CURLE_OK){
+			if (readBytes > 0) {
+				mWebSocketReceivingData = true;
+			}
 			return static_cast<int32_t>(readBytes);
 		}
 		//LOG(LogError) << "Failed wss read, error: " << res;
