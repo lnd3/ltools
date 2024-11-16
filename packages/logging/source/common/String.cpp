@@ -598,7 +598,10 @@ namespace l::string {
 		std::string rc(str.size() / 2, '0');
 		char* buf = const_cast<char*>(str.data());
 		for (size_t i = 0; i < str.size() / 2; i++) {
-			rc[i] = convertToOctet(*buf++, true) | convertToOctet(*buf++, false);
+			rc[i] = convertToOctet(*buf, true);
+			buf++;
+			rc[i] |= convertToOctet(*buf, false);
+			buf++;
 		}
 		return rc;
 	}
