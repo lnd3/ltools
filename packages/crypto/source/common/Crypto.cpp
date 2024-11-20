@@ -2,9 +2,31 @@
 
 #include "serialization/Base64.h"
 
+#include "cryptopp/cryptlib.h"
+#include "cryptopp/simple.h"
+#include "cryptopp/filters.h"
+
 #include <array>
 
 namespace l::crypto {
+
+	std::string ToPublicKeyFormat(std::string_view pkcsFormat) {
+		std::stringstream stream;
+		stream << "-----BEGIN PUBLIC KEY-----\n";
+		stream << pkcsFormat;
+		stream << "\n";
+		stream << "-----END PUBLIC KEY-----\n";
+		return stream.str();
+	}
+
+	std::string ToPemKeyFromHex(std::string_view hexstring) {
+		static const std::array<unsigned char, 12> mED25519Prefix = { 0x30,0x2a,0x30,0x05,0x06,0x03,0x2b,0x65,0x70,0x03,0x21,0x00 };
+		std::string pem(44, '0');
+		memcpy(pem.data(), mED25519Prefix.data(), mED25519Prefix.size());
+		memcpy(pem.data() + 12, hexstring.data(), 32);
+		auto pemKey = std::string_view(reinterpret_cast<const char*>(pem.data()), 12 + 32);
+		return l::serialization::base64_encode(pemKey);
+	}
 
 	void CryptoXED25519::ResetFromPrivateKey() {
 		mVerifier.reset();
@@ -148,6 +170,46 @@ namespace l::crypto {
 
 	CryptoPP::byte* CryptoXED25519::AccessPrivateKey() {
 		return mPrivateKey;
+	}
+
+	std::string CryptoXED25519::SaveDERPublicKeyHex(bool newFormat) {
+		CryptoPP::ByteQueue bt;
+		mEd.Save(bt, newFormat);
+		unsigned char buf[48];
+		bt.Get(buf, 48);
+		memcpy(buf + 16, mPublicKey, 32);
+		return l::string::hex_encode(buf, 48);
+	}
+
+	std::string CryptoXED25519::SaveDERPublicKeyB64(bool newFormat) {
+		CryptoPP::ByteQueue bt;
+		mEd.Save(bt, newFormat);
+		unsigned char buf[48];
+		bt.Get(buf, 48);
+		memcpy(buf + 16, mPublicKey, 32);
+		return l::serialization::base64_encode(buf, 48);
+	}
+
+	std::string CryptoXED25519::SavePEMPublicKeyB64() {
+		return l::serialization::base64_encode(ToPemKeyFromHex(GetPublicKeyHex()));
+	}
+
+	std::string CryptoXED25519::GetPrivateKeyDER() {
+		CryptoPP::ByteQueue bt;
+		mEd.DEREncode(bt);
+		unsigned char buf[64];
+		auto len = bt.Get(buf, 64);
+
+		return l::string::hex_encode(buf, len);
+	}
+
+	std::string CryptoXED25519::GetPublicKeyBER() {
+		CryptoPP::ByteQueue bt;
+		mEd.BEREncode(bt);
+		unsigned char buf[64];
+		auto len = bt.Get(buf, 64);
+
+		return l::string::hex_encode(buf, len);
 	}
 
 	std::string CryptoXED25519::GetPrivateKeyB64() {

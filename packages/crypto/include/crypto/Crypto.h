@@ -12,6 +12,9 @@
 #include "ed25519/src/ed25519.h"
 
 namespace l::crypto {
+
+	std::string ToPublicKeyFormat(std::string_view pkcsFormat);
+
 	class CryptoXED25519 {
 	public:
 		CryptoXED25519() = default;
@@ -34,6 +37,14 @@ namespace l::crypto {
 		bool VerifyHex(std::string_view signatureHex);
 
 		CryptoPP::byte* AccessPrivateKey();
+
+		std::string SaveDERPublicKeyHex(bool newFormat = true);
+		std::string SaveDERPublicKeyB64(bool newFormat = true);
+		std::string SavePEMPublicKeyB64();
+
+		std::string GetPrivateKeyDER();
+		std::string GetPublicKeyBER();
+
 		std::string GetPrivateKeyB64();
 		std::string GetPrivateKeyHex();
 
@@ -71,6 +82,7 @@ namespace l::crypto {
 		std::string GetSign(std::string_view message);
 		std::string GetSignBase64(std::string_view message);
 		std::string GetSignHex(std::string_view message);
+
 		std::string GetPriKeyBase64();
 		std::string GetPubKeyBase64();
 		std::string GetPriKeyHex();

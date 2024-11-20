@@ -75,18 +75,21 @@ TEST(Cryptopp, CryptoXED25519) {
 	}
 	{
 		auto privateKeyHex = "4ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a6fb";
-		auto publicKeyHex = "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c";
-		auto signatureHex = "92a009a9f0d4cab8720e820b5f642540a2b27b5416503f8fb3762223ebdb69da085ac1e43e15996e458f3613d0f11d8c387b2eaeb4302aeeb00d291612bb0c00";
+		//auto publicKeyHex = "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c";
+		//auto signatureHex = "92a009a9f0d4cab8720e820b5f642540a2b27b5416503f8fb3762223ebdb69da085ac1e43e15996e458f3613d0f11d8c387b2eaeb4302aeeb00d291612bb0c00";
 
 		crypto.LoadPrivateKeyHex(privateKeyHex);
 		TEST_TRUE(crypto.GetPrivateKeyHex() == privateKeyHex, "");
 		//TEST_TRUE(crypto.GetPublicKeyHex() == publicKeyHex, "");
-
+		LOG(LogTest) << "DER0 public key hex: " << crypto.SaveDERPublicKeyHex(false);
+		LOG(LogTest) << "DER1 public key hex: " << crypto.SaveDERPublicKeyHex();
+		LOG(LogTest) << "DER0 public key b64: " << crypto.SaveDERPublicKeyB64(false);
+		LOG(LogTest) << "DER1 public key b64: \n" << crypto::ToPublicKeyFormat(crypto.SaveDERPublicKeyB64(1));
+		LOG(LogTest) << "PEM public key b64: \n" << crypto::ToPublicKeyFormat(GetPemKeyFromHex(crypto.GetPublicKeyHex()));
 		crypto.AccumulateMessage(message);
 		auto sig2 = crypto.SignMessageHex();
 
 		//TEST_TRUE(sig2 == signatureHex, "");
 	}
-
 	return 0;
 }
