@@ -13,21 +13,10 @@
 
 using namespace l;
 
-namespace {
-	std::string GetPemKeyFromHex(std::string_view hexstring) {
-		static const std::array<unsigned char, 12> mED25519Prefix = { 0x30,0x2a,0x30,0x05,0x06,0x03,0x2b,0x65,0x70,0x03,0x21,0x00 };
-		std::string pem(44, '0');
-		memcpy(pem.data(), mED25519Prefix.data(), mED25519Prefix.size());
-		memcpy(pem.data() + 12, hexstring.data(), 32);
-		auto pemKey = std::string_view(reinterpret_cast<const char*>(pem.data()), 12 + 32);
-		return l::serialization::base64_encode(pemKey);
-	}
-}
-
 TEST(Cryptopp, printPemKeys) {
 	auto messageHex = "ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f";
 	auto signatureHex = "dc2a4459e7369633a52b1bf277839a00201009a3efbf3ecb69bea2186c26b58909351fc9ac90b3ecfdfbc7c66431e0303dca179c138ac17ad9bef1177331a704";
-	LOG(LogInfo) << "private key pem: " << GetPemKeyFromHex("833fe62409237b9d62ec77587520911e9a759cec1d19755b7da901b96dca3d42");
+	LOG(LogInfo) << "private key pem: " << crypto::GetPemKeyFromHex("833fe62409237b9d62ec77587520911e9a759cec1d19755b7da901b96dca3d42");
 
 	return 0;
 }
@@ -85,7 +74,7 @@ TEST(Cryptopp, CryptoXED25519) {
 		LOG(LogTest) << "DER1 public key hex: " << crypto.SaveDERPublicKeyHex();
 		LOG(LogTest) << "DER0 public key b64: " << crypto.SaveDERPublicKeyB64(false);
 		LOG(LogTest) << "DER1 public key b64: \n" << crypto::ToPublicKeyFormat(crypto.SaveDERPublicKeyB64(1));
-		LOG(LogTest) << "PEM public key b64: \n" << crypto::ToPublicKeyFormat(GetPemKeyFromHex(crypto.GetPublicKeyHex()));
+		LOG(LogTest) << "PEM public key b64: \n" << crypto::ToPublicKeyFormat(crypto::GetPemKeyFromHex(crypto.GetPublicKeyHex()));
 		crypto.AccumulateMessage(message);
 		auto sig2 = crypto.SignMessageHex();
 

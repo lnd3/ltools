@@ -14,6 +14,7 @@
 namespace l::crypto {
 
 	std::string ToPublicKeyFormat(std::string_view pkcsFormat);
+	std::string GetPemKeyFromHex(std::string_view hexstring);
 
 	class CryptoXED25519 {
 	public:
