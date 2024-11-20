@@ -60,11 +60,11 @@ TEST(Crypto, generate) {
 
 TEST(Crypto, validation) {
 	crypto::CryptoED25519 ed25519;
-	auto secret = l::string::decode_hex("833fe62409237b9d62ec77587520911e9a759cec1d19755b7da901b96dca3d42");
+	auto secret = l::string::hex_decode("833fe62409237b9d62ec77587520911e9a759cec1d19755b7da901b96dca3d42");
 	TEST_TRUE(l::string::to_hex2(secret) == "833fe62409237b9d62ec77587520911e9a759cec1d19755b7da901b96dca3d42", "");
-	auto publicKey = l::string::decode_hex("ec172b93ad5e563bf4932c70e1245034c35467ef2efd4d64ebf819683467e2bf");
-	auto message = l::string::decode_hex("ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f");
-	auto signature = l::string::decode_hex("dc2a4459e7369633a52b1bf277839a00201009a3efbf3ecb69bea2186c26b58909351fc9ac90b3ecfdfbc7c66431e0303dca179c138ac17ad9bef1177331a704");
+	auto publicKey = l::string::hex_decode("ec172b93ad5e563bf4932c70e1245034c35467ef2efd4d64ebf819683467e2bf");
+	auto message = l::string::hex_decode("ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f");
+	auto signature = l::string::hex_decode("dc2a4459e7369633a52b1bf277839a00201009a3efbf3ecb69bea2186c26b58909351fc9ac90b3ecfdfbc7c66431e0303dca179c138ac17ad9bef1177331a704");
 	LOG(LogTest) << "secret hex:" << l::string::to_hex2(secret);
 	LOG(LogTest) << "publicKey hex:" << l::string::to_hex2(publicKey);
 	LOG(LogTest) << "message hex:" << l::string::to_hex2(message);
@@ -82,9 +82,9 @@ TEST(Crypto, validation) {
 
 TEST(Crypto, verifification) {
 	crypto::CryptoED25519 ed25519;
-	auto publicKey = l::string::decode_hex("c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac03fa");
-	auto message = l::string::decode_hex("c93255d71dcab10e8f379c26200f3c7bd5f09d9bc3068d3ef4edeb4853022b6");
-	auto signature = l::string::decode_hex("c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac037a0000000000000000000000000000000000000000000000000000000000000000");
+	auto publicKey = l::string::hex_decode("c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac03fa");
+	auto message = l::string::hex_decode("c93255d71dcab10e8f379c26200f3c7bd5f09d9bc3068d3ef4edeb4853022b6");
+	auto signature = l::string::hex_decode("c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac037a0000000000000000000000000000000000000000000000000000000000000000");
 
 	//TEST_TRUE(ed25519.Verify(signature, message, publicKey), "");
 

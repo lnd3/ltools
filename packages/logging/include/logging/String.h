@@ -197,8 +197,13 @@ namespace l::string {
 	std::string_view rcut(std::string_view s, const char ch);
 	std::wstring_view rcut(std::wstring_view s, const wchar_t ch);
 
-	std::string to_hex2(unsigned char* buf, size_t hex_len);
+	std::string to_hex2(unsigned char* src, size_t hex_len);
 	std::string to_hex2(std::string_view str);
-	std::string decode_hex(std::string_view str);
+
+	std::string hex_encode(unsigned char* src, size_t len);
+	void hex_decode(unsigned char* dst, std::string_view src);
+
+	std::string hex_encode(std::string_view str);
+	std::string hex_decode(std::string_view str);
 }
 
