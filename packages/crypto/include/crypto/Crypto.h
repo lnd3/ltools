@@ -14,7 +14,7 @@
 namespace l::crypto {
 
 	std::string ToPublicKeyFormat(std::string_view pkcsFormat);
-	std::string GetPemKeyFromHex(std::string_view hexstring);
+	std::string ToPemKey(std::string_view hexstring, bool b16 = false);
 
 	class CryptoXED25519 {
 	public:
@@ -33,6 +33,7 @@ namespace l::crypto {
 		CryptoPP::byte* SignMessage();
 		std::string SignMessageB64();
 		std::string SignMessageHex();
+		std::string SignMessagePem();
 
 		bool VerifyB64(std::string_view signatureB64);
 		bool VerifyHex(std::string_view signatureHex);
@@ -53,16 +54,20 @@ namespace l::crypto {
 		std::string GetPublicKeyB64();
 		std::string GetPublicKeyHex();
 
+		std::string GetPublicKeyPem(bool b16 = false);
+		std::string GetPublicKeyPKCS8();
+
 	protected:
 		void ResetFromPrivateKey();
 		void ResetFromPublicKey();
 		bool Verify();
 
-		CryptoPP::x25519 mEd;
+		std::unique_ptr<CryptoPP::x25519> mEd;
 		CryptoPP::NonblockingRng mRng;
 		std::unique_ptr<CryptoPP::ed25519::Signer> mSigner;
 		std::unique_ptr<CryptoPP::ed25519::Verifier> mVerifier;
-		CryptoPP::PK_MessageAccumulator* mMessageAccumulator = nullptr;
+		CryptoPP::PK_MessageAccumulator* mPKMessageAccumulator = nullptr;
+		CryptoPP::ed25519_MessageAccumulator* mSMessageAccumulator = nullptr;
 
 		CryptoPP::byte mPrivateKey[32];
 		CryptoPP::byte mPublicKey[32];
@@ -80,6 +85,8 @@ namespace l::crypto {
 
 		bool Init();
 		void CreateKeys(std::string_view pubKeyBase64 = "", std::string_view priKeyBase64 = "");
+		void CreateKeysFromB16(std::string_view pubKeyBase16 = "", std::string_view priKeyBase16 = "");
+
 		std::string GetSign(std::string_view message);
 		std::string GetSignBase64(std::string_view message);
 		std::string GetSignHex(std::string_view message);

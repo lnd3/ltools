@@ -49,6 +49,7 @@ namespace l::serialization {
 		}
 	}
 
+	// Should follow these rules: https://www.rfc-editor.org/rfc/rfc3548
 	std::string base64_encode(std::string_view in) {
 		std::string out;
 

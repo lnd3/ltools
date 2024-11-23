@@ -4,6 +4,7 @@
 
 #include "crypto/Crypto.h"
 #include "serialization/Base64.h"
+#include "serialization/Base16.h"
 
 using namespace l;
 
@@ -47,14 +48,20 @@ TEST(Crypto, ed2519) {
 	//LOG(LogTest) << l::string::to_hex2(l::serialization::base64_decode("MCowBQYDK2VwAyEAhh0h5M77+TuNChqNfxFiOqAT5fy6UbHsO6M4pDGmEuE="));
 	//LOG(LogTest) << l::string::to_hex2(l::serialization::base64_decode("MCowBQYDK2VwAyEAgmDRTtj2FA+wzJUIlAL9ly1eovjLBu7uXUFR+jFULmg="));
 	//LOG(LogTest) << l::string::to_hex2(l::serialization::base64_decode("MCowBQYDK2VwAyEAGb9ECWmEzf6FQbrBZ9w7lshQhqowtrbLDFw4rXAxZuE="));
+
+	//                                                                    MCowBQYDK2VwAyEAGb9ECWmEzf6FQbrBZ9w7lshQhqowtrbLDFw4rXAxZuE=
 	return 0;
 }
 
 TEST(Crypto, generate) {
 	crypto::CryptoED25519 ed25519;
 	ed25519.CreateKeys();
+	auto message = "TestMessage";
+	auto sign = ed25519.GetSign(message);
 	LOG(LogTest) << "public key: " << ed25519.GetPubKeyHex();
 	LOG(LogTest) << "private key: " << ed25519.GetPriKeyHex();
+	LOG(LogTest) << "message: " << message;
+	LOG(LogTest) << "signature: " << l::serialization::base16_encode(sign);
 	return 0;
 }
 
@@ -73,7 +80,8 @@ TEST(Crypto, validation) {
 	auto secretBase64 = l::serialization::base64_encode(secret);
 	auto publicKeyBase64 = l::serialization::base64_encode(publicKey);
 
-	ed25519.CreateKeys(publicKeyBase64, secretBase64);
+	//ed25519.CreateKeys(publicKeyBase64, secretBase64);
+	ed25519.CreateKeysFromB16("", "833fe62409237b9d62ec77587520911e9a759cec1d19755b7da901b96dca3d42");
 	auto sign = ed25519.GetSignHex(message);
 	//TEST_TRUE(sign == signature, "");
 
