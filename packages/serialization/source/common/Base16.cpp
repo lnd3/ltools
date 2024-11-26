@@ -33,7 +33,7 @@ namespace l::serialization {
 	std::string base16_encode(unsigned char* src, size_t len, bool tolowercase) {
 		std::string out;
 		const char* svec = tolowercase ? s_vecLower : s_vecUpper;
-		for (int i = 0; i < len; i++) {
+		for (size_t i = 0; i < len; i++) {
 			auto c = src[i];
 			out += svec[(c >> 4) & 0xf];
 			out += svec[(c & 0xf)];
@@ -44,7 +44,7 @@ namespace l::serialization {
 	void base16_decode(unsigned char* dst, std::string_view src) {
 		auto size = src.size();
 		size = size - size % 2;
-		for (int i = 0; i < size; i+=2) {
+		for (size_t i = 0; i < size; i+=2) {
 			auto high = s_array[src.at(i + 0)];
 			auto low = s_array[src.at(i + 1)];
 			if (high >= 0 && low >= 0) {
@@ -56,7 +56,7 @@ namespace l::serialization {
 	std::string base16_encode(std::string_view src, bool tolowercase) {
 		std::string out;
 		const char* svec = tolowercase ? s_vecLower : s_vecUpper;
-		for (int i = 0; i < src.size(); i++) {
+		for (size_t i = 0; i < src.size(); i++) {
 			auto c = src[i];
 			out += svec[(c >> 4) & 0xf];
 			out += svec[(c & 0xf)];
@@ -68,7 +68,7 @@ namespace l::serialization {
 		std::string out;
 		auto size = src.size();
 		size = size - size % 2;
-		for (int i = 0; i < size; i += 2) {
+		for (size_t i = 0; i < size; i += 2) {
 			auto high = s_array[src.at(i + 0)];
 			auto low = s_array[src.at(i + 1)];
 			if (high >= 0 && low >= 0) {
