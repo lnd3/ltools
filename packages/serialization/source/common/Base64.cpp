@@ -12,7 +12,7 @@ namespace l::serialization {
 		std::string out;
 
 		int val = 0, valb = -6;
-		for (int i = 0; i < len; i++) {
+		for (size_t i = 0; i < len; i++) {
 			unsigned char c = src[i];
 			val = (val << 8) + c;
 			valb += 8;
@@ -32,7 +32,7 @@ namespace l::serialization {
 
 	void base64_decode(unsigned char* dst, std::string_view src) {
 		std::vector<int> T(256, -1);
-		for (int i = 0; i < 64; i++) {
+		for (size_t i = 0; i < 64; i++) {
 			T["ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[i]] = i;
 		}
 
@@ -75,7 +75,7 @@ namespace l::serialization {
 		std::string out;
 
 		std::vector<int> T(256, -1);
-		for (int i = 0; i < 64; i++) {
+		for (size_t i = 0; i < 64; i++) {
 			T["ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[i]] = i;
 		}
 
