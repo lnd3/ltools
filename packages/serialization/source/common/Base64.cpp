@@ -43,7 +43,7 @@ namespace l::serialization {
 			val = (val << 6) + T[c];
 			valb += 6;
 			if (valb >= 0) {
-				dst[i++] = (unsigned char((val >> valb) & 0xff));
+				dst[i++] = static_cast<unsigned char>((val >> valb) & 0xff);
 				valb -= 8;
 			}
 		}
