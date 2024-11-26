@@ -45,8 +45,8 @@ namespace l::serialization {
 		auto size = src.size();
 		size = size - size % 2;
 		for (size_t i = 0; i < size; i+=2) {
-			auto high = s_array[src.at(i + 0)];
-			auto low = s_array[src.at(i + 1)];
+			auto high = s_array[static_cast<unsigned char>(src.at(i + 0))];
+			auto low = s_array[static_cast<unsigned char>(src.at(i + 1))];
 			if (high >= 0 && low >= 0) {
 				dst[i] = static_cast<unsigned char>((high << 4) | low);
 			}
@@ -69,8 +69,8 @@ namespace l::serialization {
 		auto size = src.size();
 		size = size - size % 2;
 		for (size_t i = 0; i < size; i += 2) {
-			auto high = s_array[src.at(i + 0)];
-			auto low = s_array[src.at(i + 1)];
+			auto high = s_array[static_cast<unsigned char>(src.at(i + 0))];
+			auto low = s_array[static_cast<unsigned char>(src.at(i + 1))];
 			if (high >= 0 && low >= 0) {
 				out += static_cast<unsigned char>((high << 4) | low);
 			}
