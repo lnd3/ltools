@@ -34,6 +34,8 @@ namespace l::crypto {
 			CryptoPP::SHA256 sha256;
 			auto keyBytes = reinterpret_cast<const CryptoPP::byte*>(privateKeyAscii.data());
 			sha256.CalculateDigest(mSecret, keyBytes, privateKeyAscii.size());
+			mHmac.SetKey(mSecret, 32);
+			return true;
 		}
 
 		virtual void AccumulateMessage(std::string_view message) override {

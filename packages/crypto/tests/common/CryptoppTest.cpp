@@ -14,6 +14,33 @@
 
 using namespace l;
 
+TEST(CryptoPP, hmacsha256) {
+
+	CryptoPP::HMAC<CryptoPP::SHA256> mHmac;
+	CryptoPP::byte mSecret[32];
+	CryptoPP::byte mSignature[32];
+	CryptoPP::SHA256 sha256;
+
+
+	std::string_view privateKeyAscii = "Ab0z9aZvAb0z9aZvAb0z9aZvAb0z9aZvAb0z9aZvAb0z9aZvAb0z9aZvAb0z9aZv";
+	std::string_view message = "test";
+
+	auto keyBytes = reinterpret_cast<const CryptoPP::byte*>(privateKeyAscii.data());
+	sha256.CalculateDigest(mSecret, keyBytes, privateKeyAscii.size());
+
+	mHmac.SetKey(mSecret, 32);
+	const CryptoPP::byte* p = reinterpret_cast<const CryptoPP::byte*>(message.data());
+	mHmac.Update(p, message.size());
+	mHmac.Final(mSignature);
+
+	//l::serialization::base64_encode(mSignature, 32);
+
+	TEST_TRUE(mHmac.VerifyDigest(mSignature, p, message.size()), "");
+
+	return 0;
+}
+
+#ifdef CRYPTOPP_TEST_1
 TEST(Cryptopp, printPemKeys) {
 	auto messageHex = "ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f";
 	auto signatureHex = "dc2a4459e7369633a52b1bf277839a00201009a3efbf3ecb69bea2186c26b58909351fc9ac90b3ecfdfbc7c66431e0303dca179c138ac17ad9bef1177331a704";
@@ -235,3 +262,4 @@ TEST(Cryptopp, CryptoXED25519) {
 	}
 	return 0;
 }
+#endif
