@@ -13,10 +13,50 @@
 
 namespace l::crypto {
 
+	class CryptoSigner {
+	public:
+		CryptoSigner() = default;
+		virtual ~CryptoSigner() = default;
+
+		virtual void AccumulateMessage(std::string_view message) = 0;
+		virtual std::string SignMessageB64() = 0;
+	};
+
 	std::string ToPublicKeyFormat(std::string_view pkcsFormat);
 	std::string ToPemKey(std::string_view hexstring, bool b16 = false);
 
-	class CryptoXED25519 {
+	class CryptoHMacSha256 : public CryptoSigner {
+	public:
+		CryptoHMacSha256() = default;
+		~CryptoHMacSha256() = default;
+
+		bool LoadSecretKeyAscii(std::string_view privateKeyAscii) {
+			CryptoPP::SHA256 sha256;
+			auto keyBytes = reinterpret_cast<const CryptoPP::byte*>(privateKeyAscii.data());
+			sha256.CalculateDigest(mSecret, keyBytes, privateKeyAscii.size());
+		}
+
+		virtual void AccumulateMessage(std::string_view message) override {
+			auto p = reinterpret_cast<const CryptoPP::byte*>(message.data());
+			mHmac.Update(p, message.size());
+		}
+
+		virtual std::string SignMessageB64() override {
+			SignMessage();
+			return l::serialization::base64_encode(mSignature, 32);
+		}
+
+	protected:
+		void SignMessage() {
+			mHmac.Final(mSignature);
+		}
+
+		CryptoPP::HMAC<CryptoPP::SHA256> mHmac;
+		CryptoPP::byte mSecret[32];
+		CryptoPP::byte mSignature[32];
+	};
+
+	class CryptoXED25519 : public CryptoSigner {
 	public:
 		CryptoXED25519() = default;
 		~CryptoXED25519() = default;
@@ -28,12 +68,12 @@ namespace l::crypto {
 		bool LoadPublicKeyB64(std::string_view publicKeyB64);
 		bool LoadPublicKeyHex(std::string_view publicKeyHex);
 
-		void AccumulateMessage(std::string_view message);
-
 		CryptoPP::byte* SignMessage();
-		std::string SignMessageB64();
 		std::string SignMessageHex();
 		std::string SignMessagePem();
+
+		virtual void AccumulateMessage(std::string_view message) override;
+		virtual std::string SignMessageB64() override;
 
 		bool VerifyB64(std::string_view signatureB64);
 		bool VerifyHex(std::string_view signatureHex);
