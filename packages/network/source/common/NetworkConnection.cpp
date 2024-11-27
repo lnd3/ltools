@@ -244,6 +244,9 @@ namespace l::network {
 		if (res == CURLE_OK) {
 			return static_cast<int32_t>(sentBytes);
 		}
+		else if (res == CURLE_GOT_NOTHING) {
+			mWebSocketReceivingData = false;
+		}
 		LOG(LogError) << "Failed wss write, error: " << res;
 		return -res;
 	}
@@ -265,6 +268,10 @@ namespace l::network {
 				mWebSocketReceivingData = true;
 			}
 			return static_cast<int32_t>(readBytes);
+		}
+		else if (res == CURLE_GOT_NOTHING) {
+			mWebSocketReceivingData = false;
+			LOG(LogError) << "Failed wss read, connection closed, error: " << res;
 		}
 		//LOG(LogError) << "Failed wss read, error: " << res;
 		return -res;

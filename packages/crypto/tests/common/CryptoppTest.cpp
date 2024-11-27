@@ -14,13 +14,13 @@
 
 using namespace l;
 
+
 TEST(CryptoPP, hmacsha256) {
 
 	CryptoPP::HMAC<CryptoPP::SHA256> mHmac;
 	CryptoPP::byte mSecret[32];
 	CryptoPP::byte mSignature[32];
 	CryptoPP::SHA256 sha256;
-
 
 	std::string_view privateKeyAscii = "Ab0z9aZvAb0z9aZvAb0z9aZvAb0z9aZvAb0z9aZvAb0z9aZvAb0z9aZvAb0z9aZv";
 	std::string_view message = "test";
@@ -36,6 +36,36 @@ TEST(CryptoPP, hmacsha256) {
 	//l::serialization::base64_encode(mSignature, 32);
 
 	TEST_TRUE(mHmac.VerifyDigest(mSignature, p, message.size()), "");
+
+	return 0;
+}
+
+TEST(CryptoPP, verifydigest) {
+
+	CryptoPP::HMAC<CryptoPP::SHA256> mHmac;
+	CryptoPP::byte mSecret[32];
+	CryptoPP::byte mSignature[32];
+
+	std::string_view privateKeyAscii = "NhqPtmdSJYdKjVHjA7PZj4Mge3R5YNiP1e3UZjInClVN65XAbvqqM6A7H5fATj0j";
+	std::string_view message = "apiKey=test";
+
+	auto keyBytes = reinterpret_cast<const CryptoPP::byte*>(privateKeyAscii.data());
+	mHmac.SetKey(keyBytes, privateKeyAscii.size());
+	const CryptoPP::byte* p = reinterpret_cast<const CryptoPP::byte*>(message.data());
+	mHmac.Update(p, message.size());
+	mHmac.Final(mSignature);
+	auto sign = l::serialization::base16_encode(mSignature, 32);
+	LOG(LogTest) << sign;
+
+	/*
+		echo -n 'apiKey=test' | openssl dgst -hex -sha256 -hmac 'NhqPtmdSJYdKjVHjA7PZj4Mge3R5YNiP1e3UZjInClVN65XAbvqqM6A7H5fATj0j'                   
+		> SHA2-256(stdin)= ffc10e6024b05c27e03e7515b976ac1a0f73cb6797fed05cd1e5f01a00a84e45
+	*/
+	auto correctSign = "ffc10e6024b05c27e03e7515b976ac1a0f73cb6797fed05cd1e5f01a00a84e45";
+	TEST_TRUE(sign == correctSign, "");
+
+	auto verify = mHmac.VerifyDigest(mSignature, p, message.size());
+	TEST_TRUE(verify, "");
 
 	return 0;
 }

@@ -3,6 +3,7 @@
 #include <string>
 
 #include "logging/LoggingAll.h"
+#include "serialization/Base16.h"
 #include "serialization/Base64.h"
 
 #include "cryptopp/xed25519.h"
@@ -18,8 +19,11 @@ namespace l::crypto {
 		CryptoSigner() = default;
 		virtual ~CryptoSigner() = default;
 
+		virtual std::string_view GetAssociatedKey() = 0;
 		virtual void AccumulateMessage(std::string_view message) = 0;
 		virtual std::string SignMessageB64() = 0;
+		virtual std::string SignMessageHex() = 0;
+
 	};
 
 	std::string ToPublicKeyFormat(std::string_view pkcsFormat);
@@ -30,14 +34,19 @@ namespace l::crypto {
 		CryptoHMacSha256() = default;
 		~CryptoHMacSha256() = default;
 
+		void SetAssociatedKey(std::string_view associatedKey) {
+			mAssociatedKey = associatedKey;
+		}
+
 		bool LoadSecretKeyAscii(std::string_view privateKeyAscii) {
-			CryptoPP::SHA256 sha256;
 			auto keyBytes = reinterpret_cast<const CryptoPP::byte*>(privateKeyAscii.data());
-			sha256.CalculateDigest(mSecret, keyBytes, privateKeyAscii.size());
-			mHmac.SetKey(mSecret, 32);
+			mHmac.SetKey(keyBytes, privateKeyAscii.size());
 			return true;
 		}
 
+		std::string_view GetAssociatedKey() override {
+			return mAssociatedKey;
+		}
 		virtual void AccumulateMessage(std::string_view message) override {
 			auto p = reinterpret_cast<const CryptoPP::byte*>(message.data());
 			mHmac.Update(p, message.size());
@@ -48,6 +57,11 @@ namespace l::crypto {
 			return l::serialization::base64_encode(mSignature, 32);
 		}
 
+		virtual std::string SignMessageHex() override {
+			SignMessage();
+			return l::serialization::base16_encode(mSignature, 32);
+		}
+
 	protected:
 		void SignMessage() {
 			mHmac.Final(mSignature);
@@ -56,6 +70,8 @@ namespace l::crypto {
 		CryptoPP::HMAC<CryptoPP::SHA256> mHmac;
 		CryptoPP::byte mSecret[32];
 		CryptoPP::byte mSignature[32];
+
+		std::string mAssociatedKey;
 	};
 
 	class CryptoXED25519 : public CryptoSigner {
@@ -65,17 +81,24 @@ namespace l::crypto {
 
 		void CreateNewKeys();
 
+		void SetAssociatedKey(std::string_view associatedKey) {
+			mAssociatedKey = associatedKey;
+		}
+
 		bool LoadPrivateKeyB64(std::string_view privateKeyB64);
 		bool LoadPrivateKeyHex(std::string_view privateKeyHex);
 		bool LoadPublicKeyB64(std::string_view publicKeyB64);
 		bool LoadPublicKeyHex(std::string_view publicKeyHex);
 
 		CryptoPP::byte* SignMessage();
-		std::string SignMessageHex();
 		std::string SignMessagePem();
 
 		virtual void AccumulateMessage(std::string_view message) override;
 		virtual std::string SignMessageB64() override;
+		virtual std::string SignMessageHex() override;
+		std::string_view GetAssociatedKey() override {
+			return "";
+		}
 
 		bool VerifyB64(std::string_view signatureB64);
 		bool VerifyHex(std::string_view signatureHex);
@@ -114,6 +137,8 @@ namespace l::crypto {
 		CryptoPP::byte mPrivateKey[32];
 		CryptoPP::byte mPublicKey[32];
 		CryptoPP::byte mSignature[64];
+
+		std::string mAssociatedKey;
 	};
 
 
