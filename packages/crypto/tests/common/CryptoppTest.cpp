@@ -43,7 +43,6 @@ TEST(CryptoPP, hmacsha256) {
 TEST(CryptoPP, verifydigest) {
 
 	CryptoPP::HMAC<CryptoPP::SHA256> mHmac;
-	CryptoPP::byte mSecret[32];
 	CryptoPP::byte mSignature[32];
 
 	std::string_view privateKeyAscii = "NhqPtmdSJYdKjVHjA7PZj4Mge3R5YNiP1e3UZjInClVN65XAbvqqM6A7H5fATj0j";
@@ -70,29 +69,51 @@ TEST(CryptoPP, verifydigest) {
 	return 0;
 }
 
-#ifdef CRYPTOPP_TEST_1
-TEST(Cryptopp, printPemKeys) {
-	auto messageHex = "ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f";
-	auto signatureHex = "dc2a4459e7369633a52b1bf277839a00201009a3efbf3ecb69bea2186c26b58909351fc9ac90b3ecfdfbc7c66431e0303dca179c138ac17ad9bef1177331a704";
-	LOG(LogInfo) << "private key pem: " << crypto::ToPemKey("833fe62409237b9d62ec77587520911e9a759cec1d19755b7da901b96dca3d42");
+TEST(Cryptopp, x25519test) {
+	// verified using openssl : 
+	// openssl.exe genpkey -algorithm x25519 -out x25519.pem
+	// openssl.exe pkey -in x25519.pem -pubout
+	// 
+	// proper x25519 keys
+	auto skxpemCorrect = std::string_view("MC4CAQAwBQYDK2VuBCIEIODOQFz29LzKwtr9MOczhXoqexW2H3xVvLyrrZrA2dRZ");
+	auto pkxpemCorrect = std::string_view("MCowBQYDK2VuAyEAqGTXo1+4YCVjjcxwPruSeOjV8pnLYc+Z02mjBXRj3Sg=");
+	auto skxCorrect = l::serialization::base64_decode(skxpemCorrect);
+	auto pkxCorrect = l::serialization::base64_decode(pkxpemCorrect);
 
-	return 0;
-}
+	auto skxpemCorrectHex = l::serialization::base16_encode(l::serialization::base64_decode(skxpemCorrect));
+	auto pkxpemCorrectHex = l::serialization::base16_encode(l::serialization::base64_decode(pkxpemCorrect));
+	LOG(LogInfo) << "Secret pem key in hex: " << skxpemCorrectHex;
+	LOG(LogInfo) << "Public pem key in hex: " << pkxpemCorrectHex;
 
-TEST(Cryptopp, xed) {
+	CryptoPP::byte privateKeyCorrect[32];
+	CryptoPP::byte publicKeyCorrect[32];
+
+	memcpy(privateKeyCorrect, skxCorrect.c_str() + skxCorrect.size() - 32, 32);
+	memcpy(publicKeyCorrect, pkxCorrect.c_str() + pkxCorrect.size() -32, 32);
+
+	CryptoPP::byte publicKeyGen[32];
 	CryptoPP::x25519 xed;
-	CryptoPP::NonblockingRng rand;
+	xed.GeneratePublicKey(CryptoPP::NullRNG(), privateKeyCorrect, publicKeyGen);
 
-	{
-		CryptoPP::byte privateKey[32];
-		CryptoPP::byte publicKey[32];
-		xed.GenerateKeyPair(rand, privateKey, publicKey);
-		LOG(LogTest) << "private key: " << l::string::to_hex2(privateKey, 32);
-		LOG(LogTest) << "public key: " << l::string::to_hex2(publicKey, 32);
-	}
+	auto pkGen = l::serialization::base64_encode(publicKeyGen, 32);
+	auto pkCor = l::serialization::base64_encode(publicKeyCorrect, 32);
+
+	TEST_TRUE(pkCor == pkGen, "");
+
+	auto pkxString = std::string_view(reinterpret_cast<const char*>(publicKeyGen), 32);
+	auto pkxPem = crypto::To25519PemKey(pkxString, true, true);
+	LOG(LogInfo) << "Public key pem format:\n" << pkxPem;
+
+	TEST_TRUE(pkxPem == pkxpemCorrect, "");
+
+	auto skxHex = l::serialization::base16_encode(privateKeyCorrect, 32);
+	auto pkxHex = l::serialization::base16_encode(publicKeyGen, 32);
+	LOG(LogInfo) << "Public correct key hex format:\n" << pkxHex;
 
 	return 0;
 }
+
+#ifdef CRYPTOPP_TEST_1
 
 bool TestPublicKey(std::string_view privateKeyB16, std::string_view publicKeyB16) {
 	TEST_EQ(privateKeyB16.size(), 64, "");
@@ -171,6 +192,30 @@ bool TestVerifier(std::string_view publicKeyB16, std::string_view message, std::
 	CryptoPP::ed25519::Verifier verifier;
 	auto result = verifier.VerifyMessage(messageData, message.size(), signatureData, 64);
 	//TEST_TRUE(result, "");
+	return 0;
+}
+
+
+TEST(Cryptopp, printPemKeys) {
+	auto messageHex = "ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f";
+	auto signatureHex = "dc2a4459e7369633a52b1bf277839a00201009a3efbf3ecb69bea2186c26b58909351fc9ac90b3ecfdfbc7c66431e0303dca179c138ac17ad9bef1177331a704";
+	LOG(LogInfo) << "private key pem: " << crypto::ToPemKey("833fe62409237b9d62ec77587520911e9a759cec1d19755b7da901b96dca3d42");
+
+	return 0;
+}
+
+TEST(Cryptopp, xed) {
+	CryptoPP::x25519 xed;
+	CryptoPP::NonblockingRng rand;
+
+	{
+		CryptoPP::byte privateKey[32];
+		CryptoPP::byte publicKey[32];
+		xed.GenerateKeyPair(rand, privateKey, publicKey);
+		LOG(LogTest) << "private key: " << l::string::to_hex2(privateKey, 32);
+		LOG(LogTest) << "public key: " << l::string::to_hex2(publicKey, 32);
+	}
+
 	return 0;
 }
 

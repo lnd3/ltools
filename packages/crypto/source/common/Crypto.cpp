@@ -21,12 +21,37 @@ namespace l::crypto {
 		return stream.str();
 	}
 
-	std::string ToPemKey(std::string_view data, bool b16) {
-		static const std::array<unsigned char, 12> mED25519Prefix = { 0x30,0x2a,0x30,0x05,0x06,0x03,0x2b,0x65,0x70,0x03,0x21,0x00 };
+	std::string To25519PemKey(std::string_view rawkey, bool x25519, bool publicKey, bool b16) {
 		std::string pem(200, '0');
-		memcpy(pem.data(), mED25519Prefix.data(), mED25519Prefix.size());
-		memcpy(pem.data() + 12, data.data(), data.size());
-		auto pemKey = std::string_view(reinterpret_cast<const char*>(pem.data()), 12 + data.size());
+		size_t prefixSize = 0;
+		if (x25519) {
+			if (publicKey) {
+				auto& prefix = GetPemPrefix<true, true>();
+				memcpy(pem.data(), prefix.data(), prefix.size());
+				prefixSize = prefix.size();
+			}
+			else {
+				auto& prefix = GetPemPrefix<false, true>();
+				memcpy(pem.data(), prefix.data(), prefix.size());
+				memcpy(pem.data() + prefix.size(), rawkey.data(), rawkey.size());
+				prefixSize = prefix.size();
+			}
+		}
+		else {
+			if (publicKey) {
+				auto& prefix = GetPemPrefix<true, false>();
+				memcpy(pem.data(), prefix.data(), prefix.size());
+				prefixSize = prefix.size();
+			}
+			else {
+				auto& prefix = GetPemPrefix<false, false>();
+				memcpy(pem.data(), prefix.data(), prefix.size());
+				prefixSize = prefix.size();
+			}
+		}
+		memcpy(pem.data() + prefixSize, rawkey.data(), rawkey.size());
+		auto pemKey = std::string_view(reinterpret_cast<const char*>(pem.data()), prefixSize + rawkey.size());
+
 		if (b16) {
 			return l::serialization::base16_encode(pemKey);
 		}
@@ -143,12 +168,6 @@ namespace l::crypto {
 		return l::serialization::base64_encode(signatureData);
 	}
 
-	std::string CryptoXED25519::SignMessagePem() {
-		auto signature = SignMessage();
-		auto signatureData = std::string_view(reinterpret_cast<const char*>(signature), 64);
-		return l::serialization::base64_encode(crypto::ToPemKey(signatureData));
-	}
-
 	std::string CryptoXED25519::SignMessageHex() {
 		auto signature = SignMessage();
 		return l::string::hex_encode(std::string_view(reinterpret_cast<const char*>(signature), 64));
@@ -216,7 +235,7 @@ namespace l::crypto {
 	}
 
 	std::string CryptoXED25519::SavePEMPublicKeyB64() {
-		return l::serialization::base64_encode(ToPemKey(std::string_view(reinterpret_cast<const char*>(mPublicKey), 32)));
+		return l::serialization::base64_encode(To25519PemKey(std::string_view(reinterpret_cast<const char*>(mPublicKey), 32), true, true));
 	}
 
 	std::string CryptoXED25519::GetPrivateKeyDER() {
@@ -258,11 +277,11 @@ namespace l::crypto {
 	}
 
 	std::string CryptoXED25519::GetPublicKeyPem(bool b16) {
-		return ToPemKey(std::string_view(reinterpret_cast<const char*>(mPublicKey), 32), b16);
+		return To25519PemKey(std::string_view(reinterpret_cast<const char*>(mPublicKey), 32), true, true, b16);
 	}
 
 	std::string CryptoXED25519::GetPublicKeyPKCS8() {
-		return ToPublicKeyFormat(ToPemKey(std::string_view(reinterpret_cast<const char*>(mPublicKey), 32)));
+		return ToPublicKeyFormat(To25519PemKey(std::string_view(reinterpret_cast<const char*>(mPublicKey), 32), true, true));
 	}
 
 

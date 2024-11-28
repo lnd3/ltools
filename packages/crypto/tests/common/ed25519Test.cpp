@@ -8,6 +8,54 @@
 
 using namespace l;
 
+TEST(Cryptopp, ed25519test) {
+	// verified using openssl : 
+	// openssl.exe genpkey -algorithm ed25519 -out ed25519.pem
+	// openssl.exe pkey -in ed25519.pem -pubout
+
+	// proper ed25519 keys
+	auto skpemCorrect = "MC4CAQAwBQYDK2VwBCIEIJLROPqvQjL11xpXxMyW8YcRQ9jpNOoM9nyxakZ/Fwey";
+	auto pkpemCorrect = "MCowBQYDK2VwAyEASuV5yW6nXmZKBgBxBU5RzmUMlomY1Vd9muSJ0uYPfA8=";
+	auto skRawCorrect = l::serialization::base64_decode(skpemCorrect);
+	auto pkRawCorrect = l::serialization::base64_decode(pkpemCorrect);
+
+	auto skpemCorrectHex = l::serialization::base16_encode(l::serialization::base64_decode(skpemCorrect));
+	auto pkpemCorrectHex = l::serialization::base16_encode(l::serialization::base64_decode(pkpemCorrect));
+	LOG(LogInfo) << "Secret pem key in hex: " << skpemCorrectHex;
+	LOG(LogInfo) << "Public pem key in hex: " << pkpemCorrectHex;
+
+	unsigned char seed[32];
+	unsigned char sk[64];
+	unsigned char pk[32];
+	unsigned char sg[64];
+
+	ed25519_create_seed(seed);
+	auto seedStr = std::string_view(reinterpret_cast<const char*>(seed), 32);
+	auto seedHex = l::serialization::base16_encode(seedStr);
+
+	ed25519_create_keypair(pk, sk, seed);
+	auto skStr = std::string_view(reinterpret_cast<const char*>(sk), 64);
+	auto pkStr = std::string_view(reinterpret_cast<const char*>(pk), 32);
+	auto skHex = l::serialization::base16_encode(skStr);
+	auto pkHex = l::serialization::base16_encode(pkStr);
+
+	LOG(LogInfo) << "seed hex: " << seedHex;
+	LOG(LogInfo) << "secret key hex: " << skHex;
+	LOG(LogInfo) << "public key hex: " << pkHex;
+
+	auto message = std::string_view("testmessage");
+
+	ed25519_sign(sg, reinterpret_cast<const unsigned char*>(message.data()), message.size(), pk, sk);
+	auto sgStr = std::string_view(reinterpret_cast<const char*>(sg), 64);
+	auto sgHex = l::serialization::base16_encode(sgStr);
+
+	LOG(LogInfo) << "signature of 'testmessage': " << sgHex;
+
+	return 0;
+}
+
+
+
 TEST(Crypto, ed2519) {
 	auto pubKey2 = "";
 	auto pubKey = "";
