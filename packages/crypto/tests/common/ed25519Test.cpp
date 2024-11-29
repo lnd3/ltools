@@ -69,8 +69,7 @@ TEST(Crypto, ed2519) {
 	LOG(LogTest) << "private key base64: " << ed25519.GetPriKeyBase64();
 	LOG(LogTest) << "public key hex: " << ed25519.GetPubKeyHex();
 	LOG(LogTest) << "private key hex: " << ed25519.GetPriKeyHex();
-	LOG(LogTest) << "public key pem: " << ed25519.GetPubKeyPem();
-	LOG(LogTest) << "public key pem2: " << ed25519.GetPubKeyPem2();
+	LOG(LogTest) << "public key pem2: " << ed25519.GetPubKeyPem();
 
 	auto signature = ed25519.GetSign(message);
 

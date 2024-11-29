@@ -15,7 +15,7 @@
 namespace l::crypto {
 
 	template<bool PUBLIC = true, bool X25519 = false, size_t SIZE = (PUBLIC ? 12 : 16)>
-	const std::array<unsigned char, SIZE>& GetPemPrefix() {
+	const std::array<unsigned char, SIZE>& Get25519PemPrefix() {
 
 		// secret x25519 pem key in hex
 		// 302e020100300506032b65 6e 04220420 
@@ -67,7 +67,7 @@ namespace l::crypto {
 
 	};
 
-	std::string ToPublicKeyFormat(std::string_view pkcsFormat);
+	std::string ToPKCSFormat(std::string_view content, bool publicKey = true);
 	std::string To25519PemKey(std::string_view rawkey, bool x25519 = true, bool publicKey = true, bool b16 = false);
 
 	class CryptoHMacSha256 : public CryptoSigner {
@@ -203,8 +203,6 @@ namespace l::crypto {
 		std::string GetPriKeyHex();
 		std::string GetPubKeyHex();
 		std::string GetPubKeyPem();
-		std::string GetPubKeyPem2();
-
 
 		bool Verify(std::string_view signature, std::string_view message, std::string_view publicKey = "");
 	protected:

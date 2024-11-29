@@ -12,12 +12,16 @@
 namespace l::crypto {
 
 	// PKCS#8 format
-	std::string ToPublicKeyFormat(std::string_view pkcsFormat) {
+	std::string ToPKCSFormat(std::string_view content, bool publicKey) {
 		std::stringstream stream;
-		stream << "-----BEGIN PUBLIC KEY-----\n";
-		stream << pkcsFormat;
+		stream << "-----BEGIN ";
+		stream << (publicKey ? "PUBLIC" : "PRIVATE");
+		stream << " KEY---- - \n";
+		stream << content;
 		stream << "\n";
-		stream << "-----END PUBLIC KEY-----\n";
+		stream << "-----END ";
+		stream << (publicKey ? "PUBLIC" : "PRIVATE");
+		stream << " KEY---- - \n";
 		return stream.str();
 	}
 
@@ -26,12 +30,12 @@ namespace l::crypto {
 		size_t prefixSize = 0;
 		if (x25519) {
 			if (publicKey) {
-				auto& prefix = GetPemPrefix<true, true>();
+				auto& prefix = Get25519PemPrefix<true, true>();
 				memcpy(pem.data(), prefix.data(), prefix.size());
 				prefixSize = prefix.size();
 			}
 			else {
-				auto& prefix = GetPemPrefix<false, true>();
+				auto& prefix = Get25519PemPrefix<false, true>();
 				memcpy(pem.data(), prefix.data(), prefix.size());
 				memcpy(pem.data() + prefix.size(), rawkey.data(), rawkey.size());
 				prefixSize = prefix.size();
@@ -39,12 +43,12 @@ namespace l::crypto {
 		}
 		else {
 			if (publicKey) {
-				auto& prefix = GetPemPrefix<true, false>();
+				auto& prefix = Get25519PemPrefix<true, false>();
 				memcpy(pem.data(), prefix.data(), prefix.size());
 				prefixSize = prefix.size();
 			}
 			else {
-				auto& prefix = GetPemPrefix<false, false>();
+				auto& prefix = Get25519PemPrefix<false, false>();
 				memcpy(pem.data(), prefix.data(), prefix.size());
 				prefixSize = prefix.size();
 			}
@@ -281,19 +285,8 @@ namespace l::crypto {
 	}
 
 	std::string CryptoXED25519::GetPublicKeyPKCS8() {
-		return ToPublicKeyFormat(To25519PemKey(std::string_view(reinterpret_cast<const char*>(mPublicKey), 32), true, true));
+		return ToPKCSFormat(To25519PemKey(std::string_view(reinterpret_cast<const char*>(mPublicKey), 32), true, true));
 	}
-
-
-
-
-
-
-
-
-
-
-
 
 	bool CryptoED25519::Init() {
 		memset(mSeed, 0, 32);
@@ -399,22 +392,8 @@ namespace l::crypto {
 	}
 
 	std::string CryptoED25519::GetPubKeyPem() {
-		memcpy(mPemKey, "id-Ed25519", 10);
-		mPemKey[10] = 1;
-		mPemKey[11] = 3;
-		mPemKey[12] = 101;
-		mPemKey[13] = 112;
-		memcpy(mPemKey + 10 + 4, mPubKey, 32);
-		auto pemKey = std::string_view(reinterpret_cast<const char*>(mPemKey), 46);
-		return l::serialization::base64_encode(pemKey);
-	}
-
-	std::string CryptoED25519::GetPubKeyPem2() {
-		static const std::array<unsigned char, 12> mED25519Prefix = { 0x30,0x2a,0x30,0x05,0x06,0x03,0x2b,0x65,0x70,0x03,0x21,0x00 };
-		memcpy(mPemKey, mED25519Prefix.data(), mED25519Prefix.size());
-		memcpy(mPemKey + 12, mPubKey, 32);
-		auto pemKey = std::string_view(reinterpret_cast<const char*>(mPemKey), 12 + 32);
-		return l::serialization::base64_encode(pemKey);
+		auto rawKey = std::string_view(reinterpret_cast<const char*>(mPemKey), 32);
+		return To25519PemKey(rawKey, false, true);
 	}
 
 	/*
@@ -426,8 +405,6 @@ namespace l::crypto {
 	  privateKeyEncoding: {
 		type: 'pkcs8',
 		format: 'pem'
-	
-	
 	*/
 	bool CryptoED25519::Verify(std::string_view signature, std::string_view message, std::string_view publicKey) {
 		unsigned char* pubKey = reinterpret_cast<unsigned char*>(const_cast<char*>(publicKey.data()));

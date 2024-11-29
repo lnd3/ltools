@@ -14,7 +14,6 @@
 
 using namespace l;
 
-
 TEST(CryptoPP, hmacsha256) {
 
 	CryptoPP::HMAC<CryptoPP::SHA256> mHmac;
