@@ -35,7 +35,7 @@ namespace l::nodegraph {
 
     class NodeGraphGroup : public l::serialization::SerializationBase {
     public:
-        NodeGraphGroup() {}
+        NodeGraphGroup() : SerializationBase(0, 0, true, false, true, true, true) {}
         ~NodeGraphGroup() {
             LOG(LogInfo) << "Node group destroyed";
         }
