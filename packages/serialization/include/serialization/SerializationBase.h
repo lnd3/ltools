@@ -46,8 +46,8 @@ namespace l::serialization {
 		bool IsIdentifierValid();
 		bool IsVersionValid(int32_t latestVersion);
 
-		int32_t mIdentifier;
-		int32_t mVersion;
+		int32_t mIdentifier = 0;
+		int32_t mVersion = 0;
 	};
 
 	struct TinyHeaderValidity {
