@@ -361,7 +361,10 @@ namespace l::ecs {
 		ComponentHandle<T> getFirst() {
 			ComponentViewCache<T>* components = getComponentCache<T>();
 			Entity* entity = components->getFirst();
-			return entity->get<T>();
+			if (entity) {
+				return entity->get<T>();
+			}
+			return ComponentHandle<T>();
 		}
 
 		template<typename... Types>

@@ -149,10 +149,7 @@ namespace l::network {
 			](const l::concurrency::RunState& state) {
 				std::unique_lock lock(cmConnectionsMutex);
 				auto it = std::find_if(cmConnections.begin(), cmConnections.end(), [&](std::unique_ptr<ConnectionBase>& request) {
-					if (cqueryName != request->GetRequestName()) {
-						return false;
-					}
-					if (request->TryReservingRequest()) {
+					if (cqueryName == request->GetRequestName() && request->TryReservingRequest()) {
 						return true;
 					}
 					return false;
@@ -189,10 +186,7 @@ namespace l::network {
 		}
 		else {
 			auto it = std::find_if(mConnections.begin(), mConnections.end(), [&](std::unique_ptr<ConnectionBase>& request) {
-				if (queryName != request->GetRequestName()) {
-					return false;
-				}
-				if (!request->HasExpired()) {
+				if (queryName == request->GetRequestName()) {
 					return true;
 				}
 				return false;
@@ -218,8 +212,8 @@ namespace l::network {
 			});
 
 		if (it == mConnections.end()) {
-			LOG(LogError) << "Failed wss write, query not found";
-			return -4;
+			LOG(LogError) << "Failed to find connection: " << queryName;
+			return -201;
 		}
 		auto request = it->get();
 		lock.unlock();
@@ -237,8 +231,8 @@ namespace l::network {
 			});
 
 		if (it == mConnections.end()) {
-			LOG(LogError) << "Failed wss read, query not found";
-			return -4;
+			LOG(LogError) << "Failed to find connection: " << queryName;
+			return -201;
 		}
 		auto request = it->get();
 		lock.unlock();
@@ -246,4 +240,21 @@ namespace l::network {
 		return request->WSRead(buffer, size);
 	}
 
+	bool NetworkManager::WSConnected(std::string_view queryName) {
+		std::unique_lock lock(mConnectionsMutex);
+		auto it = std::find_if(mConnections.begin(), mConnections.end(), [&](std::unique_ptr<ConnectionBase>& request) {
+			if (queryName == request->GetRequestName()) {
+				return true;
+			}
+			return false;
+			});
+
+		if (it == mConnections.end()) {
+			return false;
+		}
+		auto request = it->get();
+		lock.unlock();
+
+		return request->IsWebSocketAlive();
+	}
 }
