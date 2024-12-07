@@ -64,7 +64,7 @@ namespace l::crypto {
 		virtual void AccumulateMessage(std::string_view message) = 0;
 		virtual std::string SignMessageB64() = 0;
 		virtual std::string SignMessageHex() = 0;
-
+		virtual bool IsReady() = 0;
 	};
 
 	std::string ToPKCSFormat(std::string_view content, bool publicKey = true);
@@ -75,19 +75,29 @@ namespace l::crypto {
 		CryptoHMacSha256() = default;
 		~CryptoHMacSha256() = default;
 
+		bool IsReady() {
+			return !mAssociatedKey.empty() && mSecretLoaded;
+		}
+
 		void SetAssociatedKey(std::string_view associatedKey) {
 			mAssociatedKey = associatedKey;
 		}
 
 		bool LoadSecretKeyAscii(std::string_view privateKeyAscii) {
+			if (privateKeyAscii.empty()) {
+				mSecretLoaded = false;
+				return false;
+			}
 			auto keyBytes = reinterpret_cast<const CryptoPP::byte*>(privateKeyAscii.data());
 			mHmac.SetKey(keyBytes, privateKeyAscii.size());
+			mSecretLoaded = true;
 			return true;
 		}
 
 		std::string_view GetAssociatedKey() override {
 			return mAssociatedKey;
 		}
+
 		virtual void AccumulateMessage(std::string_view message) override {
 			auto p = reinterpret_cast<const CryptoPP::byte*>(message.data());
 			mHmac.Update(p, message.size());
@@ -109,10 +119,10 @@ namespace l::crypto {
 		}
 
 		CryptoPP::HMAC<CryptoPP::SHA256> mHmac;
-		CryptoPP::byte mSecret[32];
 		CryptoPP::byte mSignature[32];
 
 		std::string mAssociatedKey;
+		bool mSecretLoaded = false;
 	};
 
 	class CryptoXED25519 : public CryptoSigner {
@@ -121,6 +131,10 @@ namespace l::crypto {
 		~CryptoXED25519() = default;
 
 		void CreateNewKeys();
+
+		bool IsReady() {
+			return !mAssociatedKey.empty();
+		}
 
 		void SetAssociatedKey(std::string_view associatedKey) {
 			mAssociatedKey = associatedKey;
@@ -193,6 +207,10 @@ namespace l::crypto {
 		bool Init();
 		void CreateKeys(std::string_view pubKeyBase64 = "", std::string_view priKeyBase64 = "");
 		void CreateKeysFromB16(std::string_view pubKeyBase16 = "", std::string_view priKeyBase16 = "");
+
+		bool IsReady() {
+			return mPriKey[1] != 0 && mPriKey[7] != 0 && mPriKey[21] != 0;
+		}
 
 		std::string GetSign(std::string_view message);
 		std::string GetSignBase64(std::string_view message);
