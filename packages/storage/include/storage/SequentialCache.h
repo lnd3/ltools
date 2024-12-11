@@ -127,6 +127,15 @@ namespace l::filecache {
 			if (!mData) {
 				return false;
 			}
+
+			if constexpr (std::is_base_of_v<l::serialization::SerializationBase, T>) {
+				auto sb = reinterpret_cast<l::serialization::SerializationBase*>(mData.get());
+				if (sb != nullptr) {
+					sb->GetArchiveData(data);
+					return true;
+				}
+			}
+
 			zpp::serializer::memory_output_archive out(data);
 			out(*this);
 
@@ -138,6 +147,13 @@ namespace l::filecache {
 				std::lock_guard lock(mDataMutex);
 				if (!mData) {
 					mData = std::make_unique<T>();
+				}
+				if constexpr (std::is_base_of_v<l::serialization::SerializationBase, T>) {
+					auto sb = reinterpret_cast<l::serialization::SerializationBase*>(mData.get());
+					if (sb != nullptr) {
+						sb->LoadArchiveData(data);
+						return true;
+					}
 				}
 
 				zpp::serializer::memory_input_archive in(data);

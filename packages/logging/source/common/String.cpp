@@ -30,8 +30,7 @@ namespace {
 
 }
 
-namespace l {
-namespace string {
+namespace l::string {
 
 	void init_timezone() {
 		if (timezoneInited) {
@@ -557,5 +556,102 @@ namespace string {
 		return s;
 	}
 
-}
+	std::string to_hex2(unsigned char* src, size_t len) {
+		static const char* digits = "0123456789abcdef";
+		std::string rc(len * 2, '0');
+		for (size_t i = 0; i < len * 2; i += 2) {
+			rc[i + 0] = digits[(*src >> 4) & 0x0f];
+			rc[i + 1] = digits[(*src) & 0x0f];
+			src++;
+		}
+		return rc;
+	}
+
+	std::string to_hex2(std::string_view str) {
+		static const char* digits = "0123456789abcdef";
+		std::string rc(str.size() * 2, '0');
+		unsigned char* buf = reinterpret_cast<unsigned char*>(const_cast<char*>(str.data()));
+		for (size_t i = 0; i < str.size() * 2; i += 2) {
+			rc[i + 0] = digits[(*buf >> 4) & 0x0f];
+			rc[i + 1] = digits[(*buf) & 0x0f];
+			buf++;
+		}
+		return rc;
+	}
+
+	std::string hex_encode(unsigned char* buf, size_t len) {
+		static const char* digits = "0123456789abcdef";
+		std::string rc(len * 2, '0');
+		for (size_t i = 0; i < len * 2; i += 2) {
+			rc[i + 0] = digits[(*buf >> 4) & 0x0f];
+			rc[i + 1] = digits[(*buf) & 0x0f];
+			buf++;
+		}
+		return rc;
+	}
+
+	void hex_decode(unsigned char* dst, std::string_view src) {
+		auto convertToOctet = [](unsigned char c, bool mostSignificant = false) -> unsigned char {
+			unsigned char out = 0;
+			if (c >= 48 && c <= 57) {
+				out = (c - 48);
+			}
+			else if (c >= 97 && c <= 102) {
+				out = 10 + (c - 97);
+			}
+			else {
+				ASSERT(false);
+				out = 0;
+			}
+			return mostSignificant ? out << 4 : out;
+			};
+
+		size_t len = src.size() / 2;
+		unsigned char* buf = reinterpret_cast<unsigned char*>(const_cast<char*>(src.data()));
+		for (size_t i = 0; i < len; i++) {
+			dst[i] = convertToOctet(*buf, true);
+			buf++;
+			dst[i] |= convertToOctet(*buf, false);
+			buf++;
+		}
+	}
+
+	std::string hex_encode(std::string_view str) {
+		static const char* digits = "0123456789abcdef";
+		std::string rc(str.size() * 2, '0');
+		unsigned char* buf = reinterpret_cast<unsigned char*>(const_cast<char*>(str.data()));
+		for (size_t i = 0; i < str.size() * 2; i += 2) {
+			rc[i + 0] = digits[(*buf >> 4) & 0x0f];
+			rc[i + 1] = digits[(*buf) & 0x0f];
+			buf++;
+		}
+		return rc;
+	}
+
+	std::string hex_decode(std::string_view str) {
+		auto convertToOctet = [](char c, bool mostSignificant = false) -> unsigned char {
+			unsigned char out = 0;
+			if (c >= 48 && c <= 57) {
+				out = (c - 48);
+			}
+			else if (c >= 97 && c <= 102) {
+				out = 10 + (c - 97);
+			}
+			else {
+				ASSERT(false);
+				out = 0;
+			}
+			return mostSignificant ? out << 4 : out;
+			};
+
+		std::string rc(str.size() / 2, '0');
+		char* buf = const_cast<char*>(str.data());
+		for (size_t i = 0; i < str.size() / 2; i++) {
+			rc[i] = convertToOctet(*buf, true);
+			buf++;
+			rc[i] |= convertToOctet(*buf, false);
+			buf++;
+		}
+		return rc;
+	}
 }
