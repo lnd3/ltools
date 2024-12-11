@@ -14,11 +14,16 @@ namespace l::serialization {
 
 		for (std::string line; std::getline(data, line, '\n');) {
 			auto elements = l::string::split(line, separators);
+			int32_t count = 0;
 			for (auto it : elements) {
 				out.push_back(std::string(it));
+				count++;
+			}
+			if (count % 2 != 0) {
+				out.push_back("");
 			}
 		}
-
+		ASSERT(out.size() % 2 == 0);
 		return out;
 	}
 
