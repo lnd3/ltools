@@ -105,6 +105,7 @@ namespace l::string {
 	bool equal(const char* a, const char* b, size_t a_offset = 0, size_t b_offset = 0, size_t maxCount = 20);
 	bool equal_partial(const char* a, const char* b, size_t a_offset = 0, size_t b_offset = 0, size_t maxCount = 20);
 	bool equal_partial(std::string_view a, std::string_view b, size_t a_offset = 0, size_t b_offset = 0);
+	bool equal_anywhere(std::string_view a, std::string_view b);
 
 	std::vector<std::wstring_view> split(std::wstring_view text, std::wstring_view delim = L" \t\n", char escapeChar = '\"');
 	std::vector<std::string_view> split(std::string_view text, std::string_view delim = " \t\n", char escapeChar = '\"');

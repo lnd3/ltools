@@ -418,6 +418,21 @@ namespace l::string {
 		return true;
 	}
 
+	bool equal_anywhere(std::string_view src, std::string_view search) {
+		if (search.empty()) {
+			return false;
+		}
+		bool found = false;
+		int32_t searchSize = search.size();
+		for (int32_t i = 0; i <= src.size() - searchSize; i++) {
+			if (src.substr(i, searchSize) == search) {
+				found = true;
+				break;
+			}
+		}
+		return found;
+	}
+
 	std::vector<std::wstring_view> split(std::wstring_view text, std::wstring_view delim, char escapeChar) {
 		std::vector<std::wstring_view> out;
 
