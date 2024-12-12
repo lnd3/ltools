@@ -419,12 +419,12 @@ namespace l::string {
 	}
 
 	bool equal_anywhere(std::string_view src, std::string_view search) {
-		if (search.empty()) {
+		if (search.empty() || src.empty() || src.size() < search.size()) {
 			return false;
 		}
 		bool found = false;
-		int32_t searchSize = search.size();
-		for (int32_t i = 0; i <= src.size() - searchSize; i++) {
+		size_t searchSize = search.size();
+		for (size_t i = 0; i <= src.size() - searchSize; i++) {
 			if (src.substr(i, searchSize) == search) {
 				found = true;
 				break;
