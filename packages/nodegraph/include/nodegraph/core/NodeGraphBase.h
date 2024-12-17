@@ -52,7 +52,7 @@ namespace l::nodegraph {
             this->mId = other.mId;
             //this->mInputs = std::move(other.mInputs);
             //this->mOutputs = std::move(other.mOutputs);
-            this->mName = std::move(other.mName);
+            this->mName = other.mName;
             this->mLastTickCount = other.mLastTickCount;
             this->mOutputType = other.mOutputType;
             this->mProcessUpdateHasRun = other.mProcessUpdateHasRun;

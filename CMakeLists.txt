@@ -24,6 +24,7 @@ else()
 		meta
 		memory
 		serialization
+		crypto
 		math
 		audio
 		hid

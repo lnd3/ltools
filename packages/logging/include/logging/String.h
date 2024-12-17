@@ -10,8 +10,7 @@
 #include <string>
 #include <memory>
 
-namespace l {
-namespace string {
+namespace l::string {
 
 	class stackstringview {
 	public:
@@ -102,9 +101,11 @@ namespace string {
 		}
 	}
 
+
 	bool equal(const char* a, const char* b, size_t a_offset = 0, size_t b_offset = 0, size_t maxCount = 20);
 	bool equal_partial(const char* a, const char* b, size_t a_offset = 0, size_t b_offset = 0, size_t maxCount = 20);
 	bool equal_partial(std::string_view a, std::string_view b, size_t a_offset = 0, size_t b_offset = 0);
+	bool equal_anywhere(std::string_view a, std::string_view b);
 
 	std::vector<std::wstring_view> split(std::wstring_view text, std::wstring_view delim = L" \t\n", char escapeChar = '\"');
 	std::vector<std::string_view> split(std::string_view text, std::string_view delim = " \t\n", char escapeChar = '\"');
@@ -196,6 +197,14 @@ namespace string {
 
 	std::string_view rcut(std::string_view s, const char ch);
 	std::wstring_view rcut(std::wstring_view s, const wchar_t ch);
-}
+
+	std::string to_hex2(unsigned char* src, size_t hex_len);
+	std::string to_hex2(std::string_view str);
+
+	std::string hex_encode(unsigned char* src, size_t len);
+	void hex_decode(unsigned char* dst, std::string_view src);
+
+	std::string hex_encode(std::string_view str);
+	std::string hex_decode(std::string_view str);
 }
 

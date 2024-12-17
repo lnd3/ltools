@@ -72,20 +72,24 @@ namespace l::filecache {
 		CacheBlock() :
 			mPath(""),
 			mData(nullptr),
-			mCacheProvider(nullptr)
+			mCacheProvider(nullptr),
+			mPersistOnDestruction(false)
 		{}
 
-		CacheBlock(std::string_view path, ICacheProvider* provider, bool noProvisioning = false) :
+		CacheBlock(std::string_view path, ICacheProvider* provider, bool noProvisioning = false, bool persistOnDestruction = false) :
 			mPath(path),
 			mData(nullptr),
-			mCacheProvider(provider)
+			mCacheProvider(provider),
+			mPersistOnDestruction(persistOnDestruction)
 		{
 			if (!noProvisioning) {
 				ProvideData();
 			}
 		}
 		~CacheBlock() {
-			PersistData();
+			if (mPersistOnDestruction) {
+				PersistData();
+			}
 		}
 
 		friend zpp::serializer::access;
@@ -127,6 +131,15 @@ namespace l::filecache {
 			if (!mData) {
 				return false;
 			}
+
+			if constexpr (std::is_base_of_v<l::serialization::SerializationBase, T>) {
+				auto sb = reinterpret_cast<l::serialization::SerializationBase*>(mData.get());
+				if (sb != nullptr) {
+					sb->GetArchiveData(data);
+					return true;
+				}
+			}
+
 			zpp::serializer::memory_output_archive out(data);
 			out(*this);
 
@@ -138,6 +151,13 @@ namespace l::filecache {
 				std::lock_guard lock(mDataMutex);
 				if (!mData) {
 					mData = std::make_unique<T>();
+				}
+				if constexpr (std::is_base_of_v<l::serialization::SerializationBase, T>) {
+					auto sb = reinterpret_cast<l::serialization::SerializationBase*>(mData.get());
+					if (sb != nullptr) {
+						sb->LoadArchiveData(data);
+						return true;
+					}
 				}
 
 				zpp::serializer::memory_input_archive in(data);
@@ -171,6 +191,8 @@ namespace l::filecache {
 		std::string mPath;
 		std::mutex mPathMutex;
 		ICacheProvider* mCacheProvider;
+
+		bool mPersistOnDestruction;
 	};
 
 	template<class T>

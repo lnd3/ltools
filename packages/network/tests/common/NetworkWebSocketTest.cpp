@@ -96,16 +96,8 @@ TEST(NetworkWebSocket, BinanceKlines) {
 
 	int32_t read = 0;
 	int32_t readCount = 3;
-	do {
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-		read = networkInterfaceWS->Read("Binance", &buffer[0], 1024);
-		if (read > 0) {
-			LOG(LogInfo) << std::string_view(buffer, read);
-		}
-	} while (readCount-- >= 0);
 
-	networkInterfaceWS->Write("Binance", subscribeStream.data(), subscribeStream.size());
-
+	networkInterfaceWS->QueueWrite("Binance", subscribeStream.data(), subscribeStream.size());
 
 	readCount = 60;
 	do {
