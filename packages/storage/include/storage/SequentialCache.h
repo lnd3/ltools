@@ -72,20 +72,24 @@ namespace l::filecache {
 		CacheBlock() :
 			mPath(""),
 			mData(nullptr),
-			mCacheProvider(nullptr)
+			mCacheProvider(nullptr),
+			mPersistOnDestruction(false)
 		{}
 
-		CacheBlock(std::string_view path, ICacheProvider* provider, bool noProvisioning = false) :
+		CacheBlock(std::string_view path, ICacheProvider* provider, bool noProvisioning = false, bool persistOnDestruction = false) :
 			mPath(path),
 			mData(nullptr),
-			mCacheProvider(provider)
+			mCacheProvider(provider),
+			mPersistOnDestruction(persistOnDestruction)
 		{
 			if (!noProvisioning) {
 				ProvideData();
 			}
 		}
 		~CacheBlock() {
-			PersistData();
+			if (mPersistOnDestruction) {
+				PersistData();
+			}
 		}
 
 		friend zpp::serializer::access;
@@ -187,6 +191,8 @@ namespace l::filecache {
 		std::string mPath;
 		std::mutex mPathMutex;
 		ICacheProvider* mCacheProvider;
+
+		bool mPersistOnDestruction;
 	};
 
 	template<class T>
