@@ -287,7 +287,7 @@ namespace l::filecache {
 			int32_t beginPosition,
 			int32_t endPosition,
 			int32_t blockWidth,
-			std::function<bool(CacheBlock<T>*)> callback) {
+			std::function<bool(int32_t start, int32_t size, CacheBlock<T>*)> callback) {
 
 			std::unique_lock<std::mutex> lock(mMutexSequentialCacheMap);
 			auto it = mSequentialCacheMap.find(cacheKey.data());
@@ -305,11 +305,13 @@ namespace l::filecache {
 
 			auto cacheBlockWidth = sequentialCacheMap->GetBlockWidth();
 			CacheBlock<T>* cacheBlock = nullptr;
+
+			beginPosition = GetClampedPosition(beginPosition, cacheBlockWidth);
 			if (beginPosition < endPosition) {
 				do {
 					cacheBlock = sequentialCacheMap->Get(beginPosition);
 					if (cacheBlock != nullptr) {
-						if (!callback(cacheBlock)) {
+						if (!callback(beginPosition, cacheBlockWidth, cacheBlock)) {
 							break;
 						}
 					}
@@ -323,7 +325,7 @@ namespace l::filecache {
 				do {
 					cacheBlock = sequentialCacheMap->Get(beginPosition);
 					if (cacheBlock != nullptr) {
-						if (!callback(cacheBlock)) {
+						if (!callback(beginPosition, cacheBlockWidth, cacheBlock)) {
 							break;
 						}
 					}
@@ -342,7 +344,7 @@ namespace l::filecache {
 			int32_t beginPosition,
 			int32_t endPosition,
 			int32_t blockWidth,
-			std::function<bool(CacheBlock<T>*, CacheBlock<T>*)> callback) {
+			std::function<bool(int32_t, int32_t, CacheBlock<T>*, CacheBlock<T>*)> callback) {
 
 			std::unique_lock<std::mutex> lock(mMutexSequentialCacheMap);
 			auto it1 = mSequentialCacheMap.find(cacheKey1.data());
@@ -381,6 +383,7 @@ namespace l::filecache {
 
 			CacheBlock<T>* cacheBlock1 = nullptr;
 			CacheBlock<T>* cacheBlock2 = nullptr;
+			beginPosition = GetClampedPosition(beginPosition, cacheBlockWidth1);
 			if (beginPosition < endPosition) {
 				do {
 					cacheBlock1 = sequentialCacheMap1->Get(beginPosition);
@@ -388,7 +391,7 @@ namespace l::filecache {
 						if (sequentialCacheMap2 != nullptr) {
 							cacheBlock2 = sequentialCacheMap2->Get(beginPosition);
 						}
-						if (!callback(cacheBlock1, cacheBlock2)) {
+						if (!callback(beginPosition, cacheBlockWidth1, cacheBlock1, cacheBlock2)) {
 							break;
 						}
 					}
@@ -405,7 +408,7 @@ namespace l::filecache {
 						if (sequentialCacheMap2 != nullptr) {
 							cacheBlock2 = sequentialCacheMap2->Get(beginPosition);
 						}
-						if (!callback(cacheBlock1, cacheBlock2)) {
+						if (!callback(beginPosition, cacheBlockWidth1, cacheBlock1, cacheBlock2)) {
 							break;
 						}
 					}
