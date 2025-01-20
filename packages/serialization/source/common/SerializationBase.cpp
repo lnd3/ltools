@@ -131,6 +131,7 @@ namespace l::serialization {
 				if (!peekSuccessful || !headerValidity.IsVersionValid(mLatestVersion)) {
 					return;
 				}
+				mExpectIdentifier = false;
 				mUseVersion = true; // if version is expected, we should continue using it even if user didn't not set it
 			}
 			zpp::serializer::memory_input_archive in(data);
