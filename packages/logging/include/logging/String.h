@@ -49,7 +49,7 @@ namespace l::string {
 		}
 
 		std::string_view str() {
-			return { mBuf, mPos };
+			return { mBuf, static_cast<uint32_t>(mPos) };
 		}
 
 	protected:
