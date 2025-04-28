@@ -26,16 +26,16 @@ namespace l::string {
 			mPos = 0;
 		}
 
-		int32_t left() {
-			return BUFSIZE - mPos;
+		size_t left() {
+			return static_cast<size_t>(BUFSIZE - mPos);
 		}
 
-		int32_t size() {
-			return mPos;
+		size_t size() {
+			return static_cast<size_t>(mPos);
 		}
 
 		int32_t append(std::string_view s) {
-			int32_t count = s.size() < left() ? s.size() : left();
+			size_t count = s.size() < left() ? s.size() : left();
 			memcpy(mBuf + mPos, s.data(), count);
 			mPos += count;
 			return count;
@@ -49,7 +49,7 @@ namespace l::string {
 		}
 
 		std::string_view str() {
-			return { mBuf, static_cast<uint32_t>(mPos) };
+			return { mBuf, static_cast<size_t>(mPos) };
 		}
 
 	protected:
