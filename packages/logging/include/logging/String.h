@@ -12,6 +12,51 @@
 
 namespace l::string {
 
+	template<int32_t BUFSIZE>
+	class string_buffer {
+	public:
+		string_buffer() = default;
+		~string_buffer() = default;
+
+		void pos(int32_t p) {
+			mPos = (p < 0) ? 0 : (p >= BUFSIZE ? BUFSIZE - 1 : p);
+		}
+
+		void clear() {
+			mPos = 0;
+		}
+
+		int32_t left() {
+			return BUFSIZE - mPos;
+		}
+
+		int32_t size() {
+			return mPos;
+		}
+
+		int32_t append(std::string_view s) {
+			int32_t count = s.size() < left() ? s.size() : left();
+			memcpy(mBuf + mPos, s.data(), count);
+			mPos += count;
+			return count;
+		}
+
+		template<class ...T>
+		int32_t printf(const char* format, T ...args) {
+			int count = std::snprintf(mBuf + mPos, left(), format, std::forward<T>(args)...);
+			mPos += count;
+			return count;
+		}
+
+		std::string_view str() {
+			return { mBuf, mPos };
+		}
+
+	protected:
+		int32_t mPos = 0;
+		char mBuf[BUFSIZE];
+	};
+
 	class stackstringview {
 	public:
 		stackstringview() = default;

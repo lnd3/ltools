@@ -13,7 +13,7 @@
 #include <iostream>
 
 struct TickData {
-	float elapsedTime;
+	double elapsedTime;
 	float deltaTime;
 };
 
