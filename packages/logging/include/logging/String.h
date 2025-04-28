@@ -30,26 +30,29 @@ namespace l::string {
 			return static_cast<size_t>(BUFSIZE - mPos);
 		}
 
+		char& cur() {
+			return mBuf[size()];
+		}
 		size_t size() {
 			return static_cast<size_t>(mPos);
 		}
 
 		int32_t append(std::string_view s) {
 			int32_t count = static_cast<int32_t>(s.size() < left() ? s.size() : left());
-			memcpy(mBuf + mPos, s.data(), static_cast<size_t>(count));
+			memcpy(&cur(), s.data(), static_cast<size_t>(count));
 			mPos += count;
 			return count;
 		}
 
 		template<class ...T>
 		int32_t printf(const char* format, T ...args) {
-			int count = std::snprintf(mBuf + mPos, left(), format, std::forward<T>(args)...);
+			int count = std::snprintf(&cur(), left(), format, std::forward<T>(args)...);
 			mPos += count;
 			return count;
 		}
 
 		std::string_view str() {
-			return { mBuf, static_cast<size_t>(mPos) };
+			return std::string_view( &mBuf[0], size());
 		}
 
 	protected:
