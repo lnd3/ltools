@@ -23,6 +23,7 @@ namespace l::ui {
 
         virtual void Show() = 0;
         virtual bool IsShowing() = 0;
+        virtual void Update(double, float) {}
     };
 
     class UIWindow final : public UIBase {

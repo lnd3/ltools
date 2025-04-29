@@ -109,7 +109,7 @@ namespace l::nodegraph {
         void RegisterNodeType(const std::string& typeGroup, int32_t uniqueTypeId, std::string_view typeName);
         void RegisterAllOf(const std::string& typeGroup);
         void ProcessSubGraph(int32_t numSamples);
-        void Tick(int32_t tickCount, float elapsed);
+        void Tick(int32_t tickCount, float delta);
     protected:
         NodeGraphGroup mMainNodeGraph;
         std::string mName;

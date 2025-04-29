@@ -70,13 +70,13 @@ namespace l::nodegraph {
         mProcessUpdateHasRun = true;
     }
 
-    void NodeGraphBase::Tick(int32_t tickCount, float elapsed) {
+    void NodeGraphBase::Tick(int32_t tickCount, float delta) {
         if (tickCount <= mLastTickCount) {
             return;
         }
         for (auto& link : mInputs) {
             if (link.mInputType == InputType::INPUT_NODE && link.mInput.mInputNode != nullptr) {
-                link.mInput.mInputNode->Tick(tickCount, elapsed);
+                link.mInput.mInputNode->Tick(tickCount, delta);
             }
         }
         mLastTickCount = tickCount;

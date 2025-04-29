@@ -80,7 +80,7 @@ namespace l::ui {
         mEditVisitor.SetNGSchema(ngSchema);
     }
 
-    void UINodeEditor::Update() {
+    void UINodeEditor::Update(double, float) {
 
         if (mUIWindow.IsShowing()) {
             ImGuiIO& io = ImGui::GetIO();

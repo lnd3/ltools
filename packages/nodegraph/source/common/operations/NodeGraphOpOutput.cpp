@@ -147,7 +147,7 @@ namespace l::nodegraph {
         }
     }
 
-	void GraphOutputPCBeep::Tick(int32_t, float elapsed) {
-        mTimer -= elapsed;
+	void GraphOutputPCBeep::Tick(int32_t, float delta) {
+        mTimer -= delta;
 	}
 }

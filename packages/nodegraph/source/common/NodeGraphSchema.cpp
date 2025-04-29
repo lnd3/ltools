@@ -326,8 +326,8 @@ namespace l::nodegraph {
         }
     }
 
-    void NodeGraphSchema::Tick(int32_t tickCount, float deltaTime) {
-        mMainNodeGraph.Tick(tickCount, deltaTime);
+    void NodeGraphSchema::Tick(int32_t tickCount, float delta) {
+        mMainNodeGraph.Tick(tickCount, delta);
     }
 
     void NodeGraphSchema::ProcessSubGraph(int32_t numSamples) {

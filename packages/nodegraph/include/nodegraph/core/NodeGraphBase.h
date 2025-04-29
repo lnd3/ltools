@@ -73,7 +73,7 @@ namespace l::nodegraph {
 
         void ClearProcessFlags();
         virtual void ProcessSubGraph(int32_t numSamples = 1, bool recomputeSubGraphCache = true);
-        virtual void Tick(int32_t tickCount, float elapsed);
+        virtual void Tick(int32_t tickCount, float delta);
 
         virtual int8_t GetNumInputs();
         virtual int8_t GetNumOutputs();
@@ -231,12 +231,12 @@ namespace l::nodegraph {
             mProcessUpdateHasRun = true;
         }
 
-        virtual void Tick(int32_t tickCount, float elapsed) override {
+        virtual void Tick(int32_t tickCount, float delta) override {
             if (tickCount <= mLastTickCount) {
                 return;
             }
-            NodeGraphBase::Tick(tickCount, elapsed);
-            mOperation.Tick(tickCount, elapsed);
+            NodeGraphBase::Tick(tickCount, delta);
+            mOperation.Tick(tickCount, delta);
             mLastTickCount = tickCount;
         }
 

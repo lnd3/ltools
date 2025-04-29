@@ -146,12 +146,12 @@ namespace l::nodegraph {
         }
     }
 
-    void NodeGraphGroup::Tick(int32_t tickCount, float elapsed) {
+    void NodeGraphGroup::Tick(int32_t tickCount, float delta) {
         if (tickCount <= mLastTickCount) {
             return;
         }
         for (auto& it : mNodes) {
-            it->Tick(tickCount, elapsed);
+            it->Tick(tickCount, delta);
         }
         mLastTickCount = tickCount;
     }

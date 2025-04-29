@@ -24,13 +24,15 @@ namespace l::ui {
         ~UINodeEditor() = default;
 
         void Init();
+
         void Show() override;
         bool IsShowing() override;
+        void Update(double, float) override;
+
         void Open();
         void Close();
 
         void SetNGSchema(l::nodegraph::NodeGraphSchema* ngSchema);
-        void Update();
     protected:
         UIWindow mUIWindow;
         UIManager mUIManager;
