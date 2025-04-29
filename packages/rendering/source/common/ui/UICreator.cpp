@@ -1,5 +1,8 @@
 #include "rendering/ui/UICreator.h"
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
+
 #include <memory>
 
 namespace l::ui {
