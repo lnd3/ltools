@@ -129,7 +129,7 @@ namespace l::nodegraph {
             NodeGraphOp(node, "Integral")
         {
             AddInput("In", 0.0f, 1);
-            AddInput("Friction", 1.0f, 1);
+            AddInput("Friction", 1.0f, 1, 0.0f, 1.0f);
             AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
             AddOutput("Out", 0.0f, 1);
         }
@@ -137,14 +137,15 @@ namespace l::nodegraph {
         virtual ~GraphNumericIntegral() = default;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
-            auto lodExp = inputs.at(1).Get();
-            auto friction = inputs.at(2).Get();
+            auto friction = inputs.at(1).Get();
+            auto frictionFactor = l::math::pow(friction, 0.25f);
+            auto lodExp = inputs.at(2).Get();
             auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
             auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
 
             for (int32_t i = 0; i < numSamples; i++) {
                 mOutput += *input0++;
-                mOutput *= friction;
+                mOutput *= frictionFactor;
                 *output++ = mOutput;
             }
         }
