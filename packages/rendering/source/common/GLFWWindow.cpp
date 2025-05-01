@@ -2,6 +2,8 @@
 #include "logging/LoggingAll.h"
 
 #include "memory/Containers.h"
+#include "filesystem/File.h"
+#include "rendering/ImageSupport.h"
 
 #include <functional>
 #include <mutex>
@@ -163,6 +165,10 @@ namespace l {
                 glfwSetKeyCallback(window, invoke_key);
                 glfwSetMouseButtonCallback(window, invoke_mouse);
                 glfwSetScrollCallback(window, invoke_scroll);
+
+                //l::rendering::read("images/favicon.ico")
+                //GLFWimage icon;
+                //glfwSetWindowIcon(window, 1, &icon);
 
                 glfwSwapInterval(1); // Enable vsync
 

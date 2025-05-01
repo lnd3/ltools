@@ -184,6 +184,9 @@ namespace l::ui {
                     if (mNGSchema != nullptr) {
                         mNGSchema->RemoveNode(it->GetNodeId());
                     }
+                    if (mDeleteEvent) {
+                        mDeleteEvent(it->GetId(), it->GetNodeId());
+                    }
                     DeleteContainer(mUIManager, it);
                 }
                 mSelectedContainers.clear();

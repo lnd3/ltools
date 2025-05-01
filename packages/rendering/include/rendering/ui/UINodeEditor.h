@@ -13,8 +13,16 @@
 #include <set>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace l::ui {
+
+    struct NodeEvent {
+        l::nodegraph::NodeGraphSchema* mNodeSchema = nullptr;
+        int32_t mNodeEvent = 0;
+        int32_t mContainerId = 0;
+        int32_t mNodeId = 0;
+    };
 
     class UINodeEditor : public UIBase {
     public:
@@ -33,6 +41,7 @@ namespace l::ui {
         void Close();
 
         void SetNGSchema(l::nodegraph::NodeGraphSchema* ngSchema);
+        void SetEventListener(std::function<void(const NodeEvent& event)> cb);
     protected:
         UIWindow mUIWindow;
         UIManager mUIManager;
@@ -49,5 +58,7 @@ namespace l::ui {
         UIMove mMoveVisitor;
         UIResize mResizeVisitor;
         UIEdit mEditVisitor;
+
+        std::vector<std::function<void(const NodeEvent&)>> mEventListeners;
     };
 }

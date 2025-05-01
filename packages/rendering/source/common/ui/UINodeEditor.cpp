@@ -78,6 +78,22 @@ namespace l::ui {
         mLinkIOVisitor.SetNGSchema(ngSchema);
         mSelectVisitor.SetNGSchema(ngSchema);
         mEditVisitor.SetNGSchema(ngSchema);
+        mSelectVisitor.SetDeleteHandler([&](int32_t containerId, int32_t nodeId) {
+            NodeEvent event;
+            event.mNodeSchema = ngSchema;
+            event.mNodeEvent = 2; // 2 delete
+            event.mContainerId = containerId;
+            event.mNodeId = nodeId;
+
+            for (auto& it : mEventListeners) {
+                it(event);
+            }
+
+            });
+    }
+
+    void UINodeEditor::SetEventListener(std::function<void(const NodeEvent& event)> cb) {
+        mEventListeners.push_back(cb);
     }
 
     void UINodeEditor::Update(double, float) {
@@ -111,5 +127,4 @@ namespace l::ui {
             }
         }
     }
-
 }

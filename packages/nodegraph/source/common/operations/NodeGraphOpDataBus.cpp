@@ -34,5 +34,18 @@ namespace l::nodegraph {
         }
     }
 
+    /*********************************************************************/
+    void GraphDataStockDataIn::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        mInputManager.BatchUpdate(inputs, 6 * numSamples);
+
+        float* input = mInputManager.GetArray(0);
+        for (int32_t i = 0; i < 6; i++) {
+            float* output = &outputs.at(i).Get(numSamples);
+            for (int32_t j = 0; j < numSamples; j++) {
+                output[j] = input[6 * j + i];
+            }
+        }
+    }
+
 
 }

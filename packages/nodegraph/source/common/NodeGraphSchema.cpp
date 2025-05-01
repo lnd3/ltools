@@ -196,6 +196,9 @@ namespace l::nodegraph {
         case 451:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataBusDataOut>(NodeType::ExternalOutput, 6);
             break;
+        case 452:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataStockDataIn>(NodeType::ExternalInput);
+            break;
 
         default:
             ASSERT(typeId < 10000) << "Custom node id's begin at id 1000";
@@ -323,6 +326,7 @@ namespace l::nodegraph {
         else if (typeGroup == "Bus") {
             RegisterNodeType("Bus", 450, "Bus Data In x6");
             RegisterNodeType("Bus", 451, "Bus Data Out x6");
+            RegisterNodeType("Bus", 452, "Stock Data In");
         }
     }
 

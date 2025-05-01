@@ -61,10 +61,14 @@ namespace l::ui {
         void SetNGSchema(l::nodegraph::NodeGraphSchema* ngSchema) {
             mNGSchema = ngSchema;
         }
+        void SetDeleteHandler(std::function<void(int32_t containerId, int32_t nodeId)> handler) {
+            mDeleteEvent = handler;
+        }
     protected:
         std::unordered_set<UIContainer*> mSelectedContainers;
         UIManager& mUIManager;
         l::nodegraph::NodeGraphSchema* mNGSchema = nullptr;
+        std::function<void(int32_t containerId, int32_t nodeId)> mDeleteEvent = nullptr;
     };
 
     class UIEdit : public UIVisitor {
