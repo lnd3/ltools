@@ -106,9 +106,7 @@ namespace l::ui {
             mUIInput.mPrevPos.y = mUIInput.mCurPos.y;
             mUIInput.mCurPos = io.MousePos;
             mUIInput.mScroll = io.MouseWheel;
-            if (mUIWindow.IsHovered()) {
-                mUIInput.mStarted = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
-            }
+            mUIInput.mStarted = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
             mUIInput.mStopped = ImGui::IsMouseReleased(ImGuiMouseButton_Left);
 
             if (mUIWindow.IsHovered()) {

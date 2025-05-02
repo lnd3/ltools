@@ -190,6 +190,7 @@ namespace l::ui {
                         mSelectedContainers.erase(&container);
                         container.ClearNotification(UIContainer_SelectFlag);
                     }
+                    return true;
                 }
             }
             else if (Overlap(input.GetLocalPos(), container.GetPosition(), container.GetPositionAtSize(), layoutArea)) {
@@ -200,16 +201,13 @@ namespace l::ui {
                 mSelectedContainers.emplace(&container);
                 container.SetNotification(UIContainer_SelectFlag);
             }
-            else if (!mSelectedContainers.empty()) {
-                for (auto it : mSelectedContainers) {
-                    it->ClearNotification(UIContainer_SelectFlag);
-                }
-                mSelectedContainers.clear();
-                return true;
+            else if (mSelectedContainers.contains(&container)){
+                mSelectedContainers.erase(&container);
+                container.ClearNotification(UIContainer_SelectFlag);
             }
         }
-        if (!mSelectedContainers.empty()) {
-            if (ImGui::IsKeyDown(ImGuiKey::ImGuiKey_Delete)) {
+        if (ImGui::IsKeyDown(ImGuiKey::ImGuiKey_Delete)) {
+            if (!mSelectedContainers.empty()) {
                 for (auto it : mSelectedContainers) {
                     if (mNGSchema != nullptr) {
                         mNGSchema->RemoveNode(it->GetNodeId());
@@ -435,7 +433,9 @@ namespace l::ui {
         case l::ui::UIRenderType::Texture:
         case l::ui::UIRenderType::LinkH:
             if (container.HasConfigFlag(UIContainer_SelectFlag) && container.HasNotification(UIContainer_SelectFlag)) {
-                mDrawList->AddRect(p1, p2, ImColor(ImVec4(0.9f, 1.0f, 1.0f, 1.0f)), 2.0f, 0, 4.0f);
+                auto p1cpy = ImVec2(p1.x - 1.0f, p1.y - 1.0f);
+                auto p2cpy = ImVec2(p2.x + 1.0f, p2.y + 1.0f);
+                mDrawList->AddRect(p1cpy, p2cpy, ImColor(ImVec4(0.7f, 0.8f, 1.0f, 1.0f)), 0.0f, 0, 1.0f);
             }
             if (container.HasConfigFlag(ui::UIContainer_ResizeFlag)) {
                 float size = 3.0f * layoutArea.mScale;
