@@ -435,7 +435,7 @@ namespace l::ui {
             if (container.HasConfigFlag(UIContainer_SelectFlag) && container.HasNotification(UIContainer_SelectFlag)) {
                 auto p1cpy = ImVec2(p1.x - 1.0f, p1.y - 1.0f);
                 auto p2cpy = ImVec2(p2.x + 1.0f, p2.y + 1.0f);
-                mDrawList->AddRect(p1cpy, p2cpy, ImColor(ImVec4(0.7f, 0.8f, 1.0f, 1.0f)), 0.0f, 0, 1.0f);
+                mDrawList->AddRect(p1cpy, p2cpy, ImColor(ImVec4(0.7f, 1.0f, 1.0f, 1.0f)), 0.0f, 0, 1.0f);
             }
             if (container.HasConfigFlag(ui::UIContainer_ResizeFlag)) {
                 float size = 3.0f * layoutArea.mScale;

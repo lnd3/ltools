@@ -69,7 +69,10 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericDerivate>(NodeType::Default);
             break;
         case 59:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericChange>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericDiffNorm>(NodeType::Default);
+            break;
+        case 60:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericDiff>(NodeType::Default);
             break;
 
         case 100:
@@ -270,7 +273,8 @@ namespace l::nodegraph {
             RegisterNodeType("Numeric", 56, "Multiply & Add");
             RegisterNodeType("Numeric", 57, "Round");
             RegisterNodeType("Numeric", 58, "Derivate");
-            RegisterNodeType("Numeric", 59, "Change");
+            RegisterNodeType("Numeric", 59, "Difference Normalized");
+            RegisterNodeType("Numeric", 60, "Difference");
         }
         else if (typeGroup == "Logic") {
             RegisterNodeType("Logic", 100, "And");
