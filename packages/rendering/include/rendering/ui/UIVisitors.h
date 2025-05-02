@@ -30,6 +30,7 @@ namespace l::ui {
     public:
         virtual bool Active(UIContainer& container, const InputState& input);
         virtual bool Visit(UIContainer& container, const InputState& input);
+        void Reset();
     protected:
         bool mDragging = false;
         UIContainer* mSourceContainer = nullptr;
@@ -39,6 +40,7 @@ namespace l::ui {
     public:
         virtual bool Active(UIContainer& container, const InputState& input);
         virtual bool Visit(UIContainer& container, const InputState& input);
+        void Reset();
     protected:
         bool mMoving = false;
         UIContainer* mSourceContainer = nullptr;
@@ -47,6 +49,7 @@ namespace l::ui {
     class UIResize : public UIVisitor {
     public:
         virtual bool Visit(UIContainer& container, const InputState& input);
+        void Reset();
     protected:
         bool mResizing = false;
         UIContainer* mSourceContainer = nullptr;

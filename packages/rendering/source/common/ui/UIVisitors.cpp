@@ -46,6 +46,14 @@ namespace l::ui {
         return (input.mStarted && !mDragging) || mDragging;
     }
 
+    void UIDrag::Reset() {
+        mDragging = false;
+        if (mSourceContainer) {
+            mSourceContainer->ClearNotification(UIContainer_DragFlag);
+            mSourceContainer = nullptr;
+        }
+    }
+
     bool UIDrag::Visit(UIContainer& container, const InputState& input) {
         if (!container.HasConfigFlag(UIContainer_DragFlag)) {
             return false;
@@ -76,6 +84,7 @@ namespace l::ui {
 
             if (input.mStopped) {
                 mDragging = false;
+                mSourceContainer->ClearNotification(UIContainer_DragFlag);
                 mSourceContainer = nullptr;
             }
             return mDragging;
@@ -85,6 +94,14 @@ namespace l::ui {
 
     bool UIMove::Active(UIContainer&, const InputState& input) {
         return (input.mStarted && !mMoving) || mMoving;
+    }
+
+    void UIMove::Reset() {
+        mMoving = false;
+        if (mSourceContainer) {
+            mSourceContainer->ClearNotification(UIContainer_MoveFlag);
+            mSourceContainer = nullptr;
+        }
     }
 
     bool UIMove::Visit(UIContainer& container, const InputState& input) {
@@ -105,12 +122,19 @@ namespace l::ui {
             container.SetNotification(UIContainer_MoveFlag);
 
             if (input.mStopped) {
-                mMoving = false;
-                mSourceContainer = nullptr;
+                Reset();
             }
             return mMoving;
         }
         return false;
+    }
+
+    void UIResize::Reset() {
+        mResizing = false;
+        if (mSourceContainer) {
+            mSourceContainer->ClearNotification(UIContainer_ResizeFlag);
+            mSourceContainer = nullptr;
+        }
     }
 
     bool UIResize::Visit(UIContainer& container, const InputState& input) {
@@ -143,9 +167,7 @@ namespace l::ui {
             container.Resize(move);
 
             if (input.mStopped) {
-                mResizing = false;
-                mSourceContainer = nullptr;
-                container.ClearNotification(UIContainer_ResizeFlag);
+                Reset();
             }
             return mResizing;
         }
@@ -157,8 +179,8 @@ namespace l::ui {
             return false;
         }
         if (input.mStarted) {
+            auto& layoutArea = container.GetLayoutArea();
             if (ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftShift)) {
-                auto& layoutArea = container.GetLayoutArea();
                 if (Overlap(input.GetLocalPos(), container.GetPosition(), container.GetPositionAtSize(), layoutArea)) {
                     if (!mSelectedContainers.contains(&container)) {
                         mSelectedContainers.emplace(&container);
@@ -169,6 +191,14 @@ namespace l::ui {
                         container.ClearNotification(UIContainer_SelectFlag);
                     }
                 }
+            }
+            else if (Overlap(input.GetLocalPos(), container.GetPosition(), container.GetPositionAtSize(), layoutArea)) {
+                for (auto it : mSelectedContainers) {
+                    it->ClearNotification(UIContainer_SelectFlag);
+                }
+                mSelectedContainers.clear();
+                mSelectedContainers.emplace(&container);
+                container.SetNotification(UIContainer_SelectFlag);
             }
             else if (!mSelectedContainers.empty()) {
                 for (auto it : mSelectedContainers) {
@@ -405,7 +435,7 @@ namespace l::ui {
         case l::ui::UIRenderType::Texture:
         case l::ui::UIRenderType::LinkH:
             if (container.HasConfigFlag(UIContainer_SelectFlag) && container.HasNotification(UIContainer_SelectFlag)) {
-                mDrawList->AddRect(p1, p2, ImColor(ImVec4(0.9f, 1.0f, 1.0f, 1.0f)), 0.0f, 0, 2.0f);
+                mDrawList->AddRect(p1, p2, ImColor(ImVec4(0.9f, 1.0f, 1.0f, 1.0f)), 2.0f, 0, 4.0f);
             }
             if (container.HasConfigFlag(ui::UIContainer_ResizeFlag)) {
                 float size = 3.0f * layoutArea.mScale;

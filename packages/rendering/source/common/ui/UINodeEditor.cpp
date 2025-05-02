@@ -106,7 +106,9 @@ namespace l::ui {
             mUIInput.mPrevPos.y = mUIInput.mCurPos.y;
             mUIInput.mCurPos = io.MousePos;
             mUIInput.mScroll = io.MouseWheel;
-            mUIInput.mStarted = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+            if (mUIWindow.IsHovered()) {
+                mUIInput.mStarted = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+            }
             mUIInput.mStopped = ImGui::IsMouseReleased(ImGuiMouseButton_Left);
 
             if (mUIWindow.IsHovered()) {
@@ -124,6 +126,11 @@ namespace l::ui {
                 }
                 else if (mUIRoot->Accept(mDragVisitor, mUIInput, l::ui::UITraversalMode::DFS)) {
                 }
+            }
+            else {
+                mResizeVisitor.Reset();
+                mMoveVisitor.Reset();
+                mDragVisitor.Reset();
             }
         }
     }
