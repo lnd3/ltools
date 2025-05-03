@@ -118,7 +118,9 @@ namespace l::nodegraph {
 
     /*********************************************************************/
     void GraphFilterMovingAverage::Reset() {
-        mFilterState.resize(mKernelSize);
+        if (mFilterState.size() != mKernelSize) {
+            mFilterState.resize(mKernelSize);
+        }
         mFilterStateIndex = 0;
         mFilterInit = true;
     }
@@ -128,22 +130,21 @@ namespace l::nodegraph {
             return input;
         }
 
-        mFilterState[mFilterStateIndex] = input;
         float width = mInputManager.GetValueNext(mNumDefaultInputs + 0);
         int32_t widthInt = static_cast<int32_t>(width);
+
+        if (mFilterInit) {
+            for (int32_t i = 0; i < widthInt; i++) {
+                mFilterState[i] = 0.0f;
+            }
+            mFilterInit = false;
+        }
+
+        mFilterState[mFilterStateIndex] = input;
         mFilterStateIndex = (mFilterStateIndex + 1) % widthInt;
 
         if (widthInt == 1) {
             return input;
-        }
-
-        if (mFilterInit) {
-            if (mFilterStateIndex + 1 < widthInt) {
-                widthInt = mFilterStateIndex + 1;
-            }
-            else {
-                mFilterInit = false;
-            }
         }
 
         float outVal = 0.0;
