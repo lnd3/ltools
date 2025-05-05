@@ -15,7 +15,7 @@ TEST(NodeGraphBatching, Simple) {
 	auto nodeSine = group.NewNode<GraphSignalSine2>(NodeType::Default);
 	nodeSine->SetInput(1, 4.0f); // sine update rate
 	nodeSine->SetInput(2, 1400.0f); // sine freq
-	nodeSine->SetInput(3, 0.5f); // sine freq
+	nodeSine->SetInput(3, 0.5f); // sine volume
 
 	auto nodeLowpass = group.NewNode<GraphFilterLowpass>(NodeType::Default);
 
