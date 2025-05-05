@@ -25,6 +25,7 @@ namespace l::nodegraph {
     int32_t NodeGraphSchema::NewNode(int32_t typeId) {
         l::nodegraph::NodeGraphBase* node = nullptr;
         switch (typeId) {
+            // Data sources from within the node graph (basically constants)
         case 0:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(NodeType::Default, 0);
             break;
@@ -41,6 +42,7 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceTime>(NodeType::ExternalOutput, mAudioOutput != nullptr ? mAudioOutput->GetSampleRate() : 44100, 60);
             break;
 
+            // Numeric operators
         case 50:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericAdd>(NodeType::Default);
             break;
@@ -75,6 +77,7 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericDiff>(NodeType::Default);
             break;
 
+            // Logical operators
         case 100:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalAnd>(NodeType::Default);
             break;
@@ -98,6 +101,7 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterMovingAverage>(NodeType::Default, 200);
             break;
 
+            // External outputs like speakers or external data sinks or even internal node graph plots
         case 200:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputDebug>(NodeType::ExternalOutput);
             break;
@@ -108,15 +112,16 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputPlot>(NodeType::ExternalVisualOutput, 100);
             break;
         case 203:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputImGuiPlotLine>(NodeType::ExternalOutput);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputChartLine>(NodeType::ExternalOutput);
             break;
         case 204:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputImGuiPlotCandles>(NodeType::ExternalOutput);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputCandleSticks>(NodeType::ExternalOutput);
             break;
         case 205:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputPCBeep>(NodeType::ExternalOutput);
             break;
 
+            // Signal filtering and effects
         case 251:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectReverb1>(NodeType::Default);
             break;
@@ -136,6 +141,7 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectTranceGate>(NodeType::Default);
             break;
 
+            // System device inputs
         case 300:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputKeyboardPiano>(NodeType::Default, mKeyState);
             break;
@@ -164,6 +170,7 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMic>(NodeType::Default, mAudioOutput);
             break;
 
+            // Signal generators (basically audio composition)
         case 350:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSine>(NodeType::Default);
             break;
@@ -186,6 +193,7 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSaw2>(NodeType::Default);
             break;
 
+            // Signal controllers (basically audio shaping)
         case 400:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphControlEnvelope>(NodeType::Default);
             break;
@@ -193,6 +201,7 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphControlArpeggio>(NodeType::Default);
             break;
 
+            // Bus io (basically bulk data input/output from external and to external)
         case 450:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataBusDataIn>(NodeType::ExternalInput, 6);
             break;
@@ -200,7 +209,15 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataBusDataOut>(NodeType::ExternalOutput, 6);
             break;
         case 452:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataStockDataIn>(NodeType::ExternalInput);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataCandleStickDataIn>(NodeType::ExternalInput);
+            break;
+
+            // UI elements (basically ui buttons/checkboxes on the ui using the schema containing the nodes)
+        case 500:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphUICheckbox>(NodeType::ExternalInput);
+            break;
+        case 501:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphUISlider>(NodeType::ExternalInput, 0.0f, 1.0f, 1.0f);
             break;
 
         default:
@@ -256,12 +273,12 @@ namespace l::nodegraph {
     }
 
     void NodeGraphSchema::RegisterAllOf(const std::string& typeGroup) {
-        if (typeGroup == "Source") {
-            RegisterNodeType("Source", 0, "Value [0,1]");
-            RegisterNodeType("Source", 1, "Value [-1,1]");
-            RegisterNodeType("Source", 2, "Value [0,100]");
-            RegisterNodeType("Source", 3, "Value [-inf,inf]");
-            RegisterNodeType("Source", 4, "Time");
+        if (typeGroup == "NodeGraphSource") {
+            RegisterNodeType("NodeGraphSource", 0, "Value [0,1]");
+            RegisterNodeType("NodeGraphSource", 1, "Value [-1,1]");
+            RegisterNodeType("NodeGraphSource", 2, "Value [0,100]");
+            RegisterNodeType("NodeGraphSource", 3, "Value [-inf,inf]");
+            RegisterNodeType("NodeGraphSource", 4, "Time");
         }
         else if (typeGroup == "Numeric") {
             RegisterNodeType("Numeric", 50, "Add");
@@ -281,38 +298,42 @@ namespace l::nodegraph {
             RegisterNodeType("Logic", 101, "Or");
             RegisterNodeType("Logic", 102, "Xor");
         }
-        else if (typeGroup == "Filter") {
-            RegisterNodeType("Filter", 150, "Lowpass");
-            RegisterNodeType("Filter", 151, "Highpass");
-            RegisterNodeType("Filter", 152, "Chamberlin two-pole (4 mode)");
-            RegisterNodeType("Filter", 153, "Moving Average");
+        else if (typeGroup == "SignalFilter") {
+            RegisterNodeType("SignalFilter", 150, "Lowpass");
+            RegisterNodeType("SignalFilter", 151, "Highpass");
+            RegisterNodeType("SignalFilter", 152, "Chamberlin two-pole (4 mode)");
+            RegisterNodeType("SignalFilter", 153, "Moving Average");
         }
-        else if (typeGroup == "Output") {
-            RegisterNodeType("Output", 200, "Debug");
-            RegisterNodeType("Output", 201, "Speaker");
-            RegisterNodeType("Output", 202, "Plot");
-            RegisterNodeType("Output", 203, "ImGui Plot Lines");
-            RegisterNodeType("Output", 204, "ImGui Plot Candles");
-            RegisterNodeType("Output", 205, "PC Beep");
+        else if (typeGroup == "DeviceOutput") {
+            RegisterNodeType("DeviceOutput", 201, "Speaker");
+            RegisterNodeType("DeviceOutput", 205, "PC Beep");
         }
-        else if (typeGroup == "Effect") {
-            RegisterNodeType("Effect", 251, "Reverb1");
-            RegisterNodeType("Effect", 252, "Reverb2");
-            RegisterNodeType("Effect", 254, "Limiter");
-            RegisterNodeType("Effect", 255, "Envelope Follower");
-            RegisterNodeType("Effect", 256, "Saturator");
-            RegisterNodeType("Effect", 257, "Trance Gate");
+        else if (typeGroup == "NodeGraphOutput") {
+            RegisterNodeType("NodeGraphOutput", 200, "Debug");
+            RegisterNodeType("NodeGraphOutput", 202, "Plot");
         }
-        else if (typeGroup == "Input") {
-            RegisterNodeType("Input", 300, "Keyboard Piano");
-            RegisterNodeType("Input", 301, "Midi Keyboard");
-            RegisterNodeType("Input", 302, "Midi Knobs");
-            RegisterNodeType("Input", 303, "Midi Button Group 1");
-            RegisterNodeType("Input", 304, "Midi Button Group 2");
-            RegisterNodeType("Input", 305, "Midi Button Group 3");
-            RegisterNodeType("Input", 306, "Midi Button Group 4");
-            RegisterNodeType("Input", 307, "Midi Button Group 5");
-            RegisterNodeType("Input", 308, "Mic");
+        else if (typeGroup == "ExternalOutput") {
+            RegisterNodeType("ExternalOutput", 203, "Chart Lines");
+            RegisterNodeType("ExternalOutput", 204, "Candle Sticks");
+        }
+        else if (typeGroup == "SignalEffect") {
+            RegisterNodeType("SignalEffect", 251, "Reverb1");
+            RegisterNodeType("SignalEffect", 252, "Reverb2");
+            RegisterNodeType("SignalEffect", 254, "Limiter");
+            RegisterNodeType("SignalEffect", 255, "Envelope Follower");
+            RegisterNodeType("SignalEffect", 256, "Saturator");
+            RegisterNodeType("SignalEffect", 257, "Trance Gate");
+        }
+        else if (typeGroup == "DeviceInput") {
+            RegisterNodeType("DeviceInput", 300, "Keyboard Piano");
+            RegisterNodeType("DeviceInput", 301, "Midi Keyboard");
+            RegisterNodeType("DeviceInput", 302, "Midi Knobs");
+            RegisterNodeType("DeviceInput", 303, "Midi Button Group 1");
+            RegisterNodeType("DeviceInput", 304, "Midi Button Group 2");
+            RegisterNodeType("DeviceInput", 305, "Midi Button Group 3");
+            RegisterNodeType("DeviceInput", 306, "Midi Button Group 4");
+            RegisterNodeType("DeviceInput", 307, "Midi Button Group 5");
+            RegisterNodeType("DeviceInput", 308, "Mic");
         }
         else if (typeGroup == "Signal") {
             RegisterNodeType("Signal", 350, "Sine");
@@ -323,14 +344,23 @@ namespace l::nodegraph {
             RegisterNodeType("Signal", 355, "Sine 2");
             RegisterNodeType("Signal", 356, "Saw 2");
         }
-        else if (typeGroup == "Control") {
-            RegisterNodeType("Control", 400, "Envelope");
-            RegisterNodeType("Control", 401, "Arpeggio");
+        else if (typeGroup == "SignalControl") {
+            RegisterNodeType("SignalControl", 400, "Envelope");
+            RegisterNodeType("SignalControl", 401, "Arpeggio");
         }
         else if (typeGroup == "Bus") {
             RegisterNodeType("Bus", 450, "Bus Data In x6");
             RegisterNodeType("Bus", 451, "Bus Data Out x6");
-            RegisterNodeType("Bus", 452, "Stock Data In");
+        }
+        else if (typeGroup == "ExternalInput") {
+            RegisterNodeType("ExternalInput", 452, "Candle Stick Data In");
+        }
+        else if (typeGroup == "UI") {
+            RegisterNodeType("UI", 500, "UI Checkbox");
+            RegisterNodeType("UI", 501, "UI Slider");
+        }
+        else {
+            LOG(LogWarning) << "Type group does not exist: " << typeGroup;
         }
     }
 

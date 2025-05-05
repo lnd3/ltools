@@ -99,7 +99,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphOutputImGuiPlotLine::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphOutputChartLine::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         mInputManager.BatchUpdate(inputs, numSamples);
 
         float* output = &outputs.at(0).Get(2 * numSamples);
@@ -111,7 +111,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphOutputImGuiPlotCandles::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphOutputCandleSticks::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         mInputManager.BatchUpdate(inputs, numSamples);
 
         float* output = &outputs.at(0).Get(6 * numSamples);

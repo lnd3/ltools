@@ -13,6 +13,7 @@
 #include "nodegraph/operations/NodeGraphOpSource.h"
 #include "nodegraph/operations/NodeGraphOpSignal.h"
 #include "nodegraph/operations/NodeGraphOpDataBus.h"
+#include "nodegraph/operations/NodeGraphOpUI.h"
 
 #include <string>
 #include <vector>
@@ -44,16 +45,20 @@ namespace l::nodegraph {
             mName(name.empty() ? "Schema" : name)
         {
             if (useAllNodeTypes) {
-                RegisterAllOf("Source");
+                RegisterAllOf("NodeGraphSource");
+                RegisterAllOf("NodeGraphOutput");
+                RegisterAllOf("DeviceInput");
+                RegisterAllOf("DeviceOutput");
+                RegisterAllOf("ExternalInput");
+                RegisterAllOf("ExternalOutput");
+                RegisterAllOf("Signal");
+                RegisterAllOf("SignalControl");
+                RegisterAllOf("SignalFilter");
+                RegisterAllOf("SignalEffect");
                 RegisterAllOf("Numeric");
                 RegisterAllOf("Logic");
-                RegisterAllOf("Filter");
-                RegisterAllOf("Output");
-                RegisterAllOf("Effect");
-                RegisterAllOf("Input");
-                RegisterAllOf("Signal");
-                RegisterAllOf("Control");
                 RegisterAllOf("Bus");
+                RegisterAllOf("UI");
             }
         }
 

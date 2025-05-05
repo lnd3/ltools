@@ -48,7 +48,6 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphSourceConstants() {
-            LOG(LogInfo) << "sdad";
         }
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(int32_t, float) override;
@@ -85,7 +84,6 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphSourceTime() {
-            LOG(LogInfo) << "sdad";
         }
 
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;

@@ -35,7 +35,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphDataStockDataIn::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphDataCandleStickDataIn::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         mInputManager.BatchUpdate(inputs, 6 * numSamples);
 
         float* input = mInputManager.GetArray(0);

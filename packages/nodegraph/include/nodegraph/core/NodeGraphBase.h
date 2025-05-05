@@ -22,7 +22,7 @@ namespace l::nodegraph {
     bool IsValidInOutNum(int8_t inoutNum, size_t inoutSize);
 
     class NodeGraphGroup;
-
+    class NodeGraphOp;
 
     /**********************************************************************************/
     class NodeGraphBase {
@@ -115,11 +115,20 @@ namespace l::nodegraph {
 			return l::meta::class_hash<T>() == mOperationTypeHash;
 		}
 
+        template<class T>
+        T* GetOp() {
+            if (l::meta::class_hash<T>() == mOperationTypeHash) {
+                return reinterpret_cast<T*>(GetOperation());
+            }
+            return nullptr;
+        }
+
     protected:
         virtual void SetNumInputs(int8_t numInputs);
         virtual void SetNumOutputs(int8_t outputCount);
 
         virtual void ProcessOperation(int32_t numSamples = 1);
+        virtual NodeGraphOp* GetOperation() = 0;
 
         bool mProcessUpdateHasRun = false;
         int32_t mLastTickCount = 0;
@@ -258,6 +267,10 @@ namespace l::nodegraph {
 
         virtual std::string_view GetName() {
             return mOperation.GetName();
+        }
+
+        virtual NodeGraphOp* GetOperation() {
+            return &mOperation;
         }
 
     protected:

@@ -61,10 +61,10 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphDataStockDataIn : public NodeGraphOp2 {
+    class GraphDataCandleStickDataIn : public NodeGraphOp2 {
     public:
-        GraphDataStockDataIn(NodeGraphBase* node) :
-            NodeGraphOp2(node, "Stock Data In")
+        GraphDataCandleStickDataIn(NodeGraphBase* node) :
+            NodeGraphOp2(node, "Candle Stick Data In")
         {
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Stock Data", 0.0f, 2));
 
@@ -73,11 +73,12 @@ namespace l::nodegraph {
             AddOutput("High", 0.0f, 2);
             AddOutput("Low", 0.0f, 2);
             AddOutput("Volume", 0.0f, 2);
-            AddOutput("Time", 0.0f, 2);
+            AddOutput("Unixtime", 0.0f, 2);
         }
-        virtual ~GraphDataStockDataIn() = default;
+        virtual ~GraphDataCandleStickDataIn() = default;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
     };
+
 }
 

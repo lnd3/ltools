@@ -92,26 +92,26 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphOutputImGuiPlotLine : public NodeGraphOp2 {
+    class GraphOutputChartLine : public NodeGraphOp2 {
     public:
-        GraphOutputImGuiPlotLine(NodeGraphBase* node) :
-            NodeGraphOp2(node, "ImGui Plot Line")
+        GraphOutputChartLine(NodeGraphBase* node) :
+            NodeGraphOp2(node, "Chart Lines")
         {
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("x", 0.0f));
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("y", 0.0f));
-            AddOutput("Lines");
+            AddOutput("Interleaved Data");
         }
-        virtual ~GraphOutputImGuiPlotLine() = default;
+        virtual ~GraphOutputChartLine() = default;
 
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
     };
 
     /*********************************************************************/
-    class GraphOutputImGuiPlotCandles : public NodeGraphOp2 {
+    class GraphOutputCandleSticks : public NodeGraphOp2 {
     public:
-        GraphOutputImGuiPlotCandles(NodeGraphBase* node) :
-            NodeGraphOp2(node, "ImGui Plot Candles")
+        GraphOutputCandleSticks(NodeGraphBase* node) :
+            NodeGraphOp2(node, "Candle Sticks")
         {
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("unixtime", 0.0f));
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("open", 0.0f));
@@ -119,9 +119,9 @@ namespace l::nodegraph {
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("high", 0.0f));
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("low", 0.0f));
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("volume", 0.0f));
-            AddOutput("Candles");
+            AddOutput("Interleaved Data");
         }
-        virtual ~GraphOutputImGuiPlotCandles() = default;
+        virtual ~GraphOutputCandleSticks() = default;
 
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:

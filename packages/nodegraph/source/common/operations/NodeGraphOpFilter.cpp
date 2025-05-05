@@ -131,7 +131,7 @@ namespace l::nodegraph {
         }
 
         float width = mInputManager.GetValueNext(mNumDefaultInputs + 0);
-        int32_t widthInt = static_cast<int32_t>(width);
+        int32_t widthInt = l::math::max2(static_cast<int32_t>(width), 1);
 
         if (mFilterInit) {
             for (int32_t i = 0; i < widthInt; i++) {

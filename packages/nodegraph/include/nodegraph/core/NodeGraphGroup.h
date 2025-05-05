@@ -73,7 +73,7 @@ namespace l::nodegraph {
 
         bool RemoveNode(int32_t id);
 
-        template<class T, class... Params, std::enable_if_t<std::is_base_of_v<NodeGraphOp, T>, int> = 0>
+        template<class T, std::enable_if_t<std::is_base_of_v<NodeGraphOp, T>, int> = 0, class... Params>
         l::nodegraph::NodeGraphBase* NewNode(NodeType nodeType, Params&&... params) {
             mNodes.emplace_back(std::make_unique<l::nodegraph::NodeGraph<T, Params...>>(nodeType, std::forward<Params>(params)...));
             auto nodePtr = mNodes.back().get();
