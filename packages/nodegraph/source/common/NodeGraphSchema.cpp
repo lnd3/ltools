@@ -98,7 +98,7 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterChamberlain2pole>(NodeType::Default);
             break;
         case 153:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterMovingAverage>(NodeType::Default, 200);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterMovingAverage>(NodeType::Default);
             break;
 
             // External outputs like speakers or external data sinks or even internal node graph plots

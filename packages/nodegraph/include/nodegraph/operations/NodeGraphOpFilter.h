@@ -122,19 +122,19 @@ namespace l::nodegraph {
     /*********************************************************************/
     class GraphFilterMovingAverage : public GraphFilterBase {
     public:
-        GraphFilterMovingAverage(NodeGraphBase* node, int32_t kernelSize, float undefinedValue = 0.0f) :
+        GraphFilterMovingAverage(NodeGraphBase* node, float undefinedValue = 0.0f) :
             GraphFilterBase(node, "Moving Average"),
-            mKernelSize(kernelSize),
             mUndefinedValue(undefinedValue)
         {
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Kernel Size", 1.0f, 1, 1.0f, static_cast<float>(mKernelSize)));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Kernel Size", 1.0f, 1, 1.0f, static_cast<float>(mDefaultKernelSize)));
         }
         virtual ~GraphFilterMovingAverage() = default;
         virtual void Reset() override;
 
         virtual float ProcessSignal(float input, float cutoff, float resonance) override;
     protected:
-        int32_t mKernelSize = 150;
+        int32_t mDefaultKernelSize = 50;
+        int32_t mWidth = mDefaultKernelSize;
         int32_t mFilterStateIndex = -1;
         float mUndefinedValue = 0.0f;
         bool mFilterInit = false;
