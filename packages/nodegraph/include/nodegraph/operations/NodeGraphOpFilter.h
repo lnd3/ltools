@@ -39,8 +39,8 @@ namespace l::nodegraph {
 
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Sync", 0.0f));
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("In"));
-            mInputManager.AddInput(InputIterationType::SAMPLED_RWA, AddInput("Cutoff", 1.0f, 2, 0.0f, 1.0f));
-            mInputManager.AddInput(InputIterationType::SAMPLED_RWA, AddInput("Resonance", 0.0f, 2, 0.0f, 1.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED_RWA, AddInput("Cutoff", 1.0f, 1, 0.0f, 1.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED_RWA, AddInput("Resonance", 0.0f, 1, 0.0f, 1.0f));
 
             AddOutput("Out", 0.0f);
         }

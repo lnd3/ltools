@@ -102,8 +102,8 @@ namespace l::nodegraph {
         }
         void Reset(NodeDataIterator&& iterator) {
             mIterator = std::move(iterator);
-            //mRwa.Value() = *mIterator;
-            mRwa.SetTarget(*mIterator);
+            mRwa.Value() = *mIterator;
+            //mRwa.SetTarget(*mIterator);
             mRwa.SetConvergenceInTicks(l::math::max2(4.0f, iterator.GetStepsPerIncrement()), 0.35f);
         }
     protected:

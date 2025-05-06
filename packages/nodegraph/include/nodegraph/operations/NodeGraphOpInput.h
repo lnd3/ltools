@@ -30,19 +30,22 @@ namespace l::nodegraph {
             NodeGraphOp(node, "Keyboard")
         {
             AddOutput("Freq", 0.0f);
-            AddOutput("Note On", l::audio::gNoNote_f);
-            AddOutput("Note Off", l::audio::gNoNote_f);
+            AddOutput("Note On", l::audio::gNoNote_f, 8);
+            AddOutput("Note Off", l::audio::gNoNote_f, 8);
 
             AddConstant("Freq", 0.0f);
-            AddConstant("Note On", l::audio::gNoNote_f);
-            AddConstant("Note Off", l::audio::gNoNote_f);
+            AddConstant("Note On", l::audio::gNoNote_f, 8);
+            AddConstant("Note Off", l::audio::gNoNote_f, 8);
 
             mChannel.resize(1);
             mKeyboard.SetKeyState(keyState);
             mKeyboard.SetNoteProcessor(this);
         }
 
-        virtual ~GraphInputKeyboardPiano() = default;
+        virtual ~GraphInputKeyboardPiano() {
+            mKeyboard.SetKeyState(nullptr);
+            mKeyboard.SetNoteProcessor(nullptr);
+        }
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(int32_t tickCount, float elapsed) override;
         virtual void NoteOn(int32_t note, int32_t velocity) override;

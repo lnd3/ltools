@@ -52,12 +52,12 @@ namespace l::nodegraph {
 
     void NodeGraphGroup::SetOutput(int8_t outputChannel, NodeGraphBase& source, int8_t sourceOutputChannel) {
         mOutputNode->SetInput(outputChannel, source, sourceOutputChannel);
-        mOutputNode->SetOutputName(outputChannel, source.GetOutputName(sourceOutputChannel));
+        //mOutputNode->SetOutputName(outputChannel, source.GetOutputName(sourceOutputChannel));
     }
 
     void NodeGraphGroup::SetOutput(int8_t outputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel) {
         mOutputNode->SetInput(outputChannel, source, sourceOutputChannel);
-        mOutputNode->SetOutputName(outputChannel, source.GetOutputNode().GetOutputName(sourceOutputChannel));
+        //mOutputNode->SetOutputName(outputChannel, source.GetOutputNode().GetOutputName(sourceOutputChannel));
     }
 
     float& NodeGraphGroup::GetOutput(int8_t outputChannel, int32_t size) {

@@ -34,6 +34,16 @@ namespace l::nodegraph {
         {}
 
         virtual ~NodeGraphBase() {
+
+            for (auto& in : mInputs) {
+                in.Clear();
+            }
+            for (auto& out : mOutputs) {
+                out.Clear();
+            }
+            mInputs.clear();
+            mOutputs.clear();
+
             LOG(LogInfo) << "Node graph base destroyed";
         }
 
@@ -86,13 +96,14 @@ namespace l::nodegraph {
         virtual int32_t GetInputSize(int8_t inputChannel);
         virtual int32_t GetOutputSize(int8_t outputChannel);
 
-        virtual std::string_view GetName();
-        virtual std::string_view GetInputName(int8_t inputChannel);
-        virtual std::string_view GetOutputName(int8_t outputChannel);
-        virtual void SetInputName(int8_t inputChannel, std::string_view name);
-        virtual void SetOutputName(int8_t outputChannel, std::string_view name);
+        virtual std::string_view GetName() = 0;
+        virtual std::string_view GetInputName(int8_t inputChannel) = 0;
+        virtual std::string_view GetOutputName(int8_t outputChannel) = 0;
+        //virtual void SetInputName(int8_t inputChannel, std::string_view name) = 0;
+        //virtual void SetOutputName(int8_t outputChannel, std::string_view name) = 0;
 
         virtual bool ClearInput(int8_t inputChannel);
+        void ClearInputs();
 
         virtual bool SetInput(int8_t inputChannel, NodeGraphBase& source, int8_t sourceOutputChannel);
         virtual bool SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel);
@@ -249,23 +260,15 @@ namespace l::nodegraph {
             mLastTickCount = tickCount;
         }
 
-        virtual std::string_view GetInputName(int8_t inputChannel) {
-            auto& customName = mInputs.at(inputChannel).mName;
-            if (customName && !customName->empty()) {
-                return *customName;
-            }
+        virtual std::string_view GetInputName(int8_t inputChannel) override {
             return mOperation.GetInputName(inputChannel);
         }
 
-        virtual std::string_view GetOutputName(int8_t outputChannel) {
-            auto& customName = mOutputs.at(outputChannel).mName;
-            if (customName && !customName->empty()) {
-                return *customName;
-            }
+        virtual std::string_view GetOutputName(int8_t outputChannel) override {
             return mOperation.GetOutputName(outputChannel);
         }
 
-        virtual std::string_view GetName() {
+        virtual std::string_view GetName() override {
             return mOperation.GetName();
         }
 

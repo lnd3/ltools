@@ -16,8 +16,7 @@
 
 namespace l::nodegraph {
 
-    class NodeGraphInput {
-    public:
+    struct NodeGraphInput {
         Input mInput;
         InputType mInputType = InputType::INPUT_CONSTANT;
 
@@ -25,12 +24,12 @@ namespace l::nodegraph {
         float mBoundMax = l::math::constants::FLTMAX;
 
         int8_t mInputFromOutputChannel = 0;
-        std::unique_ptr<std::string> mName = nullptr;
 
         // hack to get input buffers working
         std::unique_ptr<std::vector<float>> mInputBuf = nullptr;
         float mInputLod = 1.0f; // buffer size level of detail  value[1.0f, buffer size] (if 1 it will write all generated values to the buffer, if 'buffer size' it will only have the latest written value),
 
+        void Clear();
         void Reset();
         bool HasInputNode();
         float& Get(int32_t size = 1);

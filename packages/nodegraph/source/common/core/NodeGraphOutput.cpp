@@ -6,6 +6,10 @@
 #include "math/MathFunc.h"
 
 namespace l::nodegraph {
+    void NodeGraphOutput::Clear() {
+        mOutputBuf.reset();
+    }
+
     float& NodeGraphOutput::Get(int32_t size) {
         if (!mOutputBuf) {
             if (size <= 1) {

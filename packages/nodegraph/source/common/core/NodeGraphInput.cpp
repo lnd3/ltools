@@ -7,6 +7,13 @@
 
 namespace l::nodegraph {
 
+    void NodeGraphInput::Clear() {
+        mInputBuf.reset();
+        mInput.mInputNode = nullptr;
+        mInputType = InputType::INPUT_CONSTANT;
+        mInputFromOutputChannel = 0;
+    }
+
     void NodeGraphInput::Reset() {
         if (mInputType == InputType::INPUT_NODE || mInputType == InputType::INPUT_VALUE) {
             mInput.mInputNode = nullptr;

@@ -37,6 +37,17 @@ namespace l::nodegraph {
     public:
         NodeGraphGroup() : SerializationBase(0, 0, true, false, true, true, true) {}
         ~NodeGraphGroup() {
+            mInputNode = nullptr;
+            mOutputNode = nullptr;
+            mInputNodes.clear();
+            mOutputNodes.clear();
+            for(auto& node : mNodes) {
+                if (node) {
+                    node.get()->ClearInputs();
+                }
+            }
+            mNodes.clear();
+
             LOG(LogInfo) << "Node group destroyed";
         }
 

@@ -128,6 +128,12 @@ namespace l::nodegraph {
         return true;
     }
 
+    void NodeGraphBase::ClearInputs() {
+        for (int8_t i = 0; i < mInputs.size();i++) {
+            ClearInput(i);
+        }
+    }
+
     bool NodeGraphBase::SetInput(int8_t inputChannel, NodeGraphBase& source, int8_t sourceOutputChannel) {
         ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
         if (!IsValidInOutNum(inputChannel, mInputs.size())) {
@@ -158,7 +164,6 @@ namespace l::nodegraph {
                 return false;
             }
             input.mInput.mInputNode = &source.GetInputNode();
-            source.GetInputNode().SetInputName(sourceChannel, input.mName ? *input.mName : "");
         }
         else {
             if (!IsValidInOutNum(sourceChannel, source.GetOutputNode().GetNumOutputs()) ||
@@ -266,42 +271,6 @@ namespace l::nodegraph {
 
     NodeType NodeGraphBase::GetOutputType() {
         return mOutputType;
-    }
-
-    std::string_view NodeGraphBase::GetName() {
-        return mName;
-    }
-
-    std::string_view NodeGraphBase::GetInputName(int8_t inputChannel) {
-        if (!mInputs.at(inputChannel).mName) {
-            return "";
-        }
-        return *mInputs.at(inputChannel).mName;
-    }
-
-    std::string_view NodeGraphBase::GetOutputName(int8_t outputChannel) {
-        if (!mOutputs.at(outputChannel).mName) {
-            return "";
-        }
-        return *mOutputs.at(outputChannel).mName;
-    }
-
-    void NodeGraphBase::SetInputName(int8_t inputChannel, std::string_view name) {
-        if (!mInputs.at(inputChannel).mName) {
-            mInputs.at(inputChannel).mName = std::make_unique<std::string>(name);
-        }
-        else {
-            *mInputs.at(inputChannel).mName = name;
-        }
-    }
-
-    void NodeGraphBase::SetOutputName(int8_t outputChannel, std::string_view name) {
-        if (!mOutputs.at(outputChannel).mName) {
-            mOutputs.at(outputChannel).mName = std::make_unique<std::string>(name);
-        }
-        else {
-            *mOutputs.at(outputChannel).mName = name;
-        }
     }
 
     /**********************************************************************************/
