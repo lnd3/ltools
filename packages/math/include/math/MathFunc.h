@@ -63,6 +63,19 @@ namespace l::math {
 		}
 	}
 
+	template<class V, class T>
+		requires std::is_floating_point_v<T>
+	V floor(T val) {
+		if constexpr (std::is_floating_point_v<T>) {
+			if constexpr (sizeof(T) == 4) {
+				return static_cast<V>(floorf(val));
+			}
+			else if constexpr (sizeof(T) == 8) {
+				return static_cast<V>(::floor(val));
+			}
+		}
+	}
+
 	template<class T>
 	auto sqrt(T val) {
 		if constexpr (std::is_floating_point_v<T>) {
@@ -191,6 +204,18 @@ namespace l::math {
 			}
 			else if constexpr (sizeof(T) == 8) {
 				return roundl(val);
+			}
+		}
+	}
+
+	template<class V, class T>
+	V round(T val) {
+		if constexpr (std::is_floating_point_v<T>) {
+			if constexpr (sizeof(T) == 4) {
+				return static_cast<V>(roundf(val));
+			}
+			else if constexpr (sizeof(T) == 8) {
+				return static_cast<V>(roundl(val));
 			}
 		}
 	}

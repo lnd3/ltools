@@ -252,12 +252,12 @@ namespace l::nodegraph {
         return false;
     }
 
-    void NodeGraphSchema::ForEachInputNode(std::function<void(NodeGraphBase*)> cb) {
-        mMainNodeGraph.ForEachInputNode(cb);
+    void NodeGraphSchema::ForEachInputNode(std::function<bool(NodeGraphBase*)> cb) {
+        mMainNodeGraph.ForEachInputNode(std::move(cb));
     }
 
-    void NodeGraphSchema::ForEachOutputNode(std::function<void(NodeGraphBase*)> cb) {
-        mMainNodeGraph.ForEachOutputNode(cb);
+    void NodeGraphSchema::ForEachOutputNode(std::function<bool(NodeGraphBase*)> cb) {
+        mMainNodeGraph.ForEachOutputNode(std::move(cb));
     }
 
     void NodeGraphSchema::ForEachNodeType(std::function<void(std::string_view, const std::vector<UINodeDesc>&)> cb) const {

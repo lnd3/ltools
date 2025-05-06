@@ -121,15 +121,19 @@ namespace l::nodegraph {
         return count > 0 ? true : false;
     }
 
-    void NodeGraphGroup::ForEachInputNode(std::function<void(NodeGraphBase*)> cb) {
+    void NodeGraphGroup::ForEachInputNode(std::function<bool(NodeGraphBase*)> cb) {
         for (auto& it : mInputNodes) {
-            cb(it);
+            if (!cb(it)) {
+                break;
+            }
         }
     }
 
-    void NodeGraphGroup::ForEachOutputNode(std::function<void(NodeGraphBase*)> cb) {
+    void NodeGraphGroup::ForEachOutputNode(std::function<bool(NodeGraphBase*)> cb) {
         for (auto& it : mOutputNodes) {
-            cb(it);
+            if (!cb(it)) {
+                break;
+            }
         }
     }
 

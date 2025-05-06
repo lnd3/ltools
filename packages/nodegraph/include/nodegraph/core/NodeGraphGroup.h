@@ -98,8 +98,8 @@ namespace l::nodegraph {
             return nodePtr;
         }
 
-        void ForEachInputNode(std::function<void(NodeGraphBase*)> cb);
-        void ForEachOutputNode(std::function<void(NodeGraphBase*)> cb);
+        void ForEachInputNode(std::function<bool(NodeGraphBase*)> cb);
+        void ForEachOutputNode(std::function<bool(NodeGraphBase*)> cb);
 
         void ClearProcessFlags();
         void ProcessSubGraph(int32_t numSamples);

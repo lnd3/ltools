@@ -67,6 +67,7 @@ namespace l::nodegraph {
             NodeGraphOp2(node, "Candle Stick Data In")
         {
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Stock Data", 0.0f, 2));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Interval", 8.0f, 1, 0.0f, 10.0f));
 
             AddOutput("Open", 0.0f, 2);
             AddOutput("Close", 0.0f, 2);
