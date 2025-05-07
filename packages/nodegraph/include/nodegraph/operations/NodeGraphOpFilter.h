@@ -120,19 +120,36 @@ namespace l::nodegraph {
 
 
     /*********************************************************************/
-    class GraphFilterMovingAverage : public GraphFilterBase {
+    class GraphFilterMovingAverage : public NodeGraphOp {
     public:
         GraphFilterMovingAverage(NodeGraphBase* node, float undefinedValue = 0.0f) :
-            GraphFilterBase(node, "Moving Average"),
+            NodeGraphOp(node, "Moving Average"),
+            mInputManager(*this),
             mUndefinedValue(undefinedValue)
         {
+            mDefaultInStrings.clear();
+            mDefaultOutStrings.clear();
+            mDefaultInData.clear();
+
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Sync", 0.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("In"));
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Kernel Size", 1.0f, 1, 1.0f, static_cast<float>(mDefaultKernelSize)));
+
+            AddOutput("Out", 0.0f);
         }
+
         virtual ~GraphFilterMovingAverage() = default;
         virtual void Reset() override;
 
-        virtual float ProcessSignal(float input, float cutoff, float resonance) override;
+        virtual void DefaultDataInit() override;
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override final;
     protected:
+        InputManager mInputManager;
+
+        float mSync = 0.0f;
+        float mSamplesUntilUpdate = 0.0f;
+        float mUpdateRate = 128.0f;
+
         int32_t mDefaultKernelSize = 50;
         int32_t mWidth = mDefaultKernelSize;
         int32_t mFilterStateIndex = -1;

@@ -117,6 +117,15 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
+    void GraphFilterMovingAverage::DefaultDataInit() {
+        NodeGraphOp::DefaultDataInit();
+
+        mSync = 0.0f;
+        mSamplesUntilUpdate = 0.0f;
+
+        Reset();
+    }
+
     void GraphFilterMovingAverage::Reset() {
         if (mFilterState.size() != mDefaultKernelSize) {
             mFilterState.resize(mDefaultKernelSize);
@@ -125,38 +134,60 @@ namespace l::nodegraph {
         mFilterInit = true;
     }
 
-    float GraphFilterMovingAverage::ProcessSignal(float input, float, float) {
-        if (mUndefinedValue == input) {
-            return input;
+    void GraphFilterMovingAverage::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        mInputManager.BatchUpdate(inputs, numSamples);
+        mSync = inputs.at(0).Get();
+        if (mSync > 0.5f) {
+            mNode->SetInput(1, 0.0f, numSamples);
         }
 
-        float width = mInputManager.GetValueNext(mNumDefaultInputs + 0);
-        int32_t widthInt = l::math::max2(static_cast<int32_t>(width), 1);
+        auto output = outputs.at(0).GetIterator(numSamples);
 
-        if (mFilterInit || mWidth != widthInt) {
-            mWidth = widthInt;
-            mFilterInit = false;
-            mFilterStateIndex = 0;
+        mSamplesUntilUpdate = l::audio::BatchUpdate(mUpdateRate, mSamplesUntilUpdate, 0, numSamples,
+            [&]() {
+                mInputManager.NodeUpdate(inputs, mUpdateRate);
+                return mUpdateRate;
+            },
+            [&](int32_t start, int32_t end, bool) {
+                float width = mInputManager.GetValueNext(2);
+                int32_t widthInt = 1 + l::math::max2(static_cast<int32_t>(width), 1);
+                int32_t bufferSize = widthInt + 1;
+                float widthFrac = width - l::math::floor(width);
 
-            if (mFilterState.size() < widthInt) {
-                mFilterState.resize(widthInt);
+                if (mFilterInit || mWidth != widthInt) {
+                    mWidth = widthInt;
+                    mFilterInit = false;
+                    mFilterStateIndex = 0;
+
+                    if (mFilterState.size() < bufferSize) {
+                        mFilterState.resize(bufferSize);
+                    }
+                    for (int32_t j = 0; j < widthInt; j++) {
+                        mFilterState[j] = 0.0f;
+                    }
+                }
+
+                auto widthFactor = 1.0f / width;
+                for (int32_t i = start; i < end; i++) {
+                    float inputValue = mInputManager.GetValueNext(1);
+
+                    mFilterState[mFilterStateIndex] = inputValue;
+                    mFilterStateIndex = (mFilterStateIndex + 1) % bufferSize; // buffer is 1 larger than the truncated filter size so we can smooth on the last one
+
+                    float outVal = 0.0;
+                    for (int32_t j = 0; j < bufferSize; j++) { // sum all samples but the last one which we will smooth 
+                        outVal += mFilterState[j];
+                    }
+                    { // remove the last part of the last sample of the width fraction
+                        outVal -= mFilterState[mFilterStateIndex] * (1.0f - widthFrac);
+                    }
+
+                    auto signal = outVal * widthFactor;
+
+                    *output++ = signal;
+                }
             }
-            for (int32_t i = 0; i < widthInt; i++) {
-                mFilterState[i] = 0.0f;
-            }
-        }
-
-        mFilterState[mFilterStateIndex] = input;
-        mFilterStateIndex = (mFilterStateIndex + 1) % widthInt;
-
-        if (widthInt == 1) {
-            return input;
-        }
-
-        float outVal = 0.0;
-        for (int32_t i = 0; i < widthInt; i++) {
-            outVal += mFilterState[i];
-        }
-        return outVal / static_cast<float>(widthInt);
+        );
     }
+
 }
