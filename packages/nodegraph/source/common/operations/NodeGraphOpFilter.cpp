@@ -149,8 +149,10 @@ namespace l::nodegraph {
                 return mUpdateRate;
             },
             [&](int32_t start, int32_t end, bool) {
-                float width = mInputManager.GetValueNext(2);
-                int32_t widthInt = 1 + l::math::max2(static_cast<int32_t>(width), 1);
+                float width = 1.0f + mInputManager.GetValueNext(2);
+                float balance = mInputManager.GetValueNext(3);
+
+                int32_t widthInt = l::math::max2(static_cast<int32_t>(width), 1);
                 int32_t bufferSize = widthInt + 1;
                 float widthFrac = width - l::math::floor(width);
 
@@ -167,7 +169,6 @@ namespace l::nodegraph {
                     }
                 }
 
-                auto widthFactor = 1.0f / width;
                 for (int32_t i = start; i < end; i++) {
                     float inputValue = mInputManager.GetValueNext(1);
 
@@ -175,14 +176,24 @@ namespace l::nodegraph {
                     mFilterStateIndex = (mFilterStateIndex + 1) % bufferSize; // buffer is 1 larger than the truncated filter size so we can smooth on the last one
 
                     float outVal = 0.0;
-                    for (int32_t j = 0; j < bufferSize; j++) { // sum all samples but the last one which we will smooth 
-                        outVal += mFilterState[j];
+                    float balanceFactor = 1.0f - balance;
+                    float balanceDelta = balance / width;
+                    float balanceDivisorSum = -balanceFactor * (1.0f - widthFrac);
+                    { // remove a part of the last sample of the sum as it is not part of the moving average
+                        outVal -= mFilterState[mFilterStateIndex] * balanceFactor * (1.0f - widthFrac);
                     }
-                    { // remove the last part of the last sample of the width fraction
-                        outVal -= mFilterState[mFilterStateIndex] * (1.0f - widthFrac);
+                    for (int32_t j = mFilterStateIndex; j < bufferSize; j++) {
+                        outVal += mFilterState[j] * balanceFactor;
+                        balanceDivisorSum += balanceFactor;
+                        balanceFactor += balanceDelta;
+                    }
+                    for (int32_t j = 0; j < mFilterStateIndex; j++) {
+                        outVal += mFilterState[j] * balanceFactor;
+                        balanceDivisorSum += balanceFactor;
+                        balanceFactor += balanceDelta;
                     }
 
-                    auto signal = outVal * widthFactor;
+                    auto signal = outVal / balanceDivisorSum;
 
                     *output++ = signal;
                 }
