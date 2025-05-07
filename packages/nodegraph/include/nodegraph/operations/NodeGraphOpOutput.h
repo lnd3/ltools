@@ -92,10 +92,11 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphOutputChartLine : public NodeGraphOp2 {
+    class GraphOutputChartLine : public NodeGraphOp {
     public:
         GraphOutputChartLine(NodeGraphBase* node) :
-            NodeGraphOp2(node, "Chart Lines")
+            NodeGraphOp(node, "Chart Lines"),
+            mInputManager(*this)
         {
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("x", 0.0f));
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("y", 0.0f));
@@ -105,13 +106,17 @@ namespace l::nodegraph {
 
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
+        InputManager mInputManager;
+        float mStepsUntilUpdate = 0.0f;
+        float mUpdateRate = 16.0f;
     };
 
     /*********************************************************************/
-    class GraphOutputCandleSticks : public NodeGraphOp2 {
+    class GraphOutputCandleSticks : public NodeGraphOp {
     public:
         GraphOutputCandleSticks(NodeGraphBase* node) :
-            NodeGraphOp2(node, "Candle Sticks")
+            NodeGraphOp(node, "Candle Sticks"),
+            mInputManager(*this)
         {
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("unixtime", 0.0f));
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("open", 0.0f));
@@ -125,6 +130,9 @@ namespace l::nodegraph {
 
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
+        InputManager mInputManager;
+        float mStepsUntilUpdate = 0.0f;
+        float mUpdateRate = 16.0f;
     };
 
     /*********************************************************************/

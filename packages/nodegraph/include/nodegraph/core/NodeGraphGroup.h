@@ -98,6 +98,12 @@ namespace l::nodegraph {
             return nodePtr;
         }
 
+        //l::nodegraph::NodeGraphGroup* NewGroup() {
+        //    mNodes.emplace_back(std::make_unique<l::nodegraph::NodeGraphGroup>());
+        //    auto groupPtr = dynamic_cast<l::nodegraph::NodeGraphGroup*>(mNodes.back().get());
+        //    return groupPtr;
+        //}
+
         void ForEachInputNode(std::function<bool(NodeGraphBase*)> cb);
         void ForEachOutputNode(std::function<bool(NodeGraphBase*)> cb);
 

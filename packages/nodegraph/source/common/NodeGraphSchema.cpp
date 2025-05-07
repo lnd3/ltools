@@ -220,6 +220,10 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphUISlider>(NodeType::ExternalInput, 0.0f, 1.0f, 1.0f);
             break;
 
+        //case 1000:
+        //    node = mMainNodeGraph.NewGroup();
+        //    break;
+
         default:
             ASSERT(typeId < 10000) << "Custom node id's begin at id 1000";
             if (mCreateCustomNode) {

@@ -23,10 +23,11 @@
 namespace l::nodegraph {
 
     /*********************************************************************/
-    class GraphDataBusDataIn : public NodeGraphOp2 {
+    class GraphDataBusDataIn : public NodeGraphOp {
     public:
         GraphDataBusDataIn(NodeGraphBase* node, int32_t inputDataStride) :
-            NodeGraphOp2(node, "Bus Data In x6"),
+            NodeGraphOp(node, "Bus Data In x6"),
+            mInputManager(*this),
             mInputDataStride(inputDataStride)
         {
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Bus Data", 0.0f, 2));
@@ -38,14 +39,19 @@ namespace l::nodegraph {
         virtual ~GraphDataBusDataIn() = default;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
+        InputManager mInputManager;
+        float mStepsUntilUpdate = 0.0f;
+        float mUpdateRate = 16.0f;
+
         int32_t mInputDataStride = 1;
     };
 
     /*********************************************************************/
-    class GraphDataBusDataOut : public NodeGraphOp2 {
+    class GraphDataBusDataOut : public NodeGraphOp {
     public:
         GraphDataBusDataOut(NodeGraphBase* node, int32_t outputDataStride) :
-            NodeGraphOp2(node, "Bus Data Out x6"),
+            NodeGraphOp(node, "Bus Data Out x6"),
+            mInputManager(*this),
             mOutputDataStride(outputDataStride)
         {
             for (int32_t i = 0; i < mOutputDataStride; i++) {
@@ -57,14 +63,19 @@ namespace l::nodegraph {
 
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
+        InputManager mInputManager;
+        float mStepsUntilUpdate = 0.0f;
+        float mUpdateRate = 16.0f;
+
         int32_t mOutputDataStride = 1;
     };
 
     /*********************************************************************/
-    class GraphDataCandleStickDataIn : public NodeGraphOp2 {
+    class GraphDataCandleStickDataIn : public NodeGraphOp {
     public:
         GraphDataCandleStickDataIn(NodeGraphBase* node) :
-            NodeGraphOp2(node, "Candle Stick Data In")
+            NodeGraphOp(node, "Candle Stick Data In"),
+            mInputManager(*this)
         {
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Stock Data", 0.0f, 2));
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Interval", 8.0f, 1, 0.0f, 10.0f));
@@ -79,6 +90,10 @@ namespace l::nodegraph {
         virtual ~GraphDataCandleStickDataIn() = default;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
+        InputManager mInputManager;
+        float mStepsUntilUpdate = 0.0f;
+        float mUpdateRate = 16.0f;
+
     };
 
 }
