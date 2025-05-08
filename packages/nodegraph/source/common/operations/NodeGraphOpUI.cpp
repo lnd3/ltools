@@ -43,26 +43,44 @@ namespace l::nodegraph {
     void GraphUISlider::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto input = inputs.at(0).GetIterator(1);
         auto power = inputs.at(1).GetIterator(1);
-        auto scale = inputs.at(2).GetIterator(1);
+        auto min = inputs.at(2).GetIterator(1);
+        auto max = inputs.at(3).GetIterator(1);
         auto output = outputs.at(0).GetIterator(1);
 
+        mMin = *min;
+        mMax = *max;
+
         if (mExternallyChanged) {
-            *input = mState;
+            *input = mValue;
             mExternallyChanged = false;
         }
         else {
-            mState = *input;
+            mValue = *input;
         }
 
-        *output = *scale * l::math::pow(*input, *power);
+        float length = mMax - mMin;
+        if (length <= 0.0f) {
+            *output = mMin;
+        }
+        float value = (mValue - mMin) / length;
+        value = mMin + length * l::math::pow(value, *power);
+        *output = l::math::clamp(value, mMin, mMax);
     }
 
     void GraphUISlider::Tick(int32_t, float) {
         mNode->ProcessSubGraph(1);
     }
 
-    float& GraphUISlider::GetStatePtr() {
-        return mState;
+    float& GraphUISlider::GetMin() {
+        return mMin;
+    }
+
+    float& GraphUISlider::GetMax() {
+        return mMax;
+    }
+
+    float& GraphUISlider::GetValue() {
+        return mValue;
     }
 
     void GraphUISlider::ExternallyChanged() {

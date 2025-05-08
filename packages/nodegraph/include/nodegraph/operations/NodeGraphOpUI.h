@@ -59,11 +59,15 @@ namespace l::nodegraph {
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(int32_t, float) override;
 
-        float& GetStatePtr();
+        float& GetMin();
+        float& GetMax();
+        float& GetValue();
         void ExternallyChanged();
     protected:
         bool mExternallyChanged = false;
-        float mState = 0.0f;
+        float mValue = 0.0f;
+        float mMin = 0.0f;
+        float mMax = 1.0f;
     };
 
 }
