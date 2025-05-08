@@ -50,8 +50,9 @@ namespace l::nodegraph {
             NodeGraphOp(node, "UI Slider")
         {
             AddInput("In", 0.0f, 1, min, max);
+            AddInput("Min", 0.0f);
+            AddInput("Max", 1.0f);
             AddInput("Power", power);
-            AddInput("Scale", 1.0f);
             AddOutput("Out");
         }
 
