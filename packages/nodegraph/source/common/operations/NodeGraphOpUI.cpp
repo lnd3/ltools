@@ -42,9 +42,9 @@ namespace l::nodegraph {
     /*********************************************************************/
     void GraphUISlider::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto input = inputs.at(0).GetIterator(1);
-        auto power = inputs.at(1).GetIterator(1);
-        auto min = inputs.at(2).GetIterator(1);
-        auto max = inputs.at(3).GetIterator(1);
+        auto min = inputs.at(1).GetIterator(1);
+        auto max = inputs.at(2).GetIterator(1);
+        auto power = inputs.at(3).GetIterator(1);
         auto output = outputs.at(0).GetIterator(1);
 
         mMin = *min;
