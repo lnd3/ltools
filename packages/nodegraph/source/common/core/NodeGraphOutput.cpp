@@ -7,7 +7,9 @@
 
 namespace l::nodegraph {
     void NodeGraphOutput::Clear() {
-        mOutputBuf.reset();
+        if (mOutputBuf) {
+            mOutputBuf.reset();
+        }
     }
 
     float& NodeGraphOutput::Get(int32_t size) {
@@ -49,12 +51,10 @@ namespace l::nodegraph {
     }
 
     int32_t NodeGraphOutput::GetSize() {
-        if (!mOutputBuf) {
-            return 1;
-        }
-        else {
+        if (mOutputBuf) {
             return static_cast<int32_t>(mOutputBuf->size());
         }
+        return 1;
     }
 
     bool NodeGraphOutput::IsPolled() {

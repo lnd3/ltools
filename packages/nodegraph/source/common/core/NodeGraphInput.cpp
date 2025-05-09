@@ -8,7 +8,9 @@
 namespace l::nodegraph {
 
     void NodeGraphInput::Clear() {
-        mInputBuf.reset();
+        if (mInputBuf) {
+            mInputBuf.reset();
+        }
         mInput.mInputNode = nullptr;
         mInputType = InputType::INPUT_CONSTANT;
         mInputFromOutputChannel = 0;
@@ -94,10 +96,10 @@ namespace l::nodegraph {
             }
             break;
         case InputType::INPUT_ARRAY:
-            if (!mInputBuf) {
-                return 1;
+            if (mInputBuf) {
+                return static_cast<int32_t>(mInputBuf->size());
             }
-            return static_cast<int32_t>(mInputBuf->size());
+            return 1;
         case InputType::INPUT_CONSTANT:
             return 1;
         case InputType::INPUT_VALUE:

@@ -87,6 +87,9 @@ namespace l::nodegraph {
         case 102:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalXor>(NodeType::Default);
             break;
+        case 103:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalDetector>(NodeType::Default);
+            break;
 
         case 150:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterLowpass>(NodeType::Default);
@@ -301,6 +304,7 @@ namespace l::nodegraph {
             RegisterNodeType("Logic", 100, "And");
             RegisterNodeType("Logic", 101, "Or");
             RegisterNodeType("Logic", 102, "Xor");
+            RegisterNodeType("Logic", 103, "Detector");
         }
         else if (typeGroup == "SignalFilter") {
             RegisterNodeType("SignalFilter", 150, "Lowpass");
