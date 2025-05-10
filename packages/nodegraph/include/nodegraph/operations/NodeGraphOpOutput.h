@@ -92,50 +92,6 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphOutputChartLine : public NodeGraphOp {
-    public:
-        GraphOutputChartLine(NodeGraphBase* node) :
-            NodeGraphOp(node, "Chart Lines"),
-            mInputManager(*this)
-        {
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("x", 0.0f));
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("y", 0.0f));
-            AddOutput("Interleaved Data");
-        }
-        virtual ~GraphOutputChartLine() = default;
-
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-    protected:
-        InputManager mInputManager;
-        float mStepsUntilUpdate = 0.0f;
-        float mUpdateRate = 16.0f;
-    };
-
-    /*********************************************************************/
-    class GraphOutputCandleSticks : public NodeGraphOp {
-    public:
-        GraphOutputCandleSticks(NodeGraphBase* node) :
-            NodeGraphOp(node, "Candle Sticks"),
-            mInputManager(*this)
-        {
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("unixtime", 0.0f));
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("open", 0.0f));
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("close", 0.0f));
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("high", 0.0f));
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("low", 0.0f));
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("volume", 0.0f));
-            AddOutput("Interleaved Data");
-        }
-        virtual ~GraphOutputCandleSticks() = default;
-
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-    protected:
-        InputManager mInputManager;
-        float mStepsUntilUpdate = 0.0f;
-        float mUpdateRate = 16.0f;
-    };
-
-    /*********************************************************************/
     class GraphOutputPCBeep : public NodeGraphOp {
     public:
         GraphOutputPCBeep(NodeGraphBase* node) :

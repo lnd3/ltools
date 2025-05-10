@@ -25,8 +25,8 @@ namespace l::nodegraph {
         bool mOutputPolled = false;
 
         void Clear();
-        float& Get(int32_t size = 1);
-        NodeDataIterator GetIterator(int32_t size, float lod = 1.0f);
+        float& Get(int32_t minSize = 1);
+        NodeDataIterator GetIterator(int32_t minSize, float lod = 1.0f);
         NodeDataIterator GetIterator();
         int32_t GetSize();
         bool IsPolled();

@@ -12,9 +12,9 @@ namespace l::nodegraph {
         }
     }
 
-    float& NodeGraphOutput::Get(int32_t size) {
+    float& NodeGraphOutput::Get(int32_t minSize) {
         if (!mOutputBuf) {
-            if (size <= 1) {
+            if (minSize <= 1) {
                 mOutputPolled = true;
                 return mOutput;
             }
@@ -22,9 +22,9 @@ namespace l::nodegraph {
                 mOutputBuf = std::make_unique<std::vector<float>>();
             }
         }
-        int32_t lodSize = static_cast<int32_t>(size / mOutputLod);
-        if (lodSize != size) {
-            ASSERT(lodSize != size) << "Failed to reset 'lod' output buffer to size '" << lodSize << "' because it is already allocated for size '" << mOutputBuf->size() << "'";
+        int32_t lodSize = static_cast<int32_t>(minSize / mOutputLod);
+        if (lodSize != minSize) {
+            ASSERT(lodSize != minSize) << "Failed to reset 'lod' output buffer to size '" << lodSize << "' because it is already allocated for size '" << mOutputBuf->size() << "'";
         }
         if (static_cast<int32_t>(mOutputBuf->size()) < lodSize) {
             mOutputBuf->resize(lodSize);
@@ -36,12 +36,12 @@ namespace l::nodegraph {
         return *mOutputBuf->data();
     }
 
-    NodeDataIterator NodeGraphOutput::GetIterator(int32_t size, float lod) {
-        if (lod >= 1.0f && lod <= size) {
+    NodeDataIterator NodeGraphOutput::GetIterator(int32_t minSize, float lod) {
+        if (lod >= 1.0f && lod <= minSize) {
             mOutputLod = lod;
         }
-        float stepPerIndex = size == 1 ? 0.0f : 1.0f / mOutputLod;
-        return NodeDataIterator(&Get(size), stepPerIndex);
+        float stepPerIndex = minSize == 1 ? 0.0f : 1.0f / mOutputLod;
+        return NodeDataIterator(&Get(minSize), stepPerIndex);
     }
 
     NodeDataIterator NodeGraphOutput::GetIterator() {

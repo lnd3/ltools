@@ -88,8 +88,8 @@ namespace l::nodegraph {
         virtual int8_t GetNumInputs();
         virtual int8_t GetNumOutputs();
 
-        virtual float& GetInput(int8_t inputChannel, int32_t size = 1);
-        virtual float& GetOutput(int8_t outputChannel, int32_t size = 1);
+        virtual float& GetInput(int8_t inputChannel, int32_t minSize = 1);
+        virtual float& GetOutput(int8_t outputChannel, int32_t minSize = 1);
         virtual NodeGraphInput& GetInputOf(int8_t inputChannel);
         virtual NodeGraphOutput& GetOutputOf(int8_t outputChannel);
 
@@ -107,9 +107,9 @@ namespace l::nodegraph {
 
         virtual bool SetInput(int8_t inputChannel, NodeGraphBase& source, int8_t sourceOutputChannel);
         virtual bool SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel);
-        virtual bool SetInput(int8_t inputChannel, float initialValue, int32_t size = 1);
+        virtual bool SetInput(int8_t inputChannel, float initialValue, int32_t minSize = 1);
         virtual bool SetInput(int8_t inputChannel, float* floatPtr);
-        virtual void SetDefaultOutput(int8_t outputChannel, float constant, int32_t size = 1);
+        virtual void SetDefaultOutput(int8_t outputChannel, float constant, int32_t minSize = 1);
 
         virtual bool SetInputBound(int8_t inputChannel, InputBound bound = InputBound::INPUT_0_TO_1, float boundMin = 0.0f, float boundMax = 1.0f);
         virtual bool DetachInput(void* source);
@@ -168,7 +168,7 @@ namespace l::nodegraph {
         virtual void DefaultDataInit();
         virtual void Reset() {};
         virtual void Process(int32_t, std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
-        virtual void Tick(int32_t, float) {}
+        virtual void Tick(int32_t /*tickCount*/, float /*delta*/) {}
 
         int8_t GetNumInputs();
         int8_t GetNumOutputs();
@@ -182,9 +182,9 @@ namespace l::nodegraph {
         virtual float GetDefaultData(int8_t inputChannel);
 
     protected:
-        virtual int32_t AddInput(std::string_view name, float defaultValue = 0.0f, int32_t size = 1, float boundMin = -l::math::constants::FLTMAX, float boundMax = l::math::constants::FLTMAX, bool visible = true, bool editable = true);
-        virtual int32_t AddOutput(std::string_view name, float defaultValue = 0.0f, int32_t size = 1);
-        virtual int32_t AddConstant(std::string_view name, float defaultValue = 0.0f, int32_t size = 1, float boundMin = -l::math::constants::FLTMAX, float boundMax = l::math::constants::FLTMAX, bool visible = true, bool editable = true);
+        virtual int32_t AddInput(std::string_view name, float defaultValue = 0.0f, int32_t minSize = 1, float boundMin = -l::math::constants::FLTMAX, float boundMax = l::math::constants::FLTMAX, bool visible = true, bool editable = true);
+        virtual int32_t AddOutput(std::string_view name, float defaultValue = 0.0f, int32_t minSize = 1, bool visible = true);
+        virtual int32_t AddConstant(std::string_view name, float defaultValue = 0.0f, int32_t minSize = 1, float boundMin = -l::math::constants::FLTMAX, float boundMax = l::math::constants::FLTMAX, bool visible = true, bool editable = true);
 
         NodeGraphBase* mNode;
         std::string mName;
@@ -192,7 +192,7 @@ namespace l::nodegraph {
         std::vector<std::string> mDefaultInStrings;
         std::vector<std::string> mDefaultOutStrings;
         std::vector<std::tuple<float, int32_t, float, float, bool, bool, bool>> mDefaultInData;
-        std::vector<std::tuple<float, int32_t>> mDefaultOutData;
+        std::vector<std::tuple<float, int32_t, bool>> mDefaultOutData;
 
         int8_t mNumInputs = 0;
         int8_t mNumOutputs = 0;

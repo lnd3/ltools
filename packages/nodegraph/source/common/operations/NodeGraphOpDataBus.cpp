@@ -35,17 +35,44 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphDataCandleStickDataIn::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        mInputManager.BatchUpdate(inputs, 6 * numSamples);
-
-        float* input = mInputManager.GetArray(0);
-        for (int32_t i = 0; i < 6; i++) {
-            float* output = &outputs.at(i).Get(numSamples);
-            for (int32_t j = 0; j < numSamples; j++) {
-                output[j] = input[6 * j + i];
-            }
-        }
+    void GraphDataCandleStickDataIn::Reset() {
+        mInputReadPos = 0;
+        mInputWritePos = 0;
     }
 
+    void GraphDataCandleStickDataIn::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        auto& inInterleaved = inputs.at(0);
+        float* outInterleaved = &outputs.at(0).Get(numSamples * 6);
+        memcpy(outInterleaved, &inInterleaved.GetArray(numSamples, mInputReadPos), static_cast<size_t>(sizeof(float) * numSamples * 6));
+
+        auto input = &inInterleaved.GetArray(numSamples, mInputReadPos);
+        for (int32_t i = 1; i < 7; i++) {
+            float* output = &outputs.at(i).Get(numSamples);
+            for (int32_t j = 0; j < numSamples; j++) {
+                output[j] = input[6 * j + i - 1];
+            }
+        }
+
+        mInputReadPos += numSamples;
+    }
+
+    /*********************************************************************/
+    void GraphDataTradeSignal::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        auto in = &inputs.at(0).Get(numSamples);
+        auto out = &outputs.at(0).Get(numSamples);
+        memcpy(out, in, static_cast<size_t>(sizeof(float) * numSamples));
+    }
+
+    /*********************************************************************/
+    void GraphDataInputBuffer::Reset() {
+        mInputReadPos = 0;
+        mInputWritePos = 0;
+    }
+
+    void GraphDataInputBuffer::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        auto& inInterleaved = inputs.at(0);
+        float* outInterleaved = &outputs.at(0).Get(numSamples * 6);
+        memcpy(outInterleaved, &inInterleaved.GetArray(numSamples, mInputReadPos), static_cast<size_t>(sizeof(float) * numSamples * 6));
+    }
 
 }

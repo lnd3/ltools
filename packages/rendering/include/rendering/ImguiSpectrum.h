@@ -87,17 +87,19 @@ namespace ImGui {
         }
 
 #ifdef SPECTRUM_USE_LIGHT_THEME
-        const unsigned int GRAY50 = Color(0xFFFFFF);
-        const unsigned int GRAY75 = Color(0xFAFAFA);
-        const unsigned int GRAY100 = Color(0xF5F5F5);
-        const unsigned int GRAY200 = Color(0xEAEAEA);
-        const unsigned int GRAY300 = Color(0xE1E1E1);
-        const unsigned int GRAY400 = Color(0xCACACA);
-        const unsigned int GRAY500 = Color(0xB3B3B3);
-        const unsigned int GRAY600 = Color(0x8E8E8E);
-        const unsigned int GRAY700 = Color(0x707070);
-        const unsigned int GRAY800 = Color(0x4B4B4B);
-        const unsigned int GRAY900 = Color(0x2C2C2C);
+        const unsigned int GRAY25 = Color(0xFFFFFF);
+        const unsigned int GRAY50 = Color(0xFAFAFA);
+        const unsigned int GRAY75 = Color(0xF5F5F5);
+        const unsigned int GRAY100 = Color(0xEAEAEA);
+        const unsigned int GRAY200 = Color(0xE1E1E1);
+        const unsigned int GRAY300 = Color(0xCACACA);
+        const unsigned int GRAY400 = Color(0xB3B3B3);
+        const unsigned int GRAY500 = Color(0x8E8E8E);
+        const unsigned int GRAY600 = Color(0x707070);
+        const unsigned int GRAY700 = Color(0x4B4B4B);
+        const unsigned int GRAY800 = Color(0x2C2C2C);
+        const unsigned int GRAY900 = Color(0x202020);
+        const unsigned int GRAY950 = Color(0x101010);
         const unsigned int BLUE400 = Color(0x2680EB);
         const unsigned int BLUE500 = Color(0x1473E6);
         const unsigned int BLUE600 = Color(0x0D66D0);
@@ -148,7 +150,8 @@ namespace ImGui {
         const unsigned int PURPLE700 = Color(0x6F38B1);
 #endif
 #ifdef SPECTRUM_USE_DARK_THEME
-        const unsigned int GRAY50 = Color(0x252525);
+        const unsigned int GRAY25 = Color(0x101010);
+        const unsigned int GRAY50 = Color(0x202020);
         const unsigned int GRAY75 = Color(0x2F2F2F);
         const unsigned int GRAY100 = Color(0x323232);
         const unsigned int GRAY200 = Color(0x393939);

@@ -82,12 +82,12 @@ namespace l::nodegraph {
         mLastTickCount = tickCount;
     }
 
-    float& NodeGraphBase::GetInput(int8_t inputChannel, int32_t size) {
-        return mInputs.at(inputChannel).Get(size);
+    float& NodeGraphBase::GetInput(int8_t inputChannel, int32_t minSize) {
+        return mInputs.at(inputChannel).Get(minSize);
     }
 
-    float& NodeGraphBase::GetOutput(int8_t outputChannel, int32_t size) {
-        return mOutputs.at(outputChannel).Get(size);
+    float& NodeGraphBase::GetOutput(int8_t outputChannel, int32_t minSize) {
+        return mOutputs.at(outputChannel).Get(minSize);
     }
 
     NodeGraphInput& NodeGraphBase::GetInputOf(int8_t inputChannel) {
@@ -344,24 +344,24 @@ namespace l::nodegraph {
         return 0.0f;
     }
 
-    int32_t NodeGraphOp::AddInput(std::string_view name, float defaultValue, int32_t size, float boundMin, float boundMax, bool visible, bool editable) {
+    int32_t NodeGraphOp::AddInput(std::string_view name, float defaultValue, int32_t minSize, float boundMin, float boundMax, bool visible, bool editable) {
         mNumInputs++;
         mDefaultInStrings.push_back(std::string(name));
-        mDefaultInData.push_back({ defaultValue, size, boundMin, boundMax, false, visible, editable});
+        mDefaultInData.push_back({ defaultValue, minSize, boundMin, boundMax, false, visible, editable});
         return static_cast<int32_t>(mDefaultInData.size() - 1);
     }
 
-    int32_t NodeGraphOp::AddOutput(std::string_view name, float defaultValue, int32_t size) {
+    int32_t NodeGraphOp::AddOutput(std::string_view name, float defaultValue, int32_t minSize, bool visible) {
         mNumOutputs++;
         mDefaultOutStrings.push_back(std::string(name));
-        mDefaultOutData.push_back({ defaultValue, size });
+        mDefaultOutData.push_back({ defaultValue, minSize, visible});
         return static_cast<int32_t>(mDefaultOutData.size() - 1);
     }
 
-    int32_t NodeGraphOp::AddConstant(std::string_view name, float defaultValue, int32_t size, float boundMin, float boundMax, bool visible, bool editable) {
+    int32_t NodeGraphOp::AddConstant(std::string_view name, float defaultValue, int32_t minSize, float boundMin, float boundMax, bool visible, bool editable) {
         mNumInputs++;
         mDefaultInStrings.push_back(std::string(name));
-        mDefaultInData.push_back({ defaultValue, size, boundMin, boundMax, true, visible, editable});
+        mDefaultInData.push_back({ defaultValue, minSize, boundMin, boundMax, true, visible, editable});
         return static_cast<int32_t>(mDefaultInData.size() - 1);
     }
 

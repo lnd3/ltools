@@ -115,10 +115,10 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputPlot>(NodeType::ExternalVisualOutput, 100);
             break;
         case 203:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputChartLine>(NodeType::ExternalOutput);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphUIChartLine>(NodeType::ExternalOutput);
             break;
         case 204:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputCandleSticks>(NodeType::ExternalOutput);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphUICandleSticks>(NodeType::ExternalOutput);
             break;
         case 205:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputPCBeep>(NodeType::ExternalOutput);
@@ -379,6 +379,5 @@ namespace l::nodegraph {
     void NodeGraphSchema::ProcessSubGraph(int32_t numSamples) {
         mMainNodeGraph.ProcessSubGraph(numSamples);
     }
-
 
 }

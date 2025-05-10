@@ -87,5 +87,32 @@ namespace l::nodegraph {
         mExternallyChanged = true;
     }
 
+    /*********************************************************************/
+    void GraphUIChartLine::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        mInputManager.BatchUpdate(inputs, numSamples);
+
+        float* output = &outputs.at(0).Get(2 * numSamples);
+
+        for (int32_t i = 0; i < numSamples; i++) {
+            output[2 * i + 0] = mInputManager.GetValueNext(0);
+            output[2 * i + 1] = mInputManager.GetValueNext(1);
+        }
+    }
+
+    /*********************************************************************/
+    void GraphUICandleSticks::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        mInputManager.BatchUpdate(inputs, numSamples);
+
+        float* output = &outputs.at(0).Get(6 * numSamples);
+
+        for (int32_t i = 0; i < numSamples; i++) {
+            output[6 * i + 0] = mInputManager.GetValueNext(0);
+            output[6 * i + 1] = mInputManager.GetValueNext(1);
+            output[6 * i + 2] = mInputManager.GetValueNext(2);
+            output[6 * i + 3] = mInputManager.GetValueNext(3);
+            output[6 * i + 4] = mInputManager.GetValueNext(4);
+            output[6 * i + 5] = mInputManager.GetValueNext(5);
+        }
+    }
 
 }

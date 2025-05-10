@@ -71,5 +71,48 @@ namespace l::nodegraph {
         float mMax = 1.0f;
     };
 
+    /*********************************************************************/
+    class GraphUIChartLine : public NodeGraphOp {
+    public:
+        GraphUIChartLine(NodeGraphBase* node) :
+            NodeGraphOp(node, "Chart Lines"),
+            mInputManager(*this)
+        {
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("x", 0.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("y", 0.0f));
+            AddOutput("Interleaved Data");
+        }
+        virtual ~GraphUIChartLine() = default;
+
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+    protected:
+        InputManager mInputManager;
+        float mStepsUntilUpdate = 0.0f;
+        float mUpdateRate = 16.0f;
+    };
+
+    /*********************************************************************/
+    class GraphUICandleSticks : public NodeGraphOp {
+    public:
+        GraphUICandleSticks(NodeGraphBase* node) :
+            NodeGraphOp(node, "Candle Sticks"),
+            mInputManager(*this)
+        {
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("unixtime", 0.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("open", 0.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("close", 0.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("high", 0.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("low", 0.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("volume", 0.0f));
+            AddOutput("Interleaved Data");
+        }
+        virtual ~GraphUICandleSticks() = default;
+
+        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+    protected:
+        InputManager mInputManager;
+        float mStepsUntilUpdate = 0.0f;
+        float mUpdateRate = 16.0f;
+    };
 }
 
