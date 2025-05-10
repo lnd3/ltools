@@ -41,19 +41,27 @@ namespace l::nodegraph {
     }
 
     void GraphDataCandleStickDataIn::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        auto& inInterleaved = inputs.at(0);
+        auto in = &inputs.at(0).Get(numSamples * 6, mInputReadPos);
         float* outInterleaved = &outputs.at(0).Get(numSamples * 6);
-        memcpy(outInterleaved, &inInterleaved.GetArray(numSamples, mInputReadPos), static_cast<size_t>(sizeof(float) * numSamples * 6));
+        memcpy(outInterleaved, in, static_cast<size_t>(sizeof(float) * numSamples * 6));
 
-        auto input = &inInterleaved.GetArray(numSamples, mInputReadPos);
-        for (int32_t i = 1; i < 7; i++) {
-            float* output = &outputs.at(i).Get(numSamples);
-            for (int32_t j = 0; j < numSamples; j++) {
-                output[j] = input[6 * j + i - 1];
-            }
+        float* out0 = &outputs.at(1).Get(numSamples);
+        float* out1 = &outputs.at(2).Get(numSamples);
+        float* out2 = &outputs.at(3).Get(numSamples);
+        float* out3 = &outputs.at(4).Get(numSamples);
+        float* out4 = &outputs.at(5).Get(numSamples);
+        float* out5 = &outputs.at(6).Get(numSamples);
+
+        for (int32_t j = 0; j < numSamples; j++) {
+            *out0++ = in[6 * j + 0];
+            *out1++ = in[6 * j + 1];
+            *out2++ = in[6 * j + 2];
+            *out3++ = in[6 * j + 3];
+            *out4++ = in[6 * j + 4];
+            *out5++ = in[6 * j + 5];
         }
 
-        mInputReadPos += numSamples;
+        mInputReadPos += numSamples * 6;
     }
 
     /*********************************************************************/
@@ -72,7 +80,7 @@ namespace l::nodegraph {
     void GraphDataInputBuffer::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto& inInterleaved = inputs.at(0);
         float* outInterleaved = &outputs.at(0).Get(numSamples * 6);
-        memcpy(outInterleaved, &inInterleaved.GetArray(numSamples, mInputReadPos), static_cast<size_t>(sizeof(float) * numSamples * 6));
+        memcpy(outInterleaved, &inInterleaved.Get(numSamples, mInputReadPos), static_cast<size_t>(sizeof(float) * numSamples * 6));
     }
 
 }

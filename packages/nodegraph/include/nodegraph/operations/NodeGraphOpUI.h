@@ -78,8 +78,8 @@ namespace l::nodegraph {
             NodeGraphOp(node, "Chart Lines"),
             mInputManager(*this)
         {
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("x", 0.0f));
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("y", 0.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("x", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("y", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false));
             AddOutput("Interleaved Data");
         }
         virtual ~GraphUIChartLine() = default;
@@ -98,12 +98,12 @@ namespace l::nodegraph {
             NodeGraphOp(node, "Candle Sticks"),
             mInputManager(*this)
         {
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("unixtime", 0.0f));
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("open", 0.0f));
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("close", 0.0f));
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("high", 0.0f));
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("low", 0.0f));
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("volume", 0.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("unixtime", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("open", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("close", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("high", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("low", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("volume", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false));
             AddOutput("Interleaved Data");
         }
         virtual ~GraphUICandleSticks() = default;

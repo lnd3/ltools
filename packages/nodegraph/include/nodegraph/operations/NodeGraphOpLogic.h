@@ -102,7 +102,7 @@ namespace l::nodegraph {
         GraphLogicalDetector(NodeGraphBase* node) :
             NodeGraphOp(node, "Detector")
         {
-            AddInput("In", 0.0f);
+            AddInput("In", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
             AddInput("Scale Trend", 0.5f, 1, 0.0f, 1.0f);
             AddInput("Scale Reversal", 0.5f, 1, 0.0f, 1.0f);
             AddInput("Scale Accel", 0.5f, 1, 0.0f, 1.0f);

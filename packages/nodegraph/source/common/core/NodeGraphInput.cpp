@@ -31,7 +31,7 @@ namespace l::nodegraph {
         return false;
     }
 
-    float& NodeGraphInput::Get(int32_t minSize) {
+    float& NodeGraphInput::Get(int32_t minSize, int32_t offset) {
         switch (mInputType) {
         case InputType::INPUT_NODE:
             if (mInput.mInputNode != nullptr) {
@@ -43,32 +43,15 @@ namespace l::nodegraph {
                 mInputBuf = std::make_unique<std::vector<float>>();
             }
             if (static_cast<int32_t>(mInputBuf->size()) < minSize) {
-                mInputBuf->resize(minSize);
-                for (size_t i = 0; i < mInputBuf->size(); i++) {
-                    (*mInputBuf)[i] = 0.0f;
-                }
+                mInputBuf->resize(minSize, 0.0f);
             }
-            return *mInputBuf->data();
+            return *(mInputBuf->data() + offset);
         case InputType::INPUT_CONSTANT:
             return mInput.mInputFloatConstant;
         case InputType::INPUT_VALUE:
             return *mInput.mInputFloat;
         }
         return mInput.mInputFloatConstant;
-    }
-
-    float& NodeGraphInput::GetArray(int32_t minSize, int32_t offset) {
-        mInputType = InputType::INPUT_ARRAY;
-        if (!mInputBuf) {
-            mInputBuf = std::make_unique<std::vector<float>>();
-        }
-        if (static_cast<int32_t>(mInputBuf->size()) < minSize) {
-            mInputBuf->resize(minSize);
-            for (size_t i = 0; i < mInputBuf->size(); i++) {
-                (*mInputBuf)[i] = 0.0f;
-            }
-        }
-        return *(mInputBuf->data() + offset);
     }
 
     NodeDataIterator NodeGraphInput::GetIterator(int32_t minSize) {

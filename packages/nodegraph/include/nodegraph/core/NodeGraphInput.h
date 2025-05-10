@@ -32,8 +32,7 @@ namespace l::nodegraph {
         void Clear();
         void Reset();
         bool HasInputNode();
-        float& Get(int32_t size = 1);
-        float& GetArray(int32_t size = 1, int32_t offset = 0);
+        float& Get(int32_t size = 1, int32_t offset = 0);
         NodeDataIterator GetIterator(int32_t size = 1);
         int32_t GetSize();
     };
