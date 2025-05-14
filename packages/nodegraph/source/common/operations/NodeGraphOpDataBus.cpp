@@ -63,8 +63,6 @@ namespace l::nodegraph {
 
             float* intervalOut = &outputs.at(0).Get(1);
             *intervalOut = math::max2(1.0f, static_cast<float>(kIntervals[intervalInput]));
-
-            LOG(LogDebug) << "interval:" << *intervalOut;
         }
 
         for (int32_t j = 0; j < numSamples; j++) {
