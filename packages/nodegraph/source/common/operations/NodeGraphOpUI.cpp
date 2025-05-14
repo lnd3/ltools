@@ -12,7 +12,7 @@ namespace l::nodegraph {
     /* UI elements */
 
         /*********************************************************************/
-    void GraphUICheckbox::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphUICheckbox::Process(int32_t, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto input = inputs.at(0).GetIterator(1);
         auto output = outputs.at(0).GetIterator(1);
 
@@ -36,7 +36,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphUISlider::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphUISlider::Process(int32_t, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto input = inputs.at(0).GetIterator(1);
         auto min = inputs.at(1).GetIterator(1);
         auto max = inputs.at(2).GetIterator(1);
@@ -80,7 +80,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphUIChartLine::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphUIChartLine::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         mInputManager.BatchUpdate(inputs, numSamples);
 
         float* output = &outputs.at(0).Get(2 * numSamples);
@@ -92,7 +92,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphUICandleSticks::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphUICandleSticks::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         mInputManager.BatchUpdate(inputs, numSamples);
 
         float* output = &outputs.at(0).Get(6 * numSamples);

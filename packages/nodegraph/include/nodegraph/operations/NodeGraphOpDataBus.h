@@ -37,7 +37,7 @@ namespace l::nodegraph {
             }
         }
         virtual ~GraphDataBusDataIn() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         InputManager mInputManager;
         float mStepsUntilUpdate = 0.0f;
@@ -61,7 +61,7 @@ namespace l::nodegraph {
         }
         virtual ~GraphDataBusDataOut() = default;
 
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         InputManager mInputManager;
         float mStepsUntilUpdate = 0.0f;
@@ -97,7 +97,7 @@ namespace l::nodegraph {
 
         virtual void InputHasChanged(int32_t numSamplesWritten) override;
         virtual void Reset() override;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
 
         int32_t GetNumSamplesLeft();
     protected:
@@ -116,7 +116,7 @@ namespace l::nodegraph {
         }
         virtual ~GraphDataTradeSignal() = default;
 
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
     };
 
@@ -127,6 +127,8 @@ namespace l::nodegraph {
             NodeGraphOp(node, "Data Buffer"),
             mChannels(channels)
         {
+            mInputHasChanged = false;
+
             for (int32_t i = 0; i < mChannels; i++) {
                 auto id = std::to_string(i);
                 AddInput("In" + id);
@@ -137,7 +139,7 @@ namespace l::nodegraph {
 
         virtual void InputHasChanged(int32_t numSamplesWritten) override;
         virtual void Reset() override;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         int32_t mChannels = 1;
         int32_t mReadSamples = 0;

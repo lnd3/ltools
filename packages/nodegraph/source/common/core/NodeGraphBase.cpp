@@ -51,20 +51,20 @@ namespace l::nodegraph {
         }
     }
 
-    void NodeGraphBase::ProcessSubGraph(int32_t numSamples, bool recomputeSubGraphCache) {
+    void NodeGraphBase::ProcessSubGraph(int32_t numSamples, int32_t numCacheSamples, bool recomputeSubGraphCache) {
         if (recomputeSubGraphCache) {
             ClearProcessFlags();
         }
-        ProcessOperation(numSamples);
+        ProcessOperation(numSamples, numCacheSamples);
     }
 
-    void NodeGraphBase::ProcessOperation(int32_t numSamples) {
+    void NodeGraphBase::ProcessOperation(int32_t numSamples, int32_t numCacheSamples) {
         if (mProcessUpdateHasRun) {
             return;
         }
         for (auto& link : mInputs) {
             if (link.HasInputNode()) {
-                link.GetInputNode()->ProcessOperation(numSamples);
+                link.GetInputNode()->ProcessOperation(numSamples, numCacheSamples);
             }
         }
         mProcessUpdateHasRun = true;

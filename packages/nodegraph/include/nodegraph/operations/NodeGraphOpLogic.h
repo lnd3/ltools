@@ -36,7 +36,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphLogicalAnd() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input1 = inputs.at(0).GetIterator(numSamples);
             auto input2 = inputs.at(1).GetIterator(numSamples);
             auto output = outputs.at(0).GetIterator(numSamples);
@@ -60,7 +60,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphLogicalOr() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input1 = inputs.at(0).GetIterator(numSamples);
             auto input2 = inputs.at(1).GetIterator(numSamples);
             auto output = outputs.at(0).GetIterator(numSamples);
@@ -84,7 +84,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphLogicalXor() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input1 = inputs.at(0).GetIterator(numSamples);
             auto input2 = inputs.at(1).GetIterator(numSamples);
             auto output = outputs.at(0).GetIterator(numSamples);
@@ -114,7 +114,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphLogicalDetector() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto input2 = inputs.at(1).GetIterator();
             auto input3 = inputs.at(2).GetIterator();

@@ -46,7 +46,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphEffectBase() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override final;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override final;
         virtual void UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
         virtual std::pair<float, float> ProcessSignal(float value0, float value1) = 0;
     protected:
@@ -145,7 +145,7 @@ namespace l::nodegraph {
         }
             
         virtual ~GraphEffectReverb1() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>&inputs, std::vector<NodeGraphOutput>&outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>&inputs, std::vector<NodeGraphOutput>&outputs) override;
     protected:
         bool mInited = false;
         std::vector<float> buf0;
@@ -202,7 +202,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphEffectReverb3() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         bool mInited = false;
 
@@ -290,7 +290,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphEffectSaturator() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         float mEnvelope = 0.0f;
     };
@@ -329,7 +329,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphEffectTranceGate() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         float mSamplesUntilUpdate = 0.0f;
         int32_t mGateIndex = 0;

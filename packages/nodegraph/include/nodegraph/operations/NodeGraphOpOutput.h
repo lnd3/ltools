@@ -36,7 +36,7 @@ namespace l::nodegraph {
         }
         virtual ~GraphOutputDebug() = default;
 
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         float mValue = 0.0F;
     };
@@ -58,7 +58,7 @@ namespace l::nodegraph {
         }
         virtual ~GraphOutputSpeaker() = default;
 
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         l::audio::AudioStream* mAudioStream;
         float mSamplesUntilUpdate = 0.0f;
@@ -83,7 +83,7 @@ namespace l::nodegraph {
         }
         virtual ~GraphOutputPlot() = default;
 
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         InputManager mInputManager;
 
@@ -103,7 +103,7 @@ namespace l::nodegraph {
         }
         virtual ~GraphOutputPCBeep() = default;
 
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
 		virtual void Tick(int32_t numSamples, float dt) override;
     protected:
         bool mTriggered = false;

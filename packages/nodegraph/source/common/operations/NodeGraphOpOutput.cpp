@@ -10,7 +10,7 @@
 namespace l::nodegraph {
 
     /*********************************************************************/
-    void GraphOutputDebug::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
+    void GraphOutputDebug::Process(int32_t, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
         float value = inputs.at(0).Get();
         float friction = inputs.at(1).Get();
         mValue += friction * friction * (value - mValue);
@@ -18,7 +18,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphOutputSpeaker::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
+    void GraphOutputSpeaker::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
         if (mAudioStream == nullptr) {
             return;
         }
@@ -86,7 +86,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphOutputPlot::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphOutputPlot::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         mInputManager.BatchUpdate(inputs, numSamples);
 
         int32_t outputSize = outputs.at(0).GetSize();
@@ -100,7 +100,7 @@ namespace l::nodegraph {
 
     /*********************************************************************/
 
-    void GraphOutputPCBeep::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
+    void GraphOutputPCBeep::Process(int32_t, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
         if (mTimer <= 0.0f) {
             float value = inputs.at(0).Get();
             if (value > 0.5f && !mTriggered) {

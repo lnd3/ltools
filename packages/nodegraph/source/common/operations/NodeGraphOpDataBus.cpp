@@ -10,7 +10,7 @@
 namespace l::nodegraph {
 
     /*********************************************************************/
-    void GraphDataBusDataIn::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphDataBusDataIn::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         mInputManager.BatchUpdate(inputs, mInputDataStride * numSamples);
 
         float* input = mInputManager.GetArray(0);
@@ -23,7 +23,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphDataBusDataOut::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphDataBusDataOut::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         mInputManager.BatchUpdate(inputs, numSamples);
 
         float* output = &outputs.at(0).Get(mOutputDataStride * numSamples);
@@ -48,7 +48,7 @@ namespace l::nodegraph {
         return mWrittenSamples - mReadSamples;
     }
 
-    void GraphDataCandleStickDataIn::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphDataCandleStickDataIn::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto in = &inputs.at(0).Get(numSamples * 6 + mReadSamples * 6, mReadSamples * 6);
 
         float* out1 = &outputs.at(1).Get(numSamples);
@@ -83,7 +83,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphDataTradeSignal::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphDataTradeSignal::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto in = &inputs.at(0).Get(numSamples);
         auto out = &outputs.at(0).Get(numSamples);
         memcpy(out, in, static_cast<size_t>(sizeof(float) * numSamples));
@@ -95,11 +95,13 @@ namespace l::nodegraph {
     }
 
     void GraphDataBuffer::InputHasChanged(int32_t numSamplesWritten) {
-        mInputHasChanged = true;
         mWrittenSamples = numSamplesWritten;
+        if (mWrittenSamples > 0) {
+            mInputHasChanged = true;
+        }
     }
 
-    void GraphDataBuffer::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphDataBuffer::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
 
         if (mInputHasChanged) {
             if (mBuffer.size() < mWrittenSamples * mChannels) {

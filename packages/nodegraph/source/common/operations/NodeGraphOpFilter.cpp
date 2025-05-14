@@ -20,7 +20,7 @@ namespace l::nodegraph {
         Reset();
     }
 
-    void GraphFilterBase::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphFilterBase::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         mInputManager.BatchUpdate(inputs, numSamples);
         mSync = inputs.at(0).Get();
         if (mSync > 0.5f) {
@@ -134,7 +134,7 @@ namespace l::nodegraph {
         mFilterInit = true;
     }
 
-    void GraphFilterMovingAverage::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphFilterMovingAverage::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         mInputManager.BatchUpdate(inputs, numSamples);
         mSync = inputs.at(0).Get();
         if (mSync > 0.5f) {

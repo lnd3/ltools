@@ -11,7 +11,7 @@
 namespace l::nodegraph {
     /*********************************************************************/
 
-    void GraphControlBase::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphControlBase::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         mInputManager.BatchUpdate(inputs, numSamples);
 
         float sync = mInputManager.GetValueNext(0);
@@ -169,7 +169,7 @@ namespace l::nodegraph {
         }
     }
 
-    void GraphControlArpeggio::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphControlArpeggio::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         mInputManager.BatchUpdate(inputs, numSamples);
         float sync = mInputManager.GetValueNext(0);
         float bpm = mInputManager.GetValueNext(1);

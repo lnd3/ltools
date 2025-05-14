@@ -47,7 +47,7 @@ namespace l::nodegraph {
 
         virtual ~GraphFilterBase() = default;
         virtual void DefaultDataInit() override;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override final;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override final;
 
         virtual void UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
         virtual float ProcessSignal(float input, float cutoff, float resonance) = 0;
@@ -143,7 +143,7 @@ namespace l::nodegraph {
         virtual void Reset() override;
 
         virtual void DefaultDataInit() override;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override final;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override final;
     protected:
         InputManager mInputManager;
 

@@ -48,7 +48,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphControlBase() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void UpdateSignal(InputManager& inputManager) = 0;
         virtual std::pair<float, float> ProcessSignal(InputManager& inputManager) = 0;
     protected:
@@ -114,7 +114,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphControlArpeggio() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         void UpdateSignal(InputManager& inputManager);
     protected:
         InputManager mInputManager;

@@ -33,7 +33,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphUICheckbox() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(int32_t, float) override;
 
         bool& GetStatePtr();
@@ -55,7 +55,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphUISlider() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(int32_t, float) override;
 
         float& GetMin();
@@ -81,7 +81,7 @@ namespace l::nodegraph {
         }
         virtual ~GraphUIChartLine() = default;
 
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         InputManager mInputManager;
         float mStepsUntilUpdate = 0.0f;
@@ -105,7 +105,7 @@ namespace l::nodegraph {
         }
         virtual ~GraphUICandleSticks() = default;
 
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         InputManager mInputManager;
         float mStepsUntilUpdate = 0.0f;

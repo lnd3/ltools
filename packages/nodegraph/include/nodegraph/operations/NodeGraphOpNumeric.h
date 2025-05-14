@@ -34,7 +34,7 @@ namespace l::nodegraph {
             AddOutput("Out");
         }
         virtual ~GraphNumericAdd() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto input1 = inputs.at(1).GetIterator(numSamples);
             auto lodExp = inputs.at(2).Get();
@@ -60,7 +60,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphNumericMultiply() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto input1 = inputs.at(1).GetIterator(numSamples);
             auto lodExp = inputs.at(2).Get();
@@ -85,7 +85,7 @@ namespace l::nodegraph {
             AddOutput("Out");
         }
         virtual ~GraphNumericSubtract() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto input1 = inputs.at(1).GetIterator(numSamples);
             auto lodExp = inputs.at(2).Get();
@@ -110,7 +110,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphNumericNegate() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto lodExp = inputs.at(1).Get();
             auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
@@ -135,7 +135,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphNumericIntegral() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto friction = inputs.at(1).Get();
             auto frictionFactor = l::math::pow(friction, 0.25f);
@@ -170,7 +170,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphNumericMultiply3() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto input1 = inputs.at(1).GetIterator(numSamples);
             auto input2 = inputs.at(2).GetIterator(numSamples);
@@ -198,7 +198,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphNumericMultiplyAndAdd() = default;
-        void virtual Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+        void virtual Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto input1 = inputs.at(1).GetIterator(numSamples);
             auto input2 = inputs.at(2).GetIterator(numSamples);
@@ -224,7 +224,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphNumericRound() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             outputs.at(0).mOutput = l::math::round(inputs.at(0).Get());
 
             auto input0 = inputs.at(0).GetIterator(numSamples);
@@ -250,7 +250,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphNumericDerivate() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto lodExp = inputs.at(1).Get();
             auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
@@ -283,7 +283,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphNumericDiffNorm() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto lodExp = inputs.at(1).Get();
             auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
@@ -325,7 +325,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphNumericDiff() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto lodExp = inputs.at(1).Get();
             auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));

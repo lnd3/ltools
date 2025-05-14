@@ -46,7 +46,7 @@ namespace l::nodegraph {
             mKeyboard.SetKeyState(nullptr);
             mKeyboard.SetNoteProcessor(nullptr);
         }
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(int32_t tickCount, float elapsed) override;
         virtual void NoteOn(int32_t note, int32_t velocity) override;
         virtual void NoteOff() override;
@@ -102,7 +102,7 @@ namespace l::nodegraph {
             }
         }
 
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(int32_t tick, float deltaTime) override;
 
         virtual void MidiEvent(const l::hid::midi::MidiData& data);
@@ -171,7 +171,7 @@ namespace l::nodegraph {
             }
         };
 
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(int32_t tick, float deltaTime) override;
         virtual void MidiEvent(const l::hid::midi::MidiData& data);
     protected:
@@ -273,7 +273,7 @@ namespace l::nodegraph {
                 mMidiManager->UnregisterCallback(mCallbackId);
             }
         }
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(int32_t tick, float deltaTime) override;
 
         void UpdateButton(int8_t buttonId, int8_t buttonState) {
@@ -340,7 +340,7 @@ namespace l::nodegraph {
         }
         virtual ~GraphInputMic() = default;
 
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         l::audio::AudioStream* mAudioStream;
         float mSamplesUntilUpdate = 0.0f;

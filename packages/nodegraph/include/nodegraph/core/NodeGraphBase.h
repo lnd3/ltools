@@ -82,7 +82,7 @@ namespace l::nodegraph {
         virtual int32_t GetId() const { return mId; }
 
         void ClearProcessFlags();
-        virtual void ProcessSubGraph(int32_t numSamples = 1, bool recomputeSubGraphCache = true);
+        virtual void ProcessSubGraph(int32_t numSamples = 1, int32_t numCacheSamples = 0, bool recomputeSubGraphCache = true);
         virtual void Tick(int32_t tickCount, float delta);
 
         virtual int8_t GetNumInputs();
@@ -144,7 +144,7 @@ namespace l::nodegraph {
         virtual void SetNumInputs(int8_t numInputs);
         virtual void SetNumOutputs(int8_t outputCount);
 
-        virtual void ProcessOperation(int32_t numSamples = 1);
+        virtual void ProcessOperation(int32_t numSamples = 1, int32_t numCacheSamples = 0);
         virtual NodeGraphOp* GetOperation() = 0;
 
         bool mProcessUpdateHasRun = false;
@@ -173,7 +173,7 @@ namespace l::nodegraph {
 
         virtual void DefaultDataInit();
         virtual void Reset() {};
-        virtual void Process(int32_t, std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
+        virtual void Process(int32_t, int32_t, std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
         virtual void Tick(int32_t /*tickCount*/, float /*delta*/) {}
         virtual void InputHasChanged(int32_t numSamplesWritten = 1);
 
@@ -251,13 +251,13 @@ namespace l::nodegraph {
             mOperation.Reset();
         }
 
-        virtual void ProcessOperation(int32_t numSamples = 1) override {
+        virtual void ProcessOperation(int32_t numSamples = 1, int32_t numCacheSamples = 0) override {
             if (mProcessUpdateHasRun) {
                 return;
             }
 
-            NodeGraphBase::ProcessOperation(numSamples);
-            mOperation.Process(numSamples, mInputs, mOutputs);
+            NodeGraphBase::ProcessOperation(numSamples, numCacheSamples);
+            mOperation.Process(numSamples, numCacheSamples, mInputs, mOutputs);
 
             mProcessUpdateHasRun = true;
         }

@@ -113,7 +113,7 @@ namespace l::nodegraph {
         void ForEachNodeType(std::function<void(std::string_view, const std::vector<UINodeDesc>&)> cb) const;
         void RegisterNodeType(const std::string& typeGroup, int32_t uniqueTypeId, std::string_view typeName);
         void RegisterAllOf(const std::string& typeGroup);
-        void ProcessSubGraph(int32_t numSamples);
+        void ProcessSubGraph(int32_t numSamples, int32_t numCacheSamples = 0);
         void Tick(int32_t tickCount, float delta);
     protected:
         NodeGraphGroup mMainNodeGraph;

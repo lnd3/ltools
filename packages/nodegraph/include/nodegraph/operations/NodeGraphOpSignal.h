@@ -50,7 +50,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphSignalBase() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
 
         virtual void ResetInput() {};
         virtual void UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
@@ -247,7 +247,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphSignalSine() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         double mFreq = 0.0;
         float mVolume = 0.0f;
@@ -286,7 +286,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphSignalSineFM() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         double mFreq = 0.0;
         float mVolume = 0.0f;
@@ -327,7 +327,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphSignalSineFM2() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         double mFreq = 0.0;
         float mVolume = 0.0f;
@@ -362,7 +362,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphSignalSineFM3() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         double mFreq = 0.0;
         float mVolume = 0.0f;
@@ -395,7 +395,7 @@ namespace l::nodegraph {
         }
 
         virtual ~GraphSignalSaw() = default;
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         double mFreq = 0.0;
         float mVolume = 0.0f;

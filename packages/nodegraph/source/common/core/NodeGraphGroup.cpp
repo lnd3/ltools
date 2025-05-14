@@ -7,7 +7,7 @@
 
 namespace l::nodegraph {
 
-    void GraphDataCopy::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphDataCopy::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         for (size_t i = 0; i < inputs.size() && i < outputs.size(); i++) {
             auto numInputSamples = inputs.at(i).GetSize();
             if (numSamples > 1) {
@@ -141,12 +141,12 @@ namespace l::nodegraph {
         mOutputNode->ClearProcessFlags();
     }
 
-    void NodeGraphGroup::ProcessSubGraph(int32_t numSamples) {
+    void NodeGraphGroup::ProcessSubGraph(int32_t numSamples, int32_t numCacheSamples) {
         for (auto& it : mOutputNodes) {
             it->ClearProcessFlags();
         }
         for (auto& it : mOutputNodes) {
-            it->ProcessSubGraph(numSamples, false);
+            it->ProcessSubGraph(numSamples, numCacheSamples, false);
         }
     }
 

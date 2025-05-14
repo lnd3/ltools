@@ -10,7 +10,7 @@
 namespace l::nodegraph {
 
     /*********************************************************************/
-    void GraphSignalBase::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphSignalBase::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         mInputManager.BatchUpdate(inputs, numSamples);
 
         float sync = mInputManager.GetValueNext(0);
@@ -120,7 +120,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphSignalSine::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphSignalSine::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float* output0 = &outputs.at(0).Get(numSamples);
 
         float updateRate = 256.0f;
@@ -194,7 +194,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphSignalSineFM::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphSignalSineFM::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float* output0 = &outputs.at(0).Get(numSamples);
 
         float updateRate = 256.0f;
@@ -249,7 +249,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphSignalSineFM2::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphSignalSineFM2::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float* output0 = &outputs.at(0).Get(numSamples);
 
         float updateRate = 256.0f;
@@ -309,7 +309,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphSignalSineFM3::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphSignalSineFM3::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float* output0 = &outputs.at(0).Get(numSamples);
 
         float updateRate = 256.0f;
@@ -360,7 +360,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphSignalSaw::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphSignalSaw::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float* output0 = &outputs.at(0).Get(numSamples);
 
         float updateRate = 256.0f;

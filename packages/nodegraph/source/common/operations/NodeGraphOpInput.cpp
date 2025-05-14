@@ -11,7 +11,7 @@
 namespace l::nodegraph {
 
     /*********************************************************************/
-    void GraphInputKeyboardPiano::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphInputKeyboardPiano::Process(int32_t, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         outputs.at(0).mOutput = inputs.at(0).Get();
 
         auto output1 = &outputs.at(1).Get(8);
@@ -106,7 +106,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphInputMidiKeyboard::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphInputMidiKeyboard::Process(int32_t, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         outputs.at(0).mOutput = inputs.at(0).Get();
         outputs.at(1).mOutput = inputs.at(1).Get();
 
@@ -256,7 +256,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphInputMidiKnobs::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphInputMidiKnobs::Process(int32_t, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         for (size_t i = 0; i < inputs.size(); i++) {
             outputs.at(i).mOutput = inputs.at(i).Get();
         }
@@ -283,7 +283,7 @@ namespace l::nodegraph {
 
 
     /*********************************************************************/
-    void GraphInputMidiButtons::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphInputMidiButtons::Process(int32_t, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         for (size_t i = 0; i < inputs.size(); i++) {
             outputs.at(i).mOutput = inputs.at(i).Get();
         }
@@ -380,7 +380,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphInputMic::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphInputMic::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         if (mAudioStream == nullptr) {
             return;
         }

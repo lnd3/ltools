@@ -30,7 +30,7 @@ namespace l::nodegraph {
         }
         virtual ~GraphDataCopy() = default;
 
-        void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     };
 
     class NodeGraphGroup : public l::serialization::SerializationBase {
@@ -108,7 +108,7 @@ namespace l::nodegraph {
         void ForEachOutputNode(std::function<bool(NodeGraphBase*)> cb);
 
         void ClearProcessFlags();
-        void ProcessSubGraph(int32_t numSamples);
+        void ProcessSubGraph(int32_t numSamples, int32_t numCacheSamples = 0);
         void Tick(int32_t tickCount, float elapsed);
     protected:
         NodeGraphBase* mInputNode = nullptr;

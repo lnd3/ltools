@@ -49,7 +49,7 @@ namespace l::nodegraph {
 
         virtual ~GraphSourceConstants() {
         }
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(int32_t, float) override;
     protected:
         int32_t mMode;
@@ -86,7 +86,7 @@ namespace l::nodegraph {
         virtual ~GraphSourceTime() {
         }
 
-        virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(int32_t, float) override;
     protected:
         int32_t mAudioRate = 44100;

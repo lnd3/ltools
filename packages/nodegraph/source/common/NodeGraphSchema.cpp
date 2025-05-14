@@ -399,8 +399,8 @@ namespace l::nodegraph {
         mMainNodeGraph.Tick(tickCount, delta);
     }
 
-    void NodeGraphSchema::ProcessSubGraph(int32_t numSamples) {
-        mMainNodeGraph.ProcessSubGraph(numSamples);
+    void NodeGraphSchema::ProcessSubGraph(int32_t numSamples, int32_t numCacheSamples) {
+        mMainNodeGraph.ProcessSubGraph(numSamples, numCacheSamples);
     }
 
 }

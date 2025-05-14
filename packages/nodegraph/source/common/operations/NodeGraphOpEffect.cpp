@@ -11,7 +11,7 @@
 namespace l::nodegraph {
     /*********************************************************************/
 
-    void GraphEffectBase::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphEffectBase::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float sync = inputs.at(0).Get();
         if (sync > 0.5f) {
             mSamplesUntilUpdate = 0;
@@ -88,7 +88,7 @@ namespace l::nodegraph {
 
     /*********************************************************************/
 
-    void GraphEffectReverb1::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphEffectReverb1::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto wet = &inputs.at(2).Get(numSamples);
 
         fb = 0.2f * (1.0f - inputs.at(3).Get());
@@ -126,7 +126,7 @@ namespace l::nodegraph {
 
     /*********************************************************************/
 
-    void GraphEffectReverb3::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphEffectReverb3::Process(int32_t, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float wet = inputs.at(2).Get();
         float reverbFeedback = inputs.at(3).Get();
         float roomSize = inputs.at(4).Get();
@@ -308,7 +308,7 @@ namespace l::nodegraph {
 
     /*********************************************************************/
 
-    void GraphEffectSaturator::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphEffectSaturator::Process(int32_t, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float wet = inputs.at(2).Get();
         float preamp = inputs.at(3).Get();
         float limit = inputs.at(4).Get();
@@ -344,7 +344,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphEffectTranceGate::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphEffectTranceGate::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         // "Bpm", "Fmod", "Attack", "Pattern"
 
         float bpm = inputs.at(2).Get();
