@@ -137,7 +137,6 @@ namespace l::nodegraph {
         }
         virtual ~GraphDataBuffer() = default;
 
-        virtual void InputHasChanged(int32_t numSamplesWritten) override;
         virtual void Reset() override;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:

@@ -140,6 +140,12 @@ namespace l::nodegraph {
             return nullptr;
         }
 
+        void ForEachInput(std::function<void(NodeGraphInput& input)> cb) {
+            for (auto& in : mInputs) {
+                cb(in);
+            }
+        }
+
     protected:
         virtual void SetNumInputs(int8_t numInputs);
         virtual void SetNumOutputs(int8_t outputCount);

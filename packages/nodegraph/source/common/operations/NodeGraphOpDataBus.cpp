@@ -92,48 +92,56 @@ namespace l::nodegraph {
     /*********************************************************************/
     void GraphDataBuffer::Reset() {
         mReadSamples = 0;
+        mNode->ForEachInput(
+            [&](NodeGraphInput& input) {
+                if (input.HasInputNode() && input.GetInputNode()->IsOutOfDate()) {
+                    mInputHasChanged = true;
+                    mWrittenSamples = 0;
+                }
+            });
     }
 
-    void GraphDataBuffer::InputHasChanged(int32_t numSamplesWritten) {
-        mWrittenSamples = numSamplesWritten;
-        if (mWrittenSamples > 0) {
-            mInputHasChanged = true;
+    void GraphDataBuffer::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        if (numSamples > numCacheSamples) {
+            numCacheSamples = numSamples;
         }
-    }
 
-    void GraphDataBuffer::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-
-        if (mInputHasChanged) {
-            if (mBuffer.size() < mWrittenSamples * mChannels) {
-                mBuffer.resize(mWrittenSamples * mChannels);
+        if (mWrittenSamples < numCacheSamples) {
+            mInputHasChanged = true;
+            if (mBuffer.size() < numCacheSamples * mChannels) {
+                mBuffer.resize(numCacheSamples * mChannels);
             }
 
             float* input[4];
             for (int32_t j = 0; j < mChannels; j++) {
                 input[j] = &inputs.at(j).Get(numSamples);
             }
-            auto buf = mBuffer.data();
+            auto buf = mBuffer.data() + mWrittenSamples * mChannels;
             for (int32_t j = 0; j < numSamples; j++) {
-                for (int32_t i = 0; i < mChannels; j++) {
+                for (int32_t i = 0; i < mChannels; i++) {
                     *buf++ = *(input[i])++;
                 }
             }
+
+            mWrittenSamples += numSamples;
         }
 
-        float* output[4];
-        for (int32_t j = 0; j < mChannels; j++) {
-            output[j] = &outputs.at(j).Get(numSamples);
-        }
-
-        auto buf = mBuffer.data();
-
-        for (int32_t j = 0; j < numSamples; j++) {
-            for (int32_t i = 0; i < mChannels; j++) {
-                *(output[i])++ = *buf++;
+        if (mReadSamples < mWrittenSamples) {
+            float* output[4];
+            for (int32_t j = 0; j < mChannels; j++) {
+                output[j] = &outputs.at(j).Get(numSamples);
             }
-        }
 
-        mReadSamples += numSamples;
+            auto buf = mBuffer.data() + mReadSamples * mChannels;
+
+            for (int32_t j = 0; j < numSamples; j++) {
+                for (int32_t i = 0; i < mChannels; i++) {
+                    *(output[i])++ = *buf++;
+                }
+            }
+
+            mReadSamples += numSamples;
+        }
 
         if (mReadSamples >= mWrittenSamples) {
             mInputHasChanged = false;
