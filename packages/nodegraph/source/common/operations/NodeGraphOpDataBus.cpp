@@ -50,26 +50,25 @@ namespace l::nodegraph {
 
     void GraphDataCandleStickDataIn::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto in = &inputs.at(0).Get(numSamples * 6 + mReadSamples * 6, mReadSamples * 6);
-        float* outInterleaved = &outputs.at(0).Get(numSamples * 6);
-        memcpy(outInterleaved, in, static_cast<size_t>(sizeof(float) * numSamples * 6));
 
-        float* out0 = &outputs.at(1).Get(numSamples);
-        float* out1 = &outputs.at(2).Get(numSamples);
-        float* out2 = &outputs.at(3).Get(numSamples);
-        float* out3 = &outputs.at(4).Get(numSamples);
-        float* out4 = &outputs.at(5).Get(numSamples);
-        float* out5 = &outputs.at(6).Get(numSamples);
+        float* out0 = &outputs.at(0).Get(numSamples);
+        float* out1 = &outputs.at(1).Get(numSamples);
+        float* out2 = &outputs.at(2).Get(numSamples);
+        float* out3 = &outputs.at(3).Get(numSamples);
+        float* out4 = &outputs.at(4).Get(numSamples);
+        float* out5 = &outputs.at(5).Get(numSamples);
 
         for (int32_t j = 0; j < numSamples; j++) {
-            *out0++ = in[6 * j + 0];
-            *out1++ = in[6 * j + 1];
-            *out2++ = in[6 * j + 2];
-            *out3++ = in[6 * j + 3];
-            *out4++ = in[6 * j + 4];
-            *out5++ = in[6 * j + 5];
+            auto offset = (mReadSamples + j) * 6;
+            *out0++ = in[offset + 0];
+            *out1++ = in[offset + 1];
+            *out2++ = in[offset + 2];
+            *out3++ = in[offset + 3];
+            *out4++ = in[offset + 4];
+            *out5++ = in[offset + 5];
         }
 
-        mReadSamples += numSamples * 6;
+        mReadSamples += numSamples;
 
         if (mReadSamples >= mWrittenSamples) {
             mInputHasChanged = false;

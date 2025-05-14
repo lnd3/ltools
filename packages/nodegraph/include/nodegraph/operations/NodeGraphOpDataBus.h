@@ -81,7 +81,6 @@ namespace l::nodegraph {
             AddInput("Name", 0.0f, 1, 0.0f, 1.0f, true, false);
             AddInput("Base", 0.0f, 1, 0.0f, 1.0f, true, false);
 
-            AddOutput("Out (interleaved)", 0.0f, 2);
             AddOutput("Open", 0.0f, 2);
             AddOutput("Close", 0.0f, 2);
             AddOutput("High", 0.0f, 2);
