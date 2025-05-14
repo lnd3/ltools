@@ -5,6 +5,7 @@
 #include "nodegraph/core/NodeGraphInput.h"
 #include "nodegraph/core/NodeGraphOutput.h"
 #include "nodegraph/core/NodeGraphBase.h"
+#include "nodegraph/operations/NodeGraphOpDataBus.h"
 
 using namespace l;
 using namespace l::nodegraph;
@@ -39,7 +40,28 @@ public:
 protected:
 };
 
+class Copy : public NodeGraphOp {
+public:
+    Copy(NodeGraphBase* node) :
+        NodeGraphOp(node, "Copy")
+    {
+        AddInput("In", 0.0f, 1, 0.0f, 1.0f);
+        AddOutput("Out");
+    }
 
+    virtual ~Copy() = default;
+    virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+        auto in = &inputs.at(0).Get(numSamples);
+        auto out = &outputs.at(0).Get(5);
+
+        for (int i = 0; i < numSamples; i++) {
+            auto in1 = *in++;
+            *out++ = in1;
+            LOG(LogInfo) << "Node input(" << i << "): " << in1;
+        }
+    }
+protected:
+};
 
 TEST(NodeGraphData, Sampler) {
 
@@ -122,3 +144,30 @@ TEST(NodeGraphData, Tweening) {
     return 0;
 }
 
+TEST(NodeGraphData, CandleStickData) {
+
+    NodeGraph<GraphDataCandleStickDataIn> node0;
+    NodeGraph<Copy> node1;
+
+    node1.SetInput(0, node0, 0);
+
+    auto in = &node0.GetInput(0, 20 * 6);
+    for (int i = 0; i < 20; i++) {
+        for (int j = 0; j < 6; j++) {
+            *in++ = static_cast<float>(i);
+        }
+    }
+    node0.NodeHasChanged(20);
+
+    for (int j = 0; j < 5; j++) {
+        node1.ClearProcessFlags();
+        node1.ProcessSubGraph(5);
+
+        auto out = &node1.GetOutput(0, 5);
+        for (int i = 0; i < 5; i++) {
+            LOG(LogInfo) << "node1(0):" << *out++;
+        }
+    }
+
+    return 0;
+}
