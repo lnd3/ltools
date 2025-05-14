@@ -80,18 +80,18 @@ namespace l::nodegraph {
             NodeGraphOp(node, "Candle Stick Data In")
         {
             AddInput("In", 0.0f, 2, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
-            AddInput("Interval", 8.0f, 1, 0.0f, 10.0f);
+            AddInput("Interval", 2.0f, 1, 0.0f, 10.0f);
             AddInput("Name", 0.0f, 1, 0.0f, 1.0f, true, false);
             AddInput("Base", 0.0f, 1, 0.0f, 1.0f, true, false);
 
             
-            AddOutput("Min", 1.0f, 1);
+            AddOutput("Minutes", 1.0f, 1);
+            AddOutput("Unixtime", 0.0f, 2);
             AddOutput("Open", 0.0f, 2);
             AddOutput("Close", 0.0f, 2);
             AddOutput("High", 0.0f, 2);
             AddOutput("Low", 0.0f, 2);
             AddOutput("Volume", 0.0f, 2);
-            AddOutput("Unixtime", 0.0f, 2);
         }
         virtual ~GraphDataCandleStickDataIn() = default;
 

@@ -50,9 +50,7 @@ namespace l::nodegraph {
 
     void GraphDataCandleStickDataIn::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto in = &inputs.at(0).Get(numSamples * 6 + mReadSamples * 6, mReadSamples * 6);
-        auto intervalInput = static_cast<int32_t>(l::math::clamp(inputs.at(1).Get(1), 0.0f, 10.0f));
 
-        float* intervalOut = &outputs.at(0).Get(1);
         float* out1 = &outputs.at(1).Get(numSamples);
         float* out2 = &outputs.at(2).Get(numSamples);
         float* out3 = &outputs.at(3).Get(numSamples);
@@ -60,8 +58,15 @@ namespace l::nodegraph {
         float* out5 = &outputs.at(5).Get(numSamples);
         float* out6 = &outputs.at(6).Get(numSamples);
 
+        if (mInputHasChanged) {
+            auto intervalInput = static_cast<int32_t>(l::math::clamp(inputs.at(1).Get(1), 0.0f, 9.0f));
 
-        *intervalOut = math::min2(1.0f, static_cast<float>(kIntervals[intervalInput]));
+            float* intervalOut = &outputs.at(0).Get(1);
+            *intervalOut = math::max2(1.0f, static_cast<float>(kIntervals[intervalInput]));
+
+            LOG(LogDebug) << "interval:" << *intervalOut;
+        }
+
         for (int32_t j = 0; j < numSamples; j++) {
             auto offset = j * 6;
             *out1++ = in[offset + 5]; // unixtime
