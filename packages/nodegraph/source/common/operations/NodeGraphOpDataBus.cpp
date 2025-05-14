@@ -50,22 +50,26 @@ namespace l::nodegraph {
 
     void GraphDataCandleStickDataIn::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto in = &inputs.at(0).Get(numSamples * 6 + mReadSamples * 6, mReadSamples * 6);
+        auto intervalInput = static_cast<int32_t>(l::math::clamp(inputs.at(1).Get(1), 0.0f, 10.0f));
 
-        float* out0 = &outputs.at(0).Get(numSamples);
+        float* intervalOut = &outputs.at(0).Get(1);
         float* out1 = &outputs.at(1).Get(numSamples);
         float* out2 = &outputs.at(2).Get(numSamples);
         float* out3 = &outputs.at(3).Get(numSamples);
         float* out4 = &outputs.at(4).Get(numSamples);
         float* out5 = &outputs.at(5).Get(numSamples);
+        float* out6 = &outputs.at(6).Get(numSamples);
 
+
+        *intervalOut = math::min2(1.0f, static_cast<float>(kIntervals[intervalInput]));
         for (int32_t j = 0; j < numSamples; j++) {
             auto offset = j * 6;
-            *out0++ = in[offset + 0];
-            *out1++ = in[offset + 1];
-            *out2++ = in[offset + 2];
-            *out3++ = in[offset + 3];
-            *out4++ = in[offset + 4];
-            *out5++ = in[offset + 5];
+            *out1++ = in[offset + 5]; // unixtime
+            *out2++ = in[offset + 0]; // open
+            *out3++ = in[offset + 1]; // close
+            *out4++ = in[offset + 2]; // high
+            *out5++ = in[offset + 3]; // low
+            *out6++ = in[offset + 4]; // volume
         }
 
         mReadSamples += numSamples;

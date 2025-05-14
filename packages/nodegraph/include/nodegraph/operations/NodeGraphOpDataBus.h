@@ -73,6 +73,9 @@ namespace l::nodegraph {
     /*********************************************************************/
     class GraphDataCandleStickDataIn : public NodeGraphOp {
     public:
+        static const int32_t kIntervalCount = 10;
+        const int32_t kIntervals[kIntervalCount] = { 1, 5, 15, 30, 60, 120, 240, 720, 1440, 10080 };
+
         GraphDataCandleStickDataIn(NodeGraphBase* node) :
             NodeGraphOp(node, "Candle Stick Data In")
         {
@@ -81,6 +84,8 @@ namespace l::nodegraph {
             AddInput("Name", 0.0f, 1, 0.0f, 1.0f, true, false);
             AddInput("Base", 0.0f, 1, 0.0f, 1.0f, true, false);
 
+            
+            AddOutput("Min", 1.0f, 1);
             AddOutput("Open", 0.0f, 2);
             AddOutput("Close", 0.0f, 2);
             AddOutput("High", 0.0f, 2);
