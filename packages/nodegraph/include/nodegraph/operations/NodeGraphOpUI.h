@@ -37,9 +37,7 @@ namespace l::nodegraph {
         virtual void Tick(int32_t, float) override;
 
         bool& GetStatePtr();
-        void ExternallyChanged();
     protected:
-        bool mExternallyChanged = false;
         bool mState = false;
     };
 
@@ -63,7 +61,6 @@ namespace l::nodegraph {
         float& GetMin();
         float& GetMax();
         float& GetValue();
-        void ExternallyChanged();
     protected:
         bool mExternallyChanged = false;
         float mValue = 0.0f;

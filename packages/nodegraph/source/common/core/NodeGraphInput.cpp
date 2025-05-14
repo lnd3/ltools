@@ -8,24 +8,80 @@
 namespace l::nodegraph {
 
     void NodeGraphInput::Clear() {
-        if (mInputBuf) {
-            mInputBuf.reset();
+        switch (mInputType) {
+        case InputType::INPUT_NODE:
+            mInputFromOutputChannel = 0;
+            mInput.mInputNode = nullptr;
+            break;
+        case InputType::INPUT_ARRAY:
+            if (mInput.mInputFloatBuf) {
+                mInput.mInputFloatBuf->clear();
+            }
+            break;
+        case InputType::INPUT_TEXT:
+            if (mInput.mInputTextBuf) {
+                mInput.mInputTextBuf->clear();
+            }
+            break;
+        case InputType::INPUT_CONSTANT:
+            mInput.mInputFloatConstant = 0.0f;
+            break;
+        case InputType::INPUT_VALUE:
+            break;
         }
-        mInput.mInputNode = nullptr;
         mInputType = InputType::INPUT_CONSTANT;
-        mInputFromOutputChannel = 0;
     }
 
     void NodeGraphInput::Reset() {
-        if (mInputType == InputType::INPUT_NODE || mInputType == InputType::INPUT_VALUE) {
-            mInput.mInputNode = nullptr;
-            mInputType = InputType::INPUT_CONSTANT;
+        switch (mInputType) {
+        case InputType::INPUT_NODE:
             mInputFromOutputChannel = 0;
+            mInput.mInputNode = nullptr;
+            break;
+        case InputType::INPUT_ARRAY:
+            if (mInput.mInputFloatBuf) {
+                delete mInput.mInputFloatBuf;
+                mInput.mInputFloatBuf = nullptr;
+            }
+            break;
+        case InputType::INPUT_TEXT:
+            if (mInput.mInputTextBuf) {
+                delete mInput.mInputTextBuf;
+                mInput.mInputTextBuf = nullptr;
+            }
+            break;
+        case InputType::INPUT_CONSTANT:
+            mInput.mInputFloatConstant = 0.0f;
+            break;
+        case InputType::INPUT_VALUE:
+            break;
         }
+        mInputType = InputType::INPUT_CONSTANT;
+    }
+
+    bool NodeGraphInput::IsOfType(InputType type) {
+        if (mInputType == type) {
+            return true;
+        }
+        return false;
     }
 
     bool NodeGraphInput::HasInputNode() {
-        if (mInputType == InputType::INPUT_NODE) {
+        if (mInputType == InputType::INPUT_NODE && mInput.mInputNode != nullptr) {
+            return true;
+        }
+        return false;
+    }
+
+    bool NodeGraphInput::HasInputNode(NodeGraphBase* node) {
+        if (mInputType == InputType::INPUT_NODE && mInput.mInputNode == node) {
+            return true;
+        }
+        return false;
+    }
+
+    bool NodeGraphInput::HasInputValue(float* floatPtr) {
+        if (mInputType == InputType::INPUT_VALUE && mInput.mInputFloat == floatPtr) {
             return true;
         }
         return false;
@@ -39,19 +95,128 @@ namespace l::nodegraph {
             }
             break;
         case InputType::INPUT_ARRAY:
-            if (!mInputBuf) {
-                mInputBuf = std::make_unique<std::vector<float>>();
-            }
-            if (static_cast<int32_t>(mInputBuf->size()) < minSize) {
-                mInputBuf->resize(minSize, 0.0f);
-            }
-            return *(mInputBuf->data() + offset);
+            return GetArray(minSize, offset);
         case InputType::INPUT_CONSTANT:
             return mInput.mInputFloatConstant;
         case InputType::INPUT_VALUE:
             return *mInput.mInputFloat;
         }
         return mInput.mInputFloatConstant;
+    }
+
+    float& NodeGraphInput::GetArray(int32_t minSize, int32_t offset) {
+        if (mInputType == InputType::INPUT_ARRAY) {
+            if (!mInput.mInputFloatBuf) {
+                mInput.mInputFloatBuf = new std::vector<float>();
+            }
+            if (static_cast<int32_t>(mInput.mInputFloatBuf->size()) < minSize) {
+                mInput.mInputFloatBuf->resize(minSize, 0.0f);
+            }
+            return *(mInput.mInputFloatBuf->data() + offset);
+        }
+        return mInput.mInputFloatConstant;
+    }
+
+    std::string_view NodeGraphInput::GetText(int32_t minSize = 16) {
+        if (mInputType == InputType::INPUT_TEXT) {
+            if (!mInput.mInputTextBuf) {
+                mInput.mInputTextBuf = new std::vector<char>();
+            }
+            if (static_cast<int32_t>(mInput.mInputTextBuf->size()) < minSize) {
+                mInput.mInputTextBuf->resize(minSize, 0);
+            }
+            if (!mInput.mInputTextBuf->empty()) {
+                return std::string_view(mInput.mInputTextBuf->data());
+            }
+        };
+        return {};
+    }
+
+    NodeGraphBase* NodeGraphInput::GetInputNode() {
+        if (mInputType == InputType::INPUT_NODE && mInput.mInputNode != nullptr) {
+            return mInput.mInputNode;
+        }
+        return nullptr;
+    }
+
+    void NodeGraphInput::SetConstant(float constant) {
+        if (mInputType == InputType::INPUT_ARRAY && mInput.mInputFloatBuf) {
+            delete mInput.mInputFloatBuf;
+            mInput.mInputFloatBuf = nullptr;
+        }
+        else if (mInputType == InputType::INPUT_TEXT && mInput.mInputTextBuf) {
+            delete mInput.mInputTextBuf;
+            mInput.mInputTextBuf = nullptr;
+        }
+        mInput.mInputFloatConstant = constant;
+        mInputType = InputType::INPUT_CONSTANT;
+        mInputFromOutputChannel = 0;
+    }
+
+    void NodeGraphInput::SetValue(float* floatPtr) {
+        if (mInputType == InputType::INPUT_ARRAY && mInput.mInputFloatBuf) {
+            delete mInput.mInputFloatBuf;
+            mInput.mInputFloatBuf = nullptr;
+        }
+        else if (mInputType == InputType::INPUT_TEXT && mInput.mInputTextBuf) {
+            delete mInput.mInputTextBuf;
+            mInput.mInputTextBuf = nullptr;
+        }
+        mInput.mInputFloat = floatPtr;
+        mInputType = InputType::INPUT_VALUE;
+        mInputFromOutputChannel = 0;
+    }
+
+    void NodeGraphInput::SetArray(float defaultValue, int32_t minSize) {
+        if (mInputType == InputType::INPUT_TEXT && mInput.mInputTextBuf) {
+            delete mInput.mInputTextBuf;
+            mInput.mInputTextBuf = nullptr;
+        }
+        if (mInputType != InputType::INPUT_ARRAY || !mInput.mInputFloatBuf) {
+            mInputType = InputType::INPUT_ARRAY;
+            mInput.mInputFloatBuf = new std::vector<float>();
+        }
+        if (static_cast<int32_t>(mInput.mInputFloatBuf->size()) < minSize) {
+            mInput.mInputFloatBuf->resize(minSize, defaultValue);
+        }
+        mInputFromOutputChannel = 0;
+    }
+
+    void NodeGraphInput::SetText(std::string_view text) {
+        if (mInputType == InputType::INPUT_ARRAY && mInput.mInputFloatBuf) {
+            delete mInput.mInputFloatBuf;
+            mInput.mInputFloatBuf = nullptr;
+        }
+        if (mInputType != InputType::INPUT_TEXT || !mInput.mInputTextBuf) {
+            mInputType = InputType::INPUT_TEXT;
+            mInput.mInputTextBuf = new std::vector<char>();
+        }
+        if (static_cast<int32_t>(mInput.mInputTextBuf->size()) < text.size()) {
+            mInput.mInputTextBuf->resize(text.size() + 1, 0);
+        }
+        memcpy(mInput.mInputTextBuf->data(), text.data(), text.size());
+        mInputFromOutputChannel = 0;
+    }
+
+    bool NodeGraphInput::SetInputNode(NodeGraphBase* source, int8_t sourceOutputChannel) {
+        if (mInputType == InputType::INPUT_ARRAY && mInput.mInputFloatBuf) {
+            delete mInput.mInputFloatBuf;
+            mInput.mInputFloatBuf = nullptr;
+        }
+        else if (mInputType == InputType::INPUT_TEXT && mInput.mInputTextBuf) {
+            delete mInput.mInputTextBuf;
+            mInput.mInputTextBuf = nullptr;
+        }
+        if (!IsValidInOutNum(sourceOutputChannel, source->GetNumOutputs()) ||
+            HasInputNode()) {
+            return false;
+        }
+
+        mInput.mInputNode = source;
+        mInputType = InputType::INPUT_NODE;
+        mInputFromOutputChannel = sourceOutputChannel;
+
+        return true;
     }
 
     NodeDataIterator NodeGraphInput::GetIterator(int32_t minSize) {
@@ -62,16 +227,7 @@ namespace l::nodegraph {
             }
             break;
         case InputType::INPUT_ARRAY:
-            if (!mInputBuf) {
-                mInputBuf = std::make_unique<std::vector<float>>();
-            }
-            if (static_cast<int32_t>(mInputBuf->size()) < minSize) {
-                mInputBuf->resize(minSize);
-                for (size_t i = 0; i < mInputBuf->size(); i++) {
-                    (*mInputBuf)[i] = 0.0f;
-                }
-            }
-            return NodeDataIterator(mInputBuf->data());
+            return NodeDataIterator(&GetArray(minSize));
         case InputType::INPUT_VALUE:
             return NodeDataIterator(mInput.mInputFloat, 0.0f);
         case InputType::INPUT_CONSTANT:
@@ -88,8 +244,13 @@ namespace l::nodegraph {
             }
             break;
         case InputType::INPUT_ARRAY:
-            if (mInputBuf) {
-                return static_cast<int32_t>(mInputBuf->size());
+            if (mInput.mInputFloatBuf) {
+                return static_cast<int32_t>(mInput.mInputFloatBuf->size());
+            }
+            return 1;
+        case InputType::INPUT_TEXT:
+            if (mInput.mInputTextBuf) {
+                return static_cast<int32_t>(mInput.mInputTextBuf->size());
             }
             return 1;
         case InputType::INPUT_CONSTANT:

@@ -78,6 +78,8 @@ namespace l::nodegraph {
         {
             AddInput("In", 0.0f, 2, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
             AddInput("Interval", 8.0f, 1, 0.0f, 10.0f);
+            AddInput("Name", 0.0f, 1, 0.0f, 1.0f, true, false);
+            AddInput("Base", 0.0f, 1, 0.0f, 1.0f, true, false);
 
             AddOutput("Out (interleaved)", 0.0f, 2);
             AddOutput("Open", 0.0f, 2);
@@ -89,20 +91,23 @@ namespace l::nodegraph {
         }
         virtual ~GraphDataCandleStickDataIn() = default;
 
+        virtual void InputHasChanged(int32_t numSamplesWritten) override;
         virtual void Reset() override;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+
+        int32_t GetNumSamplesLeft();
     protected:
-        int32_t mInputReadPos = 0;
-        int32_t mInputWritePos = 0;
+        int32_t mReadSamples = 0;
+        int32_t mWrittenSamples = 0;
     };
 
     /*********************************************************************/
     class GraphDataTradeSignal: public NodeGraphOp {
     public:
         GraphDataTradeSignal(NodeGraphBase* node) :
-            NodeGraphOp(node, "Candle Stick Data In")
+            NodeGraphOp(node, "Place Trade")
         {
-            AddInput("Trade Signal", 0.0f, 2, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
+            AddInput("In", 0.0f, 2, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
             AddOutput("Out", 0.0f, 2, false);
         }
         virtual ~GraphDataTradeSignal() = default;
@@ -112,25 +117,28 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphDataInputBuffer : public NodeGraphOp {
+    class GraphDataBuffer : public NodeGraphOp {
     public:
-        GraphDataInputBuffer(NodeGraphBase* node, int32_t inputStride) :
+        GraphDataBuffer(NodeGraphBase* node, int32_t channels) :
             NodeGraphOp(node, "Data Buffer"),
-            mInputStride(inputStride)
+            mChannels(channels)
         {
-            AddInput("In", 0.0f, 2, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
-            for (int32_t i = 0; i < mInputStride; i++) {
-                AddOutput("Out " + std::to_string(i), 0.0f, 2);
+            for (int32_t i = 0; i < mChannels; i++) {
+                auto id = std::to_string(i);
+                AddInput("In" + id);
+                AddOutput("Out " + id);
             }
         }
-        virtual ~GraphDataInputBuffer() = default;
+        virtual ~GraphDataBuffer() = default;
 
+        virtual void InputHasChanged(int32_t numSamplesWritten) override;
         virtual void Reset() override;
         virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
-        int32_t mInputStride = 1;
-        int32_t mInputReadPos = 0;
-        int32_t mInputWritePos = 0;
+        int32_t mChannels = 1;
+        int32_t mReadSamples = 0;
+        int32_t mWrittenSamples = 0;
+        std::vector<float> mBuffer;
     };
 
 }

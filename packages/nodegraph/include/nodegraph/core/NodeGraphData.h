@@ -18,7 +18,8 @@ namespace l::nodegraph {
         INPUT_NODE,
         INPUT_CONSTANT,
         INPUT_VALUE,
-        INPUT_ARRAY
+        INPUT_ARRAY,
+        INPUT_TEXT,
     };
 
     enum class InputBound {
@@ -45,6 +46,8 @@ namespace l::nodegraph {
         NodeGraphBase* mInputNode = nullptr;
         float* mInputFloat;
         float mInputFloatConstant;
+        std::vector<float>* mInputFloatBuf;
+        std::vector<char>* mInputTextBuf;
     };
 
     /**********************************************************************************/

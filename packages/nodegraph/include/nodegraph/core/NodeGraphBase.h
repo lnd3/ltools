@@ -89,6 +89,8 @@ namespace l::nodegraph {
         virtual int8_t GetNumOutputs();
 
         virtual float& GetInput(int8_t inputChannel, int32_t minSize = 1, int32_t offset = 0);
+        virtual std::string_view GetInputText(int8_t inputChannel, int32_t minSize = 16);
+
         virtual float& GetOutput(int8_t outputChannel, int32_t minSize = 1);
         virtual NodeGraphInput& GetInputOf(int8_t inputChannel);
         virtual NodeGraphOutput& GetOutputOf(int8_t outputChannel);
@@ -109,6 +111,8 @@ namespace l::nodegraph {
         virtual bool SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel);
         virtual bool SetInput(int8_t inputChannel, float initialValue, int32_t minSize = 1);
         virtual bool SetInput(int8_t inputChannel, float* floatPtr);
+        virtual bool SetInput(int8_t inputChannel, std::string_view text);
+
         virtual void SetDefaultOutput(int8_t outputChannel, float constant, int32_t minSize = 1);
 
         virtual bool SetInputBound(int8_t inputChannel, InputBound bound = InputBound::INPUT_0_TO_1, float boundMin = 0.0f, float boundMax = 1.0f);
@@ -118,6 +122,8 @@ namespace l::nodegraph {
         virtual bool IsDataVisible(int8_t num);
         virtual bool IsDataEditable(int8_t num);
         virtual bool IsOutputPolled(int8_t outputChannel);
+        virtual bool IsOutOfDate();
+        virtual void NodeHasChanged(int32_t numSamplesWritten = 1);
 
         virtual NodeType GetOutputType();
 
@@ -169,17 +175,21 @@ namespace l::nodegraph {
         virtual void Reset() {};
         virtual void Process(int32_t, std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
         virtual void Tick(int32_t /*tickCount*/, float /*delta*/) {}
+        virtual void InputHasChanged(int32_t numSamplesWritten = 1);
 
         int8_t GetNumInputs();
         int8_t GetNumOutputs();
 
+        virtual bool HasInputChanged();
         virtual bool IsDataConstant(int8_t channel);
         virtual bool IsDataVisible(int8_t channel);
         virtual bool IsDataEditable(int8_t channel);
+
         virtual std::string_view GetInputName(int8_t inputChannel);
         virtual std::string_view GetOutputName(int8_t outputChannel);
         virtual std::string_view GetName();
         virtual float GetDefaultData(int8_t inputChannel);
+
 
     protected:
         virtual int32_t AddInput(std::string_view name, float defaultValue = 0.0f, int32_t minSize = 1, float boundMin = -l::math::constants::FLTMAX, float boundMax = l::math::constants::FLTMAX, bool visible = true, bool editable = true);
@@ -196,6 +206,7 @@ namespace l::nodegraph {
 
         int8_t mNumInputs = 0;
         int8_t mNumOutputs = 0;
+        bool mInputHasChanged = true;
     };
 
     /**********************************************************************************/

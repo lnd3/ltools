@@ -14,7 +14,7 @@ namespace l::nodegraph {
         float value = inputs.at(0).Get();
         float friction = inputs.at(1).Get();
         mValue += friction * friction * (value - mValue);
-        inputs.at(2).mInput.mInputFloatConstant = mValue;
+        inputs.at(2).SetConstant(mValue);
     }
 
     /*********************************************************************/

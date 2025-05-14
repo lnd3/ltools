@@ -16,9 +16,9 @@ namespace l::nodegraph {
         auto input = inputs.at(0).GetIterator(1);
         auto output = outputs.at(0).GetIterator(1);
 
-        if (mExternallyChanged) {
+        if (mInputHasChanged) {
             *input = mState ? 1.0f : 0.0f;
-            mExternallyChanged = false;
+            mInputHasChanged = false;
         }
         else {
             mState = *input;
@@ -29,10 +29,6 @@ namespace l::nodegraph {
 
     bool& GraphUICheckbox::GetStatePtr() {
         return mState;
-    }
-
-    void GraphUICheckbox::ExternallyChanged() {
-        mExternallyChanged = true;
     }
 
     void GraphUICheckbox::Tick(int32_t, float) {
@@ -50,9 +46,9 @@ namespace l::nodegraph {
         mMin = *min;
         mMax = *max;
 
-        if (mExternallyChanged) {
+        if (mInputHasChanged) {
             *input = mValue;
-            mExternallyChanged = false;
+            mInputHasChanged = false;
         }
         else {
             mValue = *input;
@@ -81,10 +77,6 @@ namespace l::nodegraph {
 
     float& GraphUISlider::GetValue() {
         return mValue;
-    }
-
-    void GraphUISlider::ExternallyChanged() {
-        mExternallyChanged = true;
     }
 
     /*********************************************************************/

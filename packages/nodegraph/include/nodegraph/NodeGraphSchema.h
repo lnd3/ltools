@@ -45,19 +45,19 @@ namespace l::nodegraph {
             mName(name.empty() ? "Schema" : name)
         {
             if (useAllNodeTypes) {
-                RegisterAllOf("NodeGraphSource");
-                RegisterAllOf("NodeGraphOutput");
-                RegisterAllOf("DeviceInput");
-                RegisterAllOf("DeviceOutput");
-                RegisterAllOf("ExternalInput");
-                RegisterAllOf("ExternalOutput");
+                RegisterAllOf("Numeric");
+                RegisterAllOf("Logic");
                 RegisterAllOf("Signal");
                 RegisterAllOf("SignalControl");
                 RegisterAllOf("SignalFilter");
                 RegisterAllOf("SignalEffect");
-                RegisterAllOf("Numeric");
-                RegisterAllOf("Logic");
-                RegisterAllOf("Bus");
+                RegisterAllOf("NodeGraphSource");
+                RegisterAllOf("DeviceInput");
+                RegisterAllOf("ExternalInput");
+                RegisterAllOf("NodeGraphOutput");
+                RegisterAllOf("DeviceOutput");
+                RegisterAllOf("ExternalOutput");
+                RegisterAllOf("Cache");
                 RegisterAllOf("UI");
             }
         }
