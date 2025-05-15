@@ -4,6 +4,25 @@
 
 namespace l::ui {
 
+    void depthFirstTraversal(const nodegraph::TreeMenuNode& node, std::vector<std::string>& path, std::function<void(std::string_view, int32_t)> cbMenuItem) {
+        if (node.GetPathPart().empty()) {
+            for (const auto& child : node.mChildren) {
+                depthFirstTraversal(child, path, cbMenuItem);
+            }
+            cbMenuItem(node.GetName(), node.GetId());
+        }
+        else {
+            path.emplace_back(node.GetPathPart());
+            if (ImGui::TreeNode(node.GetPathPart().data())) {
+                for (const auto& child : node.mChildren) {
+                    depthFirstTraversal(child, path, cbMenuItem);
+                }
+                ImGui::TreePop();
+            }
+            path.pop_back();
+        }
+    }
+
     void UINodeEditor::Init() {
         mUIRoot = CreateContainer(mUIManager, l::ui::UIContainer_DragFlag | l::ui::UIContainer_ZoomFlag);
 
@@ -29,31 +48,28 @@ namespace l::ui {
                 return;
             }
 
-            mNGSchema->ForEachNodeType([&](std::string_view typeName, const std::vector<l::nodegraph::UINodeDesc>& types) {
-                if (typeName.empty() || ImGui::TreeNode(typeName.data())) {
-                    for (auto& it : types) {
-                        if (ImGui::MenuItem(it.GetName().data())) {
-                            ImVec2 p = ImVec2(mUIInput.mCurPos.x - mUIWindow.GetPosition().x, mUIInput.mCurPos.y - mUIWindow.GetPosition().y);
-                            p.x -= mUIRoot->GetPosition().x;
-                            p.y -= mUIRoot->GetPosition().y;
-                            p.x /= mUIRoot->GetScale();
-                            p.y /= mUIRoot->GetScale();
-                            p.x -= 3.0f;
-                            p.y -= 3.0f;
-                            auto nodeId = mNGSchema->NewNode(it.GetId());
-                            auto node = mNGSchema->GetNode(nodeId);
-                            if (node != nullptr) {
-                                auto uiNode = l::ui::CreateUINode(mUIManager, *node, p);
-                                mUIRoot->Add(uiNode);
-                            }
-                        }
-                    }
-                    if (!typeName.empty()) {
-                        ImGui::TreePop();
+            std::vector<std::string> path;
+            depthFirstTraversal(mNGSchema->GetPickerRoot(), path, [&](std::string_view menuName, int32_t menuId) {
+                if (!menuName.empty() && ImGui::MenuItem(menuName.data())) {
+                    ImVec2 p = ImVec2(mUIInput.mCurPos.x - mUIWindow.GetPosition().x, mUIInput.mCurPos.y - mUIWindow.GetPosition().y);
+                    p.x -= mUIRoot->GetPosition().x;
+                    p.y -= mUIRoot->GetPosition().y;
+                    p.x /= mUIRoot->GetScale();
+                    p.y /= mUIRoot->GetScale();
+                    p.x -= 3.0f;
+                    p.y -= 3.0f;
+                    auto nodeId = mNGSchema->NewNode(menuId);
+                    auto node = mNGSchema->GetNode(nodeId);
+                    if (node != nullptr) {
+                        auto uiNode = l::ui::CreateUINode(mUIManager, *node, p);
+                        mUIRoot->Add(uiNode);
                     }
                 }
+
                 });
+
             });
+
     }
 
     bool UINodeEditor::IsShowing() {

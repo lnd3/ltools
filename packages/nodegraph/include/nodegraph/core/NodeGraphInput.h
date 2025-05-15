@@ -54,7 +54,7 @@ namespace l::nodegraph {
 
         float& Get(int32_t minSize = 1, int32_t offset = 0);
         float& GetArray(int32_t minSize = 1, int32_t offset = 0);
-        std::string_view GetText(int32_t minSize);
+        std::string_view GetText(int32_t minSize = 16);
         NodeGraphBase* GetInputNode();
 
         NodeDataIterator GetIterator(int32_t minSize = 1);

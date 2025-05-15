@@ -247,6 +247,10 @@ namespace l::nodegraph {
         return false;
     }
 
+    bool NodeGraphBase::IsDataText(int8_t) {
+        return false;
+    }
+
     bool NodeGraphBase::IsOutputPolled(int8_t outputChannel) {
         return mOutputs.at(outputChannel).IsPolled();
     }
@@ -298,21 +302,28 @@ namespace l::nodegraph {
 
     bool NodeGraphOp::IsDataConstant(int8_t channel) {
         if (static_cast<size_t>(channel) < mDefaultInData.size()) {
-            return std::get<4>(mDefaultInData.at(channel));
+            return std::get<4>(mDefaultInData.at(channel)).mConstant;
         }
         return false;
     }
 
     bool NodeGraphOp::IsDataVisible(int8_t channel) {
         if (static_cast<size_t>(channel) < mDefaultInData.size()) {
-            return std::get<5>(mDefaultInData.at(channel));
+            return std::get<4>(mDefaultInData.at(channel)).mVisible;
         }
         return false;
     }
 
     bool NodeGraphOp::IsDataEditable(int8_t channel) {
         if (static_cast<size_t>(channel) < mDefaultInData.size()) {
-            return std::get<6>(mDefaultInData.at(channel));
+            return std::get<4>(mDefaultInData.at(channel)).mEditable;
+        }
+        return false;
+    }
+
+    bool NodeGraphOp::IsDataText(int8_t channel) {
+        if (static_cast<size_t>(channel) < mDefaultInData.size()) {
+            return std::get<4>(mDefaultInData.at(channel)).mText;
         }
         return false;
     }
@@ -343,24 +354,41 @@ namespace l::nodegraph {
     }
 
     int32_t NodeGraphOp::AddInput(std::string_view name, float defaultValue, int32_t minSize, float boundMin, float boundMax, bool visible, bool editable) {
+        InputFlags flags(false, visible, editable, false);
         mNumInputs++;
         mDefaultInStrings.push_back(std::string(name));
-        mDefaultInData.push_back({ defaultValue, minSize, boundMin, boundMax, false, visible, editable});
+        mDefaultInData.push_back({ defaultValue, minSize, boundMin, boundMax, flags });
         return static_cast<int32_t>(mDefaultInData.size() - 1);
     }
 
     int32_t NodeGraphOp::AddOutput(std::string_view name, float defaultValue, int32_t minSize, bool visible) {
+        OutputFlags flags(visible, false);
         mNumOutputs++;
         mDefaultOutStrings.push_back(std::string(name));
-        mDefaultOutData.push_back({ defaultValue, minSize, visible});
+        mDefaultOutData.push_back({ defaultValue, minSize, flags });
         return static_cast<int32_t>(mDefaultOutData.size() - 1);
     }
 
     int32_t NodeGraphOp::AddConstant(std::string_view name, float defaultValue, int32_t minSize, float boundMin, float boundMax, bool visible, bool editable) {
+        InputFlags flags(true, visible, editable, false);
         mNumInputs++;
         mDefaultInStrings.push_back(std::string(name));
-        mDefaultInData.push_back({ defaultValue, minSize, boundMin, boundMax, true, visible, editable});
+        mDefaultInData.push_back({ defaultValue, minSize, boundMin, boundMax, flags });
         return static_cast<int32_t>(mDefaultInData.size() - 1);
+    }
+
+    int32_t NodeGraphOp::AddInput2(std::string_view name, int32_t minSize, InputFlags flags) {
+        mNumInputs++;
+        mDefaultInStrings.push_back(std::string(name));
+        mDefaultInData.push_back({ 0.0f, minSize, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, flags });
+        return static_cast<int32_t>(mDefaultInData.size() - 1);
+    }
+
+    int32_t NodeGraphOp::AddOutput2(std::string_view name, int32_t minSize, OutputFlags flags) {
+        mNumOutputs++;
+        mDefaultOutStrings.push_back(std::string(name));
+        mDefaultOutData.push_back({ 0.0f, minSize, flags });
+        return static_cast<int32_t>(mDefaultOutData.size() - 1);
     }
 
     /**********************************************************************************/

@@ -17,6 +17,8 @@
 
 namespace l::ui {
 
+    void depthFirstTraversal(const nodegraph::TreeMenuNode& node, std::vector<std::string>& path, std::function<void(std::string_view, int32_t)> cbMenuItem);
+
     struct NodeEvent {
         l::nodegraph::NodeGraphSchema* mNodeSchema = nullptr;
         int32_t mNodeEvent = 0;

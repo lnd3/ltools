@@ -24,6 +24,32 @@
 
 namespace l::nodegraph {
 
+    class TreeMenuNode {
+    public:
+        TreeMenuNode() = default;
+        TreeMenuNode(std::string_view pathPart, std::string_view name, int32_t id) : mPathPart(pathPart), mName(name), mId(id) {}
+        ~TreeMenuNode() = default;
+
+        std::string_view GetPathPart() const {
+            return mPathPart;
+        }
+        std::string_view GetName() const {
+            return mName;
+        }
+        int32_t GetId() const {
+            return mId;
+        }
+
+        std::vector<TreeMenuNode> mChildren;
+        std::string mPathPart;
+    protected:
+        int32_t mId = 0;
+        std::string mName;
+    };
+
+    TreeMenuNode* findOrCreateChild(TreeMenuNode& node, std::string_view pathPart);
+    void insertPath(TreeMenuNode& root, std::string_view path, std::string_view name, int32_t nodeId);
+
     struct UINodeDesc {
         std::string_view GetName() const {
             return mName;
@@ -45,19 +71,19 @@ namespace l::nodegraph {
             mName(name.empty() ? "Schema" : name)
         {
             if (useAllNodeTypes) {
+                RegisterAllOf("Cache");
                 RegisterAllOf("Numeric");
                 RegisterAllOf("Logic");
                 RegisterAllOf("Signal");
-                RegisterAllOf("SignalControl");
-                RegisterAllOf("SignalFilter");
-                RegisterAllOf("SignalEffect");
-                RegisterAllOf("NodeGraphSource");
-                RegisterAllOf("DeviceInput");
-                RegisterAllOf("ExternalInput");
-                RegisterAllOf("NodeGraphOutput");
-                RegisterAllOf("DeviceOutput");
-                RegisterAllOf("ExternalOutput");
-                RegisterAllOf("Cache");
+                RegisterAllOf("Signal.Control");
+                RegisterAllOf("Signal.Filter");
+                RegisterAllOf("Signal.Effect");
+                RegisterAllOf("NodeGraph.Source");
+                RegisterAllOf("NodeGraph.Output");
+                RegisterAllOf("Device.Input");
+                RegisterAllOf("Device.Output");
+                RegisterAllOf("External.Input");
+                RegisterAllOf("External.Output");
                 RegisterAllOf("UI");
             }
         }
@@ -115,6 +141,8 @@ namespace l::nodegraph {
         void RegisterAllOf(const std::string& typeGroup);
         void ProcessSubGraph(int32_t numSamples, int32_t numCacheSamples = 0);
         void Tick(int32_t tickCount, float delta);
+
+        TreeMenuNode& GetPickerRoot();
     protected:
         NodeGraphGroup mMainNodeGraph;
         std::string mName;
@@ -125,6 +153,7 @@ namespace l::nodegraph {
         l::hid::midi::MidiManager* mMidiManager = nullptr;
 
         std::map<std::string, std::vector<UINodeDesc>> mRegisteredNodeTypes;
+        TreeMenuNode mPickerRootMenu;
     };
 
 }

@@ -38,9 +38,10 @@ namespace l::string {
 		}
 
 		int32_t append(std::string_view s) {
-			int32_t count = static_cast<int32_t>(s.size() < left() ? s.size() : left());
+			int32_t count = static_cast<int32_t>(s.size() < left() ? s.size() : left() - 1);
 			memcpy(&cur(), s.data(), static_cast<size_t>(count));
 			mPos += count;
+			cur() = 0;
 			return count;
 		}
 

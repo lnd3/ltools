@@ -98,5 +98,19 @@ namespace l::nodegraph {
         float mFrameTime = 0.0f;
     };
 
+    /*********************************************************************/
+    class GraphSourceText : public NodeGraphOp {
+    public:
+        GraphSourceText(NodeGraphBase* node) :
+            NodeGraphOp(node, "Text")
+        {
+            AddInput2("Text:", 16, InputFlags(false, true, true, true));
+            AddOutput("Out");
+        }
+
+        virtual ~GraphSourceText() {
+        }
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+    };
 }
 

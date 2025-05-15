@@ -117,7 +117,7 @@ namespace l::nodegraph {
         return mInput.mInputFloatConstant;
     }
 
-    std::string_view NodeGraphInput::GetText(int32_t minSize = 16) {
+    std::string_view NodeGraphInput::GetText(int32_t minSize) {
         if (mInputType == InputType::INPUT_TEXT) {
             if (!mInput.mInputTextBuf) {
                 mInput.mInputTextBuf = new std::vector<char>();

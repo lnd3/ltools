@@ -121,6 +121,7 @@ namespace l::nodegraph {
         virtual bool IsDataConstant(int8_t num);
         virtual bool IsDataVisible(int8_t num);
         virtual bool IsDataEditable(int8_t num);
+        virtual bool IsDataText(int8_t num);
         virtual bool IsOutputPolled(int8_t outputChannel);
         virtual bool IsOutOfDate();
         virtual void NodeHasChanged(int32_t numSamplesWritten = 1);
@@ -166,6 +167,29 @@ namespace l::nodegraph {
     };
 
     /**********************************************************************************/
+    struct InputFlags {
+        InputFlags(bool constant, bool visible, bool editable, bool text) {
+            mConstant = constant;
+            mVisible = visible;
+            mEditable = editable;
+            mText = text;
+        }
+
+        bool mConstant = false;
+        bool mVisible = true;
+        bool mEditable = true;
+        bool mText = false;
+    };
+
+    struct OutputFlags {
+        OutputFlags(bool visible, bool text) {
+            mVisible = visible;
+            mText = text;
+        }
+
+        bool mVisible = true;
+        bool mText = false;
+    };
 
     class NodeGraphOp {
     public:
@@ -190,6 +214,7 @@ namespace l::nodegraph {
         virtual bool IsDataConstant(int8_t channel);
         virtual bool IsDataVisible(int8_t channel);
         virtual bool IsDataEditable(int8_t channel);
+        virtual bool IsDataText(int8_t channel);
 
         virtual std::string_view GetInputName(int8_t inputChannel);
         virtual std::string_view GetOutputName(int8_t outputChannel);
@@ -201,14 +226,16 @@ namespace l::nodegraph {
         virtual int32_t AddInput(std::string_view name, float defaultValue = 0.0f, int32_t minSize = 1, float boundMin = -l::math::constants::FLTMAX, float boundMax = l::math::constants::FLTMAX, bool visible = true, bool editable = true);
         virtual int32_t AddOutput(std::string_view name, float defaultValue = 0.0f, int32_t minSize = 1, bool visible = true);
         virtual int32_t AddConstant(std::string_view name, float defaultValue = 0.0f, int32_t minSize = 1, float boundMin = -l::math::constants::FLTMAX, float boundMax = l::math::constants::FLTMAX, bool visible = true, bool editable = true);
+        virtual int32_t AddInput2(std::string_view name, int32_t minSize, InputFlags flags);
+        virtual int32_t AddOutput2(std::string_view name, int32_t minSize, OutputFlags flags);
 
         NodeGraphBase* mNode;
         std::string mName;
 
         std::vector<std::string> mDefaultInStrings;
         std::vector<std::string> mDefaultOutStrings;
-        std::vector<std::tuple<float, int32_t, float, float, bool, bool, bool>> mDefaultInData;
-        std::vector<std::tuple<float, int32_t, bool>> mDefaultOutData;
+        std::vector<std::tuple<float, int32_t, float, float, InputFlags>> mDefaultInData;
+        std::vector<std::tuple<float, int32_t, OutputFlags>> mDefaultOutData;
 
         int8_t mNumInputs = 0;
         int8_t mNumOutputs = 0;
@@ -245,6 +272,10 @@ namespace l::nodegraph {
 
         virtual bool IsDataEditable(int8_t num) override {
             return mOperation.IsDataEditable(num);
+        }
+
+        virtual bool IsDataText(int8_t channel) override {
+            return mOperation.IsDataText(channel);
         }
 
         virtual void DefaultDataInit() override {
