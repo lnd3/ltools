@@ -240,7 +240,7 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataBusDataIn>(NodeType::ExternalInput, 6);
             break;
         case 501:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataCandleStickDataIn>(NodeType::ExternalInput);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataOCHLVDataIn>(NodeType::ExternalInput);
             break;
 
             // External output

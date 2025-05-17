@@ -80,7 +80,6 @@ namespace l::nodegraph {
     /*********************************************************************/
     void GraphSourceText::Process(int32_t, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto textIn = inputs.at(0).GetText(16);
-        auto textOut = outputs.at(0).GetText(16);
-        memcpy(const_cast<char*>(textOut.data()), textIn.data(), textIn.size());
+        outputs.at(0).SetText(textIn);
     }
 }

@@ -71,21 +71,24 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphDataCandleStickDataIn : public NodeGraphOp {
+    class GraphDataOCHLVDataIn : public NodeGraphOp {
     public:
         static const int32_t kIntervalCount = 10;
         const int32_t kIntervals[kIntervalCount] = { 1, 5, 15, 30, 60, 120, 240, 720, 1440, 10080 };
 
-        GraphDataCandleStickDataIn(NodeGraphBase* node) :
-            NodeGraphOp(node, "Candle Stick Data In")
+        GraphDataOCHLVDataIn(NodeGraphBase* node) :
+            NodeGraphOp(node, "OCHLV Data In")
         {
             AddInput("In", 0.0f, 2, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
+            AddInput2("Symbol", 16, InputFlags(false, true, false, true));
+            AddInput2("Base", 16, InputFlags(false, true, false, true));
             AddInput("Interval", 2.0f, 1, 0.0f, 10.0f);
-            AddInput("Name", 0.0f, 1, 0.0f, 1.0f, true, false);
-            AddInput("Base", 0.0f, 1, 0.0f, 1.0f, true, false);
 
             
-            AddOutput("Minutes", 1.0f, 1);
+            AddOutput("Interv.Min", 1.0f, 1);
+            AddOutput2("Symbol", 16, OutputFlags(true, true));
+            AddOutput2("Base", 16, OutputFlags(true, true));
+
             AddOutput("Unixtime", 0.0f, 2);
             AddOutput("Open", 0.0f, 2);
             AddOutput("Close", 0.0f, 2);
@@ -93,7 +96,7 @@ namespace l::nodegraph {
             AddOutput("Low", 0.0f, 2);
             AddOutput("Volume", 0.0f, 2);
         }
-        virtual ~GraphDataCandleStickDataIn() = default;
+        virtual ~GraphDataOCHLVDataIn() = default;
 
         virtual void InputHasChanged(int32_t numSamplesWritten) override;
         virtual void Reset() override;
@@ -111,8 +114,14 @@ namespace l::nodegraph {
         GraphDataTradeSignal(NodeGraphBase* node) :
             NodeGraphOp(node, "Place Trade")
         {
-            AddInput("In", 0.0f, 2, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
+            AddInput("Signal", 0.0f, 2, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
+            AddInput2("Symbol", 16, InputFlags(false, true, false, true));
+            AddInput2("Base", 16, InputFlags(false, true, false, true));
+            AddInput("Interval", 2.0f, 1, 0.0f, 10.0f);
             AddOutput("Out", 0.0f, 2, false);
+            AddOutput2("Symbol", 16, OutputFlags(true, true));
+            AddOutput2("Base", 16, OutputFlags(false, true));
+            AddOutput("Interv.Min", 1.0f);
         }
         virtual ~GraphDataTradeSignal() = default;
 

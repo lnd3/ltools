@@ -27,6 +27,7 @@ namespace l::nodegraph {
         void Clear();
         float& Get(int32_t minSize = 1);
         std::string_view GetText(int32_t minSize = 16);
+        void SetText(std::string_view text);
         NodeDataIterator GetIterator(int32_t minSize, float lod = 1.0f);
         NodeDataIterator GetIterator();
         int32_t GetSize();

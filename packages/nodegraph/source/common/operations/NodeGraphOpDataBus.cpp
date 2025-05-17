@@ -35,33 +35,37 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphDataCandleStickDataIn::Reset() {
+    void GraphDataOCHLVDataIn::Reset() {
         mReadSamples = 0;
     }
 
-    void GraphDataCandleStickDataIn::InputHasChanged(int32_t numSamplesWritten) {
+    void GraphDataOCHLVDataIn::InputHasChanged(int32_t numSamplesWritten) {
         mInputHasChanged = true;
         mWrittenSamples = numSamplesWritten;
     }
 
-    int32_t GraphDataCandleStickDataIn::GetNumSamplesLeft() {
+    int32_t GraphDataOCHLVDataIn::GetNumSamplesLeft() {
         return mWrittenSamples - mReadSamples;
     }
 
-    void GraphDataCandleStickDataIn::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphDataOCHLVDataIn::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto in = &inputs.at(0).Get(numSamples * 6 + mReadSamples * 6, mReadSamples * 6);
 
-        float* out1 = &outputs.at(1).Get(numSamples);
-        float* out2 = &outputs.at(2).Get(numSamples);
-        float* out3 = &outputs.at(3).Get(numSamples);
-        float* out4 = &outputs.at(4).Get(numSamples);
-        float* out5 = &outputs.at(5).Get(numSamples);
-        float* out6 = &outputs.at(6).Get(numSamples);
+        float* out1 = &outputs.at(3).Get(numSamples);
+        float* out2 = &outputs.at(4).Get(numSamples);
+        float* out3 = &outputs.at(5).Get(numSamples);
+        float* out4 = &outputs.at(6).Get(numSamples);
+        float* out5 = &outputs.at(7).Get(numSamples);
+        float* out6 = &outputs.at(8).Get(numSamples);
 
         if (mInputHasChanged) {
-            auto intervalInput = static_cast<int32_t>(l::math::clamp(inputs.at(1).Get(1), 0.0f, 9.0f));
+            auto symbolInput = inputs.at(1).GetText(16);
+            auto baseInput = inputs.at(2).GetText(16);
+            auto intervalInput = static_cast<int32_t>(l::math::clamp(inputs.at(3).Get(1), 0.0f, 9.0f));
 
-            float* intervalOut = &outputs.at(0).Get(1);
+            outputs.at(0).SetText(symbolInput);
+            outputs.at(1).SetText(baseInput);
+            float* intervalOut = &outputs.at(2).Get(1);
             *intervalOut = math::max2(1.0f, static_cast<float>(kIntervals[intervalInput]));
         }
 
@@ -87,6 +91,14 @@ namespace l::nodegraph {
         auto in = &inputs.at(0).Get(numSamples);
         auto out = &outputs.at(0).Get(numSamples);
         memcpy(out, in, static_cast<size_t>(sizeof(float) * numSamples));
+
+        auto symbolInput = inputs.at(1).GetText(16);
+        auto baseInput = inputs.at(2).GetText(16);
+        auto intervalMinInput = inputs.at(3).Get(1);
+
+        outputs.at(1).SetText(symbolInput);
+        outputs.at(2).SetText(baseInput);
+        outputs.at(3).Get(1) = intervalMinInput;
     }
 
     /*********************************************************************/

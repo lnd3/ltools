@@ -122,10 +122,11 @@ namespace l::nodegraph {
             if (!mInput.mInputTextBuf) {
                 mInput.mInputTextBuf = new std::vector<char>();
             }
-            if (static_cast<int32_t>(mInput.mInputTextBuf->size()) < minSize) {
-                mInput.mInputTextBuf->resize(minSize, 0);
+            if (static_cast<int32_t>(mInput.mInputTextBuf->size()) < minSize + 1) {
+                mInput.mInputTextBuf->resize(minSize + 1, 0);
             }
             if (!mInput.mInputTextBuf->empty()) {
+                mInput.mInputTextBuf->data()[mInput.mInputTextBuf->size() - 1] = 0;
                 return std::string_view(mInput.mInputTextBuf->data());
             }
         };
@@ -191,10 +192,11 @@ namespace l::nodegraph {
             mInputType = InputType::INPUT_TEXT;
             mInput.mInputTextBuf = new std::vector<char>();
         }
-        if (static_cast<int32_t>(mInput.mInputTextBuf->size()) < text.size()) {
+        if (static_cast<int32_t>(mInput.mInputTextBuf->size()) < text.size() + 1) {
             mInput.mInputTextBuf->resize(text.size() + 1, 0);
         }
         memcpy(mInput.mInputTextBuf->data(), text.data(), text.size());
+        mInput.mInputTextBuf->data()[text.size()] = 0;
         mInputFromOutputChannel = 0;
     }
 

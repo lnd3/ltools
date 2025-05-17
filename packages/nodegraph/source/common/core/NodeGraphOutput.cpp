@@ -41,6 +41,12 @@ namespace l::nodegraph {
         return std::string_view(out, minSize);
     }
 
+    void NodeGraphOutput::SetText(std::string_view text) {
+        auto p = reinterpret_cast<char*>(&Get(1 + static_cast<int32_t>(text.size())));
+        memcpy(p, text.data(), text.size());
+        *(p + text.size()) = 0;
+    }
+
     NodeDataIterator NodeGraphOutput::GetIterator(int32_t minSize, float lod) {
         if (lod >= 1.0f && lod <= minSize) {
             mOutputLod = lod;
