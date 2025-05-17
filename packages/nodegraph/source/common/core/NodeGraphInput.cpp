@@ -129,7 +129,12 @@ namespace l::nodegraph {
                 mInput.mInputTextBuf->data()[mInput.mInputTextBuf->size() - 1] = 0;
                 return std::string_view(mInput.mInputTextBuf->data());
             }
-        };
+        }
+        else if (mInputType == InputType::INPUT_NODE) {
+            if (mInput.mInputNode != nullptr) {
+                return mInput.mInputNode->GetOutputText(mInputFromOutputChannel, minSize);
+            }
+        }
         return {};
     }
 

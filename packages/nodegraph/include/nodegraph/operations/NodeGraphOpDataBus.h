@@ -82,12 +82,12 @@ namespace l::nodegraph {
             AddInput("In", 0.0f, 2, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
             AddInput2("Symbol", 16, InputFlags(false, true, false, true));
             AddInput2("Base", 16, InputFlags(false, true, false, true));
-            AddInput("Interval", 2.0f, 1, 0.0f, 10.0f);
+            AddInput("Index", 2.0f, 1, 0.0f, 10.0f);
 
             
-            AddOutput("Interv.Min", 1.0f, 1);
             AddOutput2("Symbol", 16, OutputFlags(true, true));
             AddOutput2("Base", 16, OutputFlags(true, true));
+            AddOutput("Interval Min", 1.0f);
 
             AddOutput("Unixtime", 0.0f, 2);
             AddOutput("Open", 0.0f, 2);
@@ -117,11 +117,12 @@ namespace l::nodegraph {
             AddInput("Signal", 0.0f, 2, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
             AddInput2("Symbol", 16, InputFlags(false, true, false, true));
             AddInput2("Base", 16, InputFlags(false, true, false, true));
-            AddInput("Interval", 2.0f, 1, 0.0f, 10.0f);
+            AddInput("Interval Min", 2.0f, 1, 0.0f, 10.0f);
+    
             AddOutput("Out", 0.0f, 2, false);
             AddOutput2("Symbol", 16, OutputFlags(true, true));
-            AddOutput2("Base", 16, OutputFlags(false, true));
-            AddOutput("Interv.Min", 1.0f);
+            AddOutput2("Base", 16, OutputFlags(true, true));
+            AddOutput("Interval Min", 1.0f);
         }
         virtual ~GraphDataTradeSignal() = default;
 

@@ -94,6 +94,10 @@ namespace l::nodegraph {
         return mOutputs.at(outputChannel).Get(minSize);
     }
 
+    std::string_view NodeGraphBase::GetOutputText(int8_t outputChannel, int32_t minSize) {
+        return mOutputs.at(outputChannel).GetText(minSize);
+    }
+
     NodeGraphInput& NodeGraphBase::GetInputOf(int8_t inputChannel) {
         return mInputs.at(inputChannel);
     }
