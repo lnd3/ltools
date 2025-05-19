@@ -80,14 +80,42 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphUIChartLine::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        mInputManager.BatchUpdate(inputs, numSamples);
+    void GraphUIChartLine::Reset() {
+        mWrittenSamples = 0;
+    }
 
-        float* output = &outputs.at(0).Get(2 * numSamples);
+    int32_t GraphUIChartLine::GetNumSamplesLeft() {
+        return mWrittenSamples;
+    }
 
-        for (int32_t i = 0; i < numSamples; i++) {
-            output[2 * i + 0] = mInputManager.GetValueNext(0);
-            output[2 * i + 1] = mInputManager.GetValueNext(1);
+    void GraphUIChartLine::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        int32_t mChannels = 2;
+
+        if (numSamples > numCacheSamples) {
+            numCacheSamples = numSamples;
+        }
+
+        float* out = &outputs.at(0).Get(numCacheSamples * mChannels);
+
+        if (mWrittenSamples < numCacheSamples) {
+            mInputHasChanged = true;
+
+            float* input[2];
+            for (int32_t j = 0; j < mChannels; j++) {
+                input[j] = &inputs.at(j).Get(numSamples);
+            }
+            auto buf = out + mWrittenSamples * mChannels;
+            for (int32_t j = 0; j < numSamples; j++) {
+                for (int32_t i = 0; i < mChannels; i++) {
+                    *buf++ = *(input[i])++;
+                }
+            }
+
+            mWrittenSamples += numSamples;
+        }
+
+        if (mWrittenSamples >= numCacheSamples) {
+            mInputHasChanged = false;
         }
     }
 

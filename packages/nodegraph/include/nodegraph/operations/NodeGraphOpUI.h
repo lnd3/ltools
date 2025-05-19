@@ -72,20 +72,20 @@ namespace l::nodegraph {
     class GraphUIChartLine : public NodeGraphOp {
     public:
         GraphUIChartLine(NodeGraphBase* node) :
-            NodeGraphOp(node, "Chart Lines"),
-            mInputManager(*this)
+            NodeGraphOp(node, "Chart Lines")
         {
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("x", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false));
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("y", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false));
+            AddInput2("x", 1, InputFlags(false, false, false, false));
+            AddInput2("y", 1, InputFlags(false, false, false, false));
             AddOutput("Interleaved Data");
         }
         virtual ~GraphUIChartLine() = default;
 
+        virtual void Reset() override;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+
+        int32_t GetNumSamplesLeft();
     protected:
-        InputManager mInputManager;
-        float mStepsUntilUpdate = 0.0f;
-        float mUpdateRate = 16.0f;
+        int32_t mWrittenSamples = 0;
     };
 
     /*********************************************************************/
