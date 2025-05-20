@@ -200,5 +200,42 @@ namespace l::nodegraph {
         float mPrev4 = 0.0f;
     };
 
+    /*********************************************************************/
+    class GraphLogicalFlipGate : public NodeGraphOp {
+    public:
+        GraphLogicalFlipGate(NodeGraphBase* node) :
+            NodeGraphOp(node, "Xor")
+        {
+            AddInput("In", 0.0f);
+            AddInput("Max input", 1.0f, 1, 0.00001f, l::math::constants::FLTMAX);
+            AddOutput("Gate", 0.0f);
+            AddOutput("Strength", 0.0f);
+        }
+
+        virtual ~GraphLogicalFlipGate() = default;
+        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+            auto input = &inputs.at(0).Get(numSamples);
+            auto maxInput = &inputs.at(0).Get(numSamples);
+            auto gate = &outputs.at(0).Get(numSamples);
+            auto strength = &outputs.at(0).Get(numSamples);
+
+            for (int32_t i = 0; i < numSamples; i++) {
+                auto in = (*input++);
+                bool pos = in > 0.0f;
+                bool neg = in > 0.0f;
+                if (mGate && neg) {
+                    mGate = false;
+                }
+                else if (!mGate && pos) {
+                    mGate = true;
+                }
+                *gate++ = mGate ? 1.0f : -1.0f;
+                *strength++ = l::math::abs(in) / (*maxInput);
+            }
+        }
+    protected:
+        bool mGate = false;
+        float mStrength = 0.0f;
+    };
 }
 

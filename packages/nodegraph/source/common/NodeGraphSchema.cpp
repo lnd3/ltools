@@ -111,6 +111,9 @@ namespace l::nodegraph {
         case 103:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalDetector>(NodeType::Default);
             break;
+        case 104:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalFlipGate>(NodeType::Default);
+            break;
 
         case 150:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterLowpass>(NodeType::Default);
@@ -248,7 +251,7 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataBusDataOut>(NodeType::ExternalOutput, 6);
             break;
         case 551:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataTradeSignal>(NodeType::ExternalOutput);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataPlaceTrade>(NodeType::ExternalOutput, 16);
             break;
 
             // UI elements (basically ui buttons/checkboxes on the ui using the schema containing the nodes)
@@ -344,6 +347,7 @@ namespace l::nodegraph {
             RegisterNodeType("Logic", 101, "Or");
             RegisterNodeType("Logic", 102, "Xor");
             RegisterNodeType("Logic", 103, "Detector");
+            RegisterNodeType("Logic", 104, "Flip Gate");
         }
         else if (typeGroup == "Signal") {
             RegisterNodeType("Signal", 350, "Sine");

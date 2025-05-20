@@ -81,7 +81,13 @@ namespace l::nodegraph {
 
     /*********************************************************************/
     void GraphUIChartLine::Reset() {
-        mWrittenSamples = 0;
+        mNode->ForEachInput(
+            [&](NodeGraphInput& input) {
+                if (input.HasInputNode() && input.GetInputNode()->IsOutOfDate()) {
+                    mInputHasChanged = true;
+                    mWrittenSamples = 0;
+                }
+            });
     }
 
     int32_t GraphUIChartLine::GetNumSamplesLeft() {
@@ -98,8 +104,6 @@ namespace l::nodegraph {
         float* out = &outputs.at(0).Get(numCacheSamples * mChannels);
 
         if (mWrittenSamples < numCacheSamples) {
-            mInputHasChanged = true;
-
             float* input[2];
             for (int32_t j = 0; j < mChannels; j++) {
                 input[j] = &inputs.at(j).Get(numSamples);

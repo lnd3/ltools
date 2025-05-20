@@ -88,12 +88,13 @@ namespace l::nodegraph {
     /*********************************************************************/
     void GraphOutputPlot::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         mInputManager.BatchUpdate(inputs, numSamples);
+        auto scale = inputs.at(1).Get();
 
         int32_t outputSize = outputs.at(0).GetSize();
         float* output = &outputs.at(0).Get(outputSize);
 
         for (int32_t i = 0; i < numSamples; i++) {
-            output[mCurIndex] = mInputManager.GetValueNext(0);
+            output[mCurIndex] = scale * mInputManager.GetValueNext(0);
             mCurIndex = (mCurIndex + 1) % outputSize;
         }
     }

@@ -386,15 +386,36 @@ namespace l::ui {
         case l::ui::UIRenderType::NodeOutputValue:
             if (mNGSchema) {
                 auto node = mNGSchema->GetNode(container.GetNodeId());
-                l::string::string_buffer<32> sb;
-                int8_t channelId = static_cast<int8_t>(container.GetChannelId());
-                if (channelId < node->GetNumInputs()) {
-                    if (node->IsDataText(channelId)) {
-                        auto nodeText = node->GetInputText(channelId, 31);
-                        sb.append(nodeText);
+                if (node) {
+                    l::string::string_buffer<32> sb;
+                    int8_t channelId = static_cast<int8_t>(container.GetChannelId());
+                    if (channelId < node->GetNumInputs()) {
+                        if (node->IsDataText(channelId)) {
+                            auto nodeText = node->GetInputText(channelId, 31);
+                            sb.append(nodeText);
+                        }
+                        else {
+                            float nodeValue = node->GetInput(channelId);
+                            auto nodeValueAbs = l::math::abs(nodeValue);
+                            if (nodeValueAbs > 100.0f) {
+                                sb.printf("%.0f", nodeValue);
+                            }
+                            else if (nodeValueAbs > 10.0f) {
+                                sb.printf("%.1f", nodeValue);
+                            }
+                            else if (nodeValueAbs > 1.0f) {
+                                sb.printf("%.2f", nodeValue);
+                            }
+                            else if (nodeValueAbs > 0.1f) {
+                                sb.printf("%.3f", nodeValue);
+                            }
+                            else {
+                                sb.printf("%.4f", nodeValue);
+                            }
+                        }
                     }
                     else {
-                        float nodeValue = node->GetInput(channelId);
+                        float nodeValue = node->GetOutput(channelId);
                         auto nodeValueAbs = l::math::abs(nodeValue);
                         if (nodeValueAbs > 100.0f) {
                             sb.printf("%.0f", nodeValue);
@@ -412,34 +433,15 @@ namespace l::ui {
                             sb.printf("%.4f", nodeValue);
                         }
                     }
+                    mDrawList->AddText(ImGui::GetDefaultFont(), 13.0f * container.GetScale() * layoutArea.mScale, p1, color, sb.str().data());
                 }
-                else {
-                    float nodeValue = node->GetOutput(channelId);
-                    auto nodeValueAbs = l::math::abs(nodeValue);
-                    if (nodeValueAbs > 100.0f) {
-                        sb.printf("%.0f", nodeValue);
-                    }
-                    else if (nodeValueAbs > 10.0f) {
-                        sb.printf("%.1f", nodeValue);
-                    }
-                    else if (nodeValueAbs > 1.0f) {
-                        sb.printf("%.2f", nodeValue);
-                    }
-                    else if (nodeValueAbs > 0.1f) {
-                        sb.printf("%.3f", nodeValue);
-                    }
-                    else {
-                        sb.printf("%.4f", nodeValue);
-                    }
-                }
-                mDrawList->AddText(ImGui::GetDefaultFont(), 13.0f * container.GetScale() * layoutArea.mScale, p1, color, sb.str().data());
             }
             break;
         case l::ui::UIRenderType::NodeOutputGraph:
             if (mNGSchema) {
                 auto node = mNGSchema->GetNode(container.GetNodeId());
                 int8_t channelId = static_cast<int8_t>(container.GetChannelId());
-                if (channelId < node->GetNumOutputs()) {
+                if (node && channelId < node->GetNumOutputs()) {
                     int8_t channel = static_cast<int8_t>(container.GetChannelId());
                     float* nodeValues = &node->GetOutput(channel);
                     int32_t nodeValueCount = node->GetOutputSize(channel);

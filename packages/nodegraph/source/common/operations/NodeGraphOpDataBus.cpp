@@ -87,18 +87,46 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphDataTradeSignal::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        auto in = &inputs.at(0).Get(numSamples);
-        auto out = &outputs.at(0).Get(numSamples);
-        memcpy(out, in, static_cast<size_t>(sizeof(float) * numSamples));
+    void GraphDataPlaceTrade::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
 
-        auto symbolInput = inputs.at(1).GetText(16);
-        auto baseInput = inputs.at(2).GetText(16);
-        auto intervalMinInput = inputs.at(3).Get(1);
+        auto now = l::string::get_unix_epoch();
 
-        outputs.at(1).SetText(symbolInput);
-        outputs.at(2).SetText(baseInput);
-        outputs.at(3).Get(1) = intervalMinInput;
+        auto symbolInput = inputs.at(0).GetText(mSize);
+        auto baseInput = inputs.at(1).GetText(mSize);
+        auto intervalMinInput = inputs.at(2).Get(1);
+        auto unixtimeInput = (&inputs.at(3).Get(numSamples) + numSamples - 1);
+        auto decisionInput = (&inputs.at(4).Get(numSamples) + numSamples - 1);
+        auto convictionInput = (&inputs.at(5).Get(numSamples) + numSamples - 1);
+
+        auto minuteStartedAt = 60 * (now / 60);
+        auto candlesAgo1 = minuteStartedAt - (intervalMinInput - 1) * 60;
+
+        outputs.at(0).SetText(symbolInput);
+        outputs.at(1).SetText(baseInput);
+        outputs.at(2).Get(1) = intervalMinInput;
+        auto decisionOut = (&outputs.at(3).Get(mSize) + mSize - 1);
+        auto convictionOut = (&outputs.at(4).Get(mSize) + mSize - 1);
+
+        bool ontarget = false;
+        int32_t j = 0;
+        for (int i = 0; i < numSamples; i++) {
+            auto unixtime = l::math::algorithm::convert<int32_t>(*unixtimeInput--);
+            auto decision = *decisionInput--;
+            auto conviction = *convictionInput--;
+
+            if (!ontarget && unixtime <= now && unixtime >= candlesAgo1) {
+                ontarget = true;
+            }
+            if (ontarget) {
+                *decisionOut-- = decision;
+                *convictionOut-- = conviction;
+                j++;
+            }
+            if (j >= mSize) {
+                break;
+            }
+        }
+
     }
 
     /*********************************************************************/

@@ -79,6 +79,7 @@ namespace l::nodegraph {
             mPlotSamples(plotSamples)
         {
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Plot", 0.0f, 1, -1.0f, 1.0f));
+            AddInput2("Scale", 1, InputFlags(false, true, true, false));
             AddOutput("Plot", 0.0f, mPlotSamples, false);
         }
         virtual ~GraphOutputPlot() = default;

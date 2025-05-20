@@ -149,28 +149,28 @@ namespace l::nodegraph {
                 return mUpdateRate;
             },
             [&](int32_t start, int32_t end, bool) {
-                float width = 1.0f + mInputManager.GetValueNext(2);
+                float width = l::math::max2(mInputManager.GetValueNext(2), 1.0f);
                 float balance = mInputManager.GetValueNext(3);
 
-                int32_t widthInt = l::math::max2(static_cast<int32_t>(width), 1);
-                int32_t bufferSize = widthInt + 1;
+                int32_t widthInt = 1 + static_cast<int32_t>(width);
+                int32_t bufferSize = widthInt;
                 float widthFrac = width - l::math::floor(width);
-
-                if (mFilterInit || mWidth != widthInt) {
-                    mWidth = widthInt;
-                    mFilterInit = false;
-                    mFilterStateIndex = 0;
-
-                    if (mFilterState.size() < bufferSize) {
-                        mFilterState.resize(bufferSize);
-                    }
-                    for (int32_t j = 0; j < widthInt; j++) {
-                        mFilterState[j] = 0.0f;
-                    }
-                }
 
                 for (int32_t i = start; i < end; i++) {
                     float inputValue = mInputManager.GetValueNext(1);
+
+                    if (mFilterInit || mWidth != widthInt) {
+                        mWidth = widthInt;
+                        mFilterInit = false;
+                        mFilterStateIndex = 0;
+
+                        if (mFilterState.size() < bufferSize) {
+                            mFilterState.resize(bufferSize);
+                        }
+                        for (int32_t j = 0; j < widthInt; j++) {
+                            mFilterState[j] = inputValue;
+                        }
+                    }
 
                     mFilterState[mFilterStateIndex] = inputValue;
                     mFilterStateIndex = (mFilterStateIndex + 1) % bufferSize; // buffer is 1 larger than the truncated filter size so we can smooth on the last one
@@ -178,9 +178,9 @@ namespace l::nodegraph {
                     float outVal = 0.0;
                     float balanceFactor = 1.0f - balance;
                     float balanceDelta = balance / width;
-                    float balanceDivisorSum = -balanceFactor * (1.0f - widthFrac);
-                    { // remove a part of the last sample of the sum as it is not part of the moving average
-                        outVal -= mFilterState[mFilterStateIndex] * balanceFactor * (1.0f - widthFrac);
+                    float balanceDivisorSum = (balanceDelta - balanceFactor) * (1.0f - widthFrac);
+                    { // remove a part of the first sample of the sum as it is not part of the moving average
+                        outVal = mFilterState[mFilterStateIndex] * ((balanceDelta - balanceFactor) * (1.0f - widthFrac));
                     }
                     for (int32_t j = mFilterStateIndex; j < bufferSize; j++) {
                         outVal += mFilterState[j] * balanceFactor;
