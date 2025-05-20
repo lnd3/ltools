@@ -204,7 +204,7 @@ namespace l::nodegraph {
     class GraphLogicalFlipGate : public NodeGraphOp {
     public:
         GraphLogicalFlipGate(NodeGraphBase* node) :
-            NodeGraphOp(node, "Xor")
+            NodeGraphOp(node, "Flip Gate")
         {
             AddInput("In", 0.0f);
             AddInput("Max input", 1.0f, 1, 0.00001f, l::math::constants::FLTMAX);
@@ -215,9 +215,9 @@ namespace l::nodegraph {
         virtual ~GraphLogicalFlipGate() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input = &inputs.at(0).Get(numSamples);
-            auto maxInput = &inputs.at(0).Get(numSamples);
+            auto maxInput = &inputs.at(1).Get(numSamples);
             auto gate = &outputs.at(0).Get(numSamples);
-            auto strength = &outputs.at(0).Get(numSamples);
+            auto strength = &outputs.at(1).Get(numSamples);
 
             for (int32_t i = 0; i < numSamples; i++) {
                 auto in = (*input++);
