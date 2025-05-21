@@ -20,6 +20,129 @@
 #include <random>
 #include <unordered_set>
 
+namespace {
+    class TrendDetector {
+    public:
+        TrendDetector() = default;
+        ~TrendDetector() = default;
+
+        float process(float in, int32_t numSamples = 6) {
+            if (mHistory.size() != numSamples) {
+                mHistory.resize(l::math::max2(numSamples, 1));
+            }
+
+            float mean = 0.0f;
+            float factor = 1.0f / (mHistory.size() + 1);
+            float acc = factor;
+            for (auto value : mHistory) {
+                mean += value * acc;
+                acc += factor;
+            }
+            mean += in;
+            mean = mean * factor;
+
+            bool bullishLevel = in > mean;
+            bool bullishTip = in > mHistory.front();
+            bool bullishMean = mean > meanPrev;
+
+            meanPrev = mean;
+            mHistory.erase(mHistory.begin());
+            mHistory.push_back(in);
+
+            float trend = (bullishLevel ? 0.4f : -0.4f) + (bullishMean ? 0.35f : -0.35f) + (bullishTip ? 0.25f : -0.25f);
+            return trend;
+        }
+
+    protected:
+        std::vector<float> mHistory;
+        float meanPrev;
+    };
+
+    class ReversalDetector {
+    public:
+        ReversalDetector() = default;
+        ~ReversalDetector() = default;
+
+        float process(float in) {
+            float diff01 = in - prevValue1;
+            float diff12 = prevValue1 - prevValue2;
+            float diff23 = prevValue2 - prevValue3;
+            float diff34 = prevValue3 - prevValue4;
+
+            bool bull1 = diff01 > 0.0f;
+            bool bear1 = diff01 < 0.0f;
+
+            bool troph1 = bull1 && diff12 < 0.0f;
+            bool troph2 = troph1 && diff23 < 0.0f;
+            bool troph3 = troph2 && diff34 < 0.0f;
+
+            bool peak1 = bear1 && diff12 > 0.0f;
+            bool peak2 = peak1 && diff23 > 0.0f;
+            bool peak3 = peak2 && diff34 > 0.0f;
+
+            float troph = (troph1 ? 1.0f : 0.0f) + (troph2 ? 1.0f : 0.0f) + (troph3 ? 1.0f : 0.0f);
+            float peak = (peak1 ? 1.0f : 0.0f) + (peak2 ? 1.0f : 0.0f) + (peak3 ? 1.0f : 0.0f);
+
+            float reversal = (troph - peak) * 0.33f;
+
+            prevValue4 = prevValue3;
+            prevValue3 = prevValue2;
+            prevValue2 = prevValue1;
+            prevValue1 = in;
+
+            return reversal;
+        }
+
+    protected:
+        float prevValue1 = 0.0f;
+        float prevValue2 = 0.0f;
+        float prevValue3 = 0.0f;
+        float prevValue4 = 0.0f;
+    };
+
+    class AccelerationDetector {
+    public:
+        AccelerationDetector() = default;
+        ~AccelerationDetector() = default;
+
+        float process(float in) {
+            float diff01 = in - prevValue1;
+            float diff12 = prevValue1 - prevValue2;
+            float diff23 = prevValue2 - prevValue3;
+            float diff34 = prevValue3 - prevValue4;
+
+            bool bull1 = diff01 > 0.0f;
+            bool bear1 = diff01 < 0.0f;
+
+            bool bullish1 = bull1 && diff01 > diff12;
+            bool bullish2 = bullish1 && diff12 > diff23;
+            bool bullish3 = bullish2 && diff23 > diff34;
+
+            bool bearish1 = bear1 && diff01 < diff12;
+            bool bearish2 = bearish1 && diff12 < diff23;
+            bool bearish3 = bearish2 && diff23 < diff34;
+
+            float bullish = (bullish1 ? 1.0f : 0.0f) + (bullish2 ? 1.0f : 0.0f) + (bullish3 ? 1.0f : 0.0f);
+            float bearish = (bearish1 ? 1.0f : 0.0f) + (bearish2 ? 1.0f : 0.0f) + (bearish3 ? 1.0f : 0.0f);
+
+            float acceleration = (bullish - bearish) * 0.33f;
+
+            prevValue4 = prevValue3;
+            prevValue3 = prevValue2;
+            prevValue2 = prevValue1;
+            prevValue1 = in;
+
+            return acceleration;
+        }
+
+    protected:
+        float prevValue1 = 0.0f;
+        float prevValue2 = 0.0f;
+        float prevValue3 = 0.0f;
+        float prevValue4 = 0.0f;
+    };
+}
+
 namespace l::nodegraph {
 
     /* Logical operations */
@@ -103,9 +226,6 @@ namespace l::nodegraph {
             NodeGraphOp(node, "Detector")
         {
             AddInput("In", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
-            AddInput("Scale Trend", 0.5f, 1, 0.0f, 1.0f);
-            AddInput("Scale Reversal", 0.5f, 1, 0.0f, 1.0f);
-            AddInput("Scale Accel", 0.5f, 1, 0.0f, 1.0f);
 
             AddOutput("Trend", 0.0f);
             AddOutput("Reversal", 0.0f);
@@ -115,90 +235,83 @@ namespace l::nodegraph {
 
         virtual ~GraphLogicalDetector() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input0 = inputs.at(0).GetIterator(numSamples);
-            auto input2 = inputs.at(1).GetIterator();
-            auto input3 = inputs.at(2).GetIterator();
-            auto input4 = inputs.at(3).GetIterator();
+            auto input1 = inputs.at(0).GetIterator(numSamples);
 
             auto outputTrend = outputs.at(0).GetIterator(numSamples);
             auto outputReversal = outputs.at(1).GetIterator(numSamples);
             auto outputAccel = outputs.at(2).GetIterator(numSamples);
             auto outputSum = outputs.at(3).GetIterator(numSamples);
 
-            float scaleTrend = (*input2++);
-            float scaleReversal = (*input3++);
-            float scaleAccel = (*input4++);
-            const float cSum = 1.0f / (scaleTrend + scaleReversal + scaleAccel); // scale to [-1,1]
-            scaleTrend *= cSum;
-            scaleReversal *= cSum;
-            scaleAccel *= cSum;
-
             for (int32_t i = 0; i < numSamples; i++) {
-                float in1 = (*input0++);
+                float in = (*input1++);
 
-                float diff01 = in1 - mPrev1;
-                float diff12 = mPrev1 - mPrev2;
-                float diff23 = mPrev2 - mPrev3;
-                float diff34 = mPrev3 - mPrev4;
-
-                //float diff02 = in1 - mPrev2;
-                //float diff03 = in1 - mPrev3;
-
-                bool bull1 = diff01 > 0.0f;
-                bool bull2 = bull1 && diff12 > 0.0f;
-                bool bull3 = bull2 && diff23 > 0.0f;
-                bool bull4 = bull3 && diff34 > 0.0f;
-
-                bool bear1 = diff01 < 0.0f;
-                bool bear2 = bear1 && diff12 < 0.0f;
-                bool bear3 = bear2 && diff23 < 0.0f;
-                bool bear4 = bear3 && diff34 < 0.0f;
-                
-                bool troph1 = bull1 && diff12 < 0.0f;
-                bool troph2 = troph1 && diff23 < 0.0f;
-                bool troph3 = troph2 && diff34 < 0.0f;
-
-                bool peak1 = bear1 && diff12 > 0.0f;
-                bool peak2 = peak1 && diff23 > 0.0f;
-                bool peak3 = peak2 && diff34 > 0.0f;
-
-                bool bullish1 = bull1 && diff01 > diff12;
-                bool bullish2 = bullish1 && diff12 > diff23;
-                bool bullish3 = bullish2 && diff23 > diff34;
-
-                bool bearish1 = bear1 && diff01 < diff12;
-                bool bearish2 = bearish1 && diff12 < diff23;
-                bool bearish3 = bearish2 && diff23 < diff34;
-
-                float bull = (bull1 ? 1.0f : 0.0f) + (bull2 ? 1.0f : 0.0f) + (bull3 ? 1.0f : 0.0f) + (bull4 ? 1.0f : 0.0f);
-                float bear = (bear1 ? 1.0f : 0.0f) + (bear2 ? 1.0f : 0.0f) + (bear3 ? 1.0f : 0.0f) + (bear4 ? 1.0f : 0.0f);
-                float troph = (troph1 ? 1.0f : 0.0f) + (troph2 ? 1.0f : 0.0f) + (troph3 ? 1.0f : 0.0f);
-                float peak = (peak1 ? 1.0f : 0.0f) + (peak2 ? 1.0f : 0.0f) + (peak3 ? 1.0f : 0.0f);
-                float bullish = (bullish1 ? 1.0f : 0.0f) + (bullish2 ? 1.0f : 0.0f) + (bullish3 ? 1.0f : 0.0f);
-                float bearish = (bearish1 ? 1.0f : 0.0f) + (bearish2 ? 1.0f : 0.0f) + (bearish3 ? 1.0f : 0.0f);
-                
-                float trend = (bull - bear) * 0.25f;
-                float reversal = (troph - peak) * 0.33f;
-                float accel = (bullish - bearish) * 0.33f;
+                auto trend = mTrend.process(in);
+                auto reversal = mReversal.process(in);
+                auto acceleration = mAcceleration.process(in);
 
                 *outputTrend++ = trend;
                 *outputReversal++ = reversal;
-                *outputAccel++ = accel;
-                *outputSum++ = scaleTrend * trend + scaleReversal * reversal + scaleAccel * accel;
+                *outputAccel++ = acceleration;
 
-                mPrev4 = mPrev3;
-                mPrev3 = mPrev2;
-                mPrev2 = mPrev1;
-                mPrev1 = in1;
+                *outputSum++ = l::math::min2((trend + reversal + acceleration) * 0.3333334f, 1.0f);
             }
         }
 
     protected:
-        float mPrev1 = 0.0f;
-        float mPrev2 = 0.0f;
-        float mPrev3 = 0.0f;
-        float mPrev4 = 0.0f;
+        TrendDetector mTrend;
+        ReversalDetector mReversal;
+        AccelerationDetector mAcceleration;
     };
+
+    /*********************************************************************/
+    class GraphLogicalDifferentialDetector : public NodeGraphOp {
+    public:
+        GraphLogicalDifferentialDetector(NodeGraphBase* node) :
+            NodeGraphOp(node, "Differential Detector")
+        {
+            AddInput("In 1", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
+            AddInput("In 2", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
+            AddInput("Trend Samples", 6.0f, 1, 1.0f, 50.0f, false, false);
+
+            AddOutput("Trend", 0.0f);
+            AddOutput("Reversal", 0.0f);
+            AddOutput("Accel", 0.0f);
+            AddOutput("Sum", 0.0f);
+        }
+
+        virtual ~GraphLogicalDifferentialDetector() = default;
+        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+            auto inputHifi = inputs.at(0).GetIterator(numSamples);
+            auto inputLofi = inputs.at(1).GetIterator(numSamples);
+            auto numTrendSamples = static_cast<int32_t>(l::math::max2(inputs.at(2).Get(), 1.0f));
+
+            auto outputTrend = outputs.at(0).GetIterator(numSamples);
+            auto outputReversal = outputs.at(1).GetIterator(numSamples);
+            auto outputAccel = outputs.at(2).GetIterator(numSamples);
+            auto outputSum = outputs.at(3).GetIterator(numSamples);
+
+            for (int32_t i = 0; i < numSamples; i++) {
+                float inHifi = (*inputHifi++);
+                float inLofi = (*inputLofi++);
+                float inDiff = inHifi - inLofi;
+
+                auto trend = mTrend.process(inDiff, numTrendSamples);
+                auto reversal = mReversal.process(inDiff);
+                auto acceleration = mAcceleration.process(inDiff);
+
+                *outputTrend++ = trend;
+                *outputReversal++ = reversal;
+                *outputAccel++ = acceleration;
+                *outputSum++ = (trend + reversal + acceleration) * 0.33334f;
+            }
+        }
+
+    protected:
+        TrendDetector mTrend;
+        ReversalDetector mReversal;
+        AccelerationDetector mAcceleration;
+    };
+
 
     /*********************************************************************/
     class GraphLogicalFlipGate : public NodeGraphOp {
