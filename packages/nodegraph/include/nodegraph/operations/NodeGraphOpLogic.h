@@ -221,16 +221,18 @@ namespace l::nodegraph {
 
             for (int32_t i = 0; i < numSamples; i++) {
                 auto in = (*input++);
-                bool pos = in > 0.0f;
-                bool neg = in > 0.0f;
+                bool pos = in > 0.01f;
+                bool neg = in < -0.01f;
+                
                 if (mGate && neg) {
                     mGate = false;
                 }
-                else if (!mGate && pos) {
+                if (!mGate && pos) {
                     mGate = true;
                 }
+
                 *gate++ = mGate ? 1.0f : -1.0f;
-                *strength++ = l::math::abs(in) / (*maxInput);
+                *strength++ = in / (*maxInput);
             }
         }
     protected:

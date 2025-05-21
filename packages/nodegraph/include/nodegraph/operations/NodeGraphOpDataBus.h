@@ -125,6 +125,7 @@ namespace l::nodegraph {
             AddOutput2("Symbol", 16, OutputFlags(true, true));
             AddOutput2("Base", 16, OutputFlags(true, true));
             AddOutput("Interval Min", 1.0f);
+            AddOutput("Unixtime", 0.0f, 2);
             AddOutput("Decision", 0.0f, 2, false);
             AddOutput("Conviction", 0.0f, 2, false);
         }
