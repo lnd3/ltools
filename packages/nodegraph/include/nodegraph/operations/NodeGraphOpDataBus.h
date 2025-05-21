@@ -119,13 +119,15 @@ namespace l::nodegraph {
             AddInput2("Base", 16, InputFlags(false, true, false, true));
             AddInput("Interval Min", 2.0f, 1, 0.0f, 10.0f);
             AddInput("Unixtime", 0.0f, 2, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
+            AddInput("Indecision Level", 0.25f, 1, 0.0f, 0.5f, false, false);
             AddInput("Decision", 0.0f, 2, 1.0f, -1.0f, false, false);
             AddInput("Conviction", 0.0f, 2, 0.0f, 1.0f, false, false);
 
             AddOutput2("Symbol", 16, OutputFlags(true, true));
             AddOutput2("Base", 16, OutputFlags(true, true));
             AddOutput("Interval Min", 1.0f);
-            AddOutput("Unixtime", 0.0f, 2);
+            AddOutput("Candle Progress");
+            AddOutput("Indecision Level", 0.25f);
             AddOutput("Decision", 0.0f, 2, false);
             AddOutput("Conviction", 0.0f, 2, false);
         }

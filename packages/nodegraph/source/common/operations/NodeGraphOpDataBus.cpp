@@ -91,21 +91,25 @@ namespace l::nodegraph {
 
         auto now = l::string::get_unix_epoch();
 
-        auto symbolInput = inputs.at(0).GetText(mSize);
-        auto baseInput = inputs.at(1).GetText(mSize);
-        auto intervalMinInput = inputs.at(2).Get(1);
+        auto symbol = inputs.at(0).GetText(mSize);
+        auto base = inputs.at(1).GetText(mSize);
+        int32_t intervalMin = l::math::max2(static_cast<int32_t>(inputs.at(2).Get() + 0.5f), 1);
         auto unixtimeInput = (&inputs.at(3).Get(numSamples) + numSamples - 1);
-        auto decisionInput = (&inputs.at(4).Get(numSamples) + numSamples - 1);
-        auto convictionInput = (&inputs.at(5).Get(numSamples) + numSamples - 1);
+        float indecisionLevel = inputs.at(4).Get();
+        auto decisionInput = (&inputs.at(5).Get(numSamples) + numSamples - 1);
+        auto convictionInput = (&inputs.at(6).Get(numSamples) + numSamples - 1);
 
-        auto minuteStartedAt = 60 * (now / 60);
-        auto candlesAgo1 = minuteStartedAt - (intervalMinInput - 1) * 60;
+        int32_t candleStartedAt = (60 * intervalMin) * (now / (60 * intervalMin));
+        int32_t twoCandlesAgo = candleStartedAt - intervalMin * 60;
+        float candleProgress = (now - candleStartedAt) / static_cast<float>(intervalMin);
 
-        outputs.at(0).SetText(symbolInput);
-        outputs.at(1).SetText(baseInput);
-        outputs.at(2).Get(1) = intervalMinInput;
-        auto decisionOut = (&outputs.at(3).Get(mSize) + mSize - 1);
-        auto convictionOut = (&outputs.at(4).Get(mSize) + mSize - 1);
+        outputs.at(0).SetText(symbol);
+        outputs.at(1).SetText(base);
+        outputs.at(2).Get() = intervalMin;
+        outputs.at(3).Get() = candleProgress;
+        outputs.at(4).Get() = indecisionLevel;
+        auto decisionOut = (&outputs.at(5).Get(mSize) + mSize - 1);
+        auto convictionOut = (&outputs.at(6).Get(mSize) + mSize - 1);
 
         bool ontarget = false;
         int32_t j = 0;
@@ -114,14 +118,18 @@ namespace l::nodegraph {
             auto decision = *decisionInput--;
             auto conviction = *convictionInput--;
 
-            if (!ontarget && unixtime <= now && unixtime >= candlesAgo1) {
+            if (!ontarget && unixtime <= now && unixtime >= twoCandlesAgo) {
                 ontarget = true;
             }
-            if (ontarget) {
-                *decisionOut-- = decision;
-                *convictionOut-- = conviction;
-                j++;
+            if (!ontarget) {
+                decision = 0.0f;
+                conviction = 0.0f;
             }
+
+            *decisionOut-- = decision;
+            *convictionOut-- = conviction;
+            j++;
+
             if (j >= mSize) {
                 break;
             }
