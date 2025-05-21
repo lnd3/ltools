@@ -14,6 +14,7 @@
 #include "nodegraph/operations/NodeGraphOpSignal.h"
 #include "nodegraph/operations/NodeGraphOpDataBus.h"
 #include "nodegraph/operations/NodeGraphOpUI.h"
+#include "nodegraph/operations/NodeGraphOpDetector.h"
 
 #include <string>
 #include <vector>
@@ -71,19 +72,25 @@ namespace l::nodegraph {
             mName(name.empty() ? "Schema" : name)
         {
             if (useAllNodeTypes) {
+                RegisterAllOf("NodeGraph.Source");
+                RegisterAllOf("NodeGraph.Output");
                 RegisterAllOf("Cache");
+
                 RegisterAllOf("Numeric");
                 RegisterAllOf("Logic");
+
                 RegisterAllOf("Signal");
                 RegisterAllOf("Signal.Control");
                 RegisterAllOf("Signal.Filter");
                 RegisterAllOf("Signal.Effect");
-                RegisterAllOf("NodeGraph.Source");
-                RegisterAllOf("NodeGraph.Output");
+                RegisterAllOf("Signal.Detector");
+
                 RegisterAllOf("Device.Input");
                 RegisterAllOf("Device.Output");
+
                 RegisterAllOf("External.Input");
                 RegisterAllOf("External.Output");
+
                 RegisterAllOf("UI");
             }
         }

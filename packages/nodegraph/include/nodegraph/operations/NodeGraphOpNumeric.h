@@ -20,6 +20,7 @@
 #include <random>
 #include <unordered_set>
 
+
 namespace l::nodegraph {
 
     /*********************************************************************/
@@ -117,7 +118,7 @@ namespace l::nodegraph {
             auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
 
             for (int32_t i = 0; i < numSamples; i++) {
-                *output++ = - *input0++;
+                *output++ = -*input0++;
             }
         }
     };
@@ -149,9 +150,9 @@ namespace l::nodegraph {
                 *output++ = mOutput;
             }
         }
-		virtual void Reset() override {
-			mOutput = 0.0f;
-		}
+        virtual void Reset() override {
+            mOutput = 0.0f;
+        }
     protected:
         float mOutput = 0.0f;
     };
@@ -341,5 +342,5 @@ namespace l::nodegraph {
     protected:
         float mInputPrev = 0.0f;
     };
-}
 
+}

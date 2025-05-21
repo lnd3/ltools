@@ -109,12 +109,10 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalXor>(NodeType::Default);
             break;
         case 103:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalDetector>(NodeType::Default);
-            break;
-        case 104:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalFlipGate>(NodeType::Default);
             break;
 
+            // Filter nodes
         case 150:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterLowpass>(NodeType::Default);
             break;
@@ -267,6 +265,17 @@ namespace l::nodegraph {
         case 603:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphUICandleSticks>(NodeType::ExternalOutput);
             break;
+
+            // Signal detectors
+        case 650:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericDetector>(NodeType::Default);
+            break;
+        case 651:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericDifferenceDetector>(NodeType::Default);
+            break;
+
+
+
         //case 1000:
         //    node = mMainNodeGraph.NewGroup();
         //    break;
@@ -346,8 +355,7 @@ namespace l::nodegraph {
             RegisterNodeType("Logic", 100, "And");
             RegisterNodeType("Logic", 101, "Or");
             RegisterNodeType("Logic", 102, "Xor");
-            RegisterNodeType("Logic", 103, "Detector");
-            RegisterNodeType("Logic", 104, "Flip Gate");
+            RegisterNodeType("Logic", 103, "Flip Gate");
         }
         else if (typeGroup == "Signal") {
             RegisterNodeType("Signal", 350, "Sine");
@@ -375,6 +383,10 @@ namespace l::nodegraph {
             RegisterNodeType("Signal.Effect", 255, "Envelope Follower");
             RegisterNodeType("Signal.Effect", 256, "Saturator");
             RegisterNodeType("Signal.Effect", 257, "Trance Gate");
+        }
+        else if (typeGroup == "Signal.Detector") {
+            RegisterNodeType("Signal.Detector", 650, "Detector");
+            RegisterNodeType("Signal.Detector", 651, "Difference Detector");
         }
         else if (typeGroup == "NodeGraph.Source") {
             RegisterNodeType("NodeGraph.Source", 0, "Value [0,1]");
