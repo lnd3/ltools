@@ -105,11 +105,12 @@ namespace l::nodegraph {
 
         outputs.at(0).SetText(symbol);
         outputs.at(1).SetText(base);
-        outputs.at(2).Get() = intervalMin;
-        outputs.at(3).Get() = candleProgress;
-        outputs.at(4).Get() = indecisionLevel;
-        auto decisionOut = (&outputs.at(5).Get(mSize) + mSize - 1);
-        auto convictionOut = (&outputs.at(6).Get(mSize) + mSize - 1);
+        outputs.at(2).Get() = static_cast<float>(intervalMin);
+        auto unixtimeOut = (&outputs.at(3).Get(mSize) + mSize - 1);
+        outputs.at(4).Get() = candleProgress;
+        outputs.at(5).Get() = indecisionLevel;
+        auto decisionOut = (&outputs.at(6).Get(mSize) + mSize - 1);
+        auto convictionOut = (&outputs.at(7).Get(mSize) + mSize - 1);
 
         bool ontarget = false;
         int32_t j = 0;
@@ -122,10 +123,12 @@ namespace l::nodegraph {
                 ontarget = true;
             }
             if (!ontarget) {
+                unixtime = 0;
                 decision = 0.0f;
                 conviction = 0.0f;
             }
 
+            *unixtimeOut-- = l::math::algorithm::convert<float>(unixtime);
             *decisionOut-- = decision;
             *convictionOut-- = conviction;
             j++;
