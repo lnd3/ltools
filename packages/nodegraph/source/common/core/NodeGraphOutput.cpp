@@ -12,7 +12,7 @@ namespace l::nodegraph {
         }
     }
 
-    float& NodeGraphOutput::Get(int32_t minSize) {
+    float& NodeGraphOutput::Get(int32_t minSize, int32_t offset) {
         if (!mOutputBuf) {
             if (minSize <= 1) {
                 mOutputPolled = true;
@@ -33,7 +33,7 @@ namespace l::nodegraph {
             }
         }
         mOutputPolled = true;
-        return *mOutputBuf->data();
+        return *(mOutputBuf->data() + offset);
     }
 
     std::string_view NodeGraphOutput::GetText(int32_t minSize) {

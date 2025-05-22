@@ -90,8 +90,8 @@ namespace l::nodegraph {
         return mInputs.at(inputChannel).GetText(minSize);
     }
 
-    float& NodeGraphBase::GetOutput(int8_t outputChannel, int32_t minSize) {
-        return mOutputs.at(outputChannel).Get(minSize);
+    float& NodeGraphBase::GetOutput(int8_t outputChannel, int32_t minSize, int32_t offset) {
+        return mOutputs.at(outputChannel).Get(minSize, offset);
     }
 
     std::string_view NodeGraphBase::GetOutputText(int8_t outputChannel, int32_t minSize) {
@@ -276,14 +276,24 @@ namespace l::nodegraph {
     void NodeGraphOp::DefaultDataInit() {
         for (int8_t i = 0; i < static_cast<int8_t>(mDefaultInData.size()); i++) {
             auto& e = mDefaultInData.at(i);
-            mNode->SetInput(i, std::get<0>(e), std::get<1>(e));
-            mNode->SetInputBound(i, l::nodegraph::InputBound::INPUT_CUSTOM, std::get<2>(e), std::get<3>(e));
+            auto& inputFlags = std::get<4>(e);
+            if (inputFlags.mText) {
+                mNode->SetInput(i, "");
+            }
+            else {
+                mNode->SetInput(i, std::get<0>(e), std::get<1>(e));
+                mNode->SetInputBound(i, l::nodegraph::InputBound::INPUT_CUSTOM, std::get<2>(e), std::get<3>(e));
+            }
         }
         for (int8_t i = 0; i < static_cast<int8_t>(mDefaultOutData.size()); i++) {
             auto& e = mDefaultOutData.at(i);
-            auto output = &mNode->GetOutput(i, std::get<1>(e));
-            for (int32_t j = 0; j < std::get<1>(e);j++) {
-                *output++ = std::get<0>(e);
+            auto& outputFlags = std::get<2>(e);
+            if (outputFlags.mText) {
+                auto output = mNode->GetOutputText(i, 1);
+                *(const_cast<char*>(output.data())) = 0;
+            }
+            else {
+                mNode->SetDefaultOutput(i, std::get<0>(e), std::get<1>(e));
             }
         }
     }

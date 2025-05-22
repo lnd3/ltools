@@ -249,7 +249,7 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataBusDataOut>(NodeType::ExternalOutput, 6);
             break;
         case 551:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataPlaceTrade>(NodeType::ExternalOutput, 16);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataPlaceTrade>(NodeType::ExternalOutput);
             break;
 
             // UI elements (basically ui buttons/checkboxes on the ui using the schema containing the nodes)

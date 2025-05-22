@@ -111,32 +111,30 @@ namespace l::nodegraph {
     /*********************************************************************/
     class GraphDataPlaceTrade : public NodeGraphOp {
     public:
-        GraphDataPlaceTrade(NodeGraphBase* node, int32_t size = 16) :
-            NodeGraphOp(node, "Place Trade"),
-            mSize(size)
+        GraphDataPlaceTrade(NodeGraphBase* node) :
+            NodeGraphOp(node, "Place Trade")
         {
             AddInput2("Symbol", 16, InputFlags(false, true, false, true));
             AddInput2("Base", 16, InputFlags(false, true, false, true));
             AddInput("Interval Min", 2.0f, 1, 0.0f, 10.0f);
             AddInput("Unixtime", 0.0f, 2, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
-            AddInput("Indecision Level", 0.25f, 1, 0.0f, 0.5f, false, false);
             AddInput("Decision", 0.0f, 2, 1.0f, -1.0f, false, false);
             AddInput("Conviction", 0.0f, 2, 0.0f, 1.0f, false, false);
+            AddInput("Indecision Level", 0.05f, 1, 0.0f, 0.5f);
 
             AddOutput2("Symbol", 16, OutputFlags(true, true));
             AddOutput2("Base", 16, OutputFlags(true, true));
             AddOutput("Interval Min", 1.0f);
             AddOutput("Unixtime", 0.0f, 2, false);
-            AddOutput("Candle Progress");
-            AddOutput("Indecision Level", 0.25f);
             AddOutput("Decision", 0.0f, 2, false);
             AddOutput("Conviction", 0.0f, 2, false);
+            AddOutput("Candle Progress");
+            AddOutput("Indecision Level", 0.25f);
         }
         virtual ~GraphDataPlaceTrade() = default;
 
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
-        int32_t mSize = 16;
         std::vector<float> mTradeSignal;
     };
 

@@ -25,7 +25,7 @@ namespace l::nodegraph {
         bool mOutputPolled = false;
 
         void Clear();
-        float& Get(int32_t minSize = 1);
+        float& Get(int32_t minSize = 1, int32_t offset = 0);
         std::string_view GetText(int32_t minSize = 16);
         void SetText(std::string_view text);
         NodeDataIterator GetIterator(int32_t minSize, float lod = 1.0f);

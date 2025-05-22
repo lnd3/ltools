@@ -88,10 +88,14 @@ namespace l::nodegraph {
     }
 
     float& NodeGraphInput::Get(int32_t minSize, int32_t offset) {
+        if (minSize > 1 && (mInputType == InputType::INPUT_CONSTANT || mInputType == InputType::INPUT_VALUE)) {
+            mInputType = InputType::INPUT_ARRAY;
+            mInput.mInputFloatBuf = nullptr;
+        }
         switch (mInputType) {
         case InputType::INPUT_NODE:
             if (mInput.mInputNode != nullptr) {
-                return mInput.mInputNode->GetOutput(mInputFromOutputChannel, minSize);
+                return mInput.mInputNode->GetOutput(mInputFromOutputChannel, minSize, offset);
             }
             break;
         case InputType::INPUT_ARRAY:
