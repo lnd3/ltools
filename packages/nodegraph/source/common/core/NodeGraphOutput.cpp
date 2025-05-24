@@ -38,7 +38,7 @@ namespace l::nodegraph {
 
     std::string_view NodeGraphOutput::GetText(int32_t minSize) {
         auto out = reinterpret_cast<char*>(&Get(1 + minSize / 4));
-        return std::string_view(out, minSize);
+        return std::string_view(out);
     }
 
     void NodeGraphOutput::SetText(std::string_view text) {
