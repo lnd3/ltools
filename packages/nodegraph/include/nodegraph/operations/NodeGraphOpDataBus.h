@@ -104,6 +104,7 @@ namespace l::nodegraph {
 
         int32_t GetNumSamplesLeft();
     protected:
+        int32_t mUnixtimePrev = 0;
         int32_t mReadSamples = 0;
         int32_t mWrittenSamples = 0;
     };
@@ -116,7 +117,7 @@ namespace l::nodegraph {
         {
             AddInput2("Symbol", 16, InputFlags(false, true, false, true));
             AddInput2("Base", 16, InputFlags(false, true, false, true));
-            AddInput("Interval Min", 2.0f, 1, 0.0f, 10.0f);
+            AddInput("Interval Min", 1.0f, 1, 0.0f, 10.0f);
             AddInput("Unixtime", 0.0f, 2, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
             AddInput("Decision", 0.0f, 2, 1.0f, -1.0f, false, false);
             AddInput("Conviction", 0.0f, 2, 0.0f, 1.0f, false, false);
@@ -135,7 +136,8 @@ namespace l::nodegraph {
 
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
-        std::vector<float> mTradeSignal;
+        int32_t mUnixtimePrev = 0;
+        int32_t mWrittenSamples = 0;
     };
 
     /*********************************************************************/

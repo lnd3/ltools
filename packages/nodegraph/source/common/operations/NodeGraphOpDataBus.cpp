@@ -42,6 +42,7 @@ namespace l::nodegraph {
     void GraphDataOCHLVDataIn::InputHasChanged(int32_t numSamplesWritten) {
         mInputHasChanged = true;
         mWrittenSamples = numSamplesWritten;
+        mReadSamples = 0;
     }
 
     int32_t GraphDataOCHLVDataIn::GetNumSamplesLeft() {
@@ -49,14 +50,6 @@ namespace l::nodegraph {
     }
 
     void GraphDataOCHLVDataIn::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        auto in = &inputs.at(0).Get(numSamples * 6 + mReadSamples * 6, mReadSamples * 6);
-
-        float* out1 = &outputs.at(3).Get(numSamples);
-        float* out2 = &outputs.at(4).Get(numSamples);
-        float* out3 = &outputs.at(5).Get(numSamples);
-        float* out4 = &outputs.at(6).Get(numSamples);
-        float* out5 = &outputs.at(7).Get(numSamples);
-        float* out6 = &outputs.at(8).Get(numSamples);
 
         if (mInputHasChanged) {
             auto symbolInput = inputs.at(1).GetText(16);
@@ -69,25 +62,55 @@ namespace l::nodegraph {
             *intervalOut = math::max2(1.0f, static_cast<float>(kIntervals[intervalInput]));
         }
 
-        for (int32_t j = 0; j < numSamples; j++) {
-            auto offset = j * 6;
-            *out1++ = in[offset + 5]; // unixtime
-            *out2++ = in[offset + 0]; // open
-            *out3++ = in[offset + 1]; // close
-            *out4++ = in[offset + 2]; // high
-            *out5++ = in[offset + 3]; // low
-            *out6++ = in[offset + 4]; // volume
-        }
+        if (mReadSamples < mWrittenSamples) {
+            auto in = &inputs.at(0).Get(numSamples * 6 + mReadSamples * 6, mReadSamples * 6);
 
-        mReadSamples += numSamples;
+            float* out1 = &outputs.at(3).Get(numSamples);
+            float* out2 = &outputs.at(4).Get(numSamples);
+            float* out3 = &outputs.at(5).Get(numSamples);
+            float* out4 = &outputs.at(6).Get(numSamples);
+            float* out5 = &outputs.at(7).Get(numSamples);
+            float* out6 = &outputs.at(8).Get(numSamples);
+
+            auto intervalMinutes = static_cast<int32_t>(outputs.at(2).Get(1) + 0.5f);
+
+            for (int32_t j = 0; j < numSamples; j++) {
+                auto offset = j * 6;
+
+                auto unixtimef = in[offset + 5];
+                auto unixtime = l::math::algorithm::convert<int32_t>(unixtimef);
+                if (mUnixtimePrev == 0) {
+                    mUnixtimePrev = unixtime;
+                }
+                else if (unixtime != mUnixtimePrev + intervalMinutes * 60) {
+                    unixtime = 0;
+                    unixtimef = l::math::algorithm::convert<float>(unixtime);
+                }
+                else {
+                    mUnixtimePrev = unixtime;
+                }
+
+
+                *out1++ = unixtimef; // unixtime
+                *out2++ = in[offset + 0]; // open
+                *out3++ = in[offset + 1]; // close
+                *out4++ = in[offset + 2]; // high
+                *out5++ = in[offset + 3]; // low
+                *out6++ = in[offset + 4]; // volume
+            }
+
+            mReadSamples += numSamples;
+        }
 
         if (mReadSamples >= mWrittenSamples) {
             mInputHasChanged = false;
+            mReadSamples = 0;
+            mUnixtimePrev = 0;
         }
     }
 
     /*********************************************************************/
-    void GraphDataPlaceTrade::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphDataPlaceTrade::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
 
         auto now = l::string::get_unix_epoch();
 
@@ -111,14 +134,33 @@ namespace l::nodegraph {
         outputs.at(6).Get() = candleProgress;
         outputs.at(7).Get() = indecisionLevel;
 
-        for (int32_t i = 0; i < numSamples; i++) {
-            auto time = *unixtimeInput++;
-            auto decision = *decisionInput++;
-            auto conviction = *convictionInput++;
+        if (mWrittenSamples < numCacheSamples) {
+            for (int32_t i = 0; i < numSamples; i++) {
+                auto time = unixtimeInput[i];
+                auto unixtime = l::math::algorithm::convert<int32_t>(time);
 
-            *unixtimeOut++ = time;
-            *decisionOut++ = decision;
-            *convictionOut++ = conviction;
+                if (time == 0.0f || (mUnixtimePrev > 0 && unixtime < mUnixtimePrev)) {
+                    unixtimeOut[i] = 0.0f;
+                    decisionOut[i] = 0.0f;
+                    convictionOut[i] = 0.0f;
+                }
+                else {
+                    auto decision = decisionInput[i];
+                    auto conviction = convictionInput[i];
+
+                    unixtimeOut[i] = time;
+                    decisionOut[i] = decision;
+                    convictionOut[i] = conviction;
+
+                    mUnixtimePrev = unixtime;
+                }
+            }
+            mWrittenSamples += numSamples;
+        }
+
+        if (mWrittenSamples >= numCacheSamples) {
+            mWrittenSamples = 0;
+            mUnixtimePrev = 0;
         }
     }
 
@@ -137,6 +179,15 @@ namespace l::nodegraph {
     void GraphDataBuffer::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         if (numSamples > numCacheSamples) {
             numCacheSamples = numSamples;
+        }
+
+        if (!mInputHasChanged) {
+            for (auto& in : inputs) {
+                if (in.HasInputNode() && in.GetInputNode()->IsOutOfDate()) {
+                    mInputHasChanged = true;
+                    mWrittenSamples = 0;
+                }
+            }
         }
 
         if (mWrittenSamples < numCacheSamples) {
@@ -159,7 +210,7 @@ namespace l::nodegraph {
             mWrittenSamples += numSamples;
         }
 
-        if (mReadSamples < mWrittenSamples) {
+        if (mReadSamples < numCacheSamples) {
             float* output[4];
             for (int32_t j = 0; j < mChannels; j++) {
                 output[j] = &outputs.at(j).Get(numSamples);
@@ -176,8 +227,11 @@ namespace l::nodegraph {
             mReadSamples += numSamples;
         }
 
-        if (mReadSamples >= mWrittenSamples) {
+        if (mWrittenSamples >= numCacheSamples) {
             mInputHasChanged = false;
+        }
+        if (mReadSamples >= numCacheSamples) {
+            mReadSamples = 0;
         }
     }
 

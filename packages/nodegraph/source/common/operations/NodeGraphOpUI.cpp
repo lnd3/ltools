@@ -101,6 +101,15 @@ namespace l::nodegraph {
             numCacheSamples = numSamples;
         }
 
+        if (!mInputHasChanged) {
+            for (auto& in : inputs) {
+                if (in.HasInputNode() && in.GetInputNode()->IsOutOfDate()) {
+                    mInputHasChanged = true;
+                    mWrittenSamples = 0;
+                }
+            }
+        }
+
         float* out = &outputs.at(0).Get(numCacheSamples * mChannels);
 
         if (mWrittenSamples < numCacheSamples) {
@@ -119,6 +128,7 @@ namespace l::nodegraph {
         }
 
         if (mWrittenSamples >= numCacheSamples) {
+            mWrittenSamples = 0;
             mInputHasChanged = false;
         }
     }
