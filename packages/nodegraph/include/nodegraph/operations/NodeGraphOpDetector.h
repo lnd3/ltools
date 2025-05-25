@@ -43,7 +43,7 @@ namespace {
             mean = mean * factor;
 
             bool bullishLevel = in > mean;
-            bool bullishTip = in > mHistory.front();
+            bool bullishTip = in > mHistory.back();
             bool bullishMean = mean > meanPrev;
 
             meanPrev = mean;

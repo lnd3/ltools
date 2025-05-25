@@ -172,25 +172,25 @@ namespace l::nodegraph {
                 auto in = (*input++);
 
                 if (in > 0.0f) {
-                    mPosPulseIntervalCount.front() += 1.0f;
+                    mPosPulseIntervalCount.back() += 1.0f;
                 }
                 else {
-                    mNegPulseIntervalCount.front() += 1.0f;
+                    mNegPulseIntervalCount.back() += 1.0f;
                 }
 
                 bool reversal = (in > 0.0f) != (mValuePrev1 > 0.0f);
                 if (reversal && in > 0.0f) {
                     // positive pulse
                     mPosPulseIntervalCount.push_back(0.0f);
-                    if (mPosPulseIntervalCount.size() > maxFlips) {
-                        mPosPulseIntervalCount.resize(maxFlips);
+                    while (mPosPulseIntervalCount.size() > maxFlips) {
+                        mPosPulseIntervalCount.erase(mPosPulseIntervalCount.begin());
                     }
                 }
                 else if (reversal && in < 0.0f){
                     // negative pulse
                     mNegPulseIntervalCount.push_back(0.0f);
-                    if (mNegPulseIntervalCount.size() > maxFlips) {
-                        mNegPulseIntervalCount.resize(maxFlips);
+                    while (mNegPulseIntervalCount.size() > maxFlips) {
+                        mNegPulseIntervalCount.erase(mNegPulseIntervalCount.begin());
                     }
                 }
 
