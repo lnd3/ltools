@@ -119,7 +119,7 @@ namespace l::nodegraph {
                 auto in = (*input++);
                 bool pos = in > 0.01f;
                 bool neg = in < -0.01f;
-                
+
                 if (mGate && neg) {
                     mGate = false;
                 }
@@ -134,6 +134,89 @@ namespace l::nodegraph {
     protected:
         bool mGate = false;
         float mStrength = 0.0f;
+    };
+
+    /*********************************************************************/
+    class GraphLogicalFlipInfo: public NodeGraphOp {
+    public:
+        GraphLogicalFlipInfo(NodeGraphBase* node) :
+            NodeGraphOp(node, "Flip Info")
+        {
+            AddInput("In", 0.0f);
+            AddInput("Max Flips in info", 5.0f, 1, 1.0f, 100000.0f);
+
+            AddOutput("mean+");
+            AddOutput("mean-");
+            AddOutput("max+");
+            AddOutput("max-");
+        }
+
+        virtual ~GraphLogicalFlipInfo() = default;
+        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+            auto input = &inputs.at(0).Get(numSamples);
+            auto maxFlips = static_cast<int32_t>(inputs.at(1).Get() + 0.5f);
+
+            auto meanPosOut = &outputs.at(0).Get(numSamples);
+            auto meanNegOut = &outputs.at(1).Get(numSamples);
+            auto maxPosOut = &outputs.at(2).Get(numSamples);
+            auto maxNegOut = &outputs.at(3).Get(numSamples);
+
+            for (int32_t i = 0; i < numSamples; i++) {
+                auto in = (*input++);
+
+                if (in > 0.0f) {
+                    mPosPulseIntervalCount.front() += 1.0f;
+                }
+                else {
+                    mNegPulseIntervalCount.front() += 1.0f;
+                }
+
+                bool reversal = (in > 0.0f) != (mValuePrev1 > 0.0f);
+                if (reversal && in > 0.0f) {
+                    // positive pulse
+                    mPosPulseIntervalCount.push_back(0.0f);
+                    if (mPosPulseIntervalCount.size() != maxFlips) {
+                        mPosPulseIntervalCount.resize(maxFlips);
+                    }
+                }
+                else if (reversal && in < 0.0f){
+                    // negative pulse
+                    mNegPulseIntervalCount.push_back(0.0f);
+                    if (mNegPulseIntervalCount.size() != maxFlips) {
+                        mNegPulseIntervalCount.resize(maxFlips);
+                    }
+                }
+
+                mValuePrev1 = in;
+
+                float meanPos = 0.0f;
+                float meanNeg = 0.0f;
+                float maxPos = 0.0f;
+                float maxNeg = 0.0f;
+
+                for (auto count : mPosPulseIntervalCount) {
+                    if (count > maxPos) {
+                        maxPos = count;
+                    }
+                    meanPos += count;
+                }
+                for (auto count : mNegPulseIntervalCount) {
+                    if (count > maxNeg) {
+                        maxNeg = count;
+                    }
+                    meanNeg += count;
+                }
+
+                *meanPosOut++ = meanPos / static_cast<float>(mPosPulseIntervalCount.size());
+                *meanNegOut++ = meanNeg / static_cast<float>(mNegPulseIntervalCount.size());
+                *maxPosOut++ = maxPos;
+                *maxNegOut++ = maxNeg;
+            }
+        }
+    protected:
+        std::vector<float> mPosPulseIntervalCount;
+        std::vector<float> mNegPulseIntervalCount;
+        float mValuePrev1;
     };
 }
 
