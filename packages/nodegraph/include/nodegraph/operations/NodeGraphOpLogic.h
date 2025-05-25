@@ -154,12 +154,19 @@ namespace l::nodegraph {
         virtual ~GraphLogicalFlipInfo() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input = &inputs.at(0).Get(numSamples);
-            auto maxFlips = static_cast<int32_t>(inputs.at(1).Get() + 0.5f);
+            auto maxFlips = l::math::max2(static_cast<int32_t>(inputs.at(1).Get() + 0.5f), 1);
 
             auto meanPosOut = &outputs.at(0).Get(numSamples);
             auto meanNegOut = &outputs.at(1).Get(numSamples);
             auto maxPosOut = &outputs.at(2).Get(numSamples);
             auto maxNegOut = &outputs.at(3).Get(numSamples);
+
+            if (mPosPulseIntervalCount.empty()) {
+                mPosPulseIntervalCount.push_back(0);
+            }
+            if (mNegPulseIntervalCount.empty()) {
+                mNegPulseIntervalCount.push_back(0);
+            }
 
             for (int32_t i = 0; i < numSamples; i++) {
                 auto in = (*input++);
@@ -175,14 +182,14 @@ namespace l::nodegraph {
                 if (reversal && in > 0.0f) {
                     // positive pulse
                     mPosPulseIntervalCount.push_back(0.0f);
-                    if (mPosPulseIntervalCount.size() != maxFlips) {
+                    if (mPosPulseIntervalCount.size() > maxFlips) {
                         mPosPulseIntervalCount.resize(maxFlips);
                     }
                 }
                 else if (reversal && in < 0.0f){
                     // negative pulse
                     mNegPulseIntervalCount.push_back(0.0f);
-                    if (mNegPulseIntervalCount.size() != maxFlips) {
+                    if (mNegPulseIntervalCount.size() > maxFlips) {
                         mNegPulseIntervalCount.resize(maxFlips);
                     }
                 }

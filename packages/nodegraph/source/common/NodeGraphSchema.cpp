@@ -111,6 +111,9 @@ namespace l::nodegraph {
         case 103:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalFlipGate>(NodeType::Default);
             break;
+        case 104:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalFlipInfo>(NodeType::Default);
+            break;
 
             // Filter nodes
         case 150:
@@ -356,6 +359,7 @@ namespace l::nodegraph {
             RegisterNodeType("Logic", 101, "Or");
             RegisterNodeType("Logic", 102, "Xor");
             RegisterNodeType("Logic", 103, "Flip Gate");
+            RegisterNodeType("Logic", 104, "Flip Info");
         }
         else if (typeGroup == "Signal") {
             RegisterNodeType("Signal", 350, "Sine");
