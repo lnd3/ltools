@@ -51,6 +51,8 @@ namespace l::nodegraph {
 
     void DataIOOCHLVDataIn::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
 
+        int32_t stride = 11;
+
         if (mInputHasChanged) {
             auto symbolInput = inputs.at(1).GetText(16);
             auto baseInput = inputs.at(2).GetText(16);
@@ -63,21 +65,26 @@ namespace l::nodegraph {
         }
 
         if (mReadSamples < mWrittenSamples) {
-            auto in = &inputs.at(0).Get(numSamples * 6 + mReadSamples * 6, mReadSamples * 6);
+            auto in = &inputs.at(0).Get((numSamples + mReadSamples) * stride, mReadSamples * stride);
 
-            float* out1 = &outputs.at(3).Get(numSamples);
-            float* out2 = &outputs.at(4).Get(numSamples);
-            float* out3 = &outputs.at(5).Get(numSamples);
-            float* out4 = &outputs.at(6).Get(numSamples);
-            float* out5 = &outputs.at(7).Get(numSamples);
-            float* out6 = &outputs.at(8).Get(numSamples);
+            float* out1 = &outputs.at(3).Get(numSamples); // unixtime
+            float* out2 = &outputs.at(4).Get(numSamples); // open
+            float* out3 = &outputs.at(5).Get(numSamples); // close
+            float* out4 = &outputs.at(6).Get(numSamples); // high
+            float* out5 = &outputs.at(7).Get(numSamples); // low
+            float* out6 = &outputs.at(8).Get(numSamples); // symbol volume
+            float* out7 = &outputs.at(9).Get(numSamples); // quantity volume (usually usd or btc)
+            float* out8 = &outputs.at(10).Get(numSamples); // buy symbol volume
+            float* out9 = &outputs.at(11).Get(numSamples); // sell symbol volume
+            float* out10 = &outputs.at(12).Get(numSamples); // buy quantity volume (usually usd or btc)
+            float* out11 = &outputs.at(13).Get(numSamples); // sell quantity volume (usually usd or btc)
 
             auto intervalMinutes = static_cast<int32_t>(outputs.at(2).Get(1) + 0.5f);
 
             for (int32_t j = 0; j < numSamples; j++) {
-                auto offset = j * 6;
+                auto offset = j * stride;
 
-                auto unixtimef = in[offset + 5];
+                auto unixtimef = in[offset + 0];
                 auto unixtime = l::math::algorithm::convert<int32_t>(unixtimef);
                 if (mUnixtimePrev == 0) {
                     mUnixtimePrev = unixtime;
@@ -90,13 +97,17 @@ namespace l::nodegraph {
                     mUnixtimePrev = unixtime;
                 }
 
-
                 *out1++ = unixtimef; // unixtime
-                *out2++ = in[offset + 0]; // open
-                *out3++ = in[offset + 1]; // close
-                *out4++ = in[offset + 2]; // high
-                *out5++ = in[offset + 3]; // low
-                *out6++ = in[offset + 4]; // volume
+                *out2++ = in[offset + 1]; // open
+                *out3++ = in[offset + 2]; // close
+                *out4++ = in[offset + 3]; // high
+                *out5++ = in[offset + 4]; // low
+                *out6++ = in[offset + 5]; // volume
+                *out7++ = in[offset + 6]; // quantity
+                *out8++ = in[offset + 7]; // buy volume
+                *out9++ = in[offset + 5] - in[offset + 7]; // sell volume
+                *out10++ = in[offset + 9]; // buy quantity
+                *out11++ = in[offset + 6] - in[offset + 9]; // sell quantity
             }
 
             mReadSamples += numSamples;

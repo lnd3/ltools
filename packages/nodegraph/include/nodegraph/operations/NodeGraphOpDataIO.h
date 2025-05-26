@@ -95,6 +95,11 @@ namespace l::nodegraph {
             AddOutput("High", 0.0f, 2);
             AddOutput("Low", 0.0f, 2);
             AddOutput("Volume", 0.0f, 2);
+            AddOutput("Quantity", 0.0f, 2);
+            AddOutput("Buy Volume", 0.0f, 2);
+            AddOutput("Sell Volume", 0.0f, 2);
+            AddOutput("Buy Quantity", 0.0f, 2);
+            AddOutput("Sell Quantity", 0.0f, 2);
         }
         virtual ~DataIOOCHLVDataIn() = default;
 
