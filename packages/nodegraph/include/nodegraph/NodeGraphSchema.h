@@ -68,35 +68,13 @@ namespace l::nodegraph {
     class NodeGraphSchema {
     public:
 
-        using CustomCreateFunctionType = NodeGraphBase*(int32_t, NodeGraphGroup&);
+        using CustomCreateFunctionType = NodeGraphBase * (int32_t, NodeGraphGroup&);
 
         NodeGraphSchema(std::string name = "", bool useAllNodeTypes = false) :
             mName(name.empty() ? "Schema" : name)
         {
             if (useAllNodeTypes) {
-                RegisterAllOf("NodeGraph.Source");
-                RegisterAllOf("NodeGraph.Output");
-                RegisterAllOf("NodeGraph.Cache");
-
-                RegisterAllOf("Math.Aritmethic");
-                RegisterAllOf("Math.Logic");
-                RegisterAllOf("Math.Numerical");
-
-                RegisterAllOf("Fuzzy.Detector");
-                RegisterAllOf("Fuzzy.Filter");
-
-                RegisterAllOf("Signal.Generator");
-                RegisterAllOf("Signal.Control");
-                RegisterAllOf("Signal.Filter");
-                RegisterAllOf("Signal.Effect");
-
-                RegisterAllOf("DeviceIO.Input");
-                RegisterAllOf("DeviceIO.Output");
-
-                RegisterAllOf("DataIO.Input");
-                RegisterAllOf("DataIO.Output");
-
-                RegisterAllOf("UI");
+                RegisterAllOperators();
             }
         }
 
@@ -128,6 +106,8 @@ namespace l::nodegraph {
         NodeGraphSchema(const NodeGraphSchema& other) noexcept {
             *this = other;
         }
+
+        void RegisterAllOperators();
 
         void SetName(std::string_view name) {
             mName = name;

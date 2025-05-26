@@ -462,6 +462,32 @@ namespace l::nodegraph {
         }
     }
 
+    void NodeGraphSchema::RegisterAllOperators() {
+        RegisterAllOf("NodeGraph.Source");
+        RegisterAllOf("NodeGraph.Output");
+        RegisterAllOf("NodeGraph.Cache");
+
+        RegisterAllOf("Math.Aritmethic");
+        RegisterAllOf("Math.Logic");
+        RegisterAllOf("Math.Numerical");
+
+        RegisterAllOf("Fuzzy.Detector");
+        RegisterAllOf("Fuzzy.Filter");
+
+        RegisterAllOf("Signal.Generator");
+        RegisterAllOf("Signal.Control");
+        RegisterAllOf("Signal.Filter");
+        RegisterAllOf("Signal.Effect");
+
+        RegisterAllOf("DeviceIO.Input");
+        RegisterAllOf("DeviceIO.Output");
+
+        RegisterAllOf("DataIO.Input");
+        RegisterAllOf("DataIO.Output");
+
+        RegisterAllOf("UI");
+    }
+
     void NodeGraphSchema::Tick(int32_t tickCount, float delta) {
         mMainNodeGraph.Tick(tickCount, delta);
     }
