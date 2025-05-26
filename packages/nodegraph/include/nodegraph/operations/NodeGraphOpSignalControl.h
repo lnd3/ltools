@@ -22,13 +22,13 @@
 
 namespace l::nodegraph {
 
-    class GraphControlBase : public NodeGraphOp {
+    class SignalControlBase : public NodeGraphOp {
     public:
 
         static const int8_t mNumDefaultInputs = 6;
         static const int8_t mNumDefaultOutputs = 2;
 
-        GraphControlBase(NodeGraphBase* node, std::string_view name) :
+        SignalControlBase(NodeGraphBase* node, std::string_view name) :
             NodeGraphOp(node, name),
             mInputManager(*this)
         {
@@ -47,7 +47,7 @@ namespace l::nodegraph {
             mSamplesUntilUpdate = 0.0f;
         }
 
-        virtual ~GraphControlBase() = default;
+        virtual ~SignalControlBase() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void UpdateSignal(InputManager& inputManager) = 0;
         virtual std::pair<float, float> ProcessSignal(InputManager& inputManager) = 0;
@@ -60,16 +60,16 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphControlEnvelope : public GraphControlBase {
+    class SignalControlEnvelope : public SignalControlBase {
     public:
-        GraphControlEnvelope(NodeGraphBase* node) :
-            GraphControlBase(node, "Envelope")
+        SignalControlEnvelope(NodeGraphBase* node) :
+            SignalControlBase(node, "Envelope")
         {
             mInputManager.AddInput(InputIterationType::SAMPLED_RWA, AddInput("Freq"));
             mEnvelope = 0.0f;
         }
 
-        virtual ~GraphControlEnvelope() = default;
+        virtual ~SignalControlEnvelope() = default;
         virtual void UpdateSignal(InputManager& inputManager) override;
         virtual std::pair<float, float> ProcessSignal(InputManager& inputManager) override;
     protected:
@@ -86,13 +86,13 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphControlArpeggio: public NodeGraphOp {
+    class SignalControlArpeggio: public NodeGraphOp {
     public:
 
         const float gArpeggioUpdateRate = 16.0f;
 
         const static int32_t gPolyphony = 12;
-        GraphControlArpeggio(NodeGraphBase* node) :
+        SignalControlArpeggio(NodeGraphBase* node) :
             NodeGraphOp(node, "Arpeggio"),
             mInputManager(*this)
         {
@@ -113,7 +113,7 @@ namespace l::nodegraph {
             mGainTarget = 0.0f;
         }
 
-        virtual ~GraphControlArpeggio() = default;
+        virtual ~SignalControlArpeggio() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         void UpdateSignal(InputManager& inputManager);
     protected:

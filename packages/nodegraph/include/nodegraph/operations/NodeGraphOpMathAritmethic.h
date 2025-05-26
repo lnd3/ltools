@@ -24,9 +24,9 @@
 namespace l::nodegraph {
 
     /*********************************************************************/
-    class GraphNumericAdd : public NodeGraphOp {
+    class MathAritmethicAdd : public NodeGraphOp {
     public:
-        GraphNumericAdd(NodeGraphBase* node) :
+        MathAritmethicAdd(NodeGraphBase* node) :
             NodeGraphOp(node, "Add")
         {
             AddInput("In 1");
@@ -34,7 +34,7 @@ namespace l::nodegraph {
             AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
             AddOutput("Out");
         }
-        virtual ~GraphNumericAdd() = default;
+        virtual ~MathAritmethicAdd() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto input1 = inputs.at(1).GetIterator(numSamples);
@@ -49,9 +49,9 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphNumericMultiply : public NodeGraphOp {
+    class MathAritmethicMultiply : public NodeGraphOp {
     public:
-        GraphNumericMultiply(NodeGraphBase* node) :
+        MathAritmethicMultiply(NodeGraphBase* node) :
             NodeGraphOp(node, "Multiply")
         {
             AddInput("In 1");
@@ -60,7 +60,7 @@ namespace l::nodegraph {
             AddOutput("Out");
         }
 
-        virtual ~GraphNumericMultiply() = default;
+        virtual ~MathAritmethicMultiply() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto input1 = inputs.at(1).GetIterator(numSamples);
@@ -75,34 +75,39 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphNumericSubtract : public NodeGraphOp {
+    class MathAritmethicSubtract : public NodeGraphOp {
     public:
-        GraphNumericSubtract(NodeGraphBase* node) :
+        MathAritmethicSubtract(NodeGraphBase* node) :
             NodeGraphOp(node, "Subtract")
         {
-            AddInput("In 1");
-            AddInput("In 2");
+            AddInput("In1");
+            AddInput("In2");
             AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
             AddOutput("Out");
+            AddOutput("In1-In2");
+            AddOutput("In2-In1");
         }
-        virtual ~GraphNumericSubtract() = default;
+        virtual ~MathAritmethicSubtract() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto input1 = inputs.at(1).GetIterator(numSamples);
             auto lodExp = inputs.at(2).Get();
             auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
-            auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
+            auto output1 = outputs.at(0).GetIterator(numSamples, lodFactor);
+            auto output2 = outputs.at(1).GetIterator(numSamples, lodFactor);
 
             for (int32_t i = 0; i < numSamples; i++) {
-                *output++ = *input0++ - *input1++;
+                auto diff = *input0++ - *input1++;
+                *output1++ = diff;
+                *output2++ = -diff;
             }
         }
     };
 
     /*********************************************************************/
-    class GraphNumericNegate : public NodeGraphOp {
+    class MathAritmethicNegate : public NodeGraphOp {
     public:
-        GraphNumericNegate(NodeGraphBase* node) :
+        MathAritmethicNegate(NodeGraphBase* node) :
             NodeGraphOp(node, "Negate")
         {
             AddInput("In");
@@ -110,7 +115,7 @@ namespace l::nodegraph {
             AddOutput("Out");
         }
 
-        virtual ~GraphNumericNegate() = default;
+        virtual ~MathAritmethicNegate() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto lodExp = inputs.at(1).Get();
@@ -123,44 +128,41 @@ namespace l::nodegraph {
         }
     };
 
+
     /*********************************************************************/
-    class GraphNumericIntegral : public NodeGraphOp {
+    class MathAritmethicAbs : public NodeGraphOp {
     public:
-        GraphNumericIntegral(NodeGraphBase* node) :
-            NodeGraphOp(node, "Integral")
+        MathAritmethicAbs(NodeGraphBase* node) :
+            NodeGraphOp(node, "Abs")
         {
-            AddInput("In", 0.0f, 1);
-            AddInput("Friction", 1.0f, 1, 0.0f, 1.0f);
+            AddInput("In");
             AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddOutput("Out", 0.0f, 1);
+            AddOutput("abs(In)");
+            AddOutput("max(In,0)");
+            AddOutput("min(In,0)");
         }
 
-        virtual ~GraphNumericIntegral() = default;
+        virtual ~MathAritmethicAbs() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
-            auto friction = inputs.at(1).Get();
-            auto frictionFactor = l::math::pow(friction, 0.25f);
-            auto lodExp = inputs.at(2).Get();
+            auto lodExp = inputs.at(1).Get();
             auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
-            auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
+            auto output1 = outputs.at(0).GetIterator(numSamples, lodFactor);
+            auto output2 = outputs.at(1).GetIterator(numSamples, lodFactor);
+            auto output3 = outputs.at(2).GetIterator(numSamples, lodFactor);
 
             for (int32_t i = 0; i < numSamples; i++) {
-                mOutput += *input0++;
-                mOutput *= frictionFactor;
-                *output++ = mOutput;
+                *output1++ = l::math::abs(*input0++);
+                *output2++ = l::math::max2(*input0++, 0.0f);
+                *output3++ = l::math::min2(*input0++, 0.0f);
             }
         }
-        virtual void Reset() override {
-            mOutput = 0.0f;
-        }
-    protected:
-        float mOutput = 0.0f;
     };
 
     /*********************************************************************/
-    class GraphNumericMultiply3 : public NodeGraphOp {
+    class MathAritmethicMultiply3 : public NodeGraphOp {
     public:
-        GraphNumericMultiply3(NodeGraphBase* node) :
+        MathAritmethicMultiply3(NodeGraphBase* node) :
             NodeGraphOp(node, "Multiply3")
         {
             AddInput("In 1");
@@ -170,7 +172,7 @@ namespace l::nodegraph {
             AddOutput("Out");
         }
 
-        virtual ~GraphNumericMultiply3() = default;
+        virtual ~MathAritmethicMultiply3() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto input1 = inputs.at(1).GetIterator(numSamples);
@@ -186,9 +188,9 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphNumericMultiplyAndAdd : public NodeGraphOp {
+    class MathAritmethicMultiplyAndAdd : public NodeGraphOp {
     public:
-        GraphNumericMultiplyAndAdd(NodeGraphBase* node) :
+        MathAritmethicMultiplyAndAdd(NodeGraphBase* node) :
             NodeGraphOp(node, "Multiply & Add")
         {
             AddInput("In 1");
@@ -198,7 +200,7 @@ namespace l::nodegraph {
             AddOutput("Out");
         }
 
-        virtual ~GraphNumericMultiplyAndAdd() = default;
+        virtual ~MathAritmethicMultiplyAndAdd() = default;
         void virtual Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto input1 = inputs.at(1).GetIterator(numSamples);
@@ -214,9 +216,9 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphNumericRound : public NodeGraphOp {
+    class MathAritmethicRound : public NodeGraphOp {
     public:
-        GraphNumericRound(NodeGraphBase* node) :
+        MathAritmethicRound(NodeGraphBase* node) :
             NodeGraphOp(node, "Round")
         {
             AddInput("In");
@@ -224,7 +226,7 @@ namespace l::nodegraph {
             AddOutput("Out");
         }
 
-        virtual ~GraphNumericRound() = default;
+        virtual ~MathAritmethicRound() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             outputs.at(0).mOutput = l::math::round(inputs.at(0).Get());
 
@@ -237,110 +239,6 @@ namespace l::nodegraph {
                 *output++ = l::math::round(*input0++);
             }
         }
-    };
-
-    /*********************************************************************/
-    class GraphNumericDerivate : public NodeGraphOp {
-    public:
-        GraphNumericDerivate(NodeGraphBase* node) :
-            NodeGraphOp(node, "Derivate")
-        {
-            AddInput("In", 0.0f, 1);
-            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddOutput("Out", 0.0f, 1);
-        }
-
-        virtual ~GraphNumericDerivate() = default;
-        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input0 = inputs.at(0).GetIterator(numSamples);
-            auto lodExp = inputs.at(1).Get();
-            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
-            auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
-
-            for (int32_t i = 0; i < numSamples; i++) {
-                float input = *input0++;
-                float value = input - mInputPrev;
-                float divisor = l::math::abs(input) + l::math::abs(mInputPrev);
-                if (divisor > 0.0f) {
-                    value = 2.0f * value / divisor;
-                }
-                mInputPrev = input;
-                *output++ = value;
-            }
-        }
-    protected:
-        float mInputPrev = 0.0f;
-    };
-
-    /*********************************************************************/
-    class GraphNumericDiffNorm : public NodeGraphOp {
-    public:
-        GraphNumericDiffNorm(NodeGraphBase* node) :
-            NodeGraphOp(node, "Difference Normalized")
-        {
-            AddInput("In", 0.0f, 1);
-            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddOutput("Out", 0.0f, 1);
-        }
-
-        virtual ~GraphNumericDiffNorm() = default;
-        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input0 = inputs.at(0).GetIterator(numSamples);
-            auto lodExp = inputs.at(1).Get();
-            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
-            auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
-
-            for (int32_t i = 0; i < numSamples; i++) {
-                float input = *input0++;
-                float value = mInputPrev;
-                if (mInputPrev != 0.0f) {
-                    if (input > 0.0f && mInputPrev > 0.0f) {
-                        value = input / mInputPrev;
-                        value = value - 1.0f;
-                    }
-                    else if (input < 0.0f && mInputPrev < 0.0f) {
-                        value = input / mInputPrev;
-                        value = (value - 1.0f);
-                    }
-                    else {
-                        value = 0.0f;
-                    }
-                }
-                mInputPrev = input;
-                *output++ = value;
-            }
-        }
-    protected:
-        float mInputPrev = 0.0f;
-    };
-
-    /*********************************************************************/
-    class GraphNumericDiff : public NodeGraphOp {
-    public:
-        GraphNumericDiff(NodeGraphBase* node) :
-            NodeGraphOp(node, "Difference")
-        {
-            AddInput("In", 0.0f, 1);
-            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddOutput("Out", 0.0f, 1);
-        }
-
-        virtual ~GraphNumericDiff() = default;
-        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input0 = inputs.at(0).GetIterator(numSamples);
-            auto lodExp = inputs.at(1).Get();
-            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
-            auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
-
-            for (int32_t i = 0; i < numSamples; i++) {
-                float input = *input0++;
-                float value = input - mInputPrev;
-                mInputPrev = input;
-                *output++ = value;
-            }
-        }
-    protected:
-        float mInputPrev = 0.0f;
     };
 
 }

@@ -1,4 +1,4 @@
-#include "nodegraph/operations/NodeGraphOpDetector.h"
+#include "nodegraph/operations/NodeGraphOpMathNumerical.h"
 
 #include "logging/Log.h"
 #include "audio/AudioUtils.h"

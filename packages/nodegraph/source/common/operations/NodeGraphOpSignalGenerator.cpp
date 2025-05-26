@@ -1,4 +1,4 @@
-#include "nodegraph/operations/NodeGraphOpSignal.h"
+#include "nodegraph/operations/NodeGraphOpSignalGenerator.h"
 
 #include "logging/Log.h"
 #include "audio/AudioUtils.h"
@@ -10,7 +10,7 @@
 namespace l::nodegraph {
 
     /*********************************************************************/
-    void GraphSignalBase::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void SignalGeneratorBase::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         mInputManager.BatchUpdate(inputs, numSamples);
 
         float sync = mInputManager.GetValueNext(0);
@@ -48,7 +48,7 @@ namespace l::nodegraph {
 
     /*********************************************************************/
 
-    void GraphSignalSine2::DefaultDataInit() {
+    void SignalGeneratorSine2::DefaultDataInit() {
         NodeGraphOp::DefaultDataInit();
 
         mNode->SetInput(mNumDefaultInputs + 0, 0.0f);
@@ -58,12 +58,12 @@ namespace l::nodegraph {
         mUpdateRate = 16.0f;
     }
 
-    void GraphSignalSine2::Reset() {
+    void SignalGeneratorSine2::Reset() {
         mPhaseFmod = 0.0f;
         mPhase = 0.0f;
     }
 
-    void GraphSignalSine2::UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {
+    void SignalGeneratorSine2::UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {
         mFmod = mInputManager.GetValueNext(mNumDefaultInputs + 0);
         mPmod = mInputManager.GetValueNext(mNumDefaultInputs + 1);
         mFmod *= 0.25f * 0.25f * 0.5f * 44100.0f / l::math::max2(mFreq, 1.0f);
@@ -72,7 +72,7 @@ namespace l::nodegraph {
         mFilterPmod.SetConvergenceFactor().SetTarget(mPmod);
     }
 
-    float GraphSignalSine2::ProcessSignal(float deltaTime, float freq) {
+    float SignalGeneratorSine2::ProcessSignal(float deltaTime, float freq) {
         mPhaseFmod += deltaTime * freq;
         mPhaseFmod = l::math::mod(mPhaseFmod, 1.0f);
         float fmod = mFilterFmod.Next();
@@ -92,7 +92,7 @@ namespace l::nodegraph {
 
     /*********************************************************************/
 
-    void GraphSignalSaw2::ResetInput() {
+    void SignalGeneratorSaw2::ResetInput() {
         mNode->SetInput(mNumDefaultInputs + 0, 0.0f);
         mNode->SetInput(mNumDefaultInputs + 1, 0.0f);
         mNode->SetInputBound(mNumDefaultInputs + 0, InputBound::INPUT_0_TO_1);
@@ -100,11 +100,11 @@ namespace l::nodegraph {
         mUpdateRate = 16.0f;
     }
 
-    void GraphSignalSaw2::Reset() {
+    void SignalGeneratorSaw2::Reset() {
         InitSaw(&mSaw, 0.0, 0.0);
     }
 
-    void GraphSignalSaw2::UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {
+    void SignalGeneratorSaw2::UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {
         mAttenuation = mInputManager.GetValueNext(mNumDefaultInputs + 0);
         mCutoff = mInputManager.GetValueNext(mNumDefaultInputs + 1);
         mInputManager.SetUpdateRate(mNumDefaultInputs + 0, mUpdateRate);
@@ -115,12 +115,12 @@ namespace l::nodegraph {
         UpdateSaw(&mSaw, 0.00001f + 0.99999f * mAttenuation * mAttenuation * mAttenuation, mCutoff * mCutoff);
     }
 
-    float GraphSignalSaw2::ProcessSignal(float deltaTime, float freq) {
+    float SignalGeneratorSaw2::ProcessSignal(float deltaTime, float freq) {
         return static_cast<float>(ProcessSaw(&mSaw, static_cast<double>(deltaTime) * static_cast<double>(freq)));
     }
 
     /*********************************************************************/
-    void GraphSignalSine::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void SignalGeneratorSine::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float* output0 = &outputs.at(0).Get(numSamples);
 
         float updateRate = 256.0f;
@@ -194,7 +194,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphSignalSineFM::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void SignalGeneratorSineFM::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float* output0 = &outputs.at(0).Get(numSamples);
 
         float updateRate = 256.0f;
@@ -249,7 +249,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphSignalSineFM2::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void SignalGeneratorSineFM2::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float* output0 = &outputs.at(0).Get(numSamples);
 
         float updateRate = 256.0f;
@@ -309,7 +309,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphSignalSineFM3::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void SignalGeneratorSineFM3::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float* output0 = &outputs.at(0).Get(numSamples);
 
         float updateRate = 256.0f;
@@ -360,7 +360,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphSignalSaw::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void SignalGeneratorSaw::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float* output0 = &outputs.at(0).Get(numSamples);
 
         float updateRate = 256.0f;

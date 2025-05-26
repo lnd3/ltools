@@ -22,13 +22,13 @@
 
 namespace l::nodegraph {
 
-    class GraphEffectBase : public NodeGraphOp {
+    class SignalEffectBase : public NodeGraphOp {
     public:
 
         static const int8_t mNumDefaultInputs = 6;
         static const int8_t mNumDefaultOutputs = 2;
 
-        GraphEffectBase(NodeGraphBase* node, std::string_view name) :
+        SignalEffectBase(NodeGraphBase* node, std::string_view name) :
             NodeGraphOp(node, name)
         {
             AddInput("Sync", 0.0f, 1, 0.0f, 1.0f);
@@ -45,7 +45,7 @@ namespace l::nodegraph {
             mSamplesUntilUpdate = 0.0f;
         }
 
-        virtual ~GraphEffectBase() = default;
+        virtual ~SignalEffectBase() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override final;
         virtual void UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
         virtual std::pair<float, float> ProcessSignal(float value0, float value1) = 0;
@@ -60,7 +60,7 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphEffectReverb2 : public GraphEffectBase {
+    class SignalEffectReverb2 : public SignalEffectBase {
     public:
         uint32_t GetFramesPerRoomSize(float roomSize) {
             const float metersPerFrame = 334.0f / 44100.0f; // (m/s)/(frames/s) = m/frames;
@@ -71,8 +71,8 @@ namespace l::nodegraph {
 
         const float maxRoomSizeInMeters = 334.0f; // 334 meters large is 2 seconds of reverbation
 
-        GraphEffectReverb2(NodeGraphBase* node) :
-            GraphEffectBase(node, "Reverb 3") {
+        SignalEffectReverb2(NodeGraphBase* node) :
+            SignalEffectBase(node, "Reverb 3") {
 
             uint32_t bufferSize = GetFramesPerRoomSize(maxRoomSizeInMeters);
             mBuf0.resize(bufferSize);
@@ -88,7 +88,7 @@ namespace l::nodegraph {
             AddInput("Feedback 3", 0.9f, 1, 0.0f, 1.0f);
         }
 
-        virtual ~GraphEffectReverb2() = default;
+        virtual ~SignalEffectReverb2() = default;
         virtual void UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) override;
         virtual std::pair<float, float> ProcessSignal(float value0, float value1) override;
     protected:
@@ -110,7 +110,7 @@ namespace l::nodegraph {
     };
     /*********************************************************************/
 
-    class GraphEffectReverb1 : public NodeGraphOp {
+    class SignalEffectReverb1 : public NodeGraphOp {
     public:
         uint32_t GetFramesPerRoomSize(float roomSize) {
             const float metersPerFrame = 334.0f / 44100.0f; // (m/s)/(frames/s) = m/frames;
@@ -121,7 +121,7 @@ namespace l::nodegraph {
 
         const float maxRoomSizeInMeters = 334.0f; // 334 meters large is 2 seconds of reverbation
 
-        GraphEffectReverb1(NodeGraphBase * node) :
+        SignalEffectReverb1(NodeGraphBase * node) :
             NodeGraphOp(node, "Reverb 1") {
 
             uint32_t bufferSize = GetFramesPerRoomSize(maxRoomSizeInMeters);
@@ -144,7 +144,7 @@ namespace l::nodegraph {
             AddOutput("Out 2");
         }
             
-        virtual ~GraphEffectReverb1() = default;
+        virtual ~SignalEffectReverb1() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>&inputs, std::vector<NodeGraphOutput>&outputs) override;
     protected:
         bool mInited = false;
@@ -162,7 +162,7 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphEffectReverb3 : public NodeGraphOp {
+    class SignalEffectReverb3 : public NodeGraphOp {
     public:
         uint32_t GetFramesPerRoomSize(float roomSize) {
             const float metersPerFrame = 334.0f / 44100.0f; // (m/s)/(frames/s) = m/frames;
@@ -173,7 +173,7 @@ namespace l::nodegraph {
 
         const float maxRoomSizeInMeters = 334.0f; // 334 meters large is 2 seconds of reverbation
 
-        GraphEffectReverb3(NodeGraphBase* node) :
+        SignalEffectReverb3(NodeGraphBase* node) :
             NodeGraphOp(node, "Reverb 2")
         {
             uint32_t bufferSize = GetFramesPerRoomSize(maxRoomSizeInMeters);
@@ -201,7 +201,7 @@ namespace l::nodegraph {
             AddOutput("Tap 2");
         }
 
-        virtual ~GraphEffectReverb3() = default;
+        virtual ~SignalEffectReverb3() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         bool mInited = false;
@@ -222,10 +222,10 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphEffectLimiter : public GraphEffectBase {
+    class SignalEffectLimiter : public SignalEffectBase {
     public:
-        GraphEffectLimiter(NodeGraphBase* node) :
-            GraphEffectBase(node, "Limiter")
+        SignalEffectLimiter(NodeGraphBase* node) :
+            SignalEffectBase(node, "Limiter")
         {
             AddInput("Preamp", 1.0f, 1, 0.0f, 10.0f);
             AddInput("Limit", 0.95f, 1, 0.0f, 10.0f);
@@ -235,7 +235,7 @@ namespace l::nodegraph {
             mEnvelope = 0.0f;
         }
 
-        virtual ~GraphEffectLimiter() = default;
+        virtual ~SignalEffectLimiter() = default;
         virtual void UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) override;
         virtual std::pair<float, float> ProcessSignal(float value0, float value1) override;
     protected:
@@ -249,10 +249,10 @@ namespace l::nodegraph {
 
 
     /*********************************************************************/
-    class GraphEffectEnvelopeFollower : public GraphEffectBase {
+    class SignalEffectEnvelopeFollower : public SignalEffectBase {
     public:
-        GraphEffectEnvelopeFollower(NodeGraphBase* node) :
-            GraphEffectBase(node, "Envelope Follower")
+        SignalEffectEnvelopeFollower(NodeGraphBase* node) :
+            SignalEffectBase(node, "Envelope Follower")
         {
             AddInput("Attack", 5.0f, 1, 1.0f, 10000.0f);
             AddInput("Release", 100.0f, 1, 1.0f, 10000.0f);
@@ -261,7 +261,7 @@ namespace l::nodegraph {
             mEnvelope = 0.0f;
         }
 
-        virtual ~GraphEffectEnvelopeFollower() = default;
+        virtual ~SignalEffectEnvelopeFollower() = default;
         virtual void UpdateSignal(std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) override;
         virtual std::pair<float, float> ProcessSignal(float value0, float value1) override;
     protected:
@@ -271,9 +271,9 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphEffectSaturator : public NodeGraphOp {
+    class SignalEffectSaturator : public NodeGraphOp {
     public:
-        GraphEffectSaturator(NodeGraphBase* node) :
+        SignalEffectSaturator(NodeGraphBase* node) :
             NodeGraphOp(node, "Saturator")
         {
             AddInput("In 1");
@@ -289,14 +289,14 @@ namespace l::nodegraph {
             mEnvelope = 0.0f;
         }
 
-        virtual ~GraphEffectSaturator() = default;
+        virtual ~SignalEffectSaturator() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         float mEnvelope = 0.0f;
     };
 
     /*********************************************************************/
-    class GraphEffectTranceGate : public NodeGraphOp {
+    class SignalEffectTranceGate : public NodeGraphOp {
     public:
         const std::vector< std::vector<float>> patterns = {
             {0.7f, 0.0f, 0.7f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f },
@@ -311,7 +311,7 @@ namespace l::nodegraph {
             {1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f },
         };
 
-        GraphEffectTranceGate(NodeGraphBase* node) :
+        SignalEffectTranceGate(NodeGraphBase* node) :
             NodeGraphOp(node, "Trance Gate")
         {
             AddInput("In 1");
@@ -328,7 +328,7 @@ namespace l::nodegraph {
             mGateIndex = 0;
         }
 
-        virtual ~GraphEffectTranceGate() = default;
+        virtual ~SignalEffectTranceGate() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         float mSamplesUntilUpdate = 0.0f;

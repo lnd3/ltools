@@ -3,18 +3,20 @@
 #include "logging/LoggingAll.h"
 
 #include "nodegraph/core/NodeGraphGroup.h"
-#include "nodegraph/operations/NodeGraphOpControl.h"
-#include "nodegraph/operations/NodeGraphOpEffect.h"
-#include "nodegraph/operations/NodeGraphOpFilter.h"
-#include "nodegraph/operations/NodeGraphOpInput.h"
-#include "nodegraph/operations/NodeGraphOpLogic.h"
-#include "nodegraph/operations/NodeGraphOpNumeric.h"
-#include "nodegraph/operations/NodeGraphOpOutput.h"
+#include "nodegraph/operations/NodeGraphOpSignalGenerator.h"
+#include "nodegraph/operations/NodeGraphOpSignalControl.h"
+#include "nodegraph/operations/NodeGraphOpSignalEffect.h"
+#include "nodegraph/operations/NodeGraphOpSignalFilter.h"
+#include "nodegraph/operations/NodeGraphOpMathLogic.h"
+#include "nodegraph/operations/NodeGraphOpMathNumerical.h"
+#include "nodegraph/operations/NodeGraphOpMathAritmethic.h"
+#include "nodegraph/operations/NodeGraphOpFuzzyDetector.h"
+#include "nodegraph/operations/NodeGraphOpFuzzyFilter.h"
+#include "nodegraph/operations/NodeGraphOpDeviceIOInput.h"
+#include "nodegraph/operations/NodeGraphOpDeviceIOOutput.h"
 #include "nodegraph/operations/NodeGraphOpSource.h"
-#include "nodegraph/operations/NodeGraphOpSignal.h"
-#include "nodegraph/operations/NodeGraphOpDataBus.h"
+#include "nodegraph/operations/NodeGraphOpDataIO.h"
 #include "nodegraph/operations/NodeGraphOpUI.h"
-#include "nodegraph/operations/NodeGraphOpDetector.h"
 
 #include <string>
 #include <vector>
@@ -74,16 +76,19 @@ namespace l::nodegraph {
             if (useAllNodeTypes) {
                 RegisterAllOf("NodeGraph.Source");
                 RegisterAllOf("NodeGraph.Output");
-                RegisterAllOf("Cache");
+                RegisterAllOf("NodeGraph.Cache");
 
-                RegisterAllOf("Numeric");
-                RegisterAllOf("Logic");
+                RegisterAllOf("Math.Aritmethic");
+                RegisterAllOf("Math.Numerical");
+                RegisterAllOf("Math.Logic");
 
-                RegisterAllOf("Signal");
+                RegisterAllOf("Fuzzy.Detector");
+                RegisterAllOf("Fuzzy.Filter");
+
+                RegisterAllOf("Signal.Generator");
                 RegisterAllOf("Signal.Control");
                 RegisterAllOf("Signal.Filter");
                 RegisterAllOf("Signal.Effect");
-                RegisterAllOf("Signal.Detector");
 
                 RegisterAllOf("Device.Input");
                 RegisterAllOf("Device.Output");

@@ -23,13 +23,13 @@
 namespace l::nodegraph {
 
     /* Stateful filtering operations */
-    class GraphFilterBase : public NodeGraphOp {
+    class SignalFilterBase : public NodeGraphOp {
     public:
 
         static const int8_t mNumDefaultInputs = 4;
         static const int8_t mNumDefaultOutputs = 1;
 
-        GraphFilterBase(NodeGraphBase* node, std::string_view name) :
+        SignalFilterBase(NodeGraphBase* node, std::string_view name) :
             NodeGraphOp(node, name),
             mInputManager(*this)
         {
@@ -45,7 +45,7 @@ namespace l::nodegraph {
             AddOutput("Out", 0.0f);
         }
 
-        virtual ~GraphFilterBase() = default;
+        virtual ~SignalFilterBase() = default;
         virtual void DefaultDataInit() override;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override final;
 
@@ -60,12 +60,12 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphFilterLowpass : public GraphFilterBase {
+    class SignalFilterLowpass : public SignalFilterBase {
     public:
-        GraphFilterLowpass(NodeGraphBase* node) :
-            GraphFilterBase(node, "Lowpass")
+        SignalFilterLowpass(NodeGraphBase* node) :
+            SignalFilterBase(node, "Lowpass")
         {}
-        virtual ~GraphFilterLowpass() = default;
+        virtual ~SignalFilterLowpass() = default;
         virtual void Reset() override;
 
         virtual float ProcessSignal(float input, float cutoff, float resonance) override;
@@ -76,12 +76,12 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphFilterHighpass : public GraphFilterBase {
+    class SignalFilterHighpass : public SignalFilterBase {
     public:
-        GraphFilterHighpass(NodeGraphBase* node) :
-            GraphFilterBase(node, "Highpass")
+        SignalFilterHighpass(NodeGraphBase* node) :
+            SignalFilterBase(node, "Highpass")
         {}
-        virtual ~GraphFilterHighpass() = default;
+        virtual ~SignalFilterHighpass() = default;
 
         virtual void Reset() override;
 
@@ -94,15 +94,15 @@ namespace l::nodegraph {
 
     /*********************************************************************/
     // source: https://www.musicdsp.org/en/latest/Filters/23-state-variable.html
-    class GraphFilterChamberlain2pole : public GraphFilterBase {
+    class SignalFilterChamberlain2pole : public SignalFilterBase {
     public:
-        GraphFilterChamberlain2pole(NodeGraphBase* node) :
-            GraphFilterBase(node, "Chamberlin two-pole")
+        SignalFilterChamberlain2pole(NodeGraphBase* node) :
+            SignalFilterBase(node, "Chamberlin two-pole")
         {
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Mode"));
             mState.resize(4);
         }
-        virtual ~GraphFilterChamberlain2pole() = default;
+        virtual ~SignalFilterChamberlain2pole() = default;
 
         virtual void DefaultDataInit() override;
         virtual void Reset() override;
@@ -120,9 +120,9 @@ namespace l::nodegraph {
 
 
     /*********************************************************************/
-    class GraphFilterMovingAverage : public NodeGraphOp {
+    class SignalFilterMovingAverage : public NodeGraphOp {
     public:
-        GraphFilterMovingAverage(NodeGraphBase* node, float undefinedValue = 0.0f) :
+        SignalFilterMovingAverage(NodeGraphBase* node, float undefinedValue = 0.0f) :
             NodeGraphOp(node, "Moving Average"),
             mInputManager(*this),
             mUndefinedValue(undefinedValue)
@@ -139,7 +139,7 @@ namespace l::nodegraph {
             AddOutput("Out", 0.0f);
         }
 
-        virtual ~GraphFilterMovingAverage() = default;
+        virtual ~SignalFilterMovingAverage() = default;
         virtual void Reset() override;
 
         virtual void DefaultDataInit() override;

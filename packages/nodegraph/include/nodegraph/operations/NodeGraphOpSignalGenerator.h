@@ -22,13 +22,13 @@
 
 namespace l::nodegraph {
 
-    class GraphSignalBase : public NodeGraphOp {
+    class SignalGeneratorBase : public NodeGraphOp {
     public:
 
         static const int8_t mNumDefaultInputs = 5;
         static const int8_t mNumDefaultOutputs = 1;
 
-        GraphSignalBase(NodeGraphBase* node, std::string_view name) :
+        SignalGeneratorBase(NodeGraphBase* node, std::string_view name) :
             NodeGraphOp(node, name),
             mInputManager(*this)
         {
@@ -49,7 +49,7 @@ namespace l::nodegraph {
             ResetInput();
         }
 
-        virtual ~GraphSignalBase() = default;
+        virtual ~SignalGeneratorBase() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
 
         virtual void ResetInput() {};
@@ -70,16 +70,16 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphSignalSine2 : public GraphSignalBase {
+    class SignalGeneratorSine2 : public SignalGeneratorBase {
     public:
-        GraphSignalSine2(NodeGraphBase* node) :
-            GraphSignalBase(node, "Sine 2")
+        SignalGeneratorSine2(NodeGraphBase* node) :
+            SignalGeneratorBase(node, "Sine 2")
         {
             mInputManager.AddInput(InputIterationType::SAMPLED_RWA, AddInput("Fmod", 0.0f, 1, 0.0f, 1.0f));
             mInputManager.AddInput(InputIterationType::SAMPLED_RWA, AddInput("Phase", 0.0f, 1, 0.0f, 1.0f));
         }
 
-        virtual ~GraphSignalSine2() = default;
+        virtual ~SignalGeneratorSine2() = default;
         void DefaultDataInit() override;
         void Reset() override;
         void UpdateSignal(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
@@ -113,16 +113,16 @@ namespace l::nodegraph {
         double aN = 0.0;       /* former to the N */
     };
 
-    class GraphSignalSaw2 : public GraphSignalBase {
+    class SignalGeneratorSaw2 : public SignalGeneratorBase {
     public:
-        GraphSignalSaw2(NodeGraphBase* node) :
-            GraphSignalBase(node, "Saw 2")
+        SignalGeneratorSaw2(NodeGraphBase* node) :
+            SignalGeneratorBase(node, "Saw 2")
         {
             mInputManager.AddInput(InputIterationType::SAMPLED_RWA, AddInput("Attenuation", 0.0f, 1, 0.0f, 1.0f));
             mInputManager.AddInput(InputIterationType::SAMPLED_RWA, AddInput("Cutoff", 0.0f, 1, 0.0f, 1.0f));
         }
 
-        virtual ~GraphSignalSaw2() = default;
+        virtual ~SignalGeneratorSaw2() = default;
         void ResetInput() override;
         void Reset() override;
         void UpdateSignal(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
@@ -227,9 +227,9 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphSignalSine : public NodeGraphOp {
+    class SignalGeneratorSine : public NodeGraphOp {
     public:
-        GraphSignalSine(NodeGraphBase* node) :
+        SignalGeneratorSine(NodeGraphBase* node) :
             NodeGraphOp(node, "Sine")
         {
             AddInput("Freq", 0.0f, 1, 0.0f, 22050.0f);
@@ -246,7 +246,7 @@ namespace l::nodegraph {
             mVol = 0.0f;
         }
 
-        virtual ~GraphSignalSine() = default;
+        virtual ~SignalGeneratorSine() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         double mFreq = 0.0;
@@ -266,9 +266,9 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphSignalSineFM : public NodeGraphOp {
+    class SignalGeneratorSineFM : public NodeGraphOp {
     public:
-        GraphSignalSineFM(NodeGraphBase* node) :
+        SignalGeneratorSineFM(NodeGraphBase* node) :
             NodeGraphOp(node, "Sine FM 1")
         {
             AddInput("Freq", 0.0f, 1, 0.0f, 22050.0f);
@@ -285,7 +285,7 @@ namespace l::nodegraph {
             mPhase = 0.0f;
         }
 
-        virtual ~GraphSignalSineFM() = default;
+        virtual ~SignalGeneratorSineFM() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         double mFreq = 0.0;
@@ -310,9 +310,9 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphSignalSineFM2 : public NodeGraphOp {
+    class SignalGeneratorSineFM2 : public NodeGraphOp {
     public:
-        GraphSignalSineFM2(NodeGraphBase* node) :
+        SignalGeneratorSineFM2(NodeGraphBase* node) :
             NodeGraphOp(node, "Sine FM 2")
         {
             AddInput("Freq", 0.0f, 1, 0.0f, 22050.0f);
@@ -326,7 +326,7 @@ namespace l::nodegraph {
             mPhase = 0.0f;
         }
 
-        virtual ~GraphSignalSineFM2() = default;
+        virtual ~SignalGeneratorSineFM2() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         double mFreq = 0.0;
@@ -346,9 +346,9 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphSignalSineFM3 : public NodeGraphOp {
+    class SignalGeneratorSineFM3 : public NodeGraphOp {
     public:
-        GraphSignalSineFM3(NodeGraphBase* node) :
+        SignalGeneratorSineFM3(NodeGraphBase* node) :
             NodeGraphOp(node, "Sine FM 3")
         {
             AddInput("Freq", 0.0f, 1, 0.0f, 22050.0f);
@@ -361,7 +361,7 @@ namespace l::nodegraph {
             mPhase = 0.0f;
         }
 
-        virtual ~GraphSignalSineFM3() = default;
+        virtual ~SignalGeneratorSineFM3() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         double mFreq = 0.0;
@@ -378,9 +378,9 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphSignalSaw : public NodeGraphOp {
+    class SignalGeneratorSaw : public NodeGraphOp {
     public:
-        GraphSignalSaw(NodeGraphBase* node) :
+        SignalGeneratorSaw(NodeGraphBase* node) :
             NodeGraphOp(node, "Saw")
         {
             AddInput("Freq", 0.0f, 1, 0.0f, 22050.0f);
@@ -394,7 +394,7 @@ namespace l::nodegraph {
             mPhase = 0.0f;
         }
 
-        virtual ~GraphSignalSaw() = default;
+        virtual ~SignalGeneratorSaw() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         double mFreq = 0.0;

@@ -23,9 +23,9 @@
 namespace l::nodegraph {
 
     /*********************************************************************/
-    class GraphDataBusDataIn : public NodeGraphOp {
+    class DataIODataIn : public NodeGraphOp {
     public:
-        GraphDataBusDataIn(NodeGraphBase* node, int32_t inputDataStride) :
+        DataIODataIn(NodeGraphBase* node, int32_t inputDataStride) :
             NodeGraphOp(node, "Bus Data In x6"),
             mInputManager(*this),
             mInputDataStride(inputDataStride)
@@ -36,7 +36,7 @@ namespace l::nodegraph {
                 AddOutput("Out " + std::to_string(i), 0.0f, 2);
             }
         }
-        virtual ~GraphDataBusDataIn() = default;
+        virtual ~DataIODataIn() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         InputManager mInputManager;
@@ -47,9 +47,9 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphDataBusDataOut : public NodeGraphOp {
+    class DataIODataOut : public NodeGraphOp {
     public:
-        GraphDataBusDataOut(NodeGraphBase* node, int32_t outputDataStride) :
+        DataIODataOut(NodeGraphBase* node, int32_t outputDataStride) :
             NodeGraphOp(node, "Bus Data Out x6"),
             mInputManager(*this),
             mOutputDataStride(outputDataStride)
@@ -59,7 +59,7 @@ namespace l::nodegraph {
             }
             AddOutput("Bus Data", 0.0f, 2);
         }
-        virtual ~GraphDataBusDataOut() = default;
+        virtual ~DataIODataOut() = default;
 
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
@@ -71,12 +71,12 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphDataOCHLVDataIn : public NodeGraphOp {
+    class DataIOOCHLVDataIn : public NodeGraphOp {
     public:
         static const int32_t kIntervalCount = 10;
         const int32_t kIntervals[kIntervalCount] = { 1, 5, 15, 30, 60, 120, 240, 720, 1440, 10080 };
 
-        GraphDataOCHLVDataIn(NodeGraphBase* node) :
+        DataIOOCHLVDataIn(NodeGraphBase* node) :
             NodeGraphOp(node, "OCHLV Data In")
         {
             AddInput("In", 0.0f, 2, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
@@ -96,7 +96,7 @@ namespace l::nodegraph {
             AddOutput("Low", 0.0f, 2);
             AddOutput("Volume", 0.0f, 2);
         }
-        virtual ~GraphDataOCHLVDataIn() = default;
+        virtual ~DataIOOCHLVDataIn() = default;
 
         virtual void InputHasChanged(int32_t numSamplesWritten) override;
         virtual void Reset() override;
@@ -110,9 +110,9 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphDataPlaceTrade : public NodeGraphOp {
+    class DataIOPlaceTrade : public NodeGraphOp {
     public:
-        GraphDataPlaceTrade(NodeGraphBase* node) :
+        DataIOPlaceTrade(NodeGraphBase* node) :
             NodeGraphOp(node, "Place Trade")
         {
             AddInput2("Symbol", 16, InputFlags(false, true, false, true));
@@ -132,7 +132,7 @@ namespace l::nodegraph {
             AddOutput("Candle Progress");
             AddOutput("Indecision Level", 0.25f);
         }
-        virtual ~GraphDataPlaceTrade() = default;
+        virtual ~DataIOPlaceTrade() = default;
 
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
@@ -141,9 +141,9 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphDataBuffer : public NodeGraphOp {
+    class GraphCache : public NodeGraphOp {
     public:
-        GraphDataBuffer(NodeGraphBase* node, int32_t channels) :
+        GraphCache(NodeGraphBase* node, int32_t channels) :
             NodeGraphOp(node, "Data Buffer"),
             mChannels(channels)
         {
@@ -155,7 +155,7 @@ namespace l::nodegraph {
                 AddOutput("Out " + id);
             }
         }
-        virtual ~GraphDataBuffer() = default;
+        virtual ~GraphCache() = default;
 
         virtual void Reset() override;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;

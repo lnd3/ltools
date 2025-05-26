@@ -56,7 +56,7 @@ namespace {
 
     protected:
         std::vector<float> mHistory;
-        float meanPrev;
+        float meanPrev = 0.0f;
     };
 
     class ReversalDetector {
@@ -147,10 +147,10 @@ namespace {
 namespace l::nodegraph {
 
     /*********************************************************************/
-    class GraphNumericDetector : public NodeGraphOp {
+    class FuzzyDetectorTrend : public NodeGraphOp {
     public:
-        GraphNumericDetector(NodeGraphBase* node) :
-            NodeGraphOp(node, "Detector")
+        FuzzyDetectorTrend(NodeGraphBase* node) :
+            NodeGraphOp(node, "Trend Detector")
         {
             AddInput("In", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
             AddInput("Trend Samples", 6.0f, 1, 1.0f, 50.0f, false, false);
@@ -161,7 +161,7 @@ namespace l::nodegraph {
             AddOutput("Sum", 0.0f);
         }
 
-        virtual ~GraphNumericDetector() = default;
+        virtual ~FuzzyDetectorTrend() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input1 = inputs.at(0).GetIterator(numSamples);
             auto numTrendSamples = static_cast<int32_t>(l::math::max2(inputs.at(1).Get(), 1.0f));
@@ -193,10 +193,10 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphNumericDifferenceDetector : public NodeGraphOp {
+    class FuzzyDetectorTrendDiff : public NodeGraphOp {
     public:
-        GraphNumericDifferenceDetector(NodeGraphBase* node) :
-            NodeGraphOp(node, "Differential Detector")
+        FuzzyDetectorTrendDiff(NodeGraphBase* node) :
+            NodeGraphOp(node, "Trend Difference Detector")
         {
             AddInput("In 1", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
             AddInput("In 2", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
@@ -208,7 +208,7 @@ namespace l::nodegraph {
             AddOutput("Sum", 0.0f);
         }
 
-        virtual ~GraphNumericDifferenceDetector() = default;
+        virtual ~FuzzyDetectorTrendDiff() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto inputHifi = inputs.at(0).GetIterator(numSamples);
             auto inputLofi = inputs.at(1).GetIterator(numSamples);

@@ -1,4 +1,4 @@
-#include "nodegraph/operations/NodeGraphOpDataBus.h"
+#include "nodegraph/operations/NodeGraphOpDataIO.h"
 
 #include "logging/Log.h"
 #include "audio/AudioUtils.h"
@@ -10,7 +10,7 @@
 namespace l::nodegraph {
 
     /*********************************************************************/
-    void GraphDataBusDataIn::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void DataIODataIn::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         mInputManager.BatchUpdate(inputs, mInputDataStride * numSamples);
 
         float* input = mInputManager.GetArray(0);
@@ -23,7 +23,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphDataBusDataOut::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void DataIODataOut::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         mInputManager.BatchUpdate(inputs, numSamples);
 
         float* output = &outputs.at(0).Get(mOutputDataStride * numSamples);
@@ -35,21 +35,21 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphDataOCHLVDataIn::Reset() {
+    void DataIOOCHLVDataIn::Reset() {
         mReadSamples = 0;
     }
 
-    void GraphDataOCHLVDataIn::InputHasChanged(int32_t numSamplesWritten) {
+    void DataIOOCHLVDataIn::InputHasChanged(int32_t numSamplesWritten) {
         mInputHasChanged = true;
         mWrittenSamples = numSamplesWritten;
         mReadSamples = 0;
     }
 
-    int32_t GraphDataOCHLVDataIn::GetNumSamplesLeft() {
+    int32_t DataIOOCHLVDataIn::GetNumSamplesLeft() {
         return mWrittenSamples - mReadSamples;
     }
 
-    void GraphDataOCHLVDataIn::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void DataIOOCHLVDataIn::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
 
         if (mInputHasChanged) {
             auto symbolInput = inputs.at(1).GetText(16);
@@ -110,7 +110,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphDataPlaceTrade::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void DataIOPlaceTrade::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
 
         auto now = l::string::get_unix_epoch();
 
@@ -165,7 +165,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphDataBuffer::Reset() {
+    void GraphCache::Reset() {
         mReadSamples = 0;
         mNode->ForEachInput(
             [&](NodeGraphInput& input) {
@@ -176,7 +176,7 @@ namespace l::nodegraph {
             });
     }
 
-    void GraphDataBuffer::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphCache::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         if (numSamples > numCacheSamples) {
             numCacheSamples = numSamples;
         }

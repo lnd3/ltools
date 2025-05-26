@@ -1,4 +1,4 @@
-#include "nodegraph/operations/NodeGraphOpControl.h"
+#include "nodegraph/operations/NodeGraphOpSignalControl.h"
 
 #include "logging/Log.h"
 #include "audio/AudioUtils.h"
@@ -11,7 +11,7 @@
 namespace l::nodegraph {
     /*********************************************************************/
 
-    void GraphControlBase::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void SignalControlBase::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         mInputManager.BatchUpdate(inputs, numSamples);
 
         float sync = mInputManager.GetValueNext(0);
@@ -45,7 +45,7 @@ namespace l::nodegraph {
 
     /*********************************************************************/
 
-    void GraphControlEnvelope::UpdateSignal(InputManager&) {
+    void SignalControlEnvelope::UpdateSignal(InputManager&) {
 
         mFreqTarget = mInputManager.GetValueNext(6);
         if (mFreqTarget != 0.0f) {
@@ -61,7 +61,7 @@ namespace l::nodegraph {
         mInputManager.SetUpdateRate(101, 1.0f);
     }
 
-    std::pair<float, float> GraphControlEnvelope::ProcessSignal(InputManager&) {
+    std::pair<float, float> SignalControlEnvelope::ProcessSignal(InputManager&) {
         float velocity = mInputManager.GetValueNext(2);
         float freq = 0.0f;
 
@@ -122,7 +122,7 @@ namespace l::nodegraph {
 
     /*********************************************************************/
 
-    void GraphControlArpeggio::UpdateSignal(InputManager&) {
+    void SignalControlArpeggio::UpdateSignal(InputManager&) {
         float attack = mInputManager.GetValue(4);
         float release = mInputManager.GetValue(5);
         float attackFactor = l::audio::GetRWAFactorFromMS(attack, 0.001f, gArpeggioUpdateRate);
@@ -169,7 +169,7 @@ namespace l::nodegraph {
         }
     }
 
-    void GraphControlArpeggio::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void SignalControlArpeggio::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         mInputManager.BatchUpdate(inputs, numSamples);
         float sync = mInputManager.GetValueNext(0);
         float bpm = mInputManager.GetValueNext(1);

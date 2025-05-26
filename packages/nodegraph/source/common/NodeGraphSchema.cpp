@@ -42,7 +42,9 @@ namespace l::nodegraph {
 
     int32_t NodeGraphSchema::NewNode(int32_t typeId) {
         l::nodegraph::NodeGraphBase* node = nullptr;
+
         switch (typeId) {
+
             // Data sources from within the node graph (basically constants)
         case 0:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(NodeType::Default, 0);
@@ -63,196 +65,215 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceText>(NodeType::Default);
             break;
 
-            // Numeric operators
-        case 50:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericAdd>(NodeType::Default);
-            break;
-        case 51:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericSubtract>(NodeType::Default);
-            break;
-        case 52:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericNegate>(NodeType::Default);
-            break;
-        case 53:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericMultiply>(NodeType::Default);
-            break;
-        case 54:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericIntegral>(NodeType::Default);
-            break;
-        case 55:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericMultiply3>(NodeType::Default);
-            break;
-        case 56:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericMultiplyAndAdd>(NodeType::Default);
-            break;
-        case 57:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericRound>(NodeType::Default);
-            break;
-        case 58:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericDerivate>(NodeType::Default);
-            break;
-        case 59:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericDiffNorm>(NodeType::Default);
-            break;
-        case 60:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericDiff>(NodeType::Default);
-            break;
-
-            // Logical operators
-        case 100:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalAnd>(NodeType::Default);
-            break;
-        case 101:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalOr>(NodeType::Default);
-            break;
-        case 102:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalXor>(NodeType::Default);
-            break;
-        case 103:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalFlipGate>(NodeType::Default);
-            break;
-        case 104:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphLogicalFlipInfo>(NodeType::Default);
-            break;
-
-            // Filter nodes
-        case 150:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterLowpass>(NodeType::Default);
-            break;
-        case 151:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterHighpass>(NodeType::Default);
-            break;
-        case 152:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterChamberlain2pole>(NodeType::Default);
-            break;
-        case 153:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphFilterMovingAverage>(NodeType::Default);
-            break;
-
             // Internal output like NG chart or debug view
-        case 200:
+        case 20:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputDebug>(NodeType::ExternalOutput);
             break;
-        case 201:
+        case 21:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputPlot>(NodeType::ExternalVisualOutput, 100);
             break;
 
-            // External outputs like speakers or external data sinks
+            // Internal cache (basically bulk data input/output from external and to external)
+        case 40:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphCache>(NodeType::Default, 1);
+            break;
+        case 41:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphCache>(NodeType::Default, 2);
+            break;
+        case 42:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphCache>(NodeType::Default, 3);
+            break;
+        case 43:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphCache>(NodeType::Default, 4);
+            break;
+
+
+
+            // Math aritmethic operators
+        case 100:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicAdd>(NodeType::Default);
+            break;
+        case 101:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicSubtract>(NodeType::Default);
+            break;
+        case 102:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicMultiply>(NodeType::Default);
+            break;
+        case 103:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicNegate>(NodeType::Default);
+            break;
+        case 104:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicAbs>(NodeType::Default);
+            break;
+        case 105:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicMultiply3>(NodeType::Default);
+            break;
+        case 106:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicMultiplyAndAdd>(NodeType::Default);
+            break;
+        case 107:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicRound>(NodeType::Default);
+            break;
+
+            // Math logical operators
+        case 121:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathLogicalAnd>(NodeType::Default);
+            break;
+        case 122:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathLogicalOr>(NodeType::Default);
+            break;
+        case 123:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathLogicalXor>(NodeType::Default);
+            break;
+
+            // Math numerical
+        case 140:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalIntegral>(NodeType::Default);
+            break;
+        case 141:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalDerivate>(NodeType::Default);
+            break;
+        case 142:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalDiffNorm>(NodeType::Default);
+            break;
+        case 143:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalDiff>(NodeType::Default);
+            break;
+
+            // Fuzzy signal detectors
+        case 200:
+            node = mMainNodeGraph.NewNode<l::nodegraph::FuzzyDetectorTrend>(NodeType::Default);
+            break;
+        case 201:
+            node = mMainNodeGraph.NewNode<l::nodegraph::FuzzyDetectorTrendDiff>(NodeType::Default);
+            break;
+
+            // Fuzzy signal filter
         case 220:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputPCBeep>(NodeType::ExternalOutput);
+            node = mMainNodeGraph.NewNode<l::nodegraph::FuzzyFilterFlipGate>(NodeType::Default);
             break;
         case 221:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputSpeaker>(NodeType::ExternalOutput, mAudioOutput);
-            break;
-
-            // Signal filtering and effects
-        case 251:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectReverb1>(NodeType::Default);
-            break;
-        case 252:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectReverb2>(NodeType::Default);
-            break;
-        case 254:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectLimiter>(NodeType::Default);
-            break;
-        case 255:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectEnvelopeFollower>(NodeType::Default);
-            break;
-        case 256:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectSaturator>(NodeType::Default);
-            break;
-        case 257:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphEffectTranceGate>(NodeType::Default);
-            break;
-
-            // System device inputs
-        case 300:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputKeyboardPiano>(NodeType::Default, mKeyState);
-            break;
-        case 301:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiKeyboard>(NodeType::Default, mMidiManager);
-            break;
-        case 302:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiKnobs>(NodeType::Default, mMidiManager);
-            break;
-        case 303:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(NodeType::Default, mMidiManager, 0);
-            break;
-        case 304:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(NodeType::Default, mMidiManager, 1);
-            break;
-        case 305:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(NodeType::Default, mMidiManager, 2);
-            break;
-        case 306:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(NodeType::Default, mMidiManager, 3);
-            break;
-        case 307:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(NodeType::Default, mMidiManager, 4);
-            break;
-        case 308:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMic>(NodeType::Default, mAudioOutput);
+            node = mMainNodeGraph.NewNode<l::nodegraph::FuzzyFilterPulseInfo>(NodeType::Default);
             break;
 
             // Signal generators (basically audio composition)
-        case 350:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSine>(NodeType::Default);
+        case 300:
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalGeneratorSine>(NodeType::Default);
             break;
-        case 351:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSineFM>(NodeType::Default);
+        case 301:
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalGeneratorSineFM>(NodeType::Default);
             break;
-        case 352:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSineFM2>(NodeType::Default);
+        case 302:
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalGeneratorSineFM2>(NodeType::Default);
             break;
-        case 353:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSineFM3>(NodeType::Default);
+        case 303:
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalGeneratorSineFM3>(NodeType::Default);
             break;
-        case 354:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSaw>(NodeType::Default);
+        case 304:
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalGeneratorSaw>(NodeType::Default);
             break;
-        case 355:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSine2>(NodeType::Default);
+        case 305:
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalGeneratorSine2>(NodeType::Default);
             break;
-        case 356:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSignalSaw2>(NodeType::Default);
+        case 306:
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalGeneratorSaw2>(NodeType::Default);
             break;
 
             // Signal controllers (basically audio shaping)
+        case 320:
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalControlEnvelope>(NodeType::Default);
+            break;
+        case 321:
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalControlArpeggio>(NodeType::Default);
+            break;
+
+            // Signal filter
+        case 340:
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalFilterLowpass>(NodeType::Default);
+            break;
+        case 341:
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalFilterHighpass>(NodeType::Default);
+            break;
+        case 342:
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalFilterChamberlain2pole>(NodeType::Default);
+            break;
+        case 343:
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalFilterMovingAverage>(NodeType::Default);
+            break;
+
+            // Signal effects
+        case 360:
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalEffectReverb1>(NodeType::Default);
+            break;
+        case 361:
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalEffectReverb2>(NodeType::Default);
+            break;
+        case 362:
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalEffectLimiter>(NodeType::Default);
+            break;
+        case 363:
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalEffectEnvelopeFollower>(NodeType::Default);
+            break;
+        case 364:
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalEffectSaturator>(NodeType::Default);
+            break;
+        case 365:
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalEffectTranceGate>(NodeType::Default);
+            break;
+
+
+            // DeviceIO (midi, keyboard piano)
         case 400:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphControlEnvelope>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputKeyboardPiano>(NodeType::Default, mKeyState);
             break;
         case 401:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphControlArpeggio>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiKeyboard>(NodeType::Default, mMidiManager);
+            break;
+        case 402:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiKnobs>(NodeType::Default, mMidiManager);
+            break;
+        case 403:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(NodeType::Default, mMidiManager, 0);
+            break;
+        case 404:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(NodeType::Default, mMidiManager, 1);
+            break;
+        case 405:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(NodeType::Default, mMidiManager, 2);
+            break;
+        case 406:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(NodeType::Default, mMidiManager, 3);
+            break;
+        case 407:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(NodeType::Default, mMidiManager, 4);
+            break;
+        case 408:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMic>(NodeType::Default, mAudioOutput);
             break;
 
-            // Bus io (basically bulk data input/output from external and to external)
-        case 450:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataBuffer>(NodeType::Default, 1);
+
+            // DeviceIO (like speakers or external data sinks)
+        case 420:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputPCBeep>(NodeType::ExternalOutput);
             break;
-        case 451:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataBuffer>(NodeType::Default, 2);
-            break;
-        case 452:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataBuffer>(NodeType::Default, 3);
-            break;
-        case 453:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataBuffer>(NodeType::Default, 4);
+        case 421:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputSpeaker>(NodeType::ExternalOutput, mAudioOutput);
             break;
 
-            // External input
+            // DataIO input
         case 500:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataBusDataIn>(NodeType::ExternalInput, 6);
+            node = mMainNodeGraph.NewNode<l::nodegraph::DataIODataIn>(NodeType::ExternalInput, 6);
             break;
         case 501:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataOCHLVDataIn>(NodeType::ExternalInput);
+            node = mMainNodeGraph.NewNode<l::nodegraph::DataIOOCHLVDataIn>(NodeType::ExternalInput);
             break;
 
-            // External output
-        case 550:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataBusDataOut>(NodeType::ExternalOutput, 6);
+            // DataIO output
+        case 520:
+            node = mMainNodeGraph.NewNode<l::nodegraph::DataIODataOut>(NodeType::ExternalOutput, 6);
             break;
-        case 551:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphDataPlaceTrade>(NodeType::ExternalOutput);
+        case 521:
+            node = mMainNodeGraph.NewNode<l::nodegraph::DataIOPlaceTrade>(NodeType::ExternalOutput);
             break;
 
             // UI elements (basically ui buttons/checkboxes on the ui using the schema containing the nodes)
@@ -267,14 +288,6 @@ namespace l::nodegraph {
             break;
         case 603:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphUICandleSticks>(NodeType::ExternalOutput);
-            break;
-
-            // Signal detectors
-        case 650:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericDetector>(NodeType::Default);
-            break;
-        case 651:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphNumericDifferenceDetector>(NodeType::Default);
             break;
 
 
@@ -341,58 +354,7 @@ namespace l::nodegraph {
     }
 
     void NodeGraphSchema::RegisterAllOf(const std::string& typeGroup) {
-        if (typeGroup == "Numeric") {
-            RegisterNodeType("Numeric", 50, "Add");
-            RegisterNodeType("Numeric", 51, "Subtract");
-            RegisterNodeType("Numeric", 52, "Negate");
-            RegisterNodeType("Numeric", 53, "Multiply");
-            RegisterNodeType("Numeric", 54, "Integral");
-            RegisterNodeType("Numeric", 55, "Multiply3");
-            RegisterNodeType("Numeric", 56, "Multiply & Add");
-            RegisterNodeType("Numeric", 57, "Round");
-            RegisterNodeType("Numeric", 58, "Derivate");
-            RegisterNodeType("Numeric", 59, "Difference Normalized");
-            RegisterNodeType("Numeric", 60, "Difference");
-        }
-        else if (typeGroup == "Logic") {
-            RegisterNodeType("Logic", 100, "And");
-            RegisterNodeType("Logic", 101, "Or");
-            RegisterNodeType("Logic", 102, "Xor");
-            RegisterNodeType("Logic", 103, "Flip Gate");
-            RegisterNodeType("Logic", 104, "Flip Info");
-        }
-        else if (typeGroup == "Signal") {
-            RegisterNodeType("Signal", 350, "Sine");
-            RegisterNodeType("Signal", 351, "Sine FM 1");
-            RegisterNodeType("Signal", 352, "Sine FM 2");
-            RegisterNodeType("Signal", 353, "Sine FM 3");
-            RegisterNodeType("Signal", 354, "Saw");
-            RegisterNodeType("Signal", 355, "Sine 2");
-            RegisterNodeType("Signal", 356, "Saw 2");
-        }
-        else if (typeGroup == "Signal.Control") {
-            RegisterNodeType("Signal.Control", 400, "Envelope");
-            RegisterNodeType("Signal.Control", 401, "Arpeggio");
-        }
-        else if (typeGroup == "Signal.Filter") {
-            RegisterNodeType("Signal.Filter", 150, "Lowpass");
-            RegisterNodeType("Signal.Filter", 151, "Highpass");
-            RegisterNodeType("Signal.Filter", 152, "Chamberlin two-pole (4 mode)");
-            RegisterNodeType("Signal.Filter", 153, "Moving Average");
-        }
-        else if (typeGroup == "Signal.Effect") {
-            RegisterNodeType("Signal.Effect", 251, "Reverb1");
-            RegisterNodeType("Signal.Effect", 252, "Reverb2");
-            RegisterNodeType("Signal.Effect", 254, "Limiter");
-            RegisterNodeType("Signal.Effect", 255, "Envelope Follower");
-            RegisterNodeType("Signal.Effect", 256, "Saturator");
-            RegisterNodeType("Signal.Effect", 257, "Trance Gate");
-        }
-        else if (typeGroup == "Signal.Detector") {
-            RegisterNodeType("Signal.Detector", 650, "Detector");
-            RegisterNodeType("Signal.Detector", 651, "Difference Detector");
-        }
-        else if (typeGroup == "NodeGraph.Source") {
+        if (typeGroup == "NodeGraph.Source") {
             RegisterNodeType("NodeGraph.Source", 0, "Value [0,1]");
             RegisterNodeType("NodeGraph.Source", 1, "Value [-1,1]");
             RegisterNodeType("NodeGraph.Source", 2, "Value [0,100]");
@@ -401,37 +363,93 @@ namespace l::nodegraph {
             RegisterNodeType("NodeGraph.Source", 5, "Text");
         }
         else if (typeGroup == "NodeGraph.Output") {
-            RegisterNodeType("NodeGraph.Output", 200, "Debug");
-            RegisterNodeType("NodeGraph.Output", 201, "Plot");
+            RegisterNodeType("NodeGraph.Output", 20, "Debug");
+            RegisterNodeType("NodeGraph.Output", 21, "Plot");
         }
-        else if (typeGroup == "Device.Input") {
-            RegisterNodeType("Device.Input", 300, "Keyboard Piano");
-            RegisterNodeType("Device.Input", 301, "Midi Keyboard");
-            RegisterNodeType("Device.Input", 302, "Midi Knobs");
-            RegisterNodeType("Device.Input", 303, "Midi Button Group 1");
-            RegisterNodeType("Device.Input", 304, "Midi Button Group 2");
-            RegisterNodeType("Device.Input", 305, "Midi Button Group 3");
-            RegisterNodeType("Device.Input", 306, "Midi Button Group 4");
-            RegisterNodeType("Device.Input", 307, "Midi Button Group 5");
-            RegisterNodeType("Device.Input", 308, "Mic");
+        else if (typeGroup == "NodeGraph.Cache") {
+            RegisterNodeType("NodeGraph.Cache", 40, "Cache x1");
+            RegisterNodeType("NodeGraph.Cache", 41, "Cache x2");
+            RegisterNodeType("NodeGraph.Cache", 42, "Cache x3");
+            RegisterNodeType("NodeGraph.Cache", 43, "Cache x4");
         }
-        else if (typeGroup == "Device.Output") {
-            RegisterNodeType("Device.Output", 220, "PC Beep");
-            RegisterNodeType("Device.Output", 221, "Speaker");
+        else if (typeGroup == "Math.Aritmethic") {
+            RegisterNodeType("Math.Aritmethic", 100, "Add");
+            RegisterNodeType("Math.Aritmethic", 101, "Subtract");
+            RegisterNodeType("Math.Aritmethic", 102, "Multiply");
+            RegisterNodeType("Math.Aritmethic", 103, "Negate");
+            RegisterNodeType("Math.Aritmethic", 104, "Absolute");
+            RegisterNodeType("Math.Aritmethic", 105, "Multiply3");
+            RegisterNodeType("Math.Aritmethic", 106, "Multiply & Add");
+            RegisterNodeType("Math.Aritmethic", 107, "Round");
         }
-        else if (typeGroup == "External.Input") {
-            RegisterNodeType("External.Input", 500, "Data In x6");
-            RegisterNodeType("External.Input", 501, "OCHLV Data In");
+        else if (typeGroup == "Math.Logic") {
+            RegisterNodeType("Math.Logic", 120, "And");
+            RegisterNodeType("Math.Logic", 121, "Or");
+            RegisterNodeType("Math.Logic", 122, "Xor");
         }
-        else if (typeGroup == "External.Output") {
-            RegisterNodeType("External.Output", 550, "Data Out x6");
-            RegisterNodeType("External.Output", 551, "Trade Signal");
+        else if (typeGroup == "Math.Numerical") {
+            RegisterNodeType("Math.Numerical", 140, "Integral");
+            RegisterNodeType("Math.Numerical", 141, "Derivate");
+            RegisterNodeType("Math.Numerical", 142, "Difference Normalized");
+            RegisterNodeType("Math.Numerical", 143, "Difference");
         }
-        else if (typeGroup == "Cache") {
-            RegisterNodeType("Cache", 450, "Buffer Cache 1");
-            RegisterNodeType("Cache", 451, "Buffer Cache 2");
-            RegisterNodeType("Cache", 452, "Buffer Cache 3");
-            RegisterNodeType("Cache", 453, "Buffer Cache 4");
+        else if (typeGroup == "Fuzzy.Detector") {
+            RegisterNodeType("Fuzzy.Detector", 200, "Trend");
+            RegisterNodeType("Fuzzy.Detector", 201, "Trend Diff");
+        }
+        else if (typeGroup == "Fuzzy.Filter") {
+            RegisterNodeType("Fuzzy.Filter", 220, "Flip Gate");
+            RegisterNodeType("Fuzzy.Filter", 221, "Pulse Info");
+        }
+        else if (typeGroup == "Signal.Generator") {
+            RegisterNodeType("Signal.Generator", 300, "Sine");
+            RegisterNodeType("Signal.Generator", 301, "Sine FM 1");
+            RegisterNodeType("Signal.Generator", 302, "Sine FM 2");
+            RegisterNodeType("Signal.Generator", 303, "Sine FM 3");
+            RegisterNodeType("Signal.Generator", 304, "Saw");
+            RegisterNodeType("Signal.Generator", 305, "Sine 2");
+            RegisterNodeType("Signal.Generator", 306, "Saw 2");
+        }
+        else if (typeGroup == "Signal.Control") {
+            RegisterNodeType("Signal.Control", 320, "Envelope");
+            RegisterNodeType("Signal.Control", 321, "Arpeggio");
+        }
+        else if (typeGroup == "Signal.Filter") {
+            RegisterNodeType("Signal.Filter", 340, "Lowpass");
+            RegisterNodeType("Signal.Filter", 341, "Highpass");
+            RegisterNodeType("Signal.Filter", 342, "Chamberlin two-pole (4 mode)");
+            RegisterNodeType("Signal.Filter", 343, "Moving Average");
+        }
+        else if (typeGroup == "Signal.Effect") {
+            RegisterNodeType("Signal.Effect", 360, "Reverb1");
+            RegisterNodeType("Signal.Effect", 361, "Reverb2");
+            RegisterNodeType("Signal.Effect", 362, "Limiter");
+            RegisterNodeType("Signal.Effect", 363, "Envelope Follower");
+            RegisterNodeType("Signal.Effect", 364, "Saturator");
+            RegisterNodeType("Signal.Effect", 365, "Trance Gate");
+        }
+        else if (typeGroup == "DeviceIO.Input") {
+            RegisterNodeType("Device.Input", 400, "Keyboard Piano");
+            RegisterNodeType("Device.Input", 401, "Midi Keyboard");
+            RegisterNodeType("Device.Input", 402, "Midi Knobs");
+            RegisterNodeType("Device.Input", 403, "Midi Button Group 1");
+            RegisterNodeType("Device.Input", 404, "Midi Button Group 2");
+            RegisterNodeType("Device.Input", 405, "Midi Button Group 3");
+            RegisterNodeType("Device.Input", 406, "Midi Button Group 4");
+            RegisterNodeType("Device.Input", 407, "Midi Button Group 5");
+            RegisterNodeType("Device.Input", 408, "Mic");
+        }
+        else if (typeGroup == "DeviceIO.Output") {
+            RegisterNodeType("Device.Output", 420, "PC Beep");
+            RegisterNodeType("Device.Output", 421, "Speaker");
+        }
+        else if (typeGroup == "DataIO.Input") {
+            RegisterNodeType("DataIO.Input", 500, "Data In x6");
+            RegisterNodeType("DataIO.Input", 501, "OCHLV Data In");
+        }
+        else if (typeGroup == "DataIO.Output") {
+            RegisterNodeType("DataIO.Output", 520, "Data Out x6");
+            RegisterNodeType("DataIO.Output", 521, "Place Trade");
         }
         else if (typeGroup == "UI") {
             RegisterNodeType("UI", 600, "UI Checkbox");

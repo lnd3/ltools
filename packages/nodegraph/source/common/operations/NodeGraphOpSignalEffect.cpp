@@ -1,4 +1,4 @@
-#include "nodegraph/operations/NodeGraphOpEffect.h"
+#include "nodegraph/operations/NodeGraphOpSignalEffect.h"
 
 #include "logging/Log.h"
 #include "audio/AudioUtils.h"
@@ -11,7 +11,7 @@
 namespace l::nodegraph {
     /*********************************************************************/
 
-    void GraphEffectBase::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void SignalEffectBase::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float sync = inputs.at(0).Get();
         if (sync > 0.5f) {
             mSamplesUntilUpdate = 0;
@@ -52,7 +52,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphEffectReverb2::UpdateSignal(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
+    void SignalEffectReverb2::UpdateSignal(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
         fb = 0.2f * (1.0f - inputs.at(mNumDefaultInputs+0).Get());
 
         float roomSize = inputs.at(mNumDefaultInputs+1).Get();
@@ -70,7 +70,7 @@ namespace l::nodegraph {
         mDelay2 = (int(mBufIndex + d2 * mBufSizeLimit)) % mBufSizeLimit;
     }
 
-    std::pair<float, float> GraphEffectReverb2::ProcessSignal(float value0, float value1) {
+    std::pair<float, float> SignalEffectReverb2::ProcessSignal(float value0, float value1) {
         float out0 = (fb1 * mBuf1[mDelay1] + fb0 * mBuf0[mDelay0] + fb2 * mBuf0[mDelay2]);
         float out1 = (fb1 * mBuf0[mDelay1] + fb0 * mBuf1[mDelay0] + fb2 * mBuf1[mDelay2]);
 
@@ -88,7 +88,7 @@ namespace l::nodegraph {
 
     /*********************************************************************/
 
-    void GraphEffectReverb1::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void SignalEffectReverb1::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto wet = &inputs.at(2).Get(numSamples);
 
         fb = 0.2f * (1.0f - inputs.at(3).Get());
@@ -126,7 +126,7 @@ namespace l::nodegraph {
 
     /*********************************************************************/
 
-    void GraphEffectReverb3::Process(int32_t, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void SignalEffectReverb3::Process(int32_t, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float wet = inputs.at(2).Get();
         float reverbFeedback = inputs.at(3).Get();
         float roomSize = inputs.at(4).Get();
@@ -242,7 +242,7 @@ namespace l::nodegraph {
 
     /*********************************************************************/
 
-    void GraphEffectLimiter::UpdateSignal(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
+    void SignalEffectLimiter::UpdateSignal(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
         mFilterPreamp.SetTarget(inputs.at(mNumDefaultInputs + 0).Get());
         mFilterLimit.SetTarget(inputs.at(mNumDefaultInputs + 1).Get());
         float attackMs = inputs.at(mNumDefaultInputs + 2).Get();
@@ -251,7 +251,7 @@ namespace l::nodegraph {
         mRelease = l::audio::GetRWAFactorFromMS(releaseMs, 0.001f);
     }
 
-    std::pair<float, float> GraphEffectLimiter::ProcessSignal(float value0, float value1) {
+    std::pair<float, float> SignalEffectLimiter::ProcessSignal(float value0, float value1) {
         float limit = mFilterLimit.Next();
         float preamp = mFilterPreamp.Next();
 
@@ -286,12 +286,12 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphEffectEnvelopeFollower::UpdateSignal(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
+    void SignalEffectEnvelopeFollower::UpdateSignal(std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
         mFilterAttack.SetConvergenceInMs(inputs.at(2).Get());
         mFilterAttack.SetConvergenceInMs(inputs.at(3).Get());
     }
 
-    std::pair<float, float> GraphEffectEnvelopeFollower::ProcessSignal(float value0, float value1) {
+    std::pair<float, float> SignalEffectEnvelopeFollower::ProcessSignal(float value0, float value1) {
         float inVal = value0 > value1 ? value0 : value1;
         float attack = mFilterAttack.Next();
         float release = mFilterRelease.Next();
@@ -308,7 +308,7 @@ namespace l::nodegraph {
 
     /*********************************************************************/
 
-    void GraphEffectSaturator::Process(int32_t, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void SignalEffectSaturator::Process(int32_t, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float wet = inputs.at(2).Get();
         float preamp = inputs.at(3).Get();
         float limit = inputs.at(4).Get();
@@ -344,7 +344,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphEffectTranceGate::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void SignalEffectTranceGate::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         // "Bpm", "Fmod", "Attack", "Pattern"
 
         float bpm = inputs.at(2).Get();
