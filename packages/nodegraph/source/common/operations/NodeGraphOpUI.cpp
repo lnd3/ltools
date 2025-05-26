@@ -121,7 +121,7 @@ namespace l::nodegraph {
             auto buf = out + mWrittenSamples * mChannels;
             int32_t j = 0;
             for (j = 0; j < numSamples; j++) {
-                auto unixtimef = *input[5];
+                auto unixtimef = *input[0];
                 auto unixtime = l::math::algorithm::convert<int32_t>(unixtimef);
                 if (unixtimef == 0.0f || mLatestUnixtime >= unixtime) {
                     mLatestUnixtime = unixtime;
