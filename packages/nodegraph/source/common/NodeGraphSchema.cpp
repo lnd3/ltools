@@ -444,8 +444,8 @@ namespace l::nodegraph {
             RegisterNodeType("Device IO.Input", 408, "Mic");
         }
         else if (typeGroup == "Device IO.Output") {
-            RegisterNodeType("Device.Output", 420, "PC Beep");
-            RegisterNodeType("Device.Output", 421, "Speaker");
+            RegisterNodeType("Device IO.Output", 420, "PC Beep");
+            RegisterNodeType("Device IO.Output", 421, "Speaker");
         }
         else if (typeGroup == "Data IO.Input") {
             RegisterNodeType("Data IO.Input", 500, "Data In x6");
