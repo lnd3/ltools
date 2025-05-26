@@ -5,7 +5,7 @@
 #include "nodegraph/core/NodeGraphInput.h"
 #include "nodegraph/core/NodeGraphOutput.h"
 #include "nodegraph/core/NodeGraphBase.h"
-#include "nodegraph/operations/NodeGraphOpDataBus.h"
+#include "nodegraph/operations/NodeGraphOpDataIO.h"
 
 using namespace l;
 using namespace l::nodegraph;
@@ -23,7 +23,7 @@ public:
     }
 
     virtual ~TestOp() = default;
-    virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+    virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
         mInputManager.BatchUpdate(inputs, numSamples);
         auto out0 = outputs.at(0).GetIterator(numSamples, 4.0f);
         auto out1 = outputs.at(1).GetIterator(numSamples, 4.0f);
@@ -50,7 +50,7 @@ public:
     }
 
     virtual ~Copy() = default;
-    virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+    virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
         auto in = &inputs.at(0).Get(numSamples);
         auto out = &outputs.at(0).Get(5);
 
@@ -100,7 +100,7 @@ public:
     }
 
     virtual ~TestOp2() = default;
-    virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+    virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
         mInputManager.BatchUpdate(inputs, numSamples);
         auto out0 = outputs.at(0).GetIterator(numSamples, 4.0f);
         auto out1 = outputs.at(1).GetIterator(numSamples, 4.0f);
@@ -146,7 +146,7 @@ TEST(NodeGraphData, Tweening) {
 
 TEST(NodeGraphData, CandleStickData) {
 
-    NodeGraph<GraphDataCandleStickDataIn> node0;
+    NodeGraph<DataIOOCHLVDataIn> node0;
     NodeGraph<Copy> node1;
 
     node1.SetInput(0, node0, 0);

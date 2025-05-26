@@ -8,7 +8,7 @@ using namespace l;
 using namespace l::nodegraph;
 
 TEST(NodeGraph, BasicFunction) {
-	NodeGraph<GraphNumericAdd> node;
+	NodeGraph<MathAritmethicAdd> node;
 
 	float in2 = 2.3f;
 
@@ -22,9 +22,9 @@ TEST(NodeGraph, BasicFunction) {
 }
 
 TEST(NodeGraph, SimpleAddNetwork) {
-	NodeGraph<GraphNumericAdd> node1;
-	NodeGraph<GraphNumericAdd> node2;
-	NodeGraph<GraphNumericAdd> nodeFinal;
+	NodeGraph<MathAritmethicAdd> node1;
+	NodeGraph<MathAritmethicAdd> node2;
+	NodeGraph<MathAritmethicAdd> nodeFinal;
 
 	float in1 = 1.8f;
 	float in3 = 5.2f;
@@ -45,10 +45,10 @@ TEST(NodeGraph, SimpleAddNetwork) {
 }
 
 TEST(NodeGraph, BasicMathematicalOperations) {
-	NodeGraph<GraphNumericAdd> node1;
-	NodeGraph<GraphNumericMultiply> node2;
-	NodeGraph<GraphNumericSubtract> node3;
-	NodeGraph<GraphNumericNegate> nodeOutput;
+	NodeGraph<MathAritmethicAdd> node1;
+	NodeGraph<MathAritmethicMultiply> node2;
+	NodeGraph<MathAritmethicSubtract> node3;
+	NodeGraph<MathAritmethicNegate> nodeOutput;
 
 	float in1 = 1.8f;
 	float in3 = 2.0f;
@@ -72,7 +72,7 @@ TEST(NodeGraph, BasicMathematicalOperations) {
 }
 
 TEST(NodeGraph, NumericIntegral) {
-	NodeGraph<GraphNumericIntegral> nodeIntegral;
+	NodeGraph<MathNumericalIntegral> nodeIntegral;
 
 	float input;
 	nodeIntegral.SetInput(0, &input);
@@ -90,7 +90,7 @@ TEST(NodeGraph, NumericIntegral) {
 }
 
 TEST(NodeGraph, FilterLowpass) {
-	NodeGraph<GraphFilterLowpass> nodeLowpass;
+	NodeGraph<SignalFilterLowpass> nodeLowpass;
 
 	float cutoff = 0.8f;
 	float resonance = 0.9f;
@@ -129,8 +129,8 @@ TEST(NodeGraph, GraphGroups) {
 		group.SetInput(2, &input1);
 		group.SetInput(3, &input2);
 
-		auto nodeLowpass1 = group.NewNode<GraphFilterLowpass>(NodeType::Default);
-		auto nodeLowpass2 = group.NewNode<GraphFilterLowpass>(NodeType::Default);
+		auto nodeLowpass1 = group.NewNode<SignalFilterLowpass>(NodeType::Default);
+		auto nodeLowpass2 = group.NewNode<SignalFilterLowpass>(NodeType::Default);
 
 		// left, right
 		nodeLowpass1->SetInput(1, group, 2);

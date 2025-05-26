@@ -79,8 +79,8 @@ namespace l::nodegraph {
                 RegisterAllOf("NodeGraph.Cache");
 
                 RegisterAllOf("Math.Aritmethic");
-                RegisterAllOf("Math.Numerical");
                 RegisterAllOf("Math.Logic");
+                RegisterAllOf("Math.Numerical");
 
                 RegisterAllOf("Fuzzy.Detector");
                 RegisterAllOf("Fuzzy.Filter");
@@ -90,11 +90,11 @@ namespace l::nodegraph {
                 RegisterAllOf("Signal.Filter");
                 RegisterAllOf("Signal.Effect");
 
-                RegisterAllOf("Device.Input");
-                RegisterAllOf("Device.Output");
+                RegisterAllOf("DeviceIO.Input");
+                RegisterAllOf("DeviceIO.Output");
 
-                RegisterAllOf("External.Input");
-                RegisterAllOf("External.Output");
+                RegisterAllOf("DataIO.Input");
+                RegisterAllOf("DataIO.Output");
 
                 RegisterAllOf("UI");
             }
