@@ -29,19 +29,18 @@ namespace l::nodegraph {
             NodeGraphOp(node, "Flip Gate")
         {
             AddInput("In", 0.0f);
-            AddInput("Hold Threshold", 0.0f, 1, 0.0f, l::math::constants::FLTMAX);
-            AddInput("Hold Steps", 0.0f, 1, 0.0f, l::math::constants::FLTMAX);
+            AddInput("Pos Max Hold", 0.0f, 1, 0.0f, l::math::constants::FLTMAX);
+            AddInput("Neg Max Hold", 0.0f, 1, 0.0f, l::math::constants::FLTMAX);
+            AddOutput("Gate Hold", 0.0f);
             AddOutput("Gate", 0.0f);
-            AddOutput("Gate+Hold", 0.0f);
         }
 
         virtual ~FuzzyFilterFlipGate() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         bool mGate = false;
-        float mStrength = 0.0f;
-        int32_t mTriggerCounter = 0;
-        int32_t mHoldCounter = 0;
+        int32_t mPosHoldCount = 0;
+        int32_t mNegHoldCount = 0;
     };
 
     /*********************************************************************/

@@ -10,10 +10,10 @@
 namespace l::nodegraph {
     void FuzzyFilterFlipGate::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto input = &inputs.at(0).Get(numSamples);
-        auto trigger = static_cast<int32_t>(inputs.at(1).Get());
-        auto hold = static_cast<int32_t>(inputs.at(2).Get());
-        auto gate = &outputs.at(0).Get(numSamples);
-        auto gateHold = &outputs.at(1).Get(numSamples);
+        auto posTrigDelay = static_cast<int32_t>(inputs.at(1).Get());
+        auto negTrigDelay = static_cast<int32_t>(inputs.at(2).Get());
+        auto gateTrig = &outputs.at(0).Get(numSamples);
+        auto gate = &outputs.at(1).Get(numSamples);
 
         for (int32_t i = 0; i < numSamples; i++) {
             auto in = (*input++);
@@ -21,31 +21,36 @@ namespace l::nodegraph {
             bool neg = in < -0.01f;
 
             if (mGate && neg) {
+                // going negative
                 mGate = false;
-                if (mTriggerCounter <= 0) {
-                    mHoldCounter = hold;
-                }
-                mTriggerCounter = trigger;
+                mNegHoldCount = 0;
             }
             if (!mGate && pos) {
+                // going positive
                 mGate = true;
-                if (mTriggerCounter <= 0) {
-                    mHoldCounter = hold;
-                }
-                mTriggerCounter = trigger;
+                mPosHoldCount = 0;
             }
 
-            if (mHoldCounter > 0) {
-                *gate++ = !mGate ? 1.0f : -1.0f;
+            if (mGate) {
+                if (mPosHoldCount == posTrigDelay) {
+                    *gateTrig++ = mGate ? 1.0f : -1.0f;
+                }
+                else {
+                    *gateTrig++ = !mGate ? 1.0f : -1.0f;
+                }
+                mPosHoldCount++;
             }
             else {
-                *gate++ = mGate ? 1.0f : -1.0f;
+                if (mNegHoldCount == negTrigDelay) {
+                    *gateTrig++ = !mGate ? 1.0f : -1.0f;
+                }
+                else {
+                    *gateTrig++ = mGate ? 1.0f : -1.0f;
+                }
+                mNegHoldCount++;
             }
 
-            *gateHold++ = mGate ? 1.0f : -1.0f;
-
-            mHoldCounter--;
-            mTriggerCounter--;
+            *gate++ = mGate ? 1.0f : -1.0f;
         }
     }
 

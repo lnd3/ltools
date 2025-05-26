@@ -106,12 +106,15 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicAbs>(NodeType::Default);
             break;
         case 105:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicMultiply3>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicLog>(NodeType::Default);
             break;
         case 106:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicMultiplyAndAdd>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicMultiply3>(NodeType::Default);
             break;
         case 107:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicMultiplyAndAdd>(NodeType::Default);
+            break;
+        case 108:
             node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicRound>(NodeType::Default);
             break;
 
@@ -374,13 +377,14 @@ namespace l::nodegraph {
         }
         else if (typeGroup == "Math.Aritmethic") {
             RegisterNodeType("Math.Aritmethic", 100, "Add");
-            RegisterNodeType("Math.Aritmethic", 101, "Subtract");
-            RegisterNodeType("Math.Aritmethic", 102, "Multiply");
-            RegisterNodeType("Math.Aritmethic", 103, "Negate");
-            RegisterNodeType("Math.Aritmethic", 104, "Absolute");
-            RegisterNodeType("Math.Aritmethic", 105, "Multiply3");
-            RegisterNodeType("Math.Aritmethic", 106, "Multiply & Add");
-            RegisterNodeType("Math.Aritmethic", 107, "Round");
+            RegisterNodeType("Math.Aritmethic", 101, "Sub");
+            RegisterNodeType("Math.Aritmethic", 102, "Mul");
+            RegisterNodeType("Math.Aritmethic", 103, "Neg");
+            RegisterNodeType("Math.Aritmethic", 104, "Abs");
+            RegisterNodeType("Math.Aritmethic", 105, "Log");
+            RegisterNodeType("Math.Aritmethic", 106, "Mul3");
+            RegisterNodeType("Math.Aritmethic", 107, "Madd");
+            RegisterNodeType("Math.Aritmethic", 108, "Round");
         }
         else if (typeGroup == "Math.Logic") {
             RegisterNodeType("Math.Logic", 120, "And");

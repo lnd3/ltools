@@ -29,10 +29,10 @@ namespace l::nodegraph {
         MathAritmethicAdd(NodeGraphBase* node) :
             NodeGraphOp(node, "Add")
         {
-            AddInput("In 1");
-            AddInput("In 2");
+            AddInput("In1");
+            AddInput("In2");
             AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddOutput("Out");
+            AddOutput("In1+In2");
         }
         virtual ~MathAritmethicAdd() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
@@ -54,10 +54,10 @@ namespace l::nodegraph {
         MathAritmethicMultiply(NodeGraphBase* node) :
             NodeGraphOp(node, "Multiply")
         {
-            AddInput("In 1");
-            AddInput("In 2");
+            AddInput("In1");
+            AddInput("In2");
             AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddOutput("Out");
+            AddOutput("In1*In2");
         }
 
         virtual ~MathAritmethicMultiply() = default;
@@ -83,7 +83,6 @@ namespace l::nodegraph {
             AddInput("In1");
             AddInput("In2");
             AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddOutput("Out");
             AddOutput("In1-In2");
             AddOutput("In2-In1");
         }
@@ -112,7 +111,7 @@ namespace l::nodegraph {
         {
             AddInput("In");
             AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddOutput("Out");
+            AddOutput("-In");
         }
 
         virtual ~MathAritmethicNegate() = default;
@@ -152,9 +151,45 @@ namespace l::nodegraph {
             auto output3 = outputs.at(2).GetIterator(numSamples, lodFactor);
 
             for (int32_t i = 0; i < numSamples; i++) {
-                *output1++ = l::math::abs(*input0++);
-                *output2++ = l::math::max2(*input0++, 0.0f);
-                *output3++ = l::math::min2(*input0++, 0.0f);
+                auto in = *input0++;
+                *output1++ = l::math::abs(in);
+                *output2++ = l::math::max2(in, 0.0f);
+                *output3++ = l::math::min2(in, 0.0f);
+            }
+        }
+    };
+
+    /*********************************************************************/
+    class MathAritmethicLog : public NodeGraphOp {
+    public:
+        MathAritmethicLog(NodeGraphBase* node) :
+            NodeGraphOp(node, "Abs")
+        {
+            AddInput("In");
+            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
+            AddInput("Base", 2.72f, 1, 1.0f, 10.0f);
+            AddOutput("ln(In)");
+            AddOutput("ln(In)/ln(Base)");
+        }
+
+        virtual ~MathAritmethicLog() = default;
+        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+            auto input0 = inputs.at(0).GetIterator(numSamples);
+            auto lodExp = inputs.at(1).Get();
+            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
+            auto base = inputs.at(2).Get();
+            auto output1 = outputs.at(0).GetIterator(numSamples, lodFactor);
+            auto output2 = outputs.at(1).GetIterator(numSamples, lodFactor);
+
+            // we want logb(in) = ln(in)/ln(b)
+            // so precalc base factor 1/ln(b)
+            auto logBase = 1.0f / l::math::log(base);
+
+            for (int32_t i = 0; i < numSamples; i++) {
+                auto in = *input0++;
+                auto ln = l::math::log(in);
+                *output1++ = ln;
+                *output2++ = ln * logBase;
             }
         }
     };
@@ -165,11 +200,11 @@ namespace l::nodegraph {
         MathAritmethicMultiply3(NodeGraphBase* node) :
             NodeGraphOp(node, "Multiply3")
         {
-            AddInput("In 1");
-            AddInput("In 2");
-            AddInput("In 3");
+            AddInput("In1");
+            AddInput("In2");
+            AddInput("In3");
             AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddOutput("Out");
+            AddOutput("In1*In2*In3");
         }
 
         virtual ~MathAritmethicMultiply3() = default;
@@ -193,11 +228,11 @@ namespace l::nodegraph {
         MathAritmethicMultiplyAndAdd(NodeGraphBase* node) :
             NodeGraphOp(node, "Multiply & Add")
         {
-            AddInput("In 1");
-            AddInput("In 2");
-            AddInput("In 3");
+            AddInput("In1");
+            AddInput("In2");
+            AddInput("In3");
             AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddOutput("Out");
+            AddOutput("In1*In2+In3");
         }
 
         virtual ~MathAritmethicMultiplyAndAdd() = default;
@@ -223,7 +258,7 @@ namespace l::nodegraph {
         {
             AddInput("In");
             AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddOutput("Out");
+            AddOutput("int(In+0.5)");
         }
 
         virtual ~MathAritmethicRound() = default;

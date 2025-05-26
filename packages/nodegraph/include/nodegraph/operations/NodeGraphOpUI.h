@@ -86,6 +86,7 @@ namespace l::nodegraph {
         int32_t GetNumSamplesLeft();
     protected:
         int32_t mWrittenSamples = 0;
+        int32_t mLatestUnixtime = 0;
     };
 
     /*********************************************************************/

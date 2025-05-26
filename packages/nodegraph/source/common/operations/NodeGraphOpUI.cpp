@@ -106,6 +106,7 @@ namespace l::nodegraph {
                 if (in.HasInputNode() && in.GetInputNode()->IsOutOfDate()) {
                     mInputHasChanged = true;
                     mWrittenSamples = 0;
+                    mLatestUnixtime = 0;
                 }
             }
         }
@@ -118,9 +119,23 @@ namespace l::nodegraph {
                 input[j] = &inputs.at(j).Get(numSamples);
             }
             auto buf = out + mWrittenSamples * mChannels;
-            for (int32_t j = 0; j < numSamples; j++) {
+            int32_t j = 0;
+            for (j = 0; j < numSamples; j++) {
+                auto unixtimef = *input[5];
+                auto unixtime = l::math::algorithm::convert<int32_t>(unixtimef);
+                if (unixtimef == 0.0f || mLatestUnixtime >= unixtime) {
+                    mLatestUnixtime = unixtime;
+                    j--;
+                    break;
+                }
+                mLatestUnixtime = unixtime;
                 for (int32_t i = 0; i < mChannels; i++) {
                     *buf++ = *(input[i])++;
+                }
+            }
+            for (; j < numSamples; j++) {
+                for (int32_t i = 0; i < mChannels; i++) {
+                    *buf++ = 0.0f;
                 }
             }
 
