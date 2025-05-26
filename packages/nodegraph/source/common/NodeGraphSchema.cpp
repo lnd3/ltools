@@ -354,23 +354,23 @@ namespace l::nodegraph {
     }
 
     void NodeGraphSchema::RegisterAllOf(const std::string& typeGroup) {
-        if (typeGroup == "NodeGraph.Source") {
-            RegisterNodeType("NodeGraph.Source", 0, "Value [0,1]");
-            RegisterNodeType("NodeGraph.Source", 1, "Value [-1,1]");
-            RegisterNodeType("NodeGraph.Source", 2, "Value [0,100]");
-            RegisterNodeType("NodeGraph.Source", 3, "Value [-inf,inf]");
-            RegisterNodeType("NodeGraph.Source", 4, "Time");
-            RegisterNodeType("NodeGraph.Source", 5, "Text");
+        if (typeGroup == "Node Graph.Source") {
+            RegisterNodeType("Node Graph.Source", 0, "Value [0,1]");
+            RegisterNodeType("Node Graph.Source", 1, "Value [-1,1]");
+            RegisterNodeType("Node Graph.Source", 2, "Value [0,100]");
+            RegisterNodeType("Node Graph.Source", 3, "Value [-inf,inf]");
+            RegisterNodeType("Node Graph.Source", 4, "Time");
+            RegisterNodeType("Node Graph.Source", 5, "Text");
         }
-        else if (typeGroup == "NodeGraph.Output") {
-            RegisterNodeType("NodeGraph.Output", 20, "Debug");
-            RegisterNodeType("NodeGraph.Output", 21, "Plot");
+        else if (typeGroup == "Node Graph.Output") {
+            RegisterNodeType("Node Graph.Output", 20, "Debug");
+            RegisterNodeType("Node Graph.Output", 21, "Plot");
         }
-        else if (typeGroup == "NodeGraph.Cache") {
-            RegisterNodeType("NodeGraph.Cache", 40, "Cache x1");
-            RegisterNodeType("NodeGraph.Cache", 41, "Cache x2");
-            RegisterNodeType("NodeGraph.Cache", 42, "Cache x3");
-            RegisterNodeType("NodeGraph.Cache", 43, "Cache x4");
+        else if (typeGroup == "Node Graph.Cache") {
+            RegisterNodeType("Node Graph.Cache", 40, "Cache x1");
+            RegisterNodeType("Node Graph.Cache", 41, "Cache x2");
+            RegisterNodeType("Node Graph.Cache", 42, "Cache x3");
+            RegisterNodeType("Node Graph.Cache", 43, "Cache x4");
         }
         else if (typeGroup == "Math.Aritmethic") {
             RegisterNodeType("Math.Aritmethic", 100, "Add");
@@ -428,28 +428,28 @@ namespace l::nodegraph {
             RegisterNodeType("Signal.Effect", 364, "Saturator");
             RegisterNodeType("Signal.Effect", 365, "Trance Gate");
         }
-        else if (typeGroup == "DeviceIO.Input") {
-            RegisterNodeType("Device.Input", 400, "Keyboard Piano");
-            RegisterNodeType("Device.Input", 401, "Midi Keyboard");
-            RegisterNodeType("Device.Input", 402, "Midi Knobs");
-            RegisterNodeType("Device.Input", 403, "Midi Button Group 1");
-            RegisterNodeType("Device.Input", 404, "Midi Button Group 2");
-            RegisterNodeType("Device.Input", 405, "Midi Button Group 3");
-            RegisterNodeType("Device.Input", 406, "Midi Button Group 4");
-            RegisterNodeType("Device.Input", 407, "Midi Button Group 5");
-            RegisterNodeType("Device.Input", 408, "Mic");
+        else if (typeGroup == "Device IO.Input") {
+            RegisterNodeType("Device IO.Input", 400, "Keyboard Piano");
+            RegisterNodeType("Device IO.Input", 401, "Midi Keyboard");
+            RegisterNodeType("Device IO.Input", 402, "Midi Knobs");
+            RegisterNodeType("Device IO.Input", 403, "Midi Button Group 1");
+            RegisterNodeType("Device IO.Input", 404, "Midi Button Group 2");
+            RegisterNodeType("Device IO.Input", 405, "Midi Button Group 3");
+            RegisterNodeType("Device IO.Input", 406, "Midi Button Group 4");
+            RegisterNodeType("Device IO.Input", 407, "Midi Button Group 5");
+            RegisterNodeType("Device IO.Input", 408, "Mic");
         }
-        else if (typeGroup == "DeviceIO.Output") {
+        else if (typeGroup == "Device IO.Output") {
             RegisterNodeType("Device.Output", 420, "PC Beep");
             RegisterNodeType("Device.Output", 421, "Speaker");
         }
-        else if (typeGroup == "DataIO.Input") {
-            RegisterNodeType("DataIO.Input", 500, "Data In x6");
-            RegisterNodeType("DataIO.Input", 501, "OCHLV Data In");
+        else if (typeGroup == "Data IO.Input") {
+            RegisterNodeType("Data IO.Input", 500, "Data In x6");
+            RegisterNodeType("Data IO.Input", 501, "OCHLV Data In");
         }
-        else if (typeGroup == "DataIO.Output") {
-            RegisterNodeType("DataIO.Output", 520, "Data Out x6");
-            RegisterNodeType("DataIO.Output", 521, "Place Trade");
+        else if (typeGroup == "Data IO.Output") {
+            RegisterNodeType("Data IO.Output", 520, "Data Out x6");
+            RegisterNodeType("Data IO.Output", 521, "Place Trade");
         }
         else if (typeGroup == "UI") {
             RegisterNodeType("UI", 600, "UI Checkbox");
@@ -463,9 +463,9 @@ namespace l::nodegraph {
     }
 
     void NodeGraphSchema::RegisterAllOperators() {
-        RegisterAllOf("NodeGraph.Source");
-        RegisterAllOf("NodeGraph.Output");
-        RegisterAllOf("NodeGraph.Cache");
+        RegisterAllOf("Node Graph.Source");
+        RegisterAllOf("Node Graph.Output");
+        RegisterAllOf("Node Graph.Cache");
 
         RegisterAllOf("Math.Aritmethic");
         RegisterAllOf("Math.Logic");
@@ -479,11 +479,11 @@ namespace l::nodegraph {
         RegisterAllOf("Signal.Filter");
         RegisterAllOf("Signal.Effect");
 
-        RegisterAllOf("DeviceIO.Input");
-        RegisterAllOf("DeviceIO.Output");
+        RegisterAllOf("Device IO.Input");
+        RegisterAllOf("Device IO.Output");
 
-        RegisterAllOf("DataIO.Input");
-        RegisterAllOf("DataIO.Output");
+        RegisterAllOf("Data IO.Input");
+        RegisterAllOf("Data IO.Output");
 
         RegisterAllOf("UI");
     }
