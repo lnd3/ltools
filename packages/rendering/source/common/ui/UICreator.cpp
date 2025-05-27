@@ -46,7 +46,7 @@ namespace l::ui {
                     bool showsOutput = i < numOutputChannels;
 
                     float estimatedWidth = 0.0f;
-                    if (showsInput && !node.IsDataConstant(i)) {
+                    if (showsInput && !node.IsInputDataConstant(i)) {
                         auto in = CreateContainer(uiManager, l::ui::UIContainer_InputFlag | l::ui::UIContainer_DrawFlag, l::ui::UIRenderType::CircleFilled, l::ui::UIAlignH::Left);
                         in->SetPosition(ImVec2(-ioSize, ioSize * ioOffsetV));
                         in->SetSize(ImVec2(ioSize, ioSize));
@@ -62,8 +62,8 @@ namespace l::ui {
                         row->Add(inText);
                     }
 
-                    if (node.IsDataVisible(i)) {
-                        auto inText = CreateContainer(uiManager, (node.IsDataEditable(i) ? l::ui::UIContainer_EditFlag : 0) | l::ui::UIContainer_DrawFlag, l::ui::UIRenderType::NodeOutputValue, l::ui::UIAlignH::Left);
+                    if (node.IsInputDataVisible(i)) {
+                        auto inText = CreateContainer(uiManager, (node.IsInputDataEditable(i) ? l::ui::UIContainer_EditFlag : 0) | l::ui::UIContainer_DrawFlag, l::ui::UIRenderType::NodeOutputValue, l::ui::UIAlignH::Left);
                         inText->SetPosition(ImVec2(estimatedWidth, 0.0f));
                         inText->SetSize(ImVec2(10 * 7, 14.0f));
                         inText->SetNodeId(node.GetId());

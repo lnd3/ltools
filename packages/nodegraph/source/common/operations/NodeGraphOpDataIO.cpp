@@ -51,7 +51,7 @@ namespace l::nodegraph {
 
     void DataIOOCHLVDataIn::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
 
-        int32_t stride = 11;
+        int32_t stride = 9;
 
         if (mInputHasChanged) {
             auto symbolInput = inputs.at(1).GetText(16);
@@ -106,8 +106,8 @@ namespace l::nodegraph {
                 *out7++ = in[offset + 6]; // quantity
                 *out8++ = in[offset + 7]; // buy volume
                 *out9++ = in[offset + 5] - in[offset + 7]; // sell volume
-                *out10++ = in[offset + 9]; // buy quantity
-                *out11++ = in[offset + 6] - in[offset + 9]; // sell quantity
+                *out10++ = in[offset + 8]; // buy quantity
+                *out11++ = in[offset + 6] - in[offset + 8]; // sell quantity
             }
 
             mReadSamples += numSamples;

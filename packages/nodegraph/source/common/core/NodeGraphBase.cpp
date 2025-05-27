@@ -239,22 +239,6 @@ namespace l::nodegraph {
         return sourceRemoved > 0 ? true : false;
     }
 
-    bool NodeGraphBase::IsDataConstant(int8_t) {
-        return false;
-    }
-
-    bool NodeGraphBase::IsDataVisible(int8_t) {
-        return false;
-    }
-
-    bool NodeGraphBase::IsDataEditable(int8_t) {
-        return false;
-    }
-
-    bool NodeGraphBase::IsDataText(int8_t) {
-        return false;
-    }
-
     bool NodeGraphBase::IsOutputPolled(int8_t outputChannel) {
         return mOutputs.at(outputChannel).IsPolled();
     }
@@ -314,30 +298,44 @@ namespace l::nodegraph {
         return mInputHasChanged;
     }
 
-    bool NodeGraphOp::IsDataConstant(int8_t channel) {
+    bool NodeGraphOp::IsInputDataConstant(int8_t channel) {
         if (static_cast<size_t>(channel) < mDefaultInData.size()) {
             return std::get<4>(mDefaultInData.at(channel)).mConstant;
         }
         return false;
     }
 
-    bool NodeGraphOp::IsDataVisible(int8_t channel) {
+    bool NodeGraphOp::IsInputDataVisible(int8_t channel) {
         if (static_cast<size_t>(channel) < mDefaultInData.size()) {
             return std::get<4>(mDefaultInData.at(channel)).mVisible;
         }
         return false;
     }
 
-    bool NodeGraphOp::IsDataEditable(int8_t channel) {
+    bool NodeGraphOp::IsInputDataEditable(int8_t channel) {
         if (static_cast<size_t>(channel) < mDefaultInData.size()) {
             return std::get<4>(mDefaultInData.at(channel)).mEditable;
         }
         return false;
     }
 
-    bool NodeGraphOp::IsDataText(int8_t channel) {
+    bool NodeGraphOp::IsInputDataText(int8_t channel) {
         if (static_cast<size_t>(channel) < mDefaultInData.size()) {
             return std::get<4>(mDefaultInData.at(channel)).mText;
+        }
+        return false;
+    }
+
+    bool NodeGraphOp::IsInputDataArray(int8_t channel) {
+        if (static_cast<size_t>(channel) < mDefaultInData.size()) {
+            return !std::get<4>(mDefaultInData.at(channel)).mText && std::get<1>(mDefaultInData.at(channel)) > 1;
+        }
+        return false;
+    }
+
+    bool NodeGraphOp::IsOutputDataVisible(int8_t channel) {
+        if (static_cast<size_t>(channel) < mDefaultOutData.size()) {
+            return std::get<2>(mDefaultOutData.at(channel)).mVisible;
         }
         return false;
     }

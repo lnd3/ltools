@@ -242,7 +242,7 @@ namespace l::ui {
             if (mNGSchema) {
                 auto node = mNGSchema->GetNode(container.GetNodeId());
                 auto nodeChannel = static_cast<int8_t>(container.GetChannelId());
-                if (node->IsDataEditable(nodeChannel)) {
+                if (node->IsInputDataEditable(nodeChannel)) {
                     float* nodeValue = nullptr;
                     if (nodeChannel < node->GetNumInputs()) {
                         nodeValue = &node->GetInput(nodeChannel, 1);
@@ -390,27 +390,32 @@ namespace l::ui {
                     l::string::string_buffer<32> sb;
                     int8_t channelId = static_cast<int8_t>(container.GetChannelId());
                     if (channelId < node->GetNumInputs()) {
-                        if (node->IsDataText(channelId)) {
-                            auto nodeText = node->GetInputText(channelId, 31);
-                            sb.append(nodeText);
-                        }
-                        else {
-                            float nodeValue = node->GetInput(channelId);
-                            auto nodeValueAbs = l::math::abs(nodeValue);
-                            if (nodeValueAbs > 100.0f) {
-                                sb.printf("%.0f", nodeValue);
+                        if (node->IsInputDataVisible(channelId)) {
+                            if (node->IsInputDataText(channelId)) {
+                                auto nodeText = node->GetInputText(channelId, 31);
+                                sb.append(nodeText);
                             }
-                            else if (nodeValueAbs > 10.0f) {
-                                sb.printf("%.1f", nodeValue);
-                            }
-                            else if (nodeValueAbs > 1.0f) {
-                                sb.printf("%.2f", nodeValue);
-                            }
-                            else if (nodeValueAbs > 0.1f) {
-                                sb.printf("%.3f", nodeValue);
+                            else if (node->IsInputDataArray(channelId)) {
+                                sb.append("{...}");
                             }
                             else {
-                                sb.printf("%.4f", nodeValue);
+                                float nodeValue = node->GetInput(channelId);
+                                auto nodeValueAbs = l::math::abs(nodeValue);
+                                if (nodeValueAbs > 100.0f) {
+                                    sb.printf("%.0f", nodeValue);
+                                }
+                                else if (nodeValueAbs > 10.0f) {
+                                    sb.printf("%.1f", nodeValue);
+                                }
+                                else if (nodeValueAbs > 1.0f) {
+                                    sb.printf("%.2f", nodeValue);
+                                }
+                                else if (nodeValueAbs > 0.1f) {
+                                    sb.printf("%.3f", nodeValue);
+                                }
+                                else {
+                                    sb.printf("%.4f", nodeValue);
+                                }
                             }
                         }
                     }

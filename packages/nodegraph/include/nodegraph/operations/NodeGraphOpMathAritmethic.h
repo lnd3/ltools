@@ -163,7 +163,7 @@ namespace l::nodegraph {
     class MathAritmethicLog : public NodeGraphOp {
     public:
         MathAritmethicLog(NodeGraphBase* node) :
-            NodeGraphOp(node, "Abs")
+            NodeGraphOp(node, "Log")
         {
             AddInput("In");
             AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);

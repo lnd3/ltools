@@ -119,10 +119,12 @@ namespace l::nodegraph {
         virtual bool SetInputBound(int8_t inputChannel, InputBound bound = InputBound::INPUT_0_TO_1, float boundMin = 0.0f, float boundMax = 1.0f);
         virtual bool DetachInput(void* source);
 
-        virtual bool IsDataConstant(int8_t num);
-        virtual bool IsDataVisible(int8_t num);
-        virtual bool IsDataEditable(int8_t num);
-        virtual bool IsDataText(int8_t num);
+        virtual bool IsInputDataConstant(int8_t) { return false; }
+        virtual bool IsInputDataVisible(int8_t) { return false; }
+        virtual bool IsInputDataEditable(int8_t) { return false; }
+        virtual bool IsInputDataText(int8_t) { return false; }
+        virtual bool IsInputDataArray(int8_t) { return false; }
+        virtual bool IsOutputDataVisible(int8_t) { return false; }
         virtual bool IsOutputPolled(int8_t outputChannel);
         virtual bool IsOutOfDate();
         virtual void NodeHasChanged(int32_t numSamplesWritten = 1);
@@ -212,10 +214,12 @@ namespace l::nodegraph {
         int8_t GetNumOutputs();
 
         virtual bool HasInputChanged();
-        virtual bool IsDataConstant(int8_t channel);
-        virtual bool IsDataVisible(int8_t channel);
-        virtual bool IsDataEditable(int8_t channel);
-        virtual bool IsDataText(int8_t channel);
+        virtual bool IsInputDataConstant(int8_t channel);
+        virtual bool IsInputDataVisible(int8_t channel);
+        virtual bool IsInputDataEditable(int8_t channel);
+        virtual bool IsInputDataText(int8_t channel);
+        virtual bool IsInputDataArray(int8_t channel);
+        virtual bool IsOutputDataVisible(int8_t channel);
 
         virtual std::string_view GetInputName(int8_t inputChannel);
         virtual std::string_view GetOutputName(int8_t outputChannel);
@@ -263,20 +267,29 @@ namespace l::nodegraph {
             LOG(LogInfo) << "Node destroyed";
         }
 
-        virtual bool IsDataConstant(int8_t num) override {
-            return mOperation.IsDataConstant(num);
+        virtual bool IsInputDataConstant(int8_t num) override {
+            return mOperation.IsInputDataConstant(num);
         }
 
-        virtual bool IsDataVisible(int8_t num) override {
-            return mOperation.IsDataVisible(num);
+        virtual bool IsInputDataVisible(int8_t num) override {
+            return mOperation.IsInputDataVisible(num);
         }
 
-        virtual bool IsDataEditable(int8_t num) override {
-            return mOperation.IsDataEditable(num);
+        virtual bool IsInputDataEditable(int8_t num) override {
+            return mOperation.IsInputDataEditable(num);
         }
 
-        virtual bool IsDataText(int8_t channel) override {
-            return mOperation.IsDataText(channel);
+        virtual bool IsInputDataText(int8_t channel) override {
+            return mOperation.IsInputDataText(channel);
+        }
+
+        virtual bool IsInputDataArray(int8_t channel) override {
+            auto& input = mInputs.at(channel);
+            return input.IsOfType(InputType::INPUT_ARRAY);
+        }
+
+        virtual bool IsOutputDataVisible(int8_t num) override {
+            return mOperation.IsOutputDataVisible(num);
         }
 
         virtual void DefaultDataInit() override {
