@@ -166,6 +166,9 @@ namespace l::nodegraph {
         case 241:
             node = mMainNodeGraph.NewNode<l::nodegraph::TradingFilterPulseInfo>(NodeType::Default);
             break;
+        case 242:
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingFilterVWMA>(NodeType::Default);
+            break;
 
             // Trading indicators
         case 260:
@@ -176,6 +179,9 @@ namespace l::nodegraph {
             break;
         case 262:
             node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorVPT>(NodeType::Default);
+            break;
+        case 263:
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorVPIO>(NodeType::Default);
             break;
 
             // Signal generators (basically audio composition)
@@ -419,11 +425,13 @@ namespace l::nodegraph {
         else if (typeGroup == "Trading.Filter") {
             RegisterNodeType("Trading.Filter", 240, "Flip Gate");
             RegisterNodeType("Trading.Filter", 241, "Pulse Info");
+            RegisterNodeType("Trading.Filter", 242, "Volume Weighted Moving Average");
         }
         else if (typeGroup == "Trading.Indicator") {
             RegisterNodeType("Trading.Indicator", 260, "OBV");
             RegisterNodeType("Trading.Indicator", 261, "VRSI");
             RegisterNodeType("Trading.Indicator", 262, "VPT");
+            RegisterNodeType("Trading.Indicator", 263, "VPIO");
         }
         else if (typeGroup == "Signal.Generator") {
             RegisterNodeType("Signal.Generator", 300, "Sine");

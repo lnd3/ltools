@@ -54,6 +54,7 @@ namespace l::nodegraph {
         }
     }
 
+    /*********************************************************************/
 
 
     void TradingFilterPulseInfo::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
@@ -124,5 +125,68 @@ namespace l::nodegraph {
             *maxNegOut++ = maxNeg;
         }
     }
+
+    /*********************************************************************/
+
+    void TradingFilterVWMA::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+
+        auto inputValue = &inputs.at(0).Get(numSamples);
+        auto inputWeight = &inputs.at(1).Get(numSamples);
+        float width = l::math::max2(inputs.at(2).Get(), 1.0f);
+        float balance = inputs.at(3).Get();
+
+        auto output = outputs.at(0).GetIterator(numSamples);
+
+        int32_t widthInt = 1 + static_cast<int32_t>(width);
+        int32_t bufferSize = widthInt;
+        float widthFrac = width - l::math::floor(width);
+
+        for (int32_t i = 0; i < numSamples; i++) {
+
+            if (mFilterInit || mWidth != widthInt) {
+                mWidth = widthInt;
+                mFilterInit = false;
+                mFilterStateIndex = 0;
+
+                if (mFilterState.size() < bufferSize) {
+                    mFilterState.resize(bufferSize);
+                    mFilterWeight.resize(bufferSize);
+                }
+                for (int32_t j = 0; j < widthInt; j++) {
+                    mFilterState[j] = *inputValue;
+                    mFilterWeight[j] = *inputWeight;
+                }
+            }
+
+            mFilterState[mFilterStateIndex] = *inputValue++;
+            mFilterWeight[mFilterStateIndex] = *inputWeight++;
+            mFilterStateIndex = (mFilterStateIndex + 1) % bufferSize; // buffer is 1 larger than the truncated filter size so we can smooth on the last one
+
+            float outVal = 0.0;
+            float balanceFactor = 1.0f - balance;
+            float balanceDelta = balance / width;
+            float balanceDivisorSum = (balanceDelta - balanceFactor) * (widthFrac);
+            { // remove a part of the first sample of the sum as it is not part of the moving average
+                outVal = mFilterWeight[mFilterStateIndex] * mFilterState[mFilterStateIndex] * ((balanceDelta - balanceFactor) * (widthFrac));
+            }
+            for (int32_t j = mFilterStateIndex; j < bufferSize; j++) {
+                outVal += mFilterWeight[j] * mFilterState[j] * balanceFactor;
+                balanceDivisorSum += mFilterWeight[j] * balanceFactor;
+                balanceFactor += balanceDelta;
+            }
+            for (int32_t j = 0; j < mFilterStateIndex; j++) {
+                outVal += mFilterWeight[j] * mFilterState[j] * balanceFactor;
+                balanceDivisorSum += mFilterWeight[j] * balanceFactor;
+                balanceFactor += balanceDelta;
+            }
+
+            auto signal = outVal / balanceDivisorSum;
+
+            *output++ = signal;
+        }
+    }
+
+
+
 
 }

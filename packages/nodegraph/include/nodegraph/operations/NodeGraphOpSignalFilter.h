@@ -133,6 +133,7 @@ namespace l::nodegraph {
 
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Sync", 0.0f));
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("In"));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Weight"));
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Kernel Size", 1.0f, 1, 1.0f, 5000.0f));
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Kernel Balance", 0.0f, 1, 0.0f, 10.0f));
 
@@ -157,6 +158,7 @@ namespace l::nodegraph {
         float mUndefinedValue = 0.0f;
         bool mFilterInit = false;
         std::vector<float> mFilterState;
+        std::vector<float> mFilterWeight;
     };
 }
 

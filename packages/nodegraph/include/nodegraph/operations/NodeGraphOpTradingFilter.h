@@ -66,5 +66,36 @@ namespace l::nodegraph {
         std::vector<float> mNegPulseIntervalCount;
         float mValuePrev1 = 0.0f;
     };
+
+
+    /*********************************************************************/
+    class TradingFilterVWMA : public NodeGraphOp {
+    public:
+        TradingFilterVWMA(NodeGraphBase* node, float undefinedValue = 0.0f) :
+            NodeGraphOp(node, "Volume Weighted Moving Average"),
+            mUndefinedValue(undefinedValue)
+        {
+            AddInput("In");
+            AddInput("Weight", 1.0f);
+            AddInput("Kernel Size", 1.0f, 1, 1.0f, 5000.0f);
+            AddInput("Balance", 0.0f, 1, 0.0f, 10.0f);
+
+            AddOutput("Out", 0.0f);
+        }
+
+        virtual ~TradingFilterVWMA() = default;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override final;
+    protected:
+        int32_t mDefaultKernelSize = 50;
+        int32_t mWidth = mDefaultKernelSize;
+        int32_t mFilterStateIndex = -1;
+        float mUndefinedValue = 0.0f;
+        bool mFilterInit = false;
+        std::vector<float> mFilterState;
+        std::vector<float> mFilterWeight;
+    };
+
+
+
 }
 

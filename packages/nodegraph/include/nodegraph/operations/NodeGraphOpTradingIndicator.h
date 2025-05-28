@@ -35,8 +35,9 @@ namespace l::nodegraph {
         TradingIndicatorOBV(NodeGraphBase* node) :
             NodeGraphOp(node, "OBV (on-balance volume)")
         {
-            AddInput("Close", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
-            AddInput("Volume", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
+            //AddInput("Close", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
+            AddInput("Buy vol", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
+            AddInput("Sell vol", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
             AddInput("Friction", 0.0f, 1, 0.0f, 1.0f);
 
             AddOutput("OBV", 0.0f);
@@ -44,25 +45,22 @@ namespace l::nodegraph {
 
         virtual ~TradingIndicatorOBV() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto closeInput = inputs.at(0).GetIterator(numSamples);
-            auto volInput = inputs.at(1).GetIterator(numSamples);
-            auto friction = l::math::sqrt(inputs.at(2).Get());
+            //auto closeInput = inputs.at(0).GetIterator(numSamples);
+            auto volBuyInput = inputs.at(1).GetIterator(numSamples);
+            auto volSellInput = inputs.at(2).GetIterator(numSamples);
+            auto friction = l::math::sqrt(inputs.at(3).Get());
             auto output = outputs.at(0).GetIterator(numSamples);
 
             for (int32_t i = 0; i < numSamples; i++) {
-                float close = *closeInput++;
-                float vol = *volInput++;
+                //float close = *closeInput++;
+                float volBuy = *volBuyInput++;
+                float volSell = *volSellInput++;
 
-                if (close > mClosePrev) {
-                    mOBV += vol;
-                }
-                else if (close < mClosePrev) {
-                    mOBV -= vol;
-                }
+                // mOBV += close > mClosePrev ? volBuy + volSell : -volBuy - volSell;
+                // mClosePrev = close;
 
+                mOBV += volBuy - volSell;
                 mOBV *= friction;
-
-                mClosePrev = close;
 
                 *output++ = mOBV;
             }
@@ -71,7 +69,7 @@ namespace l::nodegraph {
 
             if (mReadSamples >= numCacheSamples) {
                 mReadSamples = 0;
-                mClosePrev = 0.0f;
+                //mClosePrev = 0.0f;
                 mOBV = 0.0f;
             }
         }
@@ -79,7 +77,7 @@ namespace l::nodegraph {
     protected:
         int32_t mReadSamples = 0;
 
-        float mClosePrev = 0.0f;
+        //float mClosePrev = 0.0f;
         float mOBV = 0.0f;
     };
 
@@ -114,7 +112,8 @@ namespace l::nodegraph {
             NodeGraphOp(node, "VPT (volume-price trend)")
         {
             AddInput("Close", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
-            AddInput("Volume", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
+            AddInput("Buy vol", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
+            AddInput("Sell vol", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
             AddInput("Friction", 0.0f, 1, 0.0f, 1.0f);
 
             AddOutput("VPT", 0.0f);
@@ -123,14 +122,17 @@ namespace l::nodegraph {
         virtual ~TradingIndicatorVPT() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto closeInput = inputs.at(0).GetIterator(numSamples);
-            auto volInput = inputs.at(1).GetIterator(numSamples);
-            auto friction = l::math::sqrt(inputs.at(2).Get());
+            auto volBuyInput = inputs.at(1).GetIterator(numSamples);
+            auto volSellInput = inputs.at(2).GetIterator(numSamples);
+            auto friction = l::math::sqrt(inputs.at(3).Get());
             auto output = outputs.at(0).GetIterator(numSamples);
 
             for (int32_t i = 0; i < numSamples; i++) {
                 float close = *closeInput++;
-                float vol = *volInput++;
+                float volBuy = *volBuyInput++;
+                float volSell = *volSellInput++;
 
+                float vol = l::math::abs(volBuy - volSell);
                 if (l::math::abs(mClosePrev) > 0.000000001f) {
                     mVPT += vol * (close - mClosePrev) / mClosePrev;
                 }
@@ -157,5 +159,71 @@ namespace l::nodegraph {
         float mVPT = 0.0f;
     };
 
+    /*********************************************************************/
+    class TradingIndicatorVPIO : public NodeGraphOp {
+    public:
+        TradingIndicatorVPIO(NodeGraphBase* node) :
+            NodeGraphOp(node, "VPIO (volume-price inertial oscillator)")
+        {
+            AddInput("Close", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
+            AddInput("High", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
+            AddInput("Low", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
+            AddInput("Buy vol", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
+            AddInput("Sell vol", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
+            AddInput("Friction", 0.0f, 1, 0.0f, 1.0f);
+
+            AddOutput("VPT", 0.0f);
+        }
+
+        virtual ~TradingIndicatorVPIO() = default;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+            auto closeInput = inputs.at(0).GetIterator(numSamples);
+            auto highInput = inputs.at(1).GetIterator(numSamples);
+            auto lowInput = inputs.at(2).GetIterator(numSamples);
+            auto volBuyInput = inputs.at(3).GetIterator(numSamples);
+            auto volSellInput = inputs.at(4).GetIterator(numSamples);
+            auto friction = l::math::sqrt(inputs.at(3).Get());
+            auto output = outputs.at(0).GetIterator(numSamples);
+
+            for (int32_t i = 0; i < numSamples; i++) {
+                float close = *closeInput++;
+                float high = *highInput++;
+                float low = *lowInput++;
+                float volBuy = *volBuyInput++;
+                float volSell = *volSellInput++;
+
+                float volChange = l::math::abs(volBuy - volSell);
+
+                if (l::math::abs(mClosePrev) > 0.000000001f) {
+                    mVPT += volChange * (close - mClosePrev) / mClosePrev;
+                }
+                mVPT *= friction;
+
+                mClosePrev = close;
+                mHighPrev = high;
+                mLowPrev = low;
+
+                *output++ = mVPT;
+            }
+
+            mReadSamples += numSamples;
+
+            if (mReadSamples >= numCacheSamples) {
+                mReadSamples = 0;
+                mClosePrev = 0.0f;
+                mHighPrev = 0.0f;
+                mLowPrev = 0.0f;
+                mVPT = 0.0f;
+            }
+        }
+
+    protected:
+        int32_t mReadSamples = 0;
+
+        float mClosePrev = 0.0f;
+        float mHighPrev = 0.0f;
+        float mLowPrev = 0.0f;
+        float mVPT = 0.0f;
+    };
 }
 
