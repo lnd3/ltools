@@ -143,20 +143,36 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalDiff>(NodeType::Default);
             break;
 
-            // Fuzzy signal detectors
+            // Trading data io
         case 200:
-            node = mMainNodeGraph.NewNode<l::nodegraph::FuzzyDetectorTrend>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::DataIOOCHLVDataIn>(NodeType::ExternalInput);
             break;
         case 201:
-            node = mMainNodeGraph.NewNode<l::nodegraph::FuzzyDetectorTrendDiff>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::DataIOPlaceTrade>(NodeType::ExternalOutput);
             break;
 
-            // Fuzzy signal filter
+            // Trading detectors
         case 220:
-            node = mMainNodeGraph.NewNode<l::nodegraph::FuzzyFilterFlipGate>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingDetectorTrend>(NodeType::Default);
             break;
         case 221:
-            node = mMainNodeGraph.NewNode<l::nodegraph::FuzzyFilterPulseInfo>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingDetectorTrendDiff>(NodeType::Default);
+            break;
+
+            // Trading filter
+        case 240:
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingFilterFlipGate>(NodeType::Default);
+            break;
+        case 241:
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingFilterPulseInfo>(NodeType::Default);
+            break;
+
+            // Trading indicators
+        case 260:
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorOBV>(NodeType::Default);
+            break;
+        case 261:
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorRSI>(NodeType::Default);
             break;
 
             // Signal generators (basically audio composition)
@@ -268,15 +284,7 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::DataIODataIn>(NodeType::ExternalInput, 6);
             break;
         case 501:
-            node = mMainNodeGraph.NewNode<l::nodegraph::DataIOOCHLVDataIn>(NodeType::ExternalInput);
-            break;
-
-            // DataIO output
-        case 520:
             node = mMainNodeGraph.NewNode<l::nodegraph::DataIODataOut>(NodeType::ExternalOutput, 6);
-            break;
-        case 521:
-            node = mMainNodeGraph.NewNode<l::nodegraph::DataIOPlaceTrade>(NodeType::ExternalOutput);
             break;
 
             // UI elements (basically ui buttons/checkboxes on the ui using the schema containing the nodes)
@@ -397,13 +405,21 @@ namespace l::nodegraph {
             RegisterNodeType("Math.Numerical", 142, "Difference Normalized");
             RegisterNodeType("Math.Numerical", 143, "Difference");
         }
-        else if (typeGroup == "Fuzzy.Detector") {
-            RegisterNodeType("Fuzzy.Detector", 200, "Trend");
-            RegisterNodeType("Fuzzy.Detector", 201, "Trend Diff");
+        else if (typeGroup == "Trading.DataIO") {
+            RegisterNodeType("Trading.DataIO", 200, "OCHLV Data In");
+            RegisterNodeType("Trading.DataIO", 201, "Place Trade");
         }
-        else if (typeGroup == "Fuzzy.Filter") {
-            RegisterNodeType("Fuzzy.Filter", 220, "Flip Gate");
-            RegisterNodeType("Fuzzy.Filter", 221, "Pulse Info");
+        else if (typeGroup == "Trading.Detector") {
+            RegisterNodeType("Trading.Detector", 220, "Trend");
+            RegisterNodeType("Trading.Detector", 221, "Trend Diff");
+        }
+        else if (typeGroup == "Trading.Filter") {
+            RegisterNodeType("Trading.Filter", 240, "Flip Gate");
+            RegisterNodeType("Trading.Filter", 241, "Pulse Info");
+        }
+        else if (typeGroup == "Trading.Indicator") {
+            RegisterNodeType("Trading.Indicator", 260, "OBV");
+            RegisterNodeType("Trading.Indicator", 261, "RSI");
         }
         else if (typeGroup == "Signal.Generator") {
             RegisterNodeType("Signal.Generator", 300, "Sine");
@@ -447,13 +463,9 @@ namespace l::nodegraph {
             RegisterNodeType("Device IO.Output", 420, "PC Beep");
             RegisterNodeType("Device IO.Output", 421, "Speaker");
         }
-        else if (typeGroup == "Data IO.Input") {
-            RegisterNodeType("Data IO.Input", 500, "Data In x6");
-            RegisterNodeType("Data IO.Input", 501, "OCHLV Data In");
-        }
-        else if (typeGroup == "Data IO.Output") {
-            RegisterNodeType("Data IO.Output", 520, "Data Out x6");
-            RegisterNodeType("Data IO.Output", 521, "Place Trade");
+        else if (typeGroup == "Data IO") {
+            RegisterNodeType("Data IO", 500, "Data In x6");
+            RegisterNodeType("Data IO", 501, "Data Out x6");
         }
         else if (typeGroup == "UI") {
             RegisterNodeType("UI", 600, "UI Checkbox");
@@ -475,8 +487,10 @@ namespace l::nodegraph {
         RegisterAllOf("Math.Logic");
         RegisterAllOf("Math.Numerical");
 
-        RegisterAllOf("Fuzzy.Detector");
-        RegisterAllOf("Fuzzy.Filter");
+        RegisterAllOf("Trading.Data IO");
+        RegisterAllOf("Trading.Detector");
+        RegisterAllOf("Trading.Filter");
+        RegisterAllOf("Trading.Indicator");
 
         RegisterAllOf("Signal.Generator");
         RegisterAllOf("Signal.Control");
@@ -486,8 +500,7 @@ namespace l::nodegraph {
         RegisterAllOf("Device IO.Input");
         RegisterAllOf("Device IO.Output");
 
-        RegisterAllOf("Data IO.Input");
-        RegisterAllOf("Data IO.Output");
+        RegisterAllOf("Data IO");
 
         RegisterAllOf("UI");
     }

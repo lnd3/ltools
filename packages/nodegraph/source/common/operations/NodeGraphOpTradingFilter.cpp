@@ -1,4 +1,4 @@
-#include "nodegraph/operations/NodeGraphOpFuzzyFilter.h"
+#include "nodegraph/operations/NodeGraphOpTradingFilter.h"
 
 #include "logging/Log.h"
 #include "audio/AudioUtils.h"
@@ -8,7 +8,7 @@
 #include <math.h>
 
 namespace l::nodegraph {
-    void FuzzyFilterFlipGate::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void TradingFilterFlipGate::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto input = &inputs.at(0).Get(numSamples);
         auto posTrigDelay = static_cast<int32_t>(inputs.at(1).Get());
         auto negTrigDelay = static_cast<int32_t>(inputs.at(2).Get());
@@ -56,7 +56,7 @@ namespace l::nodegraph {
 
 
 
-    void FuzzyFilterPulseInfo::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void TradingFilterPulseInfo::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto input = &inputs.at(0).Get(numSamples);
         auto maxFlips = l::math::max2(static_cast<int32_t>(inputs.at(1).Get() + 0.5f), 1);
 

@@ -22,10 +22,34 @@
 
 
 namespace {
-    class TrendDetector {
+    class TrendDetectorBasic {
     public:
-        TrendDetector() = default;
-        ~TrendDetector() = default;
+        TrendDetectorBasic() = default;
+        ~TrendDetectorBasic() = default;
+
+        float process(float in) {
+            bool bullishTip = in > inPrev1;
+            bool bullishTipTwice = in > inPrev2;
+            bool bullishTipThrice = in > inPrev3;
+
+            inPrev3 = inPrev2;
+            inPrev2 = inPrev1;
+            inPrev1 = in;
+
+            float trend = (bullishTipThrice ? 0.3f : -0.3f) + (bullishTipTwice ? 0.35f : -0.35f) + (bullishTip ? 0.45f : -0.45f);
+            return trend;
+        }
+
+    protected:
+        float inPrev1 = 0.0f;
+        float inPrev2 = 0.0f;
+        float inPrev3 = 0.0f;
+    };
+
+    class TrendDetectorMean {
+    public:
+        TrendDetectorMean() = default;
+        ~TrendDetectorMean() = default;
 
         float process(float in, int32_t numSamples = 6) {
             if (mHistory.size() != numSamples) {
@@ -43,26 +67,24 @@ namespace {
             mean = mean * factor;
 
             bool bullishLevel = in > mean;
-            bool bullishTip = in > mHistory.back();
-            bool bullishMean = mean > meanPrev;
 
-            meanPrev = mean;
             mHistory.erase(mHistory.begin());
             mHistory.push_back(in);
 
-            float trend = (bullishLevel ? 0.4f : -0.4f) + (bullishMean ? 0.35f : -0.35f) + (bullishTip ? 0.25f : -0.25f);
+            float trend = bullishLevel ? 1.0f : -1.0f;
             return trend;
         }
 
     protected:
         std::vector<float> mHistory;
-        float meanPrev = 0.0f;
+        float inPrev1 = 0.0f;
+        float inPrev2 = 0.0f;
     };
 
-    class ReversalDetector {
+    class ReversalDetector4x {
     public:
-        ReversalDetector() = default;
-        ~ReversalDetector() = default;
+        ReversalDetector4x() = default;
+        ~ReversalDetector4x() = default;
 
         float process(float in) {
             float diff01 = in - prevValue1;
@@ -99,6 +121,38 @@ namespace {
         float prevValue2 = 0.0f;
         float prevValue3 = 0.0f;
         float prevValue4 = 0.0f;
+    };
+
+    class ReversalDetector {
+    public:
+        ReversalDetector() = default;
+        ~ReversalDetector() = default;
+
+        float process(float in) {
+            float diff01 = in - prevValue1;
+            float diff12 = prevValue1 - prevValue2;
+
+            bool bull1 = diff01 > 0.0f;
+            bool bear1 = diff01 < 0.0f;
+
+            bool troph1 = bull1 && diff12 < 0.0f;
+
+            bool peak1 = bear1 && diff12 > 0.0f;
+
+            float troph = troph1 ? 1.0f : 0.0f;
+            float peak = peak1 ? 1.0f : 0.0f;
+
+            float reversal = troph - peak;
+
+            prevValue2 = prevValue1;
+            prevValue1 = in;
+
+            return reversal;
+        }
+
+    protected:
+        float prevValue1 = 0.0f;
+        float prevValue2 = 0.0f;
     };
 
     class AccelerationDetector {
@@ -147,55 +201,57 @@ namespace {
 namespace l::nodegraph {
 
     /*********************************************************************/
-    class FuzzyDetectorTrend : public NodeGraphOp {
+    class TradingDetectorTrend : public NodeGraphOp {
     public:
-        FuzzyDetectorTrend(NodeGraphBase* node) :
+        TradingDetectorTrend(NodeGraphBase* node) :
             NodeGraphOp(node, "Trend Detector")
         {
             AddInput("In", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
             AddInput("Trend Samples", 6.0f, 1, 1.0f, 50.0f, false, false);
 
-            AddOutput("Trend", 0.0f);
+            AddOutput("Trend Basic", 0.0f);
+            AddOutput("Trend Mean", 0.0f);
             AddOutput("Reversal", 0.0f);
             AddOutput("Accel", 0.0f);
             AddOutput("Sum", 0.0f);
         }
 
-        virtual ~FuzzyDetectorTrend() = default;
+        virtual ~TradingDetectorTrend() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input1 = inputs.at(0).GetIterator(numSamples);
             auto numTrendSamples = static_cast<int32_t>(l::math::max2(inputs.at(1).Get(), 1.0f));
 
-            auto outputTrend = outputs.at(0).GetIterator(numSamples);
-            auto outputReversal = outputs.at(1).GetIterator(numSamples);
-            auto outputAccel = outputs.at(2).GetIterator(numSamples);
-            auto outputSum = outputs.at(3).GetIterator(numSamples);
+            auto outputTrendBasic = outputs.at(0).GetIterator(numSamples);
+            auto outputTrendMean = outputs.at(1).GetIterator(numSamples);
+            auto outputReversal = outputs.at(2).GetIterator(numSamples);
+            auto outputAccel = outputs.at(3).GetIterator(numSamples);
 
             for (int32_t i = 0; i < numSamples; i++) {
                 float in = (*input1++);
 
-                auto trend = mTrend.process(in, numTrendSamples);
+                auto trendBasic = mTrendBasic.process(in);
+                auto trendMean = mTrendMean.process(in, numTrendSamples);
                 auto reversal = mReversal.process(in);
                 auto acceleration = mAcceleration.process(in);
 
-                *outputTrend++ = trend;
+                *outputTrendBasic++ = trendBasic;
+                *outputTrendMean++ = trendMean;
                 *outputReversal++ = reversal;
                 *outputAccel++ = acceleration;
-
-                *outputSum++ = l::math::min2((trend + reversal + acceleration) * 0.3333334f, 1.0f);
             }
         }
 
     protected:
-        TrendDetector mTrend;
-        ReversalDetector mReversal;
+        TrendDetectorBasic mTrendBasic;
+        TrendDetectorMean mTrendMean;
+        ReversalDetector4x mReversal;
         AccelerationDetector mAcceleration;
     };
 
     /*********************************************************************/
-    class FuzzyDetectorTrendDiff : public NodeGraphOp {
+    class TradingDetectorTrendDiff : public NodeGraphOp {
     public:
-        FuzzyDetectorTrendDiff(NodeGraphBase* node) :
+        TradingDetectorTrendDiff(NodeGraphBase* node) :
             NodeGraphOp(node, "Trend Difference Detector")
         {
             AddInput("In 1", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
@@ -208,36 +264,33 @@ namespace l::nodegraph {
             AddOutput("Sum", 0.0f);
         }
 
-        virtual ~FuzzyDetectorTrendDiff() = default;
+        virtual ~TradingDetectorTrendDiff() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto inputHifi = inputs.at(0).GetIterator(numSamples);
             auto inputLofi = inputs.at(1).GetIterator(numSamples);
-            auto numTrendSamples = static_cast<int32_t>(l::math::max2(inputs.at(2).Get(), 1.0f));
 
-            auto outputTrend = outputs.at(0).GetIterator(numSamples);
+            auto outputTrendBasic = outputs.at(0).GetIterator(numSamples);
             auto outputReversal = outputs.at(1).GetIterator(numSamples);
             auto outputAccel = outputs.at(2).GetIterator(numSamples);
-            auto outputSum = outputs.at(3).GetIterator(numSamples);
 
             for (int32_t i = 0; i < numSamples; i++) {
                 float inHifi = (*inputHifi++);
                 float inLofi = (*inputLofi++);
                 float inDiff = inHifi - inLofi;
 
-                auto trend = mTrend.process(inDiff, numTrendSamples);
+                auto trendBasic = mTrend.process(inDiff);
                 auto reversal = mReversal.process(inDiff);
                 auto acceleration = mAcceleration.process(inDiff);
 
-                *outputTrend++ = trend;
+                *outputTrendBasic++ = trendBasic;
                 *outputReversal++ = reversal;
                 *outputAccel++ = acceleration;
-                *outputSum++ = (trend + reversal + acceleration) * 0.33334f;
             }
         }
 
     protected:
-        TrendDetector mTrend;
-        ReversalDetector mReversal;
+        TrendDetectorBasic mTrend;
+        ReversalDetector4x mReversal;
         AccelerationDetector mAcceleration;
     };
 

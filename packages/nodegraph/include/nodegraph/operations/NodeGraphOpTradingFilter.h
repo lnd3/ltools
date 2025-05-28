@@ -23,9 +23,9 @@
 namespace l::nodegraph {
 
     /*********************************************************************/
-    class FuzzyFilterFlipGate : public NodeGraphOp {
+    class TradingFilterFlipGate : public NodeGraphOp {
     public:
-        FuzzyFilterFlipGate(NodeGraphBase* node) :
+        TradingFilterFlipGate(NodeGraphBase* node) :
             NodeGraphOp(node, "Flip Gate")
         {
             AddInput("In", 0.0f);
@@ -35,7 +35,7 @@ namespace l::nodegraph {
             AddOutput("Gate", 0.0f);
         }
 
-        virtual ~FuzzyFilterFlipGate() = default;
+        virtual ~TradingFilterFlipGate() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         bool mGate = false;
@@ -44,9 +44,9 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class FuzzyFilterPulseInfo: public NodeGraphOp {
+    class TradingFilterPulseInfo: public NodeGraphOp {
     public:
-        FuzzyFilterPulseInfo(NodeGraphBase* node) :
+        TradingFilterPulseInfo(NodeGraphBase* node) :
             NodeGraphOp(node, "Flip Info")
         {
             AddInput("In", 0.0f);
@@ -59,7 +59,7 @@ namespace l::nodegraph {
             AddOutput("max-");
         }
 
-        virtual ~FuzzyFilterPulseInfo() = default;
+        virtual ~TradingFilterPulseInfo() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         std::vector<float> mPosPulseIntervalCount;
