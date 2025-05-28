@@ -98,8 +98,6 @@ namespace l::nodegraph {
     /*********************************************************************/
     void DataIOPlaceTrade::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
 
-        auto now = l::string::get_unix_epoch();
-
         auto symbol = inputs.at(0).GetText(16);
         auto base = inputs.at(1).GetText(16);
         int32_t intervalMin = l::math::max2(static_cast<int32_t>(inputs.at(2).Get() + 0.5f), 1);
