@@ -128,6 +128,10 @@ namespace l::ecs {
 			return mComponents;
 		}
 
+		int32_t getSize() {
+			return static_cast<int32_t>(mComponents.size());
+		}
+
 		bool tryAdd(Entity* e) {
 			if (e->has<Types...>() && !mComponentMap.contains(e)) {
 				mComponents.emplace_back(e, e->template get<Types>()...);

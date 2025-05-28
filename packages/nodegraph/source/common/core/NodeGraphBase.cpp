@@ -36,7 +36,7 @@ namespace l::nodegraph {
 
     void NodeGraphBase::Reset() {
         for (auto& link : mInputs) {
-            if (link.HasInputNode()) {
+            if (link.HasInputNode() && link.GetInputNode() != this) {
                 link.GetInputNode()->Reset();
             }
         }
@@ -45,7 +45,7 @@ namespace l::nodegraph {
     void NodeGraphBase::ClearProcessFlags() {
         mProcessUpdateHasRun = false;
         for (auto& link : mInputs) {
-            if (link.HasInputNode()) {
+            if (link.HasInputNode() && link.GetInputNode() != this) {
                 link.GetInputNode()->ClearProcessFlags();
             }
         }
@@ -63,7 +63,7 @@ namespace l::nodegraph {
             return;
         }
         for (auto& link : mInputs) {
-            if (link.HasInputNode()) {
+            if (link.HasInputNode() && link.GetInputNode() != this) {
                 link.GetInputNode()->ProcessOperation(numSamples, numCacheSamples);
             }
         }
@@ -75,7 +75,7 @@ namespace l::nodegraph {
             return;
         }
         for (auto& link : mInputs) {
-            if (link.HasInputNode()) {
+            if (link.HasInputNode() && link.GetInputNode() != this) {
                 link.GetInputNode()->Tick(tickCount, delta);
             }
         }

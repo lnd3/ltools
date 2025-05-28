@@ -104,21 +104,18 @@ namespace l::nodegraph {
         auto base = inputs.at(1).GetText(16);
         int32_t intervalMin = l::math::max2(static_cast<int32_t>(inputs.at(2).Get() + 0.5f), 1);
         auto unixtimeInput = &inputs.at(3).Get(numSamples);
-        auto decisionInput = &inputs.at(4).Get(numSamples);
-        auto convictionInput = &inputs.at(5).Get(numSamples);
+        auto longInput = &inputs.at(4).Get(numSamples);
+        auto shortInput = &inputs.at(5).Get(numSamples);
         float indecisionLevel = inputs.at(6).Get();
-
-        int32_t candleStartedAt = (60 * intervalMin) * (now / (60 * intervalMin));
-        float candleProgress = (now - candleStartedAt) / static_cast<float>(60 * intervalMin);
+        trade.setIndecisionLevel(indecisionLevel);
 
         outputs.at(0).SetText(symbol);
         outputs.at(1).SetText(base);
         outputs.at(2).Get() = static_cast<float>(intervalMin);
         auto unixtimeOut = &outputs.at(3).Get(numSamples);
-        auto decisionOut = &outputs.at(4).Get(numSamples);
+        auto trendOut = &outputs.at(4).Get(numSamples);
         auto convictionOut = &outputs.at(5).Get(numSamples);
-        outputs.at(6).Get() = candleProgress;
-        outputs.at(7).Get() = indecisionLevel;
+        auto reversalOut = &outputs.at(6).Get(numSamples);
 
         if (mWrittenSamples < numCacheSamples) {
             for (int32_t i = 0; i < numSamples; i++) {
@@ -127,18 +124,21 @@ namespace l::nodegraph {
 
                 if (time == 0.0f || (mUnixtimePrev > 0 && unixtime < mUnixtimePrev)) {
                     unixtimeOut[i] = 0.0f;
-                    decisionOut[i] = 0.0f;
+                    trendOut[i] = 0.0f;
                     convictionOut[i] = 0.0f;
                 }
                 else {
-                    auto decision = decisionInput[i];
-                    auto conviction = convictionInput[i];
-
                     unixtimeOut[i] = time;
-                    decisionOut[i] = decision;
-                    convictionOut[i] = conviction;
+                    trade.setLongLevel(longInput[i]);
+                    trade.setShortLevel(shortInput[i]);
+
+                    trendOut[i] = trade.trend();
+                    convictionOut[i] = trade.trendConviction();
+                    reversalOut[i] = trade.isTrendReversal();
 
                     mUnixtimePrev = unixtime;
+
+                    trade.step(i);
                 }
             }
             mWrittenSamples += numSamples;
@@ -147,6 +147,7 @@ namespace l::nodegraph {
         if (mWrittenSamples >= numCacheSamples) {
             mWrittenSamples = 0;
             mUnixtimePrev = 0;
+            trade.clear();
         }
     }
 

@@ -172,7 +172,10 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorOBV>(NodeType::Default);
             break;
         case 261:
-            node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorRSI>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorVRSI>(NodeType::Default);
+            break;
+        case 262:
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorVPT>(NodeType::Default);
             break;
 
             // Signal generators (basically audio composition)
@@ -405,9 +408,9 @@ namespace l::nodegraph {
             RegisterNodeType("Math.Numerical", 142, "Difference Normalized");
             RegisterNodeType("Math.Numerical", 143, "Difference");
         }
-        else if (typeGroup == "Trading.DataIO") {
-            RegisterNodeType("Trading.DataIO", 200, "OCHLV Data In");
-            RegisterNodeType("Trading.DataIO", 201, "Place Trade");
+        else if (typeGroup == "Trading.Data IO") {
+            RegisterNodeType("Trading.Data IO", 200, "OCHLV Data In");
+            RegisterNodeType("Trading.Data IO", 201, "Place Trade");
         }
         else if (typeGroup == "Trading.Detector") {
             RegisterNodeType("Trading.Detector", 220, "Trend");
@@ -419,7 +422,8 @@ namespace l::nodegraph {
         }
         else if (typeGroup == "Trading.Indicator") {
             RegisterNodeType("Trading.Indicator", 260, "OBV");
-            RegisterNodeType("Trading.Indicator", 261, "RSI");
+            RegisterNodeType("Trading.Indicator", 261, "VRSI");
+            RegisterNodeType("Trading.Indicator", 262, "VPT");
         }
         else if (typeGroup == "Signal.Generator") {
             RegisterNodeType("Signal.Generator", 300, "Sine");

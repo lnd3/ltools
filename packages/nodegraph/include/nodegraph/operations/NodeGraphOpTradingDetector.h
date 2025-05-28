@@ -207,13 +207,12 @@ namespace l::nodegraph {
             NodeGraphOp(node, "Trend Detector")
         {
             AddInput("In", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
-            AddInput("Trend Samples", 6.0f, 1, 1.0f, 50.0f, false, false);
+            AddInput("Mean size", 6.0f, 1, 1.0f, 50.0f);
 
             AddOutput("Trend Basic", 0.0f);
             AddOutput("Trend Mean", 0.0f);
             AddOutput("Reversal", 0.0f);
             AddOutput("Accel", 0.0f);
-            AddOutput("Sum", 0.0f);
         }
 
         virtual ~TradingDetectorTrend() = default;
@@ -256,12 +255,10 @@ namespace l::nodegraph {
         {
             AddInput("In 1", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
             AddInput("In 2", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
-            AddInput("Trend Samples", 6.0f, 1, 1.0f, 50.0f, false, false);
 
             AddOutput("Trend", 0.0f);
             AddOutput("Reversal", 0.0f);
             AddOutput("Accel", 0.0f);
-            AddOutput("Sum", 0.0f);
         }
 
         virtual ~TradingDetectorTrendDiff() = default;

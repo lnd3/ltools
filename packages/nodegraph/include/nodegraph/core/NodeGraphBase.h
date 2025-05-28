@@ -167,6 +167,11 @@ namespace l::nodegraph {
 
         std::string mName;
         size_t mOperationTypeHash;
+
+        float x;
+        float y;
+        float w;
+        float h;
     };
 
     /**********************************************************************************/

@@ -63,6 +63,7 @@ namespace l::ui {
 
         void SetNGSchema(l::nodegraph::NodeGraphSchema* ngSchema) {
             mNGSchema = ngSchema;
+            mSelectedContainers.clear();
         }
         void SetDeleteHandler(std::function<void(int32_t containerId, int32_t nodeId)> handler) {
             mDeleteEvent = handler;
@@ -80,6 +81,8 @@ namespace l::ui {
 
         void SetNGSchema(l::nodegraph::NodeGraphSchema* ngSchema) {
             mNGSchema = ngSchema;
+            mSourceContainer = nullptr;
+            mEditing = false;
         }
     protected:
         bool mEditing = false;
