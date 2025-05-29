@@ -78,7 +78,7 @@ namespace l::nodegraph {
             AddInput("In");
             AddInput("Weight", 1.0f);
             AddInput("Kernel Size", 1.0f, 1, 1.0f, 5000.0f);
-            AddInput("Balance", 0.0f, 1, 0.0f, 10.0f);
+            AddInput("Weight Accent", 1.0f, 1, 0.0f, 100.0f);
 
             AddOutput("Out", 0.0f);
         }

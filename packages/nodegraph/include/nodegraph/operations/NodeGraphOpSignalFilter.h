@@ -136,6 +136,7 @@ namespace l::nodegraph {
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Weight"));
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Kernel Size", 1.0f, 1, 1.0f, 5000.0f));
             mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Kernel Balance", 0.0f, 1, 0.0f, 10.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Weight Accent", 1.0f, 1, 0.0f, 10.0f));
 
             AddOutput("Out", 0.0f);
         }
