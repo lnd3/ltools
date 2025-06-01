@@ -36,10 +36,10 @@ namespace l::nodegraph {
         }
 
         virtual ~MathNumericalIntegral() = default;
-        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto friction = inputs.at(1).Get();
-            auto frictionFactor = l::math::pow(friction, 0.25f);
+            auto frictionFactor = l::math::clamp(l::math::pow(friction, 0.25f), 0.0f, 1.0f);
             auto lodExp = inputs.at(2).Get();
             auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
             auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
@@ -49,11 +49,26 @@ namespace l::nodegraph {
                 mOutput *= frictionFactor;
                 *output++ = mOutput;
             }
+
+            mReadSamples += numSamples;
+
+            if (mReadSamples >= numCacheSamples) {
+                mReadSamples = 0;
+                mOutput = 0.0f;
+            }
+
+            if (isnan(mOutput)) {
+                mOutput = 0.0f;
+            }
+
+
         }
         virtual void Reset() override {
             mOutput = 0.0f;
         }
     protected:
+        int32_t mReadSamples = 0;
+
         float mOutput = 0.0f;
     };
 
@@ -69,7 +84,7 @@ namespace l::nodegraph {
         }
 
         virtual ~MathNumericalDerivate() = default;
-        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto lodExp = inputs.at(1).Get();
             auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
@@ -85,8 +100,18 @@ namespace l::nodegraph {
                 mInputPrev = input;
                 *output++ = value;
             }
+
+            mReadSamples += numSamples;
+
+            if (mReadSamples >= numCacheSamples) {
+                mReadSamples = 0;
+                mInputPrev = 0.0f;
+            }
+
         }
     protected:
+        int32_t mReadSamples = 0;
+
         float mInputPrev = 0.0f;
     };
 
@@ -102,7 +127,7 @@ namespace l::nodegraph {
         }
 
         virtual ~MathNumericalDiffNorm() = default;
-        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto lodExp = inputs.at(1).Get();
             auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
@@ -127,8 +152,18 @@ namespace l::nodegraph {
                 mInputPrev = input;
                 *output++ = value;
             }
+
+            mReadSamples += numSamples;
+
+            if (mReadSamples >= numCacheSamples) {
+                mReadSamples = 0;
+                mInputPrev = 0.0f;
+            }
+
         }
     protected:
+        int32_t mReadSamples = 0;
+
         float mInputPrev = 0.0f;
     };
 
@@ -144,7 +179,7 @@ namespace l::nodegraph {
         }
 
         virtual ~MathNumericalDiff() = default;
-        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto lodExp = inputs.at(1).Get();
             auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
@@ -156,8 +191,18 @@ namespace l::nodegraph {
                 mInputPrev = input;
                 *output++ = value;
             }
+
+            mReadSamples += numSamples;
+
+            if (mReadSamples >= numCacheSamples) {
+                mReadSamples = 0;
+                mInputPrev = 0.0f;
+            }
+
         }
     protected:
+        int32_t mReadSamples = 0;
+
         float mInputPrev = 0.0f;
     };
 

@@ -153,6 +153,7 @@ namespace l::nodegraph {
                 float width = l::math::max2(mInputManager.GetValueNext(3), 1.0f);
                 float balance = mInputManager.GetValueNext(4);
                 float weightAccent = mInputManager.GetValueNext(5);
+                float gamma = mInputManager.GetValueNext(6);
 
                 int32_t widthInt = 1 + static_cast<int32_t>(width);
                 int32_t bufferSize = widthInt;
@@ -188,18 +189,24 @@ namespace l::nodegraph {
                     float balanceDelta = balance / width;
                     float balanceDivisorSum = 0.0f;
                     { // remove a part of the first sample of the sum as it is not part of the moving average
-                        outVal += mFilterWeight[mFilterStateIndex] * mFilterState[mFilterStateIndex] * balanceFactor * widthFrac;
-                        balanceDivisorSum += mFilterWeight[mFilterStateIndex] * balanceFactor * widthFrac;
+                        auto fac = mFilterWeight[mFilterStateIndex] * balanceFactor * widthFrac;
+                        fac = l::math::pow(fac, gamma);
+                        outVal += fac * mFilterState[mFilterStateIndex];
+                        balanceDivisorSum += fac;
                         balanceFactor += balanceDelta * widthFrac;
                     }
                     for (int32_t j = mFilterStateIndex + 1; j < bufferSize; j++) {
-                        outVal += mFilterWeight[j] * mFilterState[j] * balanceFactor;
-                        balanceDivisorSum += mFilterWeight[j] * balanceFactor;
+                        auto fac = mFilterWeight[j] * balanceFactor;
+                        fac = l::math::pow(fac, gamma);
+                        outVal += fac * mFilterState[j];
+                        balanceDivisorSum += fac;
                         balanceFactor += balanceDelta;
                     }
                     for (int32_t j = 0; j < mFilterStateIndex; j++) {
-                        outVal += mFilterWeight[j] * mFilterState[j] * balanceFactor;
-                        balanceDivisorSum += mFilterWeight[j] * balanceFactor;
+                        auto fac = mFilterWeight[j] * balanceFactor;
+                        fac = l::math::pow(fac, gamma);
+                        outVal += fac * mFilterState[j];
+                        balanceDivisorSum += fac;
                         balanceFactor += balanceDelta;
                     }
 

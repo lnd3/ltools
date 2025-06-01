@@ -130,7 +130,7 @@ namespace l::nodegraph {
                 }
                 mLatestUnixtime = unixtime;
                 for (int32_t i = 0; i < mChannels; i++) {
-                    *buf++ = *(input[i])++;
+                    *buf++ = *input[i]++;
                 }
             }
             for (; j < numSamples; j++) {
@@ -143,7 +143,6 @@ namespace l::nodegraph {
         }
 
         if (mWrittenSamples >= numCacheSamples) {
-            mWrittenSamples = 0;
             mInputHasChanged = false;
         }
     }
