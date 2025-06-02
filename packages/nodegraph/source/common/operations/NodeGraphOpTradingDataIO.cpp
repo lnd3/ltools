@@ -56,33 +56,84 @@ namespace l::nodegraph {
 
             auto intervalMinutes = static_cast<int32_t>(outputs.at(2).Get(1) + 0.5f);
 
-            for (int32_t j = 0; j < numSamples; j++) {
-                auto offset = j * stride;
+            if (mMode == 0) {
+                for (int32_t j = 0; j < numSamples; j++) {
+                    auto offset = j * stride;
 
-                auto unixtimef = in[offset + 0];
-                auto unixtime = l::math::algorithm::convert<int32_t>(unixtimef);
-                if (mUnixtimePrev == 0) {
-                    mUnixtimePrev = unixtime;
-                }
-                else if (unixtime != mUnixtimePrev + intervalMinutes * 60) {
-                    unixtime = 0;
-                    unixtimef = l::math::algorithm::convert<float>(unixtime);
-                }
-                else {
-                    mUnixtimePrev = unixtime;
-                }
+                    auto unixtimef = in[offset + 0];
+                    auto unixtime = l::math::algorithm::convert<int32_t>(unixtimef);
+                    if (mUnixtimePrev == 0) {
+                        mUnixtimePrev = unixtime;
+                    }
+                    else if (unixtime != mUnixtimePrev + intervalMinutes * 60) {
+                        unixtime = 0;
+                        unixtimef = l::math::algorithm::convert<float>(unixtime);
+                    }
+                    else {
+                        mUnixtimePrev = unixtime;
+                    }
 
-                *out1++ = unixtimef; // unixtime
-                *out2++ = in[offset + 1]; // open
-                *out3++ = in[offset + 2]; // close
-                *out4++ = in[offset + 3]; // high
-                *out5++ = in[offset + 4]; // low
-                *out6++ = in[offset + 5]; // volume
-                *out7++ = in[offset + 6]; // quantity
-                *out8++ = in[offset + 7]; // buy volume
-                *out9++ = in[offset + 5] - in[offset + 7]; // sell volume
-                *out10++ = in[offset + 8]; // buy quantity
-                *out11++ = in[offset + 6] - in[offset + 8]; // sell quantity
+                    *out1++ = unixtimef; // unixtime
+                    auto o = in[offset + 1];
+                    auto c = in[offset + 2];
+                    auto h = in[offset + 3];
+                    auto l = in[offset + 4];
+                    auto v = in[offset + 5];
+
+                    *out2++ = o;
+                    *out3++ = c;
+                    *out4++ = h;
+                    *out5++ = l;
+                    *out6++ = v;
+                    *out7++ = in[offset + 6]; // quantity
+                    *out8++ = in[offset + 7]; // buy volume
+                    *out9++ = in[offset + 5] - in[offset + 7]; // sell volume
+                    *out10++ = in[offset + 8]; // buy quantity
+                    *out11++ = in[offset + 6] - in[offset + 8]; // sell quantity
+                }
+            }
+            else if (mMode == 1) {
+                for (int32_t j = 0; j < numSamples; j++) {
+                    auto offset = j * stride;
+
+                    auto unixtimef = in[offset + 0];
+                    auto unixtime = l::math::algorithm::convert<int32_t>(unixtimef);
+                    if (mUnixtimePrev == 0) {
+                        mUnixtimePrev = unixtime;
+                    }
+                    else if (unixtime != mUnixtimePrev + intervalMinutes * 60) {
+                        unixtime = 0;
+                        unixtimef = l::math::algorithm::convert<float>(unixtime);
+                    }
+                    else {
+                        mUnixtimePrev = unixtime;
+                    }
+
+                    *out1++ = unixtimef; // unixtime
+                    auto o = in[offset + 1];
+                    auto c = in[offset + 2];
+                    auto h = in[offset + 3];
+                    auto l = in[offset + 4];
+
+                    auto close = 0.25f * (o + c + h + l);
+                    auto open = 0.5f * (mOpenPrev + mClosePrev);
+                    auto high = l::math::max3(h, close, open);
+                    auto low = l::math::min3(l, close, open);
+
+                    mOpenPrev = open;
+                    mClosePrev = close;
+
+                    *out2++ = open;
+                    *out3++ = close;
+                    *out4++ = high;
+                    *out5++ = low;
+                    *out6++ = in[offset + 5];
+                    *out7++ = in[offset + 6]; // quantity
+                    *out8++ = in[offset + 7]; // buy volume
+                    *out9++ = in[offset + 5] - in[offset + 7]; // sell volume
+                    *out10++ = in[offset + 8]; // buy quantity
+                    *out11++ = in[offset + 6] - in[offset + 8]; // sell quantity
+                }
             }
 
             mReadSamples += numSamples;

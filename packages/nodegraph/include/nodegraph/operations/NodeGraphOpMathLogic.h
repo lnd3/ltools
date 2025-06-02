@@ -41,8 +41,8 @@ namespace l::nodegraph {
             auto input2 = inputs.at(1).GetIterator(numSamples);
             auto output = outputs.at(0).GetIterator(numSamples);
             for (int32_t i = 0; i < numSamples; i++) {
-                bool bool1 = (*input1++) != 0.0f;
-                bool bool2 = (*input2++) != 0.0f;
+                bool bool1 = (*input1++) > 0.0f;
+                bool bool2 = (*input2++) > 0.0f;
                 *output++ = (bool1 && bool2) ? 1.0f : 0.0f;
             }
         }
@@ -65,8 +65,8 @@ namespace l::nodegraph {
             auto input2 = inputs.at(1).GetIterator(numSamples);
             auto output = outputs.at(0).GetIterator(numSamples);
             for (int32_t i = 0; i < numSamples; i++) {
-                bool bool1 = (*input1++) != 0.0f;
-                bool bool2 = (*input2++) != 0.0f;
+                bool bool1 = (*input1++) > 0.0f;
+                bool bool2 = (*input2++) > 0.0f;
                 *output++ = (bool1 || bool2) ? 1.0f : 0.0f;
             }
         }
@@ -89,8 +89,8 @@ namespace l::nodegraph {
             auto input2 = inputs.at(1).GetIterator(numSamples);
             auto output = outputs.at(0).GetIterator(numSamples);
             for (int32_t i = 0; i < numSamples; i++) {
-                bool bool1 = (*input1++) != 0.0f;
-                bool bool2 = (*input2++) != 0.0f;
+                bool bool1 = (*input1++) > 0.0f;
+                bool bool2 = (*input2++) > 0.0f;
                 *output++ = (bool1 ^ bool2) ? 1.0f : 0.0f;
             }
         }

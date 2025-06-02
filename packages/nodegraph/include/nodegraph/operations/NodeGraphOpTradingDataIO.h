@@ -28,9 +28,14 @@ namespace l::nodegraph {
         static const int32_t kIntervalCount = 10;
         const int32_t kIntervals[kIntervalCount] = { 1, 5, 15, 30, 60, 120, 240, 720, 1440, 10080 };
 
-        DataIOOCHLVDataIn(NodeGraphBase* node) :
-            NodeGraphOp(node, "OCHLV Data In")
+        DataIOOCHLVDataIn(NodeGraphBase* node, int32_t mode = 0) :
+            NodeGraphOp(node, "OCHLV Data In"),
+			mMode(mode)
         {
+			if (mMode == 1) {
+				mName = "OCHLV Heikin-Ashi In";
+			}
+
             AddInput("In", 0.0f, 2, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
             AddInput2("Symbol", 16, InputFlags(false, true, false, true));
             AddInput2("Base", 16, InputFlags(false, true, false, true));
@@ -61,10 +66,15 @@ namespace l::nodegraph {
 
         int32_t GetNumSamplesLeft();
     protected:
+		int32_t mMode = 0; // 0 - ochlv, 1 - heikin-ashi
+
         int32_t mUnixtimePrev = 0;
         int32_t mReadSamples = 0;
         int32_t mWrittenSamples = 0;
-    };
+
+		float mOpenPrev = 0.0f;
+		float mClosePrev = 0.0f;
+	};
 
     /*********************************************************************/
 

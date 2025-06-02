@@ -119,13 +119,13 @@ namespace l::nodegraph {
             break;
 
             // Math logical operators
-        case 121:
+        case 120:
             node = mMainNodeGraph.NewNode<l::nodegraph::MathLogicalAnd>(NodeType::Default);
             break;
-        case 122:
+        case 121:
             node = mMainNodeGraph.NewNode<l::nodegraph::MathLogicalOr>(NodeType::Default);
             break;
-        case 123:
+        case 122:
             node = mMainNodeGraph.NewNode<l::nodegraph::MathLogicalXor>(NodeType::Default);
             break;
 
@@ -145,9 +145,12 @@ namespace l::nodegraph {
 
             // Trading data io
         case 200:
-            node = mMainNodeGraph.NewNode<l::nodegraph::DataIOOCHLVDataIn>(NodeType::ExternalInput);
+            node = mMainNodeGraph.NewNode<l::nodegraph::DataIOOCHLVDataIn>(NodeType::ExternalInput, 0);
             break;
         case 201:
+            node = mMainNodeGraph.NewNode<l::nodegraph::DataIOOCHLVDataIn>(NodeType::ExternalInput, 1);
+            break;
+        case 202:
             node = mMainNodeGraph.NewNode<l::nodegraph::DataIOPlaceTrade>(NodeType::ExternalOutput);
             break;
 
@@ -416,7 +419,8 @@ namespace l::nodegraph {
         }
         else if (typeGroup == "Trading.Data IO") {
             RegisterNodeType("Trading.Data IO", 200, "OCHLV Data In");
-            RegisterNodeType("Trading.Data IO", 201, "Place Trade");
+            RegisterNodeType("Trading.Data IO", 201, "Heikin-Ashi Data In");
+            RegisterNodeType("Trading.Data IO", 202, "Place Trade");
         }
         else if (typeGroup == "Trading.Detector") {
             RegisterNodeType("Trading.Detector", 220, "Trend");
