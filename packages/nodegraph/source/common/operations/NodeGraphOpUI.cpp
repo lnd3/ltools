@@ -148,18 +148,52 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphUICandleSticks::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        mInputManager.BatchUpdate(inputs, numSamples);
+    void GraphUICandleSticks::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
 
-        float* output = &outputs.at(0).Get(6 * numSamples);
+        if (!mInputHasChanged) {
+            for (auto& in : inputs) {
+                if (in.HasInputNode() && in.GetInputNode()->IsOutOfDate()) {
+                    mInputHasChanged = true;
+                    mWrittenSamples = 0;
+                    mLatestUnixtime = 0;
+                }
+            }
+        }
 
-        for (int32_t i = 0; i < numSamples; i++) {
-            output[6 * i + 0] = mInputManager.GetValueNext(0);
-            output[6 * i + 1] = mInputManager.GetValueNext(1);
-            output[6 * i + 2] = mInputManager.GetValueNext(2);
-            output[6 * i + 3] = mInputManager.GetValueNext(3);
-            output[6 * i + 4] = mInputManager.GetValueNext(4);
-            output[6 * i + 5] = mInputManager.GetValueNext(5);
+        const int32_t stride = 6;
+        float* out = &outputs.at(0).Get(numCacheSamples * stride);
+
+        if (mWrittenSamples < numCacheSamples) {
+            float* input[stride];
+            for (int32_t j = 0; j < stride; j++) {
+                input[j] = &inputs.at(j).Get(numSamples);
+            }
+            auto buf = out + mWrittenSamples * stride;
+            int32_t j = 0;
+            for (j = 0; j < numSamples; j++) {
+                auto unixtimef = *input[0];
+                auto unixtime = l::math::algorithm::convert<int32_t>(unixtimef);
+                if (unixtimef == 0.0f || mLatestUnixtime >= unixtime) {
+                    mLatestUnixtime = unixtime;
+                    j--;
+                    break;
+                }
+                mLatestUnixtime = unixtime;
+                for (int32_t i = 0; i < stride; i++) {
+                    *buf++ = *input[i]++;
+                }
+            }
+            for (; j < numSamples; j++) {
+                for (int32_t i = 0; i < stride; i++) {
+                    *buf++ = 0.0f;
+                }
+            }
+
+            mWrittenSamples += numSamples;
+        }
+
+        if (mWrittenSamples >= numCacheSamples) {
+            mInputHasChanged = false;
         }
     }
 

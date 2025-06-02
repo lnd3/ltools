@@ -24,7 +24,7 @@ namespace l::nodegraph {
         return mWrittenSamples - mReadSamples;
     }
 
-    void DataIOOCHLVDataIn::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void DataIOOCHLVDataIn::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
 
         int32_t stride = 9;
 
@@ -40,7 +40,7 @@ namespace l::nodegraph {
         }
 
         if (mReadSamples < mWrittenSamples) {
-            auto in = &inputs.at(0).Get((numSamples + mReadSamples) * stride, mReadSamples * stride);
+            auto in = &inputs.at(0).Get(numCacheSamples * stride, mReadSamples * stride);
 
             float* out1 = &outputs.at(3).Get(numSamples); // unixtime
             float* out2 = &outputs.at(4).Get(numSamples); // open

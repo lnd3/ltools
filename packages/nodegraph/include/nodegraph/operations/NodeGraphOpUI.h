@@ -93,24 +93,22 @@ namespace l::nodegraph {
     class GraphUICandleSticks : public NodeGraphOp {
     public:
         GraphUICandleSticks(NodeGraphBase* node) :
-            NodeGraphOp(node, "Candle Sticks"),
-            mInputManager(*this)
+            NodeGraphOp(node, "Candle Sticks")
         {
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("unixtime", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false));
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("open", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false));
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("close", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false));
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("high", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false));
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("low", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false));
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("volume", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false));
+            AddInput2("unixtime", 1, InputFlags(false, false, false, false));
+            AddInput2("open", 1, InputFlags(false, false, false, false));
+            AddInput2("close", 1, InputFlags(false, false, false, false));
+            AddInput2("high", 1, InputFlags(false, false, false, false));
+            AddInput2("low", 1, InputFlags(false, false, false, false));
+            AddInput2("volume", 1, InputFlags(false, false, false, false));
             AddOutput("Interleaved Data");
         }
         virtual ~GraphUICandleSticks() = default;
 
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
-        InputManager mInputManager;
-        float mStepsUntilUpdate = 0.0f;
-        float mUpdateRate = 16.0f;
+        int32_t mWrittenSamples = 0;
+        int32_t mLatestUnixtime = 0;
     };
 }
 
