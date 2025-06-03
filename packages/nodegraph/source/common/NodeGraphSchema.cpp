@@ -178,14 +178,21 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorOBV>(NodeType::Default);
             break;
         case 261:
-            node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorVRSI>(NodeType::Default);
-            break;
-        case 262:
             node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorVPT>(NodeType::Default);
             break;
-        case 263:
-            node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorVPIO>(NodeType::Default);
+        case 262:
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorOBV2>(NodeType::Default);
             break;
+        case 263:
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorGA>(NodeType::Default);
+            break;
+        case 264:
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorVRSI>(NodeType::Default);
+            break;
+        case 265:
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorATR>(NodeType::Default);
+            break;
+
 
             // Signal generators (basically audio composition)
         case 300:
@@ -432,10 +439,12 @@ namespace l::nodegraph {
             RegisterNodeType("Trading.Filter", 242, "Volume Weighted Moving Average");
         }
         else if (typeGroup == "Trading.Indicator") {
-            RegisterNodeType("Trading.Indicator", 260, "OBV");
-            RegisterNodeType("Trading.Indicator", 261, "VRSI");
-            RegisterNodeType("Trading.Indicator", 262, "VPT");
-            RegisterNodeType("Trading.Indicator", 263, "VPIO");
+            RegisterNodeType("Trading.Indicator", 260, "On-Balance Volume (OBV)");
+            RegisterNodeType("Trading.Indicator", 261, "Volume-Price Trend VPT");
+            RegisterNodeType("Trading.Indicator", 262, "On-Balance Volume 2 (OBV2)");
+            RegisterNodeType("Trading.Indicator", 263, "Gated Accumulation (GA)");
+            //RegisterNodeType("Trading.Indicator", 264, "Volume Relative Strength Index (VRSI)");
+            //RegisterNodeType("Trading.Indicator", 265, "Average True Range (ATR)");
         }
         else if (typeGroup == "Signal.Generator") {
             RegisterNodeType("Signal.Generator", 300, "Sine");
@@ -454,7 +463,7 @@ namespace l::nodegraph {
             RegisterNodeType("Signal.Filter", 340, "Lowpass");
             RegisterNodeType("Signal.Filter", 341, "Highpass");
             RegisterNodeType("Signal.Filter", 342, "Chamberlin two-pole (4 mode)");
-            RegisterNodeType("Signal.Filter", 343, "Moving Average");
+            RegisterNodeType("Signal.Filter", 343, "Gamma Weighted Moving Average (GWMA)");
         }
         else if (typeGroup == "Signal.Effect") {
             RegisterNodeType("Signal.Effect", 360, "Reverb1");
