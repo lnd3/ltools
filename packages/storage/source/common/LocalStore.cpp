@@ -69,7 +69,7 @@ namespace storage {
 				break;
 			}
 
-			serialization::convert(data, buf, count);
+			string::convert(data, buf, count);
 		}
 		ifs.close();
 		count_reads_ops--;

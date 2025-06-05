@@ -11,4 +11,4 @@ set(deps
 	hid
 )
 
-bs_generate_package(nodegraph "tier1" "${deps}" "PortAudio;various")
+bs_generate_package(nodegraph "tier1" "${deps}" "PortAudio;various;jsonxx")

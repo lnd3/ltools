@@ -21,6 +21,7 @@ set(deps
 )
 
 set(deps_external
+	jsonxx
 	various
 	pugixml
 	openfbx

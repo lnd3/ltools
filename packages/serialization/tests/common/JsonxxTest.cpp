@@ -1,9 +1,9 @@
-#include "testing/Test.h"
-#include "logging/Log.h"
+#include <testing/Test.h>
+#include <logging/Log.h>
 
-#include "serialization/JsonBuilder.h"
-
-#include "jsonxx/jsonxx.h"
+#include <serialization/JsonBuilder.h>
+#include <serialization/JsonSerializationBase.h>
+#include <jsonxx/jsonxx.h>
 
 #include <cstring>
 #include <string>
@@ -80,7 +80,8 @@ TEST(Jsonxx, MultiJsonObjects) {
 TEST(JsonBuilder, Basic) {
 
 	l::serialization::JsonBuilder json;
-
+	std::stringstream stream;
+	json.SetStream(&stream);
 	json.Begin("");
 	{
 		json.AddString("a", "astring");
@@ -100,10 +101,90 @@ TEST(JsonBuilder, Basic) {
 		json.End(true);
 	}
 	json.End();
-	LOG(LogTest) << "\n" << json.GetStream().str();
+
+	LOG(LogTest) << "\n" << stream.str();
 
 	std::string_view correct = "{\"a\":\"astring\",\"b\":\"bstring\",\"c\":{\"ca\":\"dastring\",\"cb\":2},\"d\":[\"dastring\",2]}";
-	TEST_TRUE(correct == json.GetStream().str(), "");
+	TEST_TRUE(correct == stream.str(), "");
+
+	jsonxx::Object parser;
+	parser.parse(stream);
+
+	TEST_TRUE(parser.get<jsonxx::String>("a") == "astring", "");
+	TEST_TRUE(parser.get<jsonxx::String>("b") == "bstring", "");
+	auto& c = parser.get<jsonxx::Object>("c");
+	TEST_TRUE(c.get<jsonxx::String>("ca") == "dastring", "");
+	TEST_TRUE(c.get<jsonxx::Number>("cb") == 2, "");
+	auto& d = parser.get<jsonxx::Array>("d");
+	auto& d1 = d.get<jsonxx::String>(0);
+	auto& d2 = d.get<jsonxx::Number>(1);
+	TEST_TRUE(d1 == "dastring", "");
+	TEST_TRUE(d2 == 2, "");
+
 	return 0;
 }
 
+class JsonData : public l::serialization::JsonSerializationBase {
+public:
+	JsonData() = default;
+	~JsonData() = default;
+
+	bool LoadArchiveData(std::stringstream& src) override {
+		jsonxx::Object parser;
+		if (parser.parse(src)) {
+			mName = parser.get<jsonxx::String>("name");
+			mId = parser.get<jsonxx::Number>("id");
+			auto& array = parser.get<jsonxx::Array>("array");
+			for (auto e : array.values()) {
+				auto value = e->get<jsonxx::Number>();
+				mArray.push_back(value);
+			}
+		}
+		return false;
+	}
+
+	void GetArchiveData(std::stringstream& dst) override {
+		l::serialization::JsonBuilder json;
+
+		json.SetStream(&dst);
+		json.Begin("");
+		json.AddString("name", mName);
+		json.AddNumber("id", mId);
+		json.Begin("array", true);
+		{
+			for (auto& e : mArray) {
+				json.AddNumber("", e);
+			}
+		}
+		json.End(true);
+		json.End();
+	}
+
+	std::string mName;
+	float mId = 0.0f;
+	std::vector<int32_t> mArray;
+};
+
+
+TEST(JsonSerializer, Basic) {
+
+	JsonData data;
+
+	data.mName = "test";
+	data.mId = 3432;
+	data.mArray.push_back(89);
+	data.mArray.push_back(91);
+			
+	std::stringstream str;
+	data.GetArchiveData(str);
+
+	JsonData data2;
+	data2.LoadArchiveData(str);
+
+	TEST_TRUE(data2.mId == 3432, "");
+	TEST_TRUE(data2.mName == "test", "");
+	TEST_TRUE(data2.mArray.at(0) == 89, "");
+	TEST_TRUE(data2.mArray.at(1) == 91, "");
+
+	return 0;
+}

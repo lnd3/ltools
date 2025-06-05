@@ -18,6 +18,10 @@ namespace l::serialization {
         }
         ~JsonBuilder() = default;
 
+        void SetStream(std::stringstream* stream) {
+            mJson = stream;
+        }
+
         void Begin(std::string_view name, bool array = false);
         void End(bool array = false);
         void AddJson(std::string_view json);
@@ -27,22 +31,22 @@ namespace l::serialization {
         template<class T>
         void AddNumber(std::string_view name, T value, bool asString = false) {
             if (mNestingItemCount.back() > 1) {
-                mJson << ",";
+                *mJson << ",";
                 Indent();
             }
             mNestingItemCount.back()++;
             if (!name.empty()) {
-                mJson << "\"" << name << "\":";
+                *mJson << "\"" << name << "\":";
             }
             if (asString) {
-                mJson << "\"" << std::to_string(value) << "\"";
+                *mJson << "\"" << std::to_string(value) << "\"";
             }
             else {
-                mJson << std::to_string(value);
+                *mJson << std::to_string(value);
             }
         }
+
         void Reset();
-        std::stringstream& GetStream();
     protected:
         void NewLine();
         void Indent();
@@ -51,6 +55,6 @@ namespace l::serialization {
 
         bool mPretty = false;
         std::deque<int32_t> mNestingItemCount;
-        std::stringstream mJson;
+        std::stringstream* mJson;
     };
 }

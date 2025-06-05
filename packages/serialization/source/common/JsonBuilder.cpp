@@ -8,15 +8,15 @@ namespace l::serialization {
 
     void JsonBuilder::Begin(std::string_view name, bool array) {
         if (mNestingItemCount.back() > 1) {
-            mJson << ",";
+            *mJson << ",";
             NewLine();
             Indent();
         }
         BeginNesting();
         if (!name.empty()) {
-            mJson << "\"" << name << "\":";
+            *mJson << "\"" << name << "\":";
         }
-        mJson << (array ? "[" : "{");
+        *mJson << (array ? "[" : "{");
         NewLine();
         Indent();
     }
@@ -24,63 +24,59 @@ namespace l::serialization {
         EndNesting();
         NewLine();
         Indent();
-        mJson << (array ? "]" : "}");
+        *mJson << (array ? "]" : "}");
     }
     void JsonBuilder::AddString(std::string_view name, std::string_view data) {
         if (mNestingItemCount.back() > 1) {
-            mJson << ",";
+            *mJson << ",";
             Indent();
         }
         mNestingItemCount.back()++;
         if (!name.empty()) {
-            mJson << "\"" << name << "\":";
+            *mJson << "\"" << name << "\":";
         }
-        mJson << "\"" << data << "\"";
+        *mJson << "\"" << data << "\"";
     }
     void JsonBuilder::AddString(std::string_view name, std::function<void(std::stringstream& json)> dataGenerator) {
         if (mNestingItemCount.back() > 1) {
-            mJson << ",";
+            *mJson << ",";
             Indent();
         }
         mNestingItemCount.back()++;
         if (!name.empty()) {
-            mJson << "\"" << name << "\":";
+            *mJson << "\"" << name << "\":";
         }
-        mJson << "\"";
-        dataGenerator(mJson);
-        mJson << "\"";
+        *mJson << "\"";
+        dataGenerator(*mJson);
+        *mJson << "\"";
     }
     void JsonBuilder::AddJson(std::string_view json) {
         if (json.empty()) {
             return;
         }
         if (mNestingItemCount.back() > 1) {
-            mJson << ",";
+            *mJson << ",";
             Indent();
         }
         mNestingItemCount.back()++;
-        mJson << json;
+        *mJson << json;
     }
     void JsonBuilder::Reset() {
-        mJson.str("");
-        mJson.clear();
-    }
-    std::stringstream& JsonBuilder::GetStream() {
-        mJson.flush();
-        return mJson;
+        mJson->str("");
+        mJson->clear();
     }
     void JsonBuilder::NewLine() {
         if (!mPretty) {
             return;
         }
-        mJson << "\n";
+        *mJson << "\n";
     }
     void JsonBuilder::Indent() {
         if (!mPretty) {
             return;
         }
         for (size_t i = 1; i < mNestingItemCount.size(); i++) {
-            mJson << "  ";
+            *mJson << "  ";
         }
     }
     void JsonBuilder::BeginNesting() {

@@ -1,7 +1,9 @@
 #pragma once
 
-#include "logging/LoggingAll.h"
-#include "meta/Reflection.h"
+#include <logging/LoggingAll.h>
+#include <meta/Reflection.h>
+
+#include <jsonxx/jsonxx.h>
 
 #include <string>
 #include <vector>
@@ -10,14 +12,13 @@
 #include <type_traits>
 #include <memory>
 
-#include "math/MathConstants.h"
+#include <math/MathConstants.h>
 
-#include "nodegraph/core/NodeGraphData.h"
-#include "nodegraph/core/NodeGraphInput.h"
-#include "nodegraph/core/NodeGraphOutput.h"
+#include <nodegraph/core/NodeGraphData.h>
+#include <nodegraph/core/NodeGraphInput.h>
+#include <nodegraph/core/NodeGraphOutput.h>
 
 namespace l::nodegraph {
-
     int32_t CreateUniqueId();
     bool IsValidInOutNum(int8_t inoutNum, size_t inoutSize);
 
@@ -34,7 +35,6 @@ namespace l::nodegraph {
         {}
 
         virtual ~NodeGraphBase() {
-
             for (auto& in : mInputs) {
                 in.Clear();
             }

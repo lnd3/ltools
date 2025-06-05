@@ -1,6 +1,7 @@
-#include "testing/Test.h"
+#include <testing/Test.h>
 
-#include "serialization/SerializationBase.h"
+#include <serialization/SerializationBase.h>
+#include <logging/String.h>
 
 #include <memory>
 #include <filesystem>
@@ -183,13 +184,13 @@ TEST(Serialization, ZppSerializer) {
 		out(point(2, 3, "4"));
 		out(point(5, 6, "7"));
 
-		serialization::convert(stream, data);
+		string::convert(stream, data);
 	}
 
 	data.clear();
 
 	{
-		serialization::convert(data, stream);
+		string::convert(data, stream);
 
 		point my_point0;
 		point my_point1;

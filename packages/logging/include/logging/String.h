@@ -12,6 +12,25 @@
 
 namespace l::string {
 
+	template<class T>
+	void convert(std::stringstream& dst, std::vector<T>& src, size_t count = 0) {
+		static_assert(sizeof(T) == sizeof(char));
+		dst.write(reinterpret_cast<char*>(src.data()), count > 0 ? count : src.size());
+	}
+
+	template<class T, const size_t SIZE>
+	void convert(std::stringstream& dst, std::array<T, SIZE>& src, size_t count = 0) {
+		static_assert(sizeof(T) == sizeof(char));
+		dst.write(reinterpret_cast<char*>(src.data()), count > 0 ? count : src.size());
+	}
+
+	template<class T>
+	void convert(std::vector<T>& dst, std::stringstream& src) {
+		T tmp{};
+		static_assert(sizeof(T) == sizeof(char));
+		while (src >> tmp) dst.push_back(tmp);
+	}
+
 	template<int32_t BUFSIZE>
 	class string_buffer {
 	public:
