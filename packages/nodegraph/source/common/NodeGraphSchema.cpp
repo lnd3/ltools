@@ -145,13 +145,13 @@ namespace l::nodegraph {
 
             // Trading data io
         case 200:
-            node = mMainNodeGraph.NewNode<l::nodegraph::DataIOOCHLVDataIn>(NodeType::ExternalInput, 0);
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingDataIOOCHLVDataIn>(NodeType::ExternalInput, 0);
             break;
         case 201:
-            node = mMainNodeGraph.NewNode<l::nodegraph::DataIOOCHLVDataIn>(NodeType::ExternalInput, 1);
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingDataIOOCHLVDataIn>(NodeType::ExternalInput, 1);
             break;
         case 202:
-            node = mMainNodeGraph.NewNode<l::nodegraph::DataIOPlaceTrade>(NodeType::ExternalOutput);
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingDataIOPlaceTrade>(NodeType::ExternalOutput);
             break;
 
             // Trading detectors

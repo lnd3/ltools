@@ -146,7 +146,7 @@ TEST(NodeGraphData, Tweening) {
 
 TEST(NodeGraphData, CandleStickData) {
 
-    NodeGraph<DataIOOCHLVDataIn> node0;
+    NodeGraph<TradingDataIOOCHLVDataIn> node0;
     NodeGraph<Copy> node1;
 
     node1.SetInput(0, node0, 0);

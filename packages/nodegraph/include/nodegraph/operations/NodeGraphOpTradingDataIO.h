@@ -23,12 +23,12 @@
 
 namespace l::nodegraph {
     /*********************************************************************/
-    class DataIOOCHLVDataIn : public NodeGraphOp {
+    class TradingDataIOOCHLVDataIn : public NodeGraphOp {
     public:
         static const int32_t kIntervalCount = 10;
         const int32_t kIntervals[kIntervalCount] = { 1, 5, 15, 30, 60, 120, 240, 720, 1440, 10080 };
 
-        DataIOOCHLVDataIn(NodeGraphBase* node, int32_t mode = 0) :
+        TradingDataIOOCHLVDataIn(NodeGraphBase* node, int32_t mode = 0) :
             NodeGraphOp(node, "OCHLV Data In"),
 			mMode(mode)
         {
@@ -58,7 +58,7 @@ namespace l::nodegraph {
             AddOutput("Buy Quantity", 0.0f, 2);
             AddOutput("Sell Quantity", 0.0f, 2);
         }
-        virtual ~DataIOOCHLVDataIn() = default;
+        virtual ~TradingDataIOOCHLVDataIn() = default;
 
         virtual void InputHasChanged(int32_t numSamplesWritten) override;
         virtual void Reset() override;
@@ -184,9 +184,9 @@ namespace l::nodegraph {
 		float mShortLevelPrev1 = 0.0f;
 	};
 
-    class DataIOPlaceTrade : public NodeGraphOp {
+    class TradingDataIOPlaceTrade : public NodeGraphOp {
     public:
-        DataIOPlaceTrade(NodeGraphBase* node) :
+        TradingDataIOPlaceTrade(NodeGraphBase* node) :
             NodeGraphOp(node, "Place Trade Out")
         {
             AddInput2("Symbol", 16, InputFlags(false, true, false, true));
@@ -205,7 +205,7 @@ namespace l::nodegraph {
             AddOutput("Conviction", 0.0f, 2, false);
             AddOutput("Reversa", 0.0f, 2, false);
         }
-        virtual ~DataIOPlaceTrade() = default;
+        virtual ~TradingDataIOPlaceTrade() = default;
 
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:

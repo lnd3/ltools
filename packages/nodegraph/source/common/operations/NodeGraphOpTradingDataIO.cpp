@@ -10,21 +10,21 @@
 namespace l::nodegraph {
 
     /*********************************************************************/
-    void DataIOOCHLVDataIn::Reset() {
+    void TradingDataIOOCHLVDataIn::Reset() {
         mReadSamples = 0;
     }
 
-    void DataIOOCHLVDataIn::InputHasChanged(int32_t numSamplesWritten) {
+    void TradingDataIOOCHLVDataIn::InputHasChanged(int32_t numSamplesWritten) {
         mInputHasChanged = true;
         mWrittenSamples = numSamplesWritten;
         mReadSamples = 0;
     }
 
-    int32_t DataIOOCHLVDataIn::GetNumSamplesLeft() {
+    int32_t TradingDataIOOCHLVDataIn::GetNumSamplesLeft() {
         return mWrittenSamples - mReadSamples;
     }
 
-    void DataIOOCHLVDataIn::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void TradingDataIOOCHLVDataIn::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
 
         int32_t stride = 9;
 
@@ -147,7 +147,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void DataIOPlaceTrade::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void TradingDataIOPlaceTrade::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
 
         auto symbol = inputs.at(0).GetText(16);
         auto base = inputs.at(1).GetText(16);
