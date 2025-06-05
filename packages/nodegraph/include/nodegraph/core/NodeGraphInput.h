@@ -16,6 +16,20 @@
 
 namespace l::nodegraph {
 
+    struct InputFlags {
+        InputFlags(bool constant, bool visible, bool editable, bool text) {
+            mConstant = constant;
+            mVisible = visible;
+            mEditable = editable;
+            mText = text;
+        }
+
+        bool mConstant = false;
+        bool mVisible = true;
+        bool mEditable = true;
+        bool mText = false;
+    };
+
     class NodeGraphInput {
     public:
         NodeGraphInput() {

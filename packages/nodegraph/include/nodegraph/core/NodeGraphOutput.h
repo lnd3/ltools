@@ -15,6 +15,16 @@
 
 namespace l::nodegraph {
 
+    struct OutputFlags {
+        OutputFlags(bool visible, bool text) {
+            mVisible = visible;
+            mText = text;
+        }
+
+        bool mVisible = true;
+        bool mText = false;
+    };
+
     class NodeGraphOutput {
     public:
         NodeGraphOutput() = default;
