@@ -180,7 +180,8 @@ namespace l::network {
 		if (IsWebSocket()) {
 			curl_easy_cleanup(mCurl);
 			mCurl = nullptr;
-			mWebSocketReceivingData = false;
+			mWebSocketCanSendData = false;
+			mWebSocketCanReceiveData = false;
 		}
 
 		ASSERT(mCompletedRequest);
@@ -222,7 +223,7 @@ namespace l::network {
 	}
 
 	bool ConnectionBase::IsWebSocketAlive() {
-		return mWebSocketReceivingData;
+		return mWebSocketCanReceiveData && mWebSocketCanSendData;
 	}
 
 	const curl_ws_frame* ConnectionBase::GetWebSocketMeta() {
@@ -245,9 +246,17 @@ namespace l::network {
 			return static_cast<int32_t>(sentBytes);
 		}
 		else if (res == CURLE_GOT_NOTHING) {
-			mWebSocketReceivingData = false;
+			if (mWebSocketCanSendData) {
+				LOG(LogError) << "Failed wss write got nothing, error: " << res;
+			}
+			mWebSocketCanSendData = false;
 		}
-		LOG(LogError) << "Failed wss write, error: " << res;
+		else {
+			if (mWebSocketCanSendData) {
+				LOG(LogError) << "Failed wss write, error: " << res;
+			}
+			mWebSocketCanSendData = false;
+		}
 		return -res;
 	}
 
@@ -271,12 +280,12 @@ namespace l::network {
 				auto recvLeft = static_cast<size_t>(meta->bytesleft);
 				if (recvLeft == 0) {
 					if (readTotal > 0) {
-						mWebSocketReceivingData = true;
+						mWebSocketCanReceiveData = true;
 					}
 				}
 				if (recvLeft > size - readTotal) {
-					LOG(LogInfo) << "Has more wss data: " << recvLeft;
-					mWebSocketReceivingData = true;
+					//LOG(LogInfo) << "Has more wss data: " << recvLeft;
+					mWebSocketCanReceiveData = true;
 				}
 				return static_cast<int32_t>(readTotal);
 			}
@@ -284,8 +293,10 @@ namespace l::network {
 				return 0;
 			}
 			else if (res == CURLE_GOT_NOTHING) {
-				mWebSocketReceivingData = false;
-				LOG(LogError) << "Failed wss read, connection closed, error: " << res;
+				if (mWebSocketCanReceiveData) {
+					LOG(LogError) << "Failed wss read, connection closed, error: " << res;
+				}
+				mWebSocketCanReceiveData = false;
 				return -res;
 			}
 			else {

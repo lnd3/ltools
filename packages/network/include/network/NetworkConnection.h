@@ -116,7 +116,8 @@ namespace l::network {
 		int64_t mStarted;
 		std::atomic_bool mSuccess;
 		bool mIsWebSocket = false;
-		bool mWebSocketReceivingData = false;
+		bool mWebSocketCanReceiveData = false;
+		bool mWebSocketCanSendData = false;
 	};
 
 	template<class T>
