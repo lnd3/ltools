@@ -64,23 +64,33 @@ namespace l::network {
 				auto networkManager = mNetworkManager.lock();
 				if (networkManager) {
 					read = networkManager->WSRead(interfaceName, buffer, size);
+				}
+			}
+		}
+		return read;
+	}
 
+	void NetworkInterfaceWS::WriteQueued(std::string_view interfaceName, int32_t maxQueued) {
+		auto it = mInterfaces.find(interfaceName.data());
+		if (it != mInterfaces.end()) {
+			if (NetworkStatus(interfaceName)) {
+				auto networkManager = mNetworkManager.lock();
+				if (networkManager) {
 					auto& queue = it->second.GetQueue();
-					if (read == 0 && !queue.empty()) {
-						// everything has been read so write next command if any
+					while (!queue.empty() && maxQueued > 0) {
 						auto& command = queue.front();
-						auto result = Write(interfaceName, command.c_str(), command.size());
-						if (result > 0) {
+						auto written = networkManager->WSWrite(interfaceName, command.c_str(), command.size());
+						if (written > 0) {
 							queue.pop_front();
 						}
 						else {
 							LOG(LogWarning) << "Failed to write to: " << interfaceName << " : command: " << command;
 						}
+						maxQueued--;
 					}
 				}
 			}
 		}
-		return read;
 	}
 
 	void NetworkInterfaceWS::QueueWrite(std::string_view interfaceName, const char* buffer, size_t size) {
