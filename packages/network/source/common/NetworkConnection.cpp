@@ -260,21 +260,40 @@ namespace l::network {
 			LOG(LogError) << "Failed wss read, no curl instance";
 			return -102;
 		}
-		const struct curl_ws_frame* meta;
-		size_t readBytes = 0;
-		auto res = curl_ws_recv(mCurl, buffer, size, &readBytes, &meta);
-		if (res == CURLE_AGAIN || res == CURLE_OK){
-			if (readBytes > 0) {
-				mWebSocketReceivingData = true;
+		size_t readTotal = 0;
+		while (true) {
+			size_t recv;
+			const struct curl_ws_frame* meta;
+			auto res = curl_ws_recv(mCurl, buffer + readTotal, size - readTotal, &recv, &meta);
+			readTotal += recv;
+
+			if (res == CURLE_OK) {
+				auto recvLeft = static_cast<size_t>(meta->bytesleft);
+				if (recvLeft == 0) {
+					if (readTotal > 0) {
+						mWebSocketReceivingData = true;
+					}
+				}
+				if (recvLeft > size - readTotal) {
+					LOG(LogInfo) << "Has more wss data: " << recvLeft;
+					mWebSocketReceivingData = true;
+				}
+				return static_cast<int32_t>(readTotal);
 			}
-			return static_cast<int32_t>(readBytes);
+			else if (res == CURLE_AGAIN) {
+				return 0;
+			}
+			else if (res == CURLE_GOT_NOTHING) {
+				mWebSocketReceivingData = false;
+				LOG(LogError) << "Failed wss read, connection closed, error: " << res;
+				return -res;
+			}
+			else {
+				return -res;
+			}
 		}
-		else if (res == CURLE_GOT_NOTHING) {
-			mWebSocketReceivingData = false;
-			LOG(LogError) << "Failed wss read, connection closed, error: " << res;
-		}
-		//LOG(LogError) << "Failed wss read, error: " << res;
-		return -res;
+		LOG(LogError) << "Failed wss read, unknown error: ";
+		return -CURLE_RECV_ERROR;
 	}
 
 	void ConnectionBase::WSClose() {

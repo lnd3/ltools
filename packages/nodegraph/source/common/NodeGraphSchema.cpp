@@ -192,6 +192,9 @@ namespace l::nodegraph {
         case 265:
             node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorATR>(NodeType::Default);
             break;
+        case 266:
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorSD>(NodeType::Default);
+            break;
 
 
             // Signal generators (basically audio composition)

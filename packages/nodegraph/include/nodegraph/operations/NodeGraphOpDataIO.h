@@ -30,10 +30,10 @@ namespace l::nodegraph {
             mInputManager(*this),
             mInputDataStride(inputDataStride)
         {
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Bus Data", 0.0f, 2));
+            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput2("Bus Data", 2, InputFlags(false, false, false, false)));
 
             for (int32_t i = 0; i < mInputDataStride; i++) {
-                AddOutput("Out " + std::to_string(i), 0.0f, 2);
+                AddOutput("Out " + std::to_string(i), 0.0f, 2, false);
             }
         }
         virtual ~DataIODataIn() = default;
@@ -55,9 +55,9 @@ namespace l::nodegraph {
             mOutputDataStride(outputDataStride)
         {
             for (int32_t i = 0; i < mOutputDataStride; i++) {
-                mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("In " + std::to_string(i), 0.0f, 2));
+                mInputManager.AddInput(InputIterationType::SAMPLED, AddInput2("In " + std::to_string(i), 2, InputFlags(false, false, false, false)));
             }
-            AddOutput("Bus Data", 0.0f, 2);
+            AddOutput("Bus Data", 0.0f, 2, false);
         }
         virtual ~DataIODataOut() = default;
 
@@ -81,8 +81,8 @@ namespace l::nodegraph {
 
             for (int32_t i = 0; i < mChannels; i++) {
                 auto id = std::to_string(i);
-                AddInput("In" + id);
-                AddOutput("Out " + id);
+                AddInput2("In" + id, 2, InputFlags(false, false, false, false));
+                AddOutput2("Out " + id, 2, OutputFlags(false, false));
             }
         }
         virtual ~GraphCache() = default;

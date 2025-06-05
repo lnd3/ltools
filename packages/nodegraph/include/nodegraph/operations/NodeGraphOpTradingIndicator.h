@@ -287,4 +287,28 @@ namespace l::nodegraph {
 
     protected:
     };
+
+    /*********************************************************************/
+    class TradingIndicatorSD : public NodeGraphOp {
+    public:
+        TradingIndicatorSD(NodeGraphBase* node) :
+            NodeGraphOp(node, "SD (standard deviation)")
+        {
+            AddInput("In", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
+            AddOutput("SD", 0.0f);
+        }
+
+        virtual ~TradingIndicatorSD() = default;
+        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+            auto input = inputs.at(0).GetIterator(numSamples);
+            auto output = outputs.at(0).GetIterator(numSamples);
+
+            for (int32_t i = 0; i < numSamples; i++) {
+                float in = *input++;
+                *output++ = in;
+            }
+        }
+
+    protected:
+    };
 }
