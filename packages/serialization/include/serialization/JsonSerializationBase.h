@@ -3,12 +3,12 @@
 #include <logging/LoggingAll.h>
 #include <various/serializer/Serializer.h>
 
-#define JSMN_PARENT_LINKS
+#define JSMN_HEADER
 #include <various/jsmn.h>
-
 
 #include <string_view>
 #include <cassert>
+#include <cstdlib>
 
 #include <iostream>
 #include <string>
@@ -25,12 +25,12 @@ namespace l::serialization {
 
     class JsonIterator {
     public:
-        JsonIterator(const char* json, const jsmntok_t* tokens, int count)
-            : json(json), tokens(tokens), count(count), index(0) {
+        JsonIterator(const char* json, const jsmntok_t* tokens, int remaining)
+            : json(json), tokens(tokens), remaining(remaining), index(0) {
         }
 
         bool has_next() const {
-            return index < count;
+            return index < remaining;
         }
 
         JsonValue next();
@@ -38,7 +38,7 @@ namespace l::serialization {
     private:
         const char* json;
         const jsmntok_t* tokens;
-        int count;
+        int remaining;
         int index;
 
         friend class JsonValue;
@@ -46,78 +46,123 @@ namespace l::serialization {
 
     class JsonValue {
     public:
+        JsonValue() : mJson(nullptr), mTokens(nullptr), mCount(0) {}
+
         JsonValue(const char* json, const jsmntok_t* tokens, int count)
-            : json(json), tokens(tokens), count(count) {
+            : mJson(json), mTokens(tokens), mCount(count) {
         }
 
-        jsmntype_t type() const {
-            return tokens[0].type;
-        }
+        bool valid() const;
+        jsmntype_t type() const;
+        std::string_view as_string() const;
+        bool as_bool() const;
+        double as_double() const;
+        float as_float() const;
+        int32_t as_int32() const;
+        int64_t as_int64() const;
+        JsonIterator as_array() const;
+        
+        JsonValue get(const std::string_view& key) const;
+        
+        const char* start_ptr() const;
+        const char* end_ptr() const;
 
-        std::string_view as_string() const {
-            assert(type() == JSMN_STRING || type() == JSMN_PRIMITIVE);
-            return { json + tokens[0].start, static_cast<size_t>(tokens[0].end - tokens[0].start) };
-        }
+        const jsmntok_t* end_token() const;
 
-        bool as_bool() const {
-            auto sv = as_string();
-            return sv == "true";
-        }
+        bool has(jsmntype_t t) const;
+        bool has_key(const std::string_view& key) const;
 
-        double as_number() const {
-            auto sv = as_string();
-            return std::strtod(sv.data(), nullptr);
-        }
+        int size() const;
+        int numBytes() const;
 
-        JsonValue get(const std::string_view& key) const {
-            assert(type() == JSMN_OBJECT);
-            int size = tokens[0].size;
-            int i = 1;
-            while (i < count) {
-                std::string_view k{ json + tokens[i].start, size_t(tokens[i].end - tokens[i].start) };
-                if (k == key) {
-                    return JsonValue(json, &tokens[i + 1], count - i - 1);
-                }
-                // skip key and its value
-                i += 1 + skip(&tokens[i + 1]);
-            }
-            return JsonValue(nullptr, nullptr, 0); // invalid
-        }
-
-        JsonIterator as_array() const {
-            assert(type() == JSMN_ARRAY);
-            return JsonIterator(json, tokens + 1, count - 1);
-        }
-
-        bool valid() const { return tokens != nullptr && count > 0; }
-
-    private:
-        const char* json;
-        const jsmntok_t* tokens;
-        int count;
+        JsonValue operator[](int index) const;
 
         static int skip(const jsmntok_t* t) {
             int n = 1;
-            for (int i = 0; i < t[0].size; ++i) {
-                n += skip(t + n);
+            if (t->type & JSMN_OBJECT) {
+                int pairs = t->size;
+                const jsmntok_t* cur = t + 1;
+                for (int i = 0; i < pairs; ++i) {
+                    n += skip(cur); cur += skip(cur);
+                    n += skip(cur); cur += skip(cur);
+                }
+            }
+            else if (t->type & JSMN_ARRAY) {
+                const jsmntok_t* cur = t + 1;
+                for (int i = 0; i < t->size; ++i) {
+                    n += skip(cur);
+                    cur += skip(cur);
+                }
             }
             return n;
         }
+
+    private:
+        const char* mJson = nullptr;
+        const jsmntok_t* mTokens = nullptr;
+        int mCount = 0;
 
         friend class JsonIterator;
     };
 
     inline JsonValue JsonIterator::next() {
-        assert(has_next());
-        JsonValue value(json, tokens + index, count - index);
-        index += JsonValue::skip(tokens + index);
-        return value;
+        assert(index < remaining);
+        JsonValue v(json, tokens + index, remaining - index);
+        int span = JsonValue::skip(tokens + index);
+        index += span;
+        return v;
     }
 
+    template<int32_t MaxTokens = 1000>
+    class JsonRoot {
+    public:
+        JsonRoot() {}
 
+        bool LoadJson(const char* jsondata, size_t size) {
+            mJsondata = jsondata;
 
+            jsmn_init(&mParser);
 
+            auto ret = jsmn_parse(&mParser, mJsondata, size, mTokens, MaxTokens);
+            if (ret < 0) {
+                /*
+                JSMN_ERROR_INVAL - bad token, JSON string is corrupted
+                JSMN_ERROR_NOMEM - not enough tokens, JSON string is too large
+                JSMN_ERROR_PART - JSON string is too short, expecting more JSON data
+                */
 
+                mTokenCount = 0;
+                switch (ret) {
+                case JSMN_ERROR_INVAL:
+                    LOG(LogError) << "Failure to parse json value";
+                    return false;
+                case JSMN_ERROR_NOMEM:
+                    LOG(LogError) << "Token buffer is to small";
+                    return false;
+                case JSMN_ERROR_PART:
+                    //LOG(LogInfo) << "Json data is not completed";
+                    return true;
+                default:
+                    LOG(LogError) << "Unknown error";
+                    return false;
+                }
+            }
+            else {
+                mTokenCount = ret;
+            }
+            return true;
+        }
+
+        JsonValue GetRoot() {
+            return JsonValue(mJsondata, mTokens, mTokenCount);
+        }
+
+    protected:
+        const char* mJsondata = nullptr;
+        jsmn_parser mParser;
+        int32_t mTokenCount = 0;
+        jsmntok_t mTokens[MaxTokens];
+    };
 
 	class JsonSerializationBase {
 	public:

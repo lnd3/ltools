@@ -223,7 +223,7 @@ namespace l::network {
 	}
 
 	bool ConnectionBase::IsWebSocketAlive() {
-		return mWebSocketCanReceiveData && mWebSocketCanSendData;
+		return mWebSocketCanReceiveData;
 	}
 
 	const curl_ws_frame* ConnectionBase::GetWebSocketMeta() {
