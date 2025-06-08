@@ -71,6 +71,7 @@ namespace l::serialization {
 
         bool has(jsmntype_t t) const;
         bool has_key(const std::string_view& key) const;
+        bool is_null(const std::string_view& key) const;
 
         int size() const;
         int numBytes() const;

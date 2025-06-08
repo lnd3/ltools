@@ -97,6 +97,10 @@ namespace l::serialization {
         return false;
     }
 
+    bool JsonValue::is_null(const std::string_view& key) const {
+        return has_key(key) && get(key).has(JSMN_PRIMITIVE) && get(key).as_string() == "null";
+    }
+
     int JsonValue::size() const {
         if (!valid()) return 0;
         return mTokens[0].size;
