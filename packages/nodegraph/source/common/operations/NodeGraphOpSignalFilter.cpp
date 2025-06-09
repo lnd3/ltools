@@ -127,9 +127,9 @@ namespace l::nodegraph {
     }
 
     void SignalFilterMovingAverage::Reset() {
-        if (mFilterState.size() != mDefaultKernelSize) {
-            mFilterState.resize(mDefaultKernelSize);
-            mFilterWeight.resize(mDefaultKernelSize);
+        if (static_cast<int32_t>(mFilterState.size()) != mDefaultKernelSize) {
+            mFilterState.resize(static_cast<size_t>(mDefaultKernelSize));
+            mFilterWeight.resize(static_cast<size_t>(mDefaultKernelSize));
         }
         mFilterStateIndex = 0;
         mFilterInit = true;
