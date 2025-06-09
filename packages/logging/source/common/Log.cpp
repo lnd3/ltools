@@ -96,7 +96,7 @@ namespace logging {
 		if (mLevel != LogLevel::LogTitle) {
 			auto fileView = std::string_view(file);
 			auto ch = fileView.data() + fileView.size() - 1;
-			int i;
+			size_t i;
 			for (i = 0;i<fileView.size();i++) {
 				if (*ch == '\\' || *ch == '/') {
 					ch++;
