@@ -104,6 +104,8 @@ namespace l::nodegraph {
             return mInput.mInputFloatConstant;
         case InputType::INPUT_VALUE:
             return *mInput.mInputFloat;
+        case InputType::INPUT_TEXT:
+            return *reinterpret_cast<float*>(mInput.mInputTextBuf->data());
         }
         return mInput.mInputFloatConstant;
     }
