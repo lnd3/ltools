@@ -170,9 +170,9 @@ namespace l::nodegraph {
                         mFilterInit = false;
                         mFilterStateIndex = 0;
 
-                        if (mFilterState.size() < bufferSize) {
-                            mFilterState.resize(bufferSize);
-                            mFilterWeight.resize(bufferSize);
+                        if (static_cast<int32_t>(mFilterState.size()) < bufferSize) {
+                            mFilterState.resize(static_cast<size_t>(bufferSize));
+                            mFilterWeight.resize(static_cast<size_t>(bufferSize));
                         }
                         for (int32_t j = 0; j < widthInt; j++) {
                             mFilterState[j] = inputValue;
