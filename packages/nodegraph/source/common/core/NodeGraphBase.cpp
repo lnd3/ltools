@@ -125,7 +125,7 @@ namespace l::nodegraph {
     }
 
     void NodeGraphBase::ClearInputs() {
-        for (int8_t i = 0; i < mInputs.size();i++) {
+        for (int8_t i = 0; static_cast<size_t>(i) < mInputs.size();i++) {
             ClearInput(i);
         }
     }
