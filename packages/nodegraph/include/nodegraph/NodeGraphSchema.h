@@ -50,8 +50,8 @@ namespace l::nodegraph {
         std::vector<TreeMenuNode> mChildren;
         std::string mPathPart;
     protected:
-        int32_t mId = 0;
         std::string mName;
+        int32_t mId = 0;
     };
 
     TreeMenuNode* findOrCreateChild(TreeMenuNode& node, std::string_view pathPart);

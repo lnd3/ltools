@@ -107,7 +107,15 @@ namespace l::nodegraph {
     }
 
     bool NodeGraphGroup::RemoveNode(int32_t id) {
-        auto node = GetNode(id);
+        NodeGraphBase* node = nullptr;
+        std::erase_if(mNodes, [&](NodeGraphBase* nodePtr) {
+            if (nodePtr && nodePtr->GetId() == id) {
+                node = nodePtr;
+                return true;
+            }
+            return false;
+            });
+
         if (!node) {
             return false;
         }
@@ -118,25 +126,13 @@ namespace l::nodegraph {
             }
         }
         std::erase_if(mInputNodes, [&](NodeGraphBase* nodePtr) {
-            if (nodePtr == node) {
-                return true;
-            }
-            return false;
+            return nodePtr == node;
             });
         std::erase_if(mOutputNodes, [&](NodeGraphBase* nodePtr) {
-            if (nodePtr == node) {
-                return true;
-            }
-            return false;
-            });
-        auto count = std::erase_if(mNodes, [&](const NodeGraphBase* it) {
-            if (it && it->GetId() == id) {
-                return true;
-            }
-            return false;
+            return nodePtr == node;
             });
         delete node;
-        return count > 0 ? true : false;
+        return true;
     }
 
     void NodeGraphGroup::ForEachInputNode(std::function<bool(NodeGraphBase*)> cb) {

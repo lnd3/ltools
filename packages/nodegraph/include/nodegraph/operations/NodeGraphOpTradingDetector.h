@@ -21,7 +21,7 @@
 #include <unordered_set>
 
 
-namespace {
+namespace l::nodegraph {
     class TrendDetectorBasic {
     public:
         TrendDetectorBasic() = default;
@@ -52,12 +52,12 @@ namespace {
         ~TrendDetectorMean() = default;
 
         float process(float in, int32_t numSamples = 6) {
-            if (mHistory.size() != numSamples) {
+            if (static_cast<int32_t>(mHistory.size()) != numSamples) {
                 mHistory.resize(l::math::max2(numSamples, 1));
             }
 
             float mean = 0.0f;
-            float factor = 1.0f / (mHistory.size() + 1);
+            float factor = 1.0f / static_cast<float>(mHistory.size() + 1);
             float acc = factor;
             for (auto value : mHistory) {
                 mean += value * acc;
@@ -196,9 +196,7 @@ namespace {
         float prevValue3 = 0.0f;
         float prevValue4 = 0.0f;
     };
-}
 
-namespace l::nodegraph {
 
     /*********************************************************************/
     class TradingDetectorTrend : public NodeGraphOp {
