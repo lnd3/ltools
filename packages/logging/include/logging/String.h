@@ -215,7 +215,7 @@ namespace l::string {
 	int count_digits(int number);
 
 	template<class T>
-	concept Number = requires(T a) { std::convertible_to<T, float> || std::convertible_to<T, uint32_t>; };
+	concept Number = requires(T a) { requires std::convertible_to<T, float> || std::convertible_to<T, uint32_t>; };
 	template<Number T>
 	void cstring_to_numbers(const char* src, size_t count, char separator, std::vector<T>& dst) {
 		constexpr size_t bufferSize = 1024;
