@@ -203,7 +203,7 @@ namespace l::nodegraph {
             mInputType = InputType::INPUT_TEXT;
             mInput.mInputTextBuf = new std::vector<char>();
         }
-        if (static_cast<int32_t>(mInput.mInputTextBuf->size()) < text.size() + 1) {
+        if (static_cast<int32_t>(mInput.mInputTextBuf->size()) < static_cast<int32_t>(text.size()) + 1) {
             mInput.mInputTextBuf->resize(text.size() + 1, 0);
         }
         memcpy(mInput.mInputTextBuf->data(), text.data(), text.size());
@@ -245,6 +245,8 @@ namespace l::nodegraph {
             return NodeDataIterator(mInput.mInputFloat, 0.0f);
         case InputType::INPUT_CONSTANT:
             return NodeDataIterator(&mInput.mInputFloatConstant, 0.0f);
+        case InputType::INPUT_TEXT:
+            return NodeDataIterator(reinterpret_cast<float*>(mInput.mInputTextBuf->data()), 0.0f);
         }
         return NodeDataIterator(&mInput.mInputFloatConstant, 0.0f);
     }
