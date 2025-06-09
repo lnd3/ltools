@@ -57,8 +57,8 @@ namespace l::nodegraph {
             mTypeId = other.mTypeId;
             mOperationTypeHash = other.mOperationTypeHash;
 
-            mInputs = std::move(other.mInputs);
-            mOutputs = std::move(other.mOutputs);
+            mInputs = other.mInputs;
+            mOutputs = other.mOutputs;
 
             mProcessUpdateHasRun = other.mProcessUpdateHasRun;
             mLastTickCount = other.mLastTickCount;
@@ -187,13 +187,13 @@ namespace l::nodegraph {
 
         NodeGraphOp& operator=(NodeGraphOp&& other) noexcept {
             mNode = other.mNode;
-            mName = std::move(mName);
-            mTypeName = std::move(mTypeName);
+            mName = other.mName;
+            mTypeName = other.mTypeName;
 
-            mDefaultInStrings = std::move(mDefaultInStrings);
-            mDefaultOutStrings = std::move(mDefaultOutStrings);
-            mDefaultInData = std::move(mDefaultInData);
-            mDefaultOutData = std::move(mDefaultOutData);
+            mDefaultInStrings = other.mDefaultInStrings;
+            mDefaultOutStrings = other.mDefaultOutStrings;
+            mDefaultInData = other.mDefaultInData;
+            mDefaultOutData = other.mDefaultOutData;
 
             mNumInputs = other.mNumInputs;
             mNumOutputs = other.mNumOutputs;
@@ -408,7 +408,7 @@ namespace l::nodegraph {
 
         virtual void Tick(int32_t, float) override;
 
-        int32_t AddInput2(
+        int32_t AddInput3(
             InputIterationType type,
             std::string_view name, 
             float defaultValue = 0.0f, 
@@ -418,7 +418,7 @@ namespace l::nodegraph {
             bool visible = true, 
             bool editable = true);
 
-        int32_t AddConstant2(
+        int32_t AddConstant3(
             InputIterationType type,
             std::string_view name, 
             float defaultValue = 0.0f, 
@@ -428,7 +428,7 @@ namespace l::nodegraph {
             bool visible = true, 
             bool editable = true);
 
-        int32_t AddCustom2(
+        int32_t AddCustom3(
             InputIterationType type);
 
     protected:

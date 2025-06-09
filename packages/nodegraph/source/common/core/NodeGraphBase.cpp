@@ -507,7 +507,7 @@ namespace l::nodegraph {
 
     }
 
-    int32_t NodeGraphOp2::AddInput2(
+    int32_t NodeGraphOp2::AddInput3(
         InputIterationType type,
         std::string_view name,
         float defaultValue,
@@ -519,7 +519,7 @@ namespace l::nodegraph {
         return mInputManager.AddInput(type, NodeGraphOp::AddInput(name, defaultValue, size, boundMin, boundMax, visible, editable));
     }
 
-    int32_t NodeGraphOp2::AddConstant2(
+    int32_t NodeGraphOp2::AddConstant3(
         InputIterationType type,
         std::string_view name,
         float defaultValue,
@@ -531,7 +531,7 @@ namespace l::nodegraph {
         return mInputManager.AddInput(type, NodeGraphOp::AddConstant(name, defaultValue, size, boundMin, boundMax, visible, editable));
     }
 
-    int32_t NodeGraphOp2::AddCustom2(InputIterationType type) {
+    int32_t NodeGraphOp2::AddCustom3(InputIterationType type) {
         return mInputManager.AddCustom(type);
     }
 

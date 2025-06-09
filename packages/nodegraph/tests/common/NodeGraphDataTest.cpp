@@ -16,8 +16,8 @@ public:
     TestOp(NodeGraphBase* node) :
         NodeGraphOp2(node, "TestOp")
     {
-        AddInput2(InputIterationType::SAMPLED, "In 0", 0.0f, 1, 0.0f, 1.0f);
-        AddInput2(InputIterationType::SAMPLED_RWA, "In 1", 0.0f, 1, 0.0f, 1.0f);
+        AddInput3(InputIterationType::SAMPLED, "In 0", 0.0f, 1, 0.0f, 1.0f);
+        AddInput3(InputIterationType::SAMPLED_RWA, "In 1", 0.0f, 1, 0.0f, 1.0f);
         AddOutput("Out 0");
         AddOutput("Out 1");
     }
@@ -93,8 +93,8 @@ public:
     TestOp2(NodeGraphBase* node) :
         NodeGraphOp2(node, "TestOp")
     {
-        AddInput2(InputIterationType::CUSTOM_INTERP_TWEEN, "In 0", 0.0f, 1, 0.0f, 1.0f);
-        AddInput2(InputIterationType::CUSTOM_INTERP_TWEEN_MS, "In 1", 0.0f, 1, 0.0f, 1.0f);
+        AddInput3(InputIterationType::CUSTOM_INTERP_TWEEN, "In 0", 0.0f, 1, 0.0f, 1.0f);
+        AddInput3(InputIterationType::CUSTOM_INTERP_TWEEN_MS, "In 1", 0.0f, 1, 0.0f, 1.0f);
         AddOutput("Out 0");
         AddOutput("Out 1");
     }
