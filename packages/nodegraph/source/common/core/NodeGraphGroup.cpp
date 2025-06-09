@@ -73,7 +73,7 @@ namespace l::nodegraph {
     }
 
     bool NodeGraphGroup::ContainsNode(int32_t id) {
-        auto it = std::find_if(mNodes.begin(), mNodes.end(), [&](const std::unique_ptr<NodeGraphBase>& node) {
+        auto it = std::find_if(mNodes.begin(), mNodes.end(), [&](const NodeGraphBase* node) {
             if (node->GetId() == id) {
                 return true;
             }
@@ -86,38 +86,56 @@ namespace l::nodegraph {
     }
 
     NodeGraphBase* NodeGraphGroup::GetNode(int32_t id) {
-        auto it = std::find_if(mNodes.begin(), mNodes.end(), [&](const std::unique_ptr<NodeGraphBase>& node) {
+        auto it = std::find_if(mNodes.begin(), mNodes.end(), [&](const NodeGraphBase* node) {
             if (node->GetId() == id) {
                 return true;
             }
             return false;
             });
         if (it != mNodes.end()) {
-            return it->get();
+            return *it;
         }
         return nullptr;
     }
 
+    bool NodeGraphGroup::RemoveNode(l::nodegraph::NodeGraphBase* node) {
+        if (node) {
+            auto id = node->GetId();
+            return RemoveNode(id);
+        }
+        return false;
+    }
+
     bool NodeGraphGroup::RemoveNode(int32_t id) {
         auto node = GetNode(id);
+        if (!node) {
+            return false;
+        }
         int32_t sourceCount = 0;
         for (auto& it : mNodes) {
             if (it->DetachInput(node)) {
                 sourceCount++;
             }
         }
+        std::erase_if(mInputNodes, [&](NodeGraphBase* nodePtr) {
+            if (nodePtr == node) {
+                return true;
+            }
+            return false;
+            });
         std::erase_if(mOutputNodes, [&](NodeGraphBase* nodePtr) {
             if (nodePtr == node) {
                 return true;
             }
             return false;
             });
-        auto count = std::erase_if(mNodes, [&](const std::unique_ptr<NodeGraphBase>& node) {
-            if (node->GetId() == id) {
+        auto count = std::erase_if(mNodes, [&](const NodeGraphBase* it) {
+            if (it && it->GetId() == id) {
                 return true;
             }
             return false;
             });
+        delete node;
         return count > 0 ? true : false;
     }
 

@@ -330,22 +330,25 @@ namespace l::nodegraph {
         //    break;
 
         default:
-            ASSERT(typeId < 10000) << "Custom node id's begin at id 1000";
-            if (mCreateCustomNode) {
+            if (typeId >= 10000 && mCreateCustomNode) {
                 node = mCreateCustomNode(typeId, mMainNodeGraph);
             }
             break;
         };
 
-        return node == nullptr ? 0 : node->GetId();
+        if (node) {
+            node->SetTypeId(typeId);
+        }
+
+        return node == nullptr ? -1 : node->GetId();
     }
 
-    bool NodeGraphSchema::RemoveNode(int32_t nodeId) {
-        return mMainNodeGraph.RemoveNode(nodeId);
+    bool NodeGraphSchema::RemoveNode(int32_t id) {
+        return mMainNodeGraph.RemoveNode(id);
     }
 
-    NodeGraphBase* NodeGraphSchema::GetNode(int32_t nodeId) {
-        return mMainNodeGraph.GetNode(nodeId);
+    NodeGraphBase* NodeGraphSchema::GetNode(int32_t id) {
+        return mMainNodeGraph.GetNode(id);
     }
 
     bool NodeGraphSchema::HasNodeType(const std::string& typeGroup, int32_t typeId) {

@@ -10,11 +10,26 @@
 #include <memory>
 
 #include "math/MathConstants.h"
-#include "serialization/SerializationBase.h"
+#include <serialization/JsonSerializationBase.h>
+#include <serialization/JsonBuilder.h>
+#include <serialization/JsonParser.h>
 
 #include "nodegraph/core/NodeGraphBase.h"
 
 namespace l::nodegraph {
+
+    struct NodeIOMapping {
+        int16_t mFromNodeIndex = -1;
+        int16_t mToNodeIndex = -1;
+        int8_t mFromOutputChannel = -1;
+        int8_t mToInputChannel = -1;
+    };
+
+    struct NodeIOValues {
+        int16_t mNodeIndex = -1;
+        int8_t mChannel = -1;
+        float mValue;
+    };
 
     class GraphDataCopy : public NodeGraphOp {
     public:
@@ -33,35 +48,82 @@ namespace l::nodegraph {
         void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     };
 
-    class NodeGraphGroup : public l::serialization::SerializationBase {
+    class NodeGraphGroup : public l::serialization::JsonSerializationBase {
     public:
-        NodeGraphGroup() : SerializationBase(0, 0, true, false, true, true, true) {}
+        NodeGraphGroup() {
+
+        }
         ~NodeGraphGroup() {
+            std::vector<int32_t> ids;
+            for (auto& node : mNodes) {
+                ids.push_back(node->GetId());
+            }
+            for (auto id : ids) {
+                RemoveNode(id);
+            }
+
             mInputNode = nullptr;
             mOutputNode = nullptr;
             mInputNodes.clear();
             mOutputNodes.clear();
-            for(auto& node : mNodes) {
-                if (node) {
-                    node.get()->ClearInputs();
-                }
-            }
             mNodes.clear();
 
             LOG(LogInfo) << "Node group destroyed";
         }
 
-        NodeGraphGroup& operator=(NodeGraphGroup&&) noexcept {
-            return *this;
-        }
-        NodeGraphGroup& operator=(const NodeGraphGroup&) noexcept {
+        NodeGraphGroup& operator=(NodeGraphGroup&& other) noexcept {
+            mInputNode = other.mInputNode;
+            mOutputNode = other.mOutputNode;
+
+            mNodes = other.mNodes;
+            mOutputNodes = other.mOutputNodes;
+            mInputNodes = other.mInputNodes;
+
+            mLastTickCount = other.mLastTickCount;
+            mIds = other.mIds;
             return *this;
         }
         NodeGraphGroup(NodeGraphGroup&& other) noexcept {
             *this = std::move(other);
         }
-        NodeGraphGroup(const NodeGraphGroup& other) noexcept : SerializationBase(other) {
-            *this = other;
+
+        NodeGraphGroup(const NodeGraphGroup&) = delete;
+        NodeGraphGroup& operator=(const NodeGraphGroup&) = delete;
+
+        virtual bool LoadArchiveData(std::stringstream& src) override {
+            l::serialization::JsonParser<1000> parser;
+            auto stream = src.str();
+            if (parser.LoadJson(stream.c_str(), stream.size())) {
+                auto root = parser.GetRoot();
+                LOG(LogInfo) << "NG load: \n" << root.as_dbg_string();
+                return true;
+            }
+            return false;
+        }
+
+        virtual void GetArchiveData(std::stringstream& dst) override {
+            l::serialization::JsonBuilder builder(true);
+            builder.SetStream(&dst);
+            builder.Begin("");
+            {
+                builder.Begin("NodeGraphGroup");
+                {
+                    builder.Begin("Nodes", true);
+                    {
+                        builder.Begin("");
+                        {
+                            for (auto& it : mNodes) {
+                                builder.AddNumber("TypeId", it->GetTypeId());
+                                builder.AddString("TypeName", it->GetTypeName());
+                            }
+                        }
+                        builder.End();
+                    }
+                    builder.End("Nodes");
+                }
+                builder.End("NodeGraphGroup");
+            }
+            builder.End();
         }
 
         void SetNumInputs(int8_t numInputs);
@@ -82,12 +144,13 @@ namespace l::nodegraph {
         bool ContainsNode(int32_t id);
         NodeGraphBase* GetNode(int32_t id);
 
+        bool RemoveNode(l::nodegraph::NodeGraphBase* node);
         bool RemoveNode(int32_t id);
 
         template<class T, std::enable_if_t<std::is_base_of_v<NodeGraphOp, T>, int> = 0, class... Params>
         l::nodegraph::NodeGraphBase* NewNode(NodeType nodeType, Params&&... params) {
-            mNodes.emplace_back(std::make_unique<l::nodegraph::NodeGraph<T, Params...>>(nodeType, std::forward<Params>(params)...));
-            auto nodePtr = mNodes.back().get();
+            auto nodePtr = new l::nodegraph::NodeGraph<T, Params...>(mIds++, nodeType, std::forward<Params>(params)...);
+            mNodes.push_back(nodePtr);
             if (nodeType == NodeType::ExternalOutput || nodeType == NodeType::ExternalVisualOutput) {
                 mOutputNodes.push_back(nodePtr);
 			}
@@ -108,17 +171,18 @@ namespace l::nodegraph {
         void ForEachOutputNode(std::function<bool(NodeGraphBase*)> cb);
 
         void ClearProcessFlags();
-        void ProcessSubGraph(int32_t numSamples, int32_t numCacheSamples = 0);
+        void ProcessSubGraph(int32_t numSamples, int32_t numCacheSamples = -1);
         void Tick(int32_t tickCount, float elapsed);
     protected:
         NodeGraphBase* mInputNode = nullptr;
         NodeGraphBase* mOutputNode = nullptr;
 
-        std::vector<std::unique_ptr<NodeGraphBase>> mNodes;
+        std::vector<NodeGraphBase*> mNodes;
         std::vector<NodeGraphBase*> mOutputNodes;
 		std::vector<NodeGraphBase*> mInputNodes;
 
         int32_t mLastTickCount = 0;
+        int32_t mIds = 1;
     };
 
 }

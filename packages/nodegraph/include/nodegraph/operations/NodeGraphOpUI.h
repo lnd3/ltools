@@ -78,7 +78,9 @@ namespace l::nodegraph {
             AddInput2("y", 1, InputFlags(false, false, false, false));
             AddOutput("Interleaved Data");
         }
-        virtual ~GraphUIChartLine() = default;
+        virtual ~GraphUIChartLine() {
+
+        }
 
         virtual void Reset() override;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;

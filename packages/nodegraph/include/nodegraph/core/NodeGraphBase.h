@@ -28,61 +28,59 @@ namespace l::nodegraph {
     /**********************************************************************************/
     class NodeGraphBase {
     public:
-        NodeGraphBase(NodeType outputType) : 
-            mId(CreateUniqueId()), 
+        NodeGraphBase(int32_t id = -1, NodeType outputType = NodeType::Default) :
+            mId(id),
             mOutputType(outputType),
-			mOperationTypeHash(l::meta::class_hash<NodeGraphBase>())
+            mTypeId(-1),
+            mOperationTypeHash(l::meta::class_hash<NodeGraphBase>()),
+            mProcessUpdateHasRun(false),
+            mLastTickCount(0)
         {}
 
         virtual ~NodeGraphBase() {
             for (auto& in : mInputs) {
-                in.Clear();
+                in.Reset();
             }
             for (auto& out : mOutputs) {
-                out.Clear();
+                out.Reset();
             }
             mInputs.clear();
             mOutputs.clear();
 
-            LOG(LogInfo) << "Node graph base destroyed";
+            //LOG(LogInfo) << "Node graph base destroyed";
         }
 
         NodeGraphBase& operator=(NodeGraphBase&& other) noexcept {
-            this->mId = other.mId;
-            //this->mInputs = std::move(other.mInputs);
-            //this->mOutputs = std::move(other.mOutputs);
-            this->mName = std::move(other.mName);
-            this->mLastTickCount = other.mLastTickCount;
-            this->mOutputType = other.mOutputType;
-            this->mProcessUpdateHasRun = other.mProcessUpdateHasRun;
-            this->mOperationTypeHash = other.mOperationTypeHash;
-            return *this;
-        }
-        NodeGraphBase& operator=(const NodeGraphBase& other) noexcept {
-            this->mId = other.mId;
-            //this->mInputs = std::move(other.mInputs);
-            //this->mOutputs = std::move(other.mOutputs);
-            this->mName = other.mName;
-            this->mLastTickCount = other.mLastTickCount;
-            this->mOutputType = other.mOutputType;
-            this->mProcessUpdateHasRun = other.mProcessUpdateHasRun;
-            this->mOperationTypeHash = other.mOperationTypeHash;
+            mId = other.mId;
+            mOutputType = other.mOutputType;
+
+            mTypeId = other.mTypeId;
+            mOperationTypeHash = other.mOperationTypeHash;
+
+            mInputs = std::move(other.mInputs);
+            mOutputs = std::move(other.mOutputs);
+
+            mProcessUpdateHasRun = other.mProcessUpdateHasRun;
+            mLastTickCount = other.mLastTickCount;
+
             return *this;
         }
         NodeGraphBase(NodeGraphBase&& other) noexcept {
             *this = std::move(other);
         }
-        NodeGraphBase(const NodeGraphBase& other) noexcept {
-            *this = other;
-        }
+        NodeGraphBase& operator=(const NodeGraphBase&) = delete;
+        NodeGraphBase(const NodeGraphBase&) = delete;
 
         virtual void Reset();
         virtual void DefaultDataInit() {};
         virtual void SetId(int32_t id) { mId = id; }
+        virtual void SetTypeId(int32_t typeId) { mTypeId = typeId; }
         virtual int32_t GetId() const { return mId; }
+        virtual int32_t GetTypeId() const { return mTypeId; }
+
 
         void ClearProcessFlags();
-        virtual void ProcessSubGraph(int32_t numSamples = 1, int32_t numCacheSamples = 0, bool recomputeSubGraphCache = true);
+        virtual void ProcessSubGraph(int32_t numSamples = 1, int32_t numCacheSamples = -1, bool recomputeSubGraphCache = true);
         virtual void Tick(int32_t tickCount, float delta);
 
         virtual int8_t GetNumInputs();
@@ -100,6 +98,8 @@ namespace l::nodegraph {
         virtual int32_t GetOutputSize(int8_t outputChannel);
 
         virtual std::string_view GetName() = 0;
+        virtual std::string_view GetTypeName() = 0;
+
         virtual std::string_view GetInputName(int8_t inputChannel) = 0;
         virtual std::string_view GetOutputName(int8_t outputChannel) = 0;
         //virtual void SetInputName(int8_t inputChannel, std::string_view name) = 0;
@@ -157,18 +157,20 @@ namespace l::nodegraph {
         virtual void ProcessOperation(int32_t numSamples = 1, int32_t numCacheSamples = 0);
         virtual NodeGraphOp* GetOperation() = 0;
 
-        bool mProcessUpdateHasRun = false;
-        int32_t mLastTickCount = 0;
+
+        int32_t mId = -1;
+        NodeType mOutputType = NodeType::Default;
+
+        int32_t mTypeId = -1;
+        size_t mOperationTypeHash = 0;
+
         std::vector<NodeGraphInput> mInputs;
         std::vector<NodeGraphOutput> mOutputs;
 
-        int32_t mId = -1;
-        NodeType mOutputType;
+        bool mProcessUpdateHasRun = false;
+        int32_t mLastTickCount = 0;
 
-        std::string mName;
-        size_t mOperationTypeHash;
-
-        NodeGraphUIData mUiData;
+        //NodeGraphUIData mUiData;
     };
 
     /**********************************************************************************/
@@ -180,8 +182,30 @@ namespace l::nodegraph {
             mName(name)
         {}
         virtual ~NodeGraphOp() {
-            LOG(LogInfo) << "Node operation destroyed";
+            //LOG(LogInfo) << "Node operation destroyed";
         }
+
+        NodeGraphOp& operator=(NodeGraphOp&& other) noexcept {
+            mNode = other.mNode;
+            mName = std::move(mName);
+            mTypeName = std::move(mTypeName);
+
+            mDefaultInStrings = std::move(mDefaultInStrings);
+            mDefaultOutStrings = std::move(mDefaultOutStrings);
+            mDefaultInData = std::move(mDefaultInData);
+            mDefaultOutData = std::move(mDefaultOutData);
+
+            mNumInputs = other.mNumInputs;
+            mNumOutputs = other.mNumOutputs;
+            mInputHasChanged = other.mInputHasChanged;
+
+            return *this;
+        }
+        NodeGraphOp(NodeGraphOp&& other) noexcept {
+            *this = std::move(other);
+        }
+        NodeGraphOp& operator=(const NodeGraphOp&) = delete;
+        NodeGraphOp(const NodeGraphOp&) = delete;
 
         virtual void DefaultDataInit();
         virtual void Reset() {};
@@ -203,6 +227,7 @@ namespace l::nodegraph {
         virtual std::string_view GetInputName(int8_t inputChannel);
         virtual std::string_view GetOutputName(int8_t outputChannel);
         virtual std::string_view GetName();
+        virtual std::string_view GetTypeName();
         virtual float GetDefaultData(int8_t inputChannel);
 
 
@@ -213,8 +238,9 @@ namespace l::nodegraph {
         virtual int32_t AddInput2(std::string_view name, int32_t minSize, InputFlags flags);
         virtual int32_t AddOutput2(std::string_view name, int32_t minSize, OutputFlags flags);
 
-        NodeGraphBase* mNode;
+        NodeGraphBase* mNode = nullptr;
         std::string mName;
+        std::string mTypeName;
 
         std::vector<std::string> mDefaultInStrings;
         std::vector<std::string> mDefaultOutStrings;
@@ -231,8 +257,8 @@ namespace l::nodegraph {
     template<class T, class... Params>
     class NodeGraph : public NodeGraphBase {
     public:
-        NodeGraph(NodeType outputType = NodeType::Default, Params&&... params) :
-            NodeGraphBase(outputType),
+        NodeGraph(int32_t id = -1, NodeType outputType = NodeType::Default, Params&&... params) :
+            NodeGraphBase(id, outputType),
             mOperation(this, std::forward<Params>(params)...)
         {
             mOperationTypeHash = l::meta::class_hash<T>();
@@ -243,8 +269,18 @@ namespace l::nodegraph {
             DefaultDataInit();
         }
         virtual ~NodeGraph() {
-            LOG(LogInfo) << "Node destroyed";
+            //LOG(LogInfo) << "Node destroyed";
         }
+
+        NodeGraph& operator=(NodeGraph&& other) noexcept {
+            mOperation = std::move(other.mOperation);
+            return *this;
+        }
+        NodeGraph(NodeGraph&& other) noexcept {
+            *this = std::move(other);
+        }
+        NodeGraph(const NodeGraph&) = delete;
+        NodeGraph& operator=(const NodeGraph&) = delete;
 
         virtual bool IsInputDataConstant(int8_t num) override {
             return mOperation.IsInputDataConstant(num);
@@ -313,6 +349,10 @@ namespace l::nodegraph {
             return mOperation.GetName();
         }
 
+        virtual std::string_view GetTypeName() override {
+            return mOperation.GetTypeName();
+        }
+
         virtual NodeGraphOp* GetOperation() {
             return &mOperation;
         }
@@ -330,7 +370,10 @@ namespace l::nodegraph {
             mNodeGraphOperation(nodeGraphOperation)
         {
         }
-        ~InputManager() = default;
+        ~InputManager() {
+            mInputs.clear();
+            mCustom.clear();
+        }
 
         int32_t AddInput(InputIterationType type, int32_t inputIndex = -1);
         int32_t AddCustom(InputIterationType type);

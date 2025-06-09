@@ -20,6 +20,8 @@
 #include "nodegraph/operations/NodeGraphOpDataIO.h"
 #include "nodegraph/operations/NodeGraphOpUI.h"
 
+#include <serialization/JsonSerializationBase.h>
+
 #include <string>
 #include <vector>
 #include <map>
@@ -67,7 +69,7 @@ namespace l::nodegraph {
         std::string mName;
     };
 
-    class NodeGraphSchema {
+    class NodeGraphSchema : public l::serialization::JsonSerializationBase {
     public:
 
         using CustomCreateFunctionType = NodeGraphBase * (int32_t, NodeGraphGroup&);
@@ -80,35 +82,29 @@ namespace l::nodegraph {
             }
         }
 
-        ~NodeGraphSchema() = default;
+        ~NodeGraphSchema() {
+        }
 
         NodeGraphSchema& operator=(NodeGraphSchema&& other) noexcept {
             mMainNodeGraph = std::move(other.mMainNodeGraph);
             mName = std::move(other.mName);
             mRegisteredNodeTypes = std::move(other.mRegisteredNodeTypes);
-            mCreateCustomNode = other.mCreateCustomNode;
+            mCreateCustomNode = std::move(other.mCreateCustomNode);
             mKeyState = other.mKeyState;
             mAudioOutput = other.mAudioOutput;
             mMidiManager = other.mMidiManager;
+            mRegisteredNodeTypes = std::move(other.mRegisteredNodeTypes);
+            mPickerRootMenu = std::move(mPickerRootMenu);
             return *this;
         }
-        NodeGraphSchema& operator=(const NodeGraphSchema& other) noexcept {
-            mMainNodeGraph = other.mMainNodeGraph;
-            mName = other.mName;
-            mRegisteredNodeTypes = other.mRegisteredNodeTypes;
-            mCreateCustomNode = other.mCreateCustomNode;
-            mKeyState = other.mKeyState;
-            mAudioOutput = other.mAudioOutput;
-            mMidiManager = other.mMidiManager;
-            return *this;
-        }
+
         NodeGraphSchema(NodeGraphSchema&& other) noexcept {
             *this = std::move(other);
         }
-        NodeGraphSchema(const NodeGraphSchema& other) noexcept {
-            *this = other;
-        }
 
+        NodeGraphSchema& operator=(const NodeGraphSchema&) = delete;
+        NodeGraphSchema(const NodeGraphSchema&) = delete;
+        
         void RegisterAllOperators();
 
         void SetName(std::string_view name) {
@@ -118,14 +114,22 @@ namespace l::nodegraph {
             return mName;
         }
 
+        virtual bool LoadArchiveData(std::stringstream& src) override {
+            return mMainNodeGraph.LoadArchiveData(src);
+        }
+
+        virtual void GetArchiveData(std::stringstream& dst) override {
+            mMainNodeGraph.GetArchiveData(dst);
+        }
+
         void SetCustomCreator(std::function<CustomCreateFunctionType> customCreator);
         void SetKeyState(l::hid::KeyState* keyState);
         void SetAudioOutput(l::audio::AudioStream* audioStream);
         void SetMidiManager(l::hid::midi::MidiManager* midiManager);
 
         int32_t NewNode(int32_t typeId);
-        bool RemoveNode(int32_t nodeId);
-        NodeGraphBase* GetNode(int32_t nodeId);
+        bool RemoveNode(int32_t id);
+        NodeGraphBase* GetNode(int32_t id);
         void ForEachInputNode(std::function<bool(NodeGraphBase*)> cb);
         void ForEachOutputNode(std::function<bool(NodeGraphBase*)> cb);
         
@@ -133,7 +137,7 @@ namespace l::nodegraph {
         void ForEachNodeType(std::function<void(std::string_view, const std::vector<UINodeDesc>&)> cb) const;
         void RegisterNodeType(const std::string& typeGroup, int32_t uniqueTypeId, std::string_view typeName);
         void RegisterAllOf(const std::string& typeGroup);
-        void ProcessSubGraph(int32_t numSamples, int32_t numCacheSamples = 0);
+        void ProcessSubGraph(int32_t numSamples, int32_t numCacheSamples = -1);
         void Tick(int32_t tickCount, float delta);
 
         TreeMenuNode& GetPickerRoot();

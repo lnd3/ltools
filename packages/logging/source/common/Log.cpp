@@ -1,4 +1,4 @@
-#include "logging/Log.h"
+#include <logging/Log.h>
 
 #include <memory>
 #include <sstream>
@@ -84,18 +84,40 @@ namespace logging {
 		mStream << logger.mStream.str();
 	}
 
+	std::string_view rcut(std::string_view s, const char ch) {
+		auto i = s.rfind(ch) + 1;
+		if (i != std::string::npos) {
+			return std::string_view(s.data() + i, s.size() - i);
+		}
+		return s;
+	}
+
 	Logger::Logger(const char *file, int line, LogLevel level, bool condition) : mCondition(condition), mLevel(level), mStream() {
 		if (mLevel != LogLevel::LogTitle) {
-			std::string fileString = std::string(file);
-			size_t indexSlash = fileString.find_last_of("\\/");
-			fileString = fileString.substr(indexSlash + 1);
+			auto fileView = std::string_view(file);
+			auto ch = fileView.data() + fileView.size() - 1;
+			int i;
+			for (i = 0;i<fileView.size();i++) {
+				if (*ch == '\\' || *ch == '/') {
+					ch++;
+					break;
+				}
+				ch--;
+			}
+			auto filename = std::string_view(ch, i);
 
 			char buffer[30];
-			get_time_string(buffer, sizeof(buffer));
-			mStream << "<[" << buffer << "] ";
-			mStream << LogLevelStrings2.at(level) << "> ";
-			mStream << fileString;
-			mStream << "(" << std::to_string(line) << ") ";
+			auto size = get_time_string(buffer, sizeof(buffer));
+			auto timeview = std::string_view(buffer, size);
+			mStream << "<[";
+			mStream << timeview;
+			mStream << "] ";
+			mStream << LogLevelStrings2.at(level);
+			mStream << "> ";
+			mStream << filename;
+			mStream << "(";
+			mStream << line;
+			mStream << ") ";
 
 			//std::string out = LogLevelStrings.at(level) + " " + get_time_string() + ": " + fileString + "(" + std::to_string(line) + ") ";
 			//mStream << out;

@@ -358,6 +358,10 @@ namespace l::nodegraph {
         return mName;
     }
 
+    std::string_view NodeGraphOp::GetTypeName() {
+        return mTypeName;
+    }
+
     float NodeGraphOp::GetDefaultData(int8_t inputChannel) {
         if (static_cast<size_t>(inputChannel) < mDefaultInData.size()) {
             return std::get<0>(mDefaultInData.at(inputChannel));

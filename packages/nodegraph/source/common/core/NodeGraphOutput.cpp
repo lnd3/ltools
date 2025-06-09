@@ -6,20 +6,27 @@
 #include "math/MathFunc.h"
 
 namespace l::nodegraph {
+    void NodeGraphOutput::Reset() {
+        if (mOutputBuf != nullptr) {
+            delete mOutputBuf;
+            mOutputBuf = nullptr;
+        }
+    }
+
     void NodeGraphOutput::Clear() {
-        if (mOutputBuf) {
-            mOutputBuf.reset();
+        if ( mOutputBuf != nullptr) {
+            mOutputBuf->clear();
         }
     }
 
     float& NodeGraphOutput::Get(int32_t minSize, int32_t offset) {
-        if (!mOutputBuf) {
+        if (mOutputBuf == nullptr) {
             if (minSize <= 1) {
                 mOutputPolled = true;
                 return mOutput;
             }
             else {
-                mOutputBuf = std::make_unique<std::vector<float>>();
+                mOutputBuf = new std::vector<float>();
             }
         }
         int32_t lodSize = static_cast<int32_t>(minSize / mOutputLod);
@@ -62,7 +69,7 @@ namespace l::nodegraph {
     }
 
     int32_t NodeGraphOutput::GetSize() {
-        if (mOutputBuf) {
+        if (mOutputBuf != nullptr) {
             return static_cast<int32_t>(mOutputBuf->size());
         }
         return 1;

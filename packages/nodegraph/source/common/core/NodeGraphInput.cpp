@@ -7,31 +7,6 @@
 
 namespace l::nodegraph {
 
-    void NodeGraphInput::Clear() {
-        switch (mInputType) {
-        case InputType::INPUT_NODE:
-            mInputFromOutputChannel = 0;
-            mInput.mInputNode = nullptr;
-            break;
-        case InputType::INPUT_ARRAY:
-            if (mInput.mInputFloatBuf) {
-                mInput.mInputFloatBuf->clear();
-            }
-            break;
-        case InputType::INPUT_TEXT:
-            if (mInput.mInputTextBuf) {
-                mInput.mInputTextBuf->clear();
-            }
-            break;
-        case InputType::INPUT_CONSTANT:
-            mInput.mInputFloatConstant = 0.0f;
-            break;
-        case InputType::INPUT_VALUE:
-            break;
-        }
-        mInputType = InputType::INPUT_CONSTANT;
-    }
-
     void NodeGraphInput::Reset() {
         switch (mInputType) {
         case InputType::INPUT_NODE:
@@ -48,6 +23,31 @@ namespace l::nodegraph {
             if (mInput.mInputTextBuf) {
                 delete mInput.mInputTextBuf;
                 mInput.mInputTextBuf = nullptr;
+            }
+            break;
+        case InputType::INPUT_CONSTANT:
+            mInput.mInputFloatConstant = 0.0f;
+            break;
+        case InputType::INPUT_VALUE:
+            break;
+        }
+        mInputType = InputType::INPUT_CONSTANT;
+    }
+
+    void NodeGraphInput::Clear() {
+        switch (mInputType) {
+        case InputType::INPUT_NODE:
+            mInputFromOutputChannel = 0;
+            mInput.mInputNode = nullptr;
+            break;
+        case InputType::INPUT_ARRAY:
+            if (mInput.mInputFloatBuf) {
+                mInput.mInputFloatBuf->clear();
+            }
+            break;
+        case InputType::INPUT_TEXT:
+            if (mInput.mInputTextBuf) {
+                mInput.mInputTextBuf->clear();
             }
             break;
         case InputType::INPUT_CONSTANT:
