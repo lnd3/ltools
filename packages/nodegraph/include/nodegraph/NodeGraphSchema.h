@@ -87,14 +87,14 @@ namespace l::nodegraph {
 
         NodeGraphSchema& operator=(NodeGraphSchema&& other) noexcept {
             mMainNodeGraph = std::move(other.mMainNodeGraph);
-            mName = std::move(other.mName);
+            mName = other.mName;
             mRegisteredNodeTypes = std::move(other.mRegisteredNodeTypes);
             mCreateCustomNode = std::move(other.mCreateCustomNode);
             mKeyState = other.mKeyState;
             mAudioOutput = other.mAudioOutput;
             mMidiManager = other.mMidiManager;
             mRegisteredNodeTypes = std::move(other.mRegisteredNodeTypes);
-            mPickerRootMenu = std::move(mPickerRootMenu);
+            mPickerRootMenu = mPickerRootMenu;
             return *this;
         }
 
