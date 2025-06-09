@@ -80,14 +80,14 @@ namespace l::nodegraph {
             if (reversal && in > 0.0f) {
                 // positive pulse
                 mPosPulseIntervalCount.push_back(0.0f);
-                while (mPosPulseIntervalCount.size() > maxFlips) {
+                while (static_cast<int32_t>(mPosPulseIntervalCount.size()) > maxFlips) {
                     mPosPulseIntervalCount.erase(mPosPulseIntervalCount.begin());
                 }
             }
             else if (reversal && in < 0.0f) {
                 // negative pulse
                 mNegPulseIntervalCount.push_back(0.0f);
-                while (mNegPulseIntervalCount.size() > maxFlips) {
+                while (static_cast<int32_t>(mNegPulseIntervalCount.size()) > maxFlips) {
                     mNegPulseIntervalCount.erase(mNegPulseIntervalCount.begin());
                 }
             }
@@ -148,7 +148,7 @@ namespace l::nodegraph {
                 mFilterInit = false;
                 mFilterStateIndex = 0;
 
-                if (mFilterState.size() < bufferSize) {
+                if (static_cast<int32_t>(mFilterState.size()) < bufferSize) {
                     mFilterState.resize(bufferSize);
                     mFilterWeight.resize(bufferSize);
                 }
