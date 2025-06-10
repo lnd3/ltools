@@ -111,14 +111,14 @@ namespace l::nodegraph {
                 {
                     builder.Begin("Nodes", true);
                     {
-                        builder.Begin("");
-                        {
-                            for (auto& it : mNodes) {
+                        for (auto& it : mNodes) {
+                            builder.Begin("");
+                            {
                                 builder.AddNumber("TypeId", it->GetTypeId());
                                 builder.AddString("TypeName", it->GetTypeName());
                             }
+                            builder.End();
                         }
-                        builder.End();
                     }
                     builder.End("Nodes");
                 }

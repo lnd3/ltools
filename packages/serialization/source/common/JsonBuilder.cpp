@@ -22,6 +22,7 @@ namespace l::serialization {
     }
     void JsonBuilder::End(bool array) {
         EndNesting();
+        mNestingItemCount.back()++;
         NewLine();
         Indent();
         *mJson << (array ? "]" : "}");
