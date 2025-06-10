@@ -98,7 +98,7 @@ namespace l::network {
 							queue.pop_front();
 						}
 						else {
-							LOG(LogWarning) << "Failed to write to: " << interfaceName << " : command: " << command;
+							LOG(LogWarning) << "Failed to write to: " << interfaceName << " : error: " << written;
 						}
 						maxQueued--;
 					}
@@ -128,7 +128,7 @@ namespace l::network {
 	}
 
 	int32_t NetworkInterfaceWS::Write(std::string_view interfaceName, const char* buffer, size_t size) {
-		int32_t written = false;
+		int32_t written = 0;
 		auto it = mInterfaces.find(interfaceName.data());
 		if (it != mInterfaces.end()) {
 			if (NetworkStatus(interfaceName)) {
