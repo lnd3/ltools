@@ -82,7 +82,7 @@ namespace l::nodegraph {
             }
         }
 
-        ~NodeGraphSchema() {
+        virtual ~NodeGraphSchema() {
         }
 
         NodeGraphSchema& operator=(NodeGraphSchema&& other) noexcept {

@@ -34,7 +34,10 @@ namespace l::network {
 		int32_t Read(std::string_view interfaceName, char* buffer, size_t size);
 		void QueueWrite(std::string_view interfaceName, const char* buffer, size_t size);
 		int32_t Write(std::string_view interfaceName, const char* buffer, size_t size);
-		void WriteQueued(std::string_view interfaceName, int32_t maxQueued);
+		void SendQueued(std::string_view interfaceName, int32_t maxQueued);
+		int32_t NumQueued(std::string_view interfaceName);
+		void ClearQueued(std::string_view interfaceName);
+
 		bool IsConnected(std::string_view interfaceName);
 
 		bool NetworkStatus(std::string_view interfaceName);

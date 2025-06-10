@@ -70,7 +70,21 @@ namespace l::network {
 		return read;
 	}
 
-	void NetworkInterfaceWS::WriteQueued(std::string_view interfaceName, int32_t maxQueued) {
+	int32_t NetworkInterfaceWS::NumQueued(std::string_view interfaceName) {
+		auto it = mInterfaces.find(interfaceName.data());
+		if (it != mInterfaces.end()) {
+			if (NetworkStatus(interfaceName)) {
+				auto networkManager = mNetworkManager.lock();
+				if (networkManager) {
+					auto& queue = it->second.GetQueue();
+					return static_cast<int32_t>(queue.size());
+				}
+			}
+		}
+		return 0;
+	}
+
+	void NetworkInterfaceWS::SendQueued(std::string_view interfaceName, int32_t maxQueued) {
 		auto it = mInterfaces.find(interfaceName.data());
 		if (it != mInterfaces.end()) {
 			if (NetworkStatus(interfaceName)) {
@@ -89,6 +103,16 @@ namespace l::network {
 						maxQueued--;
 					}
 				}
+			}
+		}
+	}
+
+	void NetworkInterfaceWS::ClearQueued(std::string_view interfaceName) {
+		auto it = mInterfaces.find(interfaceName.data());
+		if (it != mInterfaces.end()) {
+			if (NetworkStatus(interfaceName)) {
+				auto& queue = it->second.GetQueue();
+				queue.clear();
 			}
 		}
 	}

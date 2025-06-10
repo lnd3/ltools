@@ -92,6 +92,8 @@ namespace l::network {
 		}
 		if (l::string::equal(mRequestQuery.c_str(), "ws", 0, 0, 2)) {
 			mIsWebSocket = true;
+			mWebSocketCanReceiveData = true;
+			mWebSocketCanSendData = true;
 		}
 
 		mRequestQueryArgs = queryArguments;
@@ -245,6 +247,9 @@ namespace l::network {
 		if (res == CURLE_OK) {
 			return static_cast<int32_t>(sentBytes);
 		}
+		else if (res == CURLE_AGAIN) {
+			return 0;
+		}
 		else if (res == CURLE_GOT_NOTHING) {
 			if (mWebSocketCanSendData) {
 				LOG(LogError) << "Failed wss write got nothing, error: " << res;
@@ -255,7 +260,6 @@ namespace l::network {
 			if (mWebSocketCanSendData) {
 				LOG(LogError) << "Failed wss write, error: " << res;
 			}
-			mWebSocketCanSendData = false;
 		}
 		return -res;
 	}
@@ -269,28 +273,49 @@ namespace l::network {
 			LOG(LogError) << "Failed wss read, no curl instance";
 			return -102;
 		}
+		int32_t maxTries = 3;
 		size_t readTotal = 0;
-		while (true) {
+		CURLcode res = CURLE_OK;
+		while (!res) {
 			size_t recv;
-			const struct curl_ws_frame* meta;
-			auto res = curl_ws_recv(mCurl, buffer + readTotal, size - readTotal, &recv, &meta);
+			const struct curl_ws_frame* meta = nullptr;
+			auto recvMax = size - readTotal;
+			res = curl_ws_recv(mCurl, buffer + readTotal, recvMax, &recv, &meta);
 			readTotal += recv;
 
+			bool multiFragmentBit = false;
+			size_t recvLeft = 0;
+
+			if (meta) {
+				multiFragmentBit = (meta->flags & CURLWS_CONT) == CURLWS_CONT;
+				recvLeft = static_cast<size_t>(meta->bytesleft);
+			}
+
 			if (res == CURLE_OK) {
-				auto recvLeft = static_cast<size_t>(meta->bytesleft);
-				if (recvLeft == 0) {
-					if (readTotal > 0) {
-						mWebSocketCanReceiveData = true;
-					}
+				mWebSocketCanReceiveData = true;
+
+				if (multiFragmentBit || recvLeft > 0) {
+					continue;
 				}
-				if (recvLeft > size - readTotal) {
-					//LOG(LogInfo) << "Has more wss data: " << recvLeft;
-					mWebSocketCanReceiveData = true;
+				if (recvLeft > recvMax) {
+					// buffer is almost full
+					return static_cast<int32_t>(readTotal);
 				}
+				if (recvMax < 10) {
+					// buffer is full
+					return -103;
+				}
+				// or return for handling
 				return static_cast<int32_t>(readTotal);
 			}
 			else if (res == CURLE_AGAIN) {
-				return 0;
+				if (multiFragmentBit || maxTries-- > 0) {
+					// try again
+					res = CURLE_OK;
+					continue;
+				}
+				// return for handling
+				return static_cast<int32_t>(readTotal);
 			}
 			else if (res == CURLE_GOT_NOTHING) {
 				if (mWebSocketCanReceiveData) {

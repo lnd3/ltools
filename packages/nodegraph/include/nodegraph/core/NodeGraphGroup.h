@@ -93,7 +93,8 @@ namespace l::nodegraph {
         virtual bool LoadArchiveData(std::stringstream& src) override {
             l::serialization::JsonParser<1000> parser;
             auto stream = src.str();
-            if (parser.LoadJson(stream.c_str(), stream.size())) {
+            auto [result, error] = parser.LoadJson(stream.c_str(), stream.size());
+            if (result) {
                 auto root = parser.GetRoot();
                 LOG(LogInfo) << "NG load: \n" << root.as_dbg_string();
                 return true;

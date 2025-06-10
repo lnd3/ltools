@@ -114,7 +114,7 @@ namespace l::serialization {
     public:
         JsonParser() {}
 
-        bool LoadJson(const char* jsondata, size_t size) {
+        std::tuple<bool, int32_t> LoadJson(const char* jsondata, size_t size) {
             mJsondata = jsondata;
 
             jsmn_init(&mParser);
@@ -131,22 +131,22 @@ namespace l::serialization {
                 switch (ret) {
                 case JSMN_ERROR_INVAL:
                     LOG(LogError) << "Failure to parse json value";
-                    return false;
+                    return { false, ret };
                 case JSMN_ERROR_NOMEM:
                     LOG(LogError) << "Token buffer is to small";
-                    return false;
+                    return { false, ret };
                 case JSMN_ERROR_PART:
                     //LOG(LogInfo) << "Json data is not completed";
-                    return true;
+                    return { false, ret };
                 default:
                     LOG(LogError) << "Unknown error";
-                    return false;
+                    return { false, -4 };
                 }
             }
             else {
                 mTokenCount = ret;
             }
-            return true;
+            return { true, 0 };
         }
 
         JsonValue GetRoot() {
