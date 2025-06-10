@@ -96,7 +96,7 @@ public:
 		mGetScreenSize = std::move(screenSizeGet);
 	}
 	
-	void tick(class World*, float) {
+	void tick(class World*, ECS_TICK_TYPE) override {
 		if (!mMouseGet) {
 			return;
 		}
