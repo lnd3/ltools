@@ -333,6 +333,12 @@ namespace l::network {
 	}
 
 	void ConnectionBase::WSClose() {
+		size_t sentBytes = 0;
+		auto res = curl_ws_send(mCurl, nullptr, 0, &sentBytes, 0, CURLWS_CLOSE);
+		if (res == CURLE_OK) {
+			LOG(LogInfo) << "Closed connection";
+		}
+
 		NotifyCompleteRequest(true);
 	}
 
