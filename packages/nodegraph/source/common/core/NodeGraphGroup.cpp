@@ -119,11 +119,8 @@ namespace l::nodegraph {
         if (!node) {
             return false;
         }
-        int32_t sourceCount = 0;
         for (auto& it : mNodes) {
-            if (it->DetachInput(node)) {
-                sourceCount++;
-            }
+            it->DetachInput(node);
         }
         std::erase_if(mInputNodes, [&](NodeGraphBase* nodePtr) {
             return nodePtr == node;

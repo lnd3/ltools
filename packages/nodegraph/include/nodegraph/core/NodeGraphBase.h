@@ -353,7 +353,7 @@ namespace l::nodegraph {
             return mOperation.GetTypeName();
         }
 
-        virtual NodeGraphOp* GetOperation() {
+        virtual NodeGraphOp* GetOperation() override {
             return &mOperation;
         }
 

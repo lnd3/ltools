@@ -201,10 +201,11 @@ public:
 		l::serialization::JsonParser<200> parser;
 
 		auto stream = src.str();
-		if (parser.LoadJson(stream.c_str(), stream.size())) {
+		auto [result, error] = parser.LoadJson(stream.c_str(), stream.size());
+		if (result) {
 			auto root = parser.GetRoot();
 			mName = root.get("name").as_string();
-			mId = root.get("id").as_int32();
+			mId = root.get("id").as_float();
 			auto array = root.get("array").as_array();
 			for (; array.has_next();) {
 				auto e = array.next();
@@ -243,7 +244,7 @@ TEST(JsonSerializer, Basic2) {
 	JsonData2 data;
 
 	data.mName = "test";
-	data.mId = 3432;
+	data.mId = 3432.0f;
 	data.mArray.push_back(89);
 	data.mArray.push_back(91);
 
@@ -253,7 +254,7 @@ TEST(JsonSerializer, Basic2) {
 	JsonData2 data2;
 	data2.LoadArchiveData(str);
 
-	TEST_TRUE(data2.mId == 3432, "");
+	TEST_TRUE(data2.mId == 3432.0f, "");
 	TEST_TRUE(data2.mName == "test", "");
 	TEST_TRUE(data2.mArray.at(0) == 89, "");
 	TEST_TRUE(data2.mArray.at(1) == 91, "");

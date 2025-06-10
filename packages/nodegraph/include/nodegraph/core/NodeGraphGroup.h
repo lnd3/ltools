@@ -150,7 +150,7 @@ namespace l::nodegraph {
 
         template<class T, std::enable_if_t<std::is_base_of_v<NodeGraphOp, T>, int> = 0, class... Params>
         l::nodegraph::NodeGraphBase* NewNode(NodeType nodeType, Params&&... params) {
-            auto nodePtr = new l::nodegraph::NodeGraph<T, Params...>(mIds++, nodeType, std::forward<Params>(params)...);
+            l::nodegraph::NodeGraphBase* nodePtr = new l::nodegraph::NodeGraph<T, Params...>(mIds++, nodeType, std::forward<Params>(params)...);
             mNodes.push_back(nodePtr);
             if (nodeType == NodeType::ExternalOutput || nodeType == NodeType::ExternalVisualOutput) {
                 mOutputNodes.push_back(nodePtr);
