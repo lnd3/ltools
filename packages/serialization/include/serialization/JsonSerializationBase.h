@@ -6,6 +6,15 @@
 
 namespace l::serialization {
 
+	class StreamSerializationBase {
+	public:
+		StreamSerializationBase() {}
+		virtual ~StreamSerializationBase() = default;
+
+		virtual bool LoadArchiveData(std::stringstream& src) = 0;
+		virtual void GetArchiveData(std::stringstream& dst) = 0;
+	};
+
 	class JsonSerializationBase {
 	public:
 		JsonSerializationBase() {}
@@ -14,4 +23,5 @@ namespace l::serialization {
 		virtual bool LoadArchiveData(JsonValue& jsonValue) = 0;
 		virtual void GetArchiveData(JsonBuilder& jsonBuilder) = 0;
 	};
+
 }

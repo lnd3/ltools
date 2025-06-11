@@ -125,7 +125,7 @@ TEST(JsonBuilder, Basic) {
 	return 0;
 }
 
-class JsonData : public l::serialization::JsonSerializationBase {
+class JsonData : public l::serialization::StreamSerializationBase {
 public:
 	JsonData() = default;
 	~JsonData() = default;
@@ -196,30 +196,19 @@ public:
 	JsonData2() = default;
 	~JsonData2() = default;
 
-	bool LoadArchiveData(std::stringstream& src) override {
-
-		l::serialization::JsonParser<200> parser;
-
-		auto stream = src.str();
-		auto [result, error] = parser.LoadJson(stream.c_str(), stream.size());
-		if (result) {
-			auto root = parser.GetRoot();
-			mName = root.get("name").as_string();
-			mId = root.get("id").as_float();
-			auto array = root.get("array").as_array();
-			for (; array.has_next();) {
-				auto e = array.next();
-				auto value = e.as_int32();
-				mArray.push_back(value);
-			}
+	bool LoadArchiveData(l::serialization::JsonValue& root) override {
+		mName = root.get("name").as_string();
+		mId = root.get("id").as_float();
+		auto array = root.get("array").as_array();
+		for (; array.has_next();) {
+			auto e = array.next();
+			auto value = e.as_int32();
+			mArray.push_back(value);
 		}
 		return false;
 	}
 
-	void GetArchiveData(std::stringstream& dst) override {
-		l::serialization::JsonBuilder json;
-
-		json.SetStream(&dst);
+	void GetArchiveData(l::serialization::JsonBuilder& json) override {
 		json.Begin("");
 		json.AddString("name", mName);
 		json.AddNumber("id", mId);
@@ -248,16 +237,27 @@ TEST(JsonSerializer, Basic2) {
 	data.mArray.push_back(89);
 	data.mArray.push_back(91);
 
-	std::stringstream str;
-	data.GetArchiveData(str);
+	std::stringstream src;
+	l::serialization::JsonBuilder builder;
+	builder.SetStream(&src);
+	data.GetArchiveData(builder);
 
-	JsonData2 data2;
-	data2.LoadArchiveData(str);
+	l::serialization::JsonParser<200> parser;
 
-	TEST_TRUE(data2.mId == 3432.0f, "");
-	TEST_TRUE(data2.mName == "test", "");
-	TEST_TRUE(data2.mArray.at(0) == 89, "");
-	TEST_TRUE(data2.mArray.at(1) == 91, "");
+	auto stream = src.str();
+	auto [result, error] = parser.LoadJson(stream.c_str(), stream.size());
+	TEST_TRUE(result, "Error: " + std::to_string(error));
+	if (result) {
+		auto root = parser.GetRoot();
+
+		JsonData2 data2;
+		data2.LoadArchiveData(root);
+
+		TEST_TRUE(data2.mId == 3432.0f, "");
+		TEST_TRUE(data2.mName == "test", "");
+		TEST_TRUE(data2.mArray.at(0) == 89, "");
+		TEST_TRUE(data2.mArray.at(1) == 91, "");
+	}
 
 	return 0;
 }
