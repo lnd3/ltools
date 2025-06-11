@@ -117,7 +117,11 @@ namespace l::serialization {
         JsonParser() {
             jsmntok_t* tokensPtr = &mTokens[0];
             for (int32_t i = 0; i < MaxTokens; i++) {
-                *tokensPtr++ = { 0 };
+                tokensPtr->end = 0;
+                tokensPtr->size = 0;
+                tokensPtr->start = 0;
+                tokensPtr->type = JSMN_UNDEFINED;
+                tokensPtr++;
             }
         }
 
