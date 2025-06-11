@@ -44,6 +44,8 @@ namespace l::ui {
 
         void SetNGSchema(l::nodegraph::NodeGraphSchema* ngSchema);
         void SetEventListener(std::function<void(const NodeEvent& event)> cb);
+
+        l::nodegraph::NodeGraphSchema* GetNGSchema();
     protected:
         UIWindow mUIWindow;
         UIManager mUIManager;

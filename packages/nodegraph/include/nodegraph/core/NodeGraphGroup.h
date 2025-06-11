@@ -65,6 +65,8 @@ namespace l::nodegraph {
         }
 
         NodeGraphGroup& operator=(NodeGraphGroup&& other) noexcept {
+            mNodeFactory = other.mNodeFactory;
+
             mInputNode = other.mInputNode;
             mOutputNode = other.mOutputNode;
 
@@ -145,6 +147,7 @@ namespace l::nodegraph {
         void Tick(int32_t tickCount, float elapsed);
     protected:
         NodeFactoryBase* mNodeFactory = nullptr;
+
         NodeGraphBase* mInputNode = nullptr;
         NodeGraphBase* mOutputNode = nullptr;
 

@@ -88,7 +88,9 @@ namespace l::nodegraph {
         }
 
         NodeGraphSchema& operator=(NodeGraphSchema&& other) noexcept {
+            mFileName = other.mFileName;
             mMainNodeGraph = std::move(other.mMainNodeGraph);
+            mMainNodeGraph.SetNodeFactory(this); // must set anew since schema (this) was moved as well
             mName = other.mName;
             mRegisteredNodeTypes = std::move(other.mRegisteredNodeTypes);
             mCreateCustomNode = std::move(other.mCreateCustomNode);

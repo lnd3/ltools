@@ -108,6 +108,10 @@ namespace l::ui {
             });
     }
 
+    l::nodegraph::NodeGraphSchema* UINodeEditor::GetNGSchema() {
+        return mNGSchema;
+    }
+
     void UINodeEditor::SetEventListener(std::function<void(const NodeEvent& event)> cb) {
         mEventListeners.push_back(cb);
     }
