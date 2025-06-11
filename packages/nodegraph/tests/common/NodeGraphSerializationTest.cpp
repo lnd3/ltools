@@ -26,12 +26,12 @@ TEST(NodeGraph, SerializationBasic) {
 		schema.Save("TestNodeGroup.json");
 	}
 
-	std::stringstream dst;
 	l::serialization::JsonBuilder builder(true);
-	builder.SetStream(&dst);
-
+	builder.Begin("");
 	schema.GetArchiveData(builder);
-	auto d = dst.str();
+	builder.End();
+
+	auto d = builder.GetStr();
 	LOG(LogInfo) << "Archive:";
 	LOG(LogInfo) << "\n" << d;
 

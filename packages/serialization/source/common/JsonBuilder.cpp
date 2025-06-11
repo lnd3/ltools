@@ -6,6 +6,32 @@
 
 namespace l::serialization {
 
+    void JsonBuilder::SetStream(std::stringstream* stream) {
+        mJson = stream;
+    }
+    std::stringstream& JsonBuilder::GetStream() {
+        return *mJson;
+    }
+    std::string JsonBuilder::GetStr() {
+        return mJson->str();
+    }
+    void JsonBuilder::BeginExternalObject(std::string_view name) {
+        if (mNestingItemCount.back() > 1) {
+            *mJson << ",";
+            NewLine();
+            Indent();
+        }
+        BeginNesting();
+        if (!name.empty()) {
+            *mJson << "\"" << name << "\":";
+        }
+    }
+
+    void JsonBuilder::EndExternalObject() {
+        EndNesting();
+        mNestingItemCount.back()++;
+    }
+
     void JsonBuilder::Begin(std::string_view name, bool array) {
         if (mNestingItemCount.back() > 1) {
             *mJson << ",";

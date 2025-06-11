@@ -13,15 +13,17 @@ namespace l::serialization {
     class JsonBuilder {
 
     public:
-        JsonBuilder(bool pretty = false) : mPretty(pretty) {
+        JsonBuilder(bool pretty = false) : mPretty(pretty), mJson(&mJsonInternal){
             BeginNesting();
         }
         ~JsonBuilder() = default;
 
-        void SetStream(std::stringstream* stream) {
-            mJson = stream;
-        }
-
+        void SetStream(std::stringstream* stream);
+        std::stringstream& GetStream();
+        std::string GetStr();
+        
+        void BeginExternalObject(std::string_view name);
+        void EndExternalObject();
         void Begin(std::string_view name, bool array = false);
         void End(bool array = false);
         void AddJson(std::string_view json);
@@ -45,7 +47,6 @@ namespace l::serialization {
                 *mJson << std::to_string(value);
             }
         }
-
         void Reset();
     protected:
         void NewLine();
@@ -56,5 +57,6 @@ namespace l::serialization {
         bool mPretty = false;
         std::deque<int32_t> mNestingItemCount;
         std::stringstream* mJson;
+        std::stringstream mJsonInternal;
     };
 }

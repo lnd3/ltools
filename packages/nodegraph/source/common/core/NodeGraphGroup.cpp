@@ -23,11 +23,11 @@ namespace l::nodegraph {
     }
 
     bool NodeGraphGroup::LoadArchiveData(l::serialization::JsonValue& jsonValue) {
-        if (jsonValue.has(JSMN_OBJECT) && jsonValue.has_key("NodeGraphGroup")) {
-            auto nodeGraphGroup = jsonValue.get("NodeGraphGroup");
-            if (nodeGraphGroup.has(JSMN_OBJECT)) {
-                if (nodeGraphGroup.has_key("Nodes")) {
-                    auto nodes = nodeGraphGroup.get("Nodes");
+        if (jsonValue.has(JSMN_OBJECT) && jsonValue.has_key("Group")) {
+            auto group = jsonValue.get("Group");
+            if (group.has(JSMN_OBJECT)) {
+                if (group.has_key("Nodes")) {
+                    auto nodes = group.get("Nodes");
                     if (nodes.has(JSMN_ARRAY)) {
                         auto it = nodes.as_array();
                         for (; it.has_next();) {
@@ -41,8 +41,8 @@ namespace l::nodegraph {
                         }
                     }
                 }
-                if (nodeGraphGroup.has_key("NodeData")) {
-                    auto nodeData = nodeGraphGroup.get("NodeData");
+                if (group.has_key("NodeData")) {
+                    auto nodeData = group.get("NodeData");
                     if (nodeData.has(JSMN_ARRAY)) {
                         auto it = nodeData.as_array();
                         for (; it.has_next();) {
@@ -94,7 +94,7 @@ namespace l::nodegraph {
 
     void NodeGraphGroup::GetArchiveData(l::serialization::JsonBuilder& jsonBuilder) {
         jsonBuilder.Begin("");
-        jsonBuilder.Begin("NodeGraphGroup");
+        jsonBuilder.Begin("Group");
         {
             jsonBuilder.Begin("Nodes", true);
             for (auto& it : mNodes) {
@@ -129,7 +129,7 @@ namespace l::nodegraph {
                                 jsonBuilder.Begin("");
                                 {
                                     jsonBuilder.AddNumber("Channel", i);
-                                    jsonBuilder.AddNumber("Text", input.GetText());
+                                    jsonBuilder.AddString("Text", input.GetText());
                                 }
                                 jsonBuilder.End();
                             }

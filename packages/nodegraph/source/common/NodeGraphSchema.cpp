@@ -78,18 +78,45 @@ namespace l::nodegraph {
         if (mFileName.empty()) {
             return false;
         }
-        std::stringstream stream;
         l::serialization::JsonBuilder builder(true);
-        builder.SetStream(&stream);
+        builder.Begin("");
         GetArchiveData(builder);
+        builder.End();
 
         l::filesystem::File dataFile(mFileName);
         dataFile.modeBinary().modeWriteTrunc();
-        if (dataFile.open() && dataFile.write(stream) > 0) {
+        if (dataFile.open() && dataFile.write(builder.GetStream()) > 0) {
             LOG(LogInfo) << "Created " << mFileName;
             return true;
         }
         return false;
+    }
+
+    bool NodeGraphSchema::LoadArchiveData(l::serialization::JsonValue& jsonValue) {
+        if (jsonValue.has(JSMN_OBJECT) && jsonValue.has_key("NodeGraphSchema")) {
+            auto nodeGraphSchema = jsonValue.get("NodeGraphSchema");
+            if (nodeGraphSchema.has(JSMN_OBJECT) && nodeGraphSchema.has_key("Name") && nodeGraphSchema.has_key("NodeGraphGroup")) {
+                mName = nodeGraphSchema.get("Name").as_string();
+                auto nodeGraphGroup = nodeGraphSchema.get("NodeGraphGroup");
+                return mMainNodeGraph.LoadArchiveData(nodeGraphGroup);
+            }
+        }
+        return false;
+    }
+
+    void NodeGraphSchema::GetArchiveData(l::serialization::JsonBuilder& jsonBuilder) {
+        jsonBuilder.Begin("");
+        jsonBuilder.Begin("NodeGraphSchema");
+        {
+            jsonBuilder.AddString("Name", mName);
+            jsonBuilder.BeginExternalObject("NodeGraphGroup");
+            {
+                mMainNodeGraph.GetArchiveData(jsonBuilder);
+            }
+            jsonBuilder.EndExternalObject();
+        }
+        jsonBuilder.End();
+        jsonBuilder.End();
     }
 
     void NodeGraphSchema::SetCustomCreator(std::function<CustomCreateFunctionType> customCreator) {
