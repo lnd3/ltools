@@ -7,11 +7,6 @@
 
 namespace l::nodegraph {
 
-    int32_t CreateUniqueId() {
-        static int32_t id = 1;
-        return id++;
-    }
-
     bool IsValidInOutNum(int8_t inoutNum, size_t inoutSize) {
         return inoutNum >= 0 && inoutSize < 256u && inoutNum < static_cast<int8_t>(inoutSize);
     }

@@ -18,17 +18,10 @@
 
 namespace l::nodegraph {
 
-    struct NodeIOMapping {
-        int16_t mFromNodeIndex = -1;
-        int16_t mToNodeIndex = -1;
-        int8_t mFromOutputChannel = -1;
-        int8_t mToInputChannel = -1;
-    };
-
-    struct NodeIOValues {
-        int16_t mNodeIndex = -1;
-        int8_t mChannel = -1;
-        float mValue;
+    class NodeFactoryBase {
+    public:
+        virtual bool NodeGraphNewNode(int32_t typeId, int32_t id) = 0; // creation, data init, position and size
+        virtual bool NodeGraphWireIO(int32_t srcId, int8_t srcChannel, int32_t dstid, int8_t dstChannel) = 0; // just input connections
     };
 
     class GraphDataCopy : public NodeGraphOp {
@@ -90,40 +83,10 @@ namespace l::nodegraph {
         NodeGraphGroup(const NodeGraphGroup&) = delete;
         NodeGraphGroup& operator=(const NodeGraphGroup&) = delete;
 
-        virtual bool LoadArchiveData(l::serialization::JsonValue& jsonValue) override {
-            if (jsonValue.has_key("NodeGraphGroup") && jsonValue.get("NodeGraphGroup").has(JSMN_OBJECT)) {
-                auto nodeGraphGroup = jsonValue.get("NodeGraphGroup");
-                if (nodeGraphGroup.has_key("Nodes") && nodeGraphGroup.get("Nodes").has(JSMN_ARRAY)) {
-                    auto nodes = nodeGraphGroup.get("Nodes");
-                    if (nodes.valid()) {
-                        auto it = nodes.as_array();
-                        for (; it.has_next();) {
-                            auto e = it.next();
-                            LOG(LogInfo) << e.as_string();
-                        }
-                    }
-                }
-            }
-            return true;
-        }
+        virtual bool LoadArchiveData(l::serialization::JsonValue& jsonValue) override;
+        virtual void GetArchiveData(l::serialization::JsonBuilder& jsonBuilder) override;
 
-        virtual void GetArchiveData(l::serialization::JsonBuilder& jsonBuilder) override {
-            jsonBuilder.Begin("NodeGraphGroup");
-            {
-                jsonBuilder.Begin("Nodes", true);
-                for (auto& it : mNodes) {
-                    jsonBuilder.Begin("");
-                    {
-                        jsonBuilder.AddNumber("TypeId", it->GetTypeId());
-                        jsonBuilder.AddString("TypeName", it->GetTypeName());
-                    }
-                    jsonBuilder.End();
-                }
-                jsonBuilder.End(true);
-            }
-            jsonBuilder.End();
-        }
-
+        void SetNodeFactory(NodeFactoryBase* factory);
         void SetNumInputs(int8_t numInputs);
         void SetNumOutputs(int8_t outputCount);
         void SetInput(int8_t inputChannel, NodeGraphBase& source, int8_t sourceOutputChannel);
@@ -146,8 +109,17 @@ namespace l::nodegraph {
         bool RemoveNode(int32_t id);
 
         template<class T, std::enable_if_t<std::is_base_of_v<NodeGraphOp, T>, int> = 0, class... Params>
-        l::nodegraph::NodeGraphBase* NewNode(NodeType nodeType, Params&&... params) {
-            l::nodegraph::NodeGraphBase* nodePtr = new l::nodegraph::NodeGraph<T, Params...>(mIds++, nodeType, std::forward<Params>(params)...);
+        l::nodegraph::NodeGraphBase* NewNode(int32_t id, NodeType nodeType, Params&&... params) {
+            if (id > 0) {
+                if (mIds < id) {
+                    mIds = id + 1;
+                }
+            }
+            else {
+                id = mIds++;
+            }
+            
+            l::nodegraph::NodeGraphBase* nodePtr = new l::nodegraph::NodeGraph<T, Params...>(id, nodeType, std::forward<Params>(params)...);
             mNodes.push_back(nodePtr);
             if (nodeType == NodeType::ExternalOutput || nodeType == NodeType::ExternalVisualOutput) {
                 mOutputNodes.push_back(nodePtr);
@@ -172,6 +144,7 @@ namespace l::nodegraph {
         void ProcessSubGraph(int32_t numSamples, int32_t numCacheSamples = -1);
         void Tick(int32_t tickCount, float elapsed);
     protected:
+        NodeFactoryBase* mNodeFactory = nullptr;
         NodeGraphBase* mInputNode = nullptr;
         NodeGraphBase* mOutputNode = nullptr;
 

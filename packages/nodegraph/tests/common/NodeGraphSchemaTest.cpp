@@ -129,8 +129,8 @@ TEST(NodeGraph, GraphGroups) {
 		group.SetInput(2, &input1);
 		group.SetInput(3, &input2);
 
-		auto nodeLowpass1 = group.NewNode<SignalFilterLowpass>(NodeType::Default);
-		auto nodeLowpass2 = group.NewNode<SignalFilterLowpass>(NodeType::Default);
+		auto nodeLowpass1 = group.NewNode<SignalFilterLowpass>(0, NodeType::Default);
+		auto nodeLowpass2 = group.NewNode<SignalFilterLowpass>(0, NodeType::Default);
 
 		// left, right
 		nodeLowpass1->SetInput(1, group, 2);
@@ -156,7 +156,7 @@ TEST(NodeGraph, GraphGroups) {
 		group2.SetInput(0, group, 0);
 		group2.SetInput(1, group, 1);
 
-		auto copyNode = group2.NewNode<GraphDataCopy>(NodeType::Default, 2);
+		auto copyNode = group2.NewNode<GraphDataCopy>(0, NodeType::Default, 2);
 		copyNode->SetInput(0, group2, 0);
 		copyNode->SetInput(1, group2, 1);
 

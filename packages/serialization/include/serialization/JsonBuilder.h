@@ -32,7 +32,7 @@ namespace l::serialization {
         void AddNumber(std::string_view name, T value, bool asString = false) {
             if (mNestingItemCount.back() > 1) {
                 *mJson << ",";
-                Indent();
+                //Indent();
             }
             mNestingItemCount.back()++;
             if (!name.empty()) {

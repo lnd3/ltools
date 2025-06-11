@@ -69,7 +69,7 @@ namespace l::nodegraph {
         std::string mName;
     };
 
-    class NodeGraphSchema : public l::serialization::JsonSerializationBase {
+    class NodeGraphSchema : public l::serialization::JsonSerializationBase, public NodeFactoryBase {
     public:
 
         using CustomCreateFunctionType = NodeGraphBase * (int32_t, NodeGraphGroup&);
@@ -77,6 +77,7 @@ namespace l::nodegraph {
         NodeGraphSchema(std::string name = "", bool useAllNodeTypes = false) :
             mName(name.empty() ? "Schema" : name)
         {
+            mMainNodeGraph.SetNodeFactory(this);
             if (useAllNodeTypes) {
                 RegisterAllOperators();
             }
@@ -105,6 +106,9 @@ namespace l::nodegraph {
         NodeGraphSchema& operator=(const NodeGraphSchema&) = delete;
         NodeGraphSchema(const NodeGraphSchema&) = delete;
         
+        virtual bool NodeGraphNewNode(int32_t typeId, int32_t id) override;
+        virtual bool NodeGraphWireIO(int32_t srcId, int8_t srcChannel, int32_t dstid, int8_t dstChannel) override;
+
         void RegisterAllOperators();
 
         void SetName(std::string_view name) {
@@ -127,7 +131,7 @@ namespace l::nodegraph {
         void SetAudioOutput(l::audio::AudioStream* audioStream);
         void SetMidiManager(l::hid::midi::MidiManager* midiManager);
 
-        int32_t NewNode(int32_t typeId);
+        int32_t NewNode(int32_t typeId, int32_t id = -1);
         bool RemoveNode(int32_t id);
         NodeGraphBase* GetNode(int32_t id);
         void ForEachInputNode(std::function<bool(NodeGraphBase*)> cb);

@@ -70,6 +70,7 @@ namespace l::nodegraph {
         float& GetArray(int32_t minSize = 1, int32_t offset = 0);
         std::string_view GetText(int32_t minSize = 16);
         NodeGraphBase* GetInputNode();
+        int8_t GetInputSrcChannel();
 
         NodeDataIterator GetIterator(int32_t minSize = 1);
         int32_t GetSize();

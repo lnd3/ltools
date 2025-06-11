@@ -22,15 +22,144 @@ namespace l::nodegraph {
         }
     }
 
+    bool NodeGraphGroup::LoadArchiveData(l::serialization::JsonValue& jsonValue) {
+        if (jsonValue.has(JSMN_OBJECT) && jsonValue.has_key("NodeGraphGroup")) {
+            auto nodeGraphGroup = jsonValue.get("NodeGraphGroup");
+            if (nodeGraphGroup.has(JSMN_OBJECT)) {
+                if (nodeGraphGroup.has_key("Nodes")) {
+                    auto nodes = nodeGraphGroup.get("Nodes");
+                    if (nodes.has(JSMN_ARRAY)) {
+                        auto it = nodes.as_array();
+                        for (; it.has_next();) {
+                            auto e = it.next();
+                            LOG(LogInfo) << e.as_dbg_string();
+                            if (e.has_key("TypeId") && e.has_key("NodeId")) {
+                                auto typeId = e.get("TypeId").as_int32();
+                                auto nodeId = e.get("NodeId").as_int32();
+                                mNodeFactory->NodeGraphNewNode(typeId, nodeId);
+                            }
+                        }
+                    }
+                }
+                if (nodeGraphGroup.has_key("NodeData")) {
+                    auto nodeData = nodeGraphGroup.get("NodeData");
+                    if (nodeData.has(JSMN_ARRAY)) {
+                        auto it = nodeData.as_array();
+                        for (; it.has_next();) {
+                            auto e = it.next();
+                            LOG(LogInfo) << e.as_dbg_string();
+                            if (e.has_key("NodeId")) {
+                                auto nodeId = e.get("NodeId").as_int32();
+                                auto inputInfo = e.get("InputInfo");
+                                LOG(LogInfo) << inputInfo.as_dbg_string();
+
+                                auto node = GetNode(nodeId);
+                                ASSERT(node);
+                                if (node) {
+                                    if (inputInfo.has(JSMN_ARRAY)) {
+                                        auto it2 = inputInfo.as_array();
+                                        for (; it2.has_next();) {
+                                            auto data = it2.next();
+                                            if (data.has(JSMN_OBJECT)) {
+                                                auto channel = data.get("Channel").as_int8();
+                                                if (data.has_key("Value")) {
+                                                    auto value = data.get("Value").as_float();
+                                                    if (!node->SetInput(channel, value)) {
+                                                        LOG(LogError) << "Failed to set channel constant data";
+                                                    }
+                                                }
+                                                else if (data.has_key("SrcNodeId") && data.has_key("SrcChannel")) {
+                                                    auto srcNodeId = data.get("SrcNodeId").as_int32();
+                                                    auto srcChannel = data.get("SrcChannel").as_int8();
+                                                    mNodeFactory->NodeGraphWireIO(srcNodeId, srcChannel, nodeId, channel);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    void NodeGraphGroup::GetArchiveData(l::serialization::JsonBuilder& jsonBuilder) {
+        jsonBuilder.Begin("");
+        jsonBuilder.Begin("NodeGraphGroup");
+        {
+            jsonBuilder.Begin("Nodes", true);
+            for (auto& it : mNodes) {
+                jsonBuilder.Begin("");
+                {
+                    jsonBuilder.AddNumber("TypeId", it->GetTypeId());
+                    jsonBuilder.AddNumber("NodeId", it->GetId());
+                    //jsonBuilder.AddString("TypeName", it->GetTypeName());
+                }
+                jsonBuilder.End();
+            }
+            jsonBuilder.End(true);
+
+            jsonBuilder.Begin("NodeData", true);
+            for (auto& it : mNodes) {
+                jsonBuilder.Begin("");
+                {
+                    jsonBuilder.AddNumber("NodeId", it->GetId());
+                    jsonBuilder.Begin("InputInfo", true);
+                    {
+                        for (int8_t i = 0; i < it->GetNumInputs(); i++) {
+                            auto& input = it->GetInputOf(i);
+                            if (input.IsOfType(InputType::INPUT_CONSTANT)) {
+                                jsonBuilder.Begin("");
+                                {
+                                    jsonBuilder.AddNumber("Channel", i);
+                                    jsonBuilder.AddNumber("Value", input.Get());
+                                }
+                                jsonBuilder.End();
+                            } 
+                            else if (input.IsOfType(InputType::INPUT_NODE)) {
+                                ASSERT(input.HasInputNode());
+                                auto srcNode = input.GetInputNode();
+                                ASSERT(srcNode);
+                                if (srcNode) {
+                                    auto srcChannel = input.GetInputSrcChannel();
+                                    jsonBuilder.Begin("");
+                                    {
+                                        jsonBuilder.AddNumber("Channel", i);
+                                        jsonBuilder.AddNumber("SrcNodeId", srcNode->GetId());
+                                        jsonBuilder.AddNumber("SrcChannel", srcChannel);
+                                    }
+                                    jsonBuilder.End();
+                                }
+                            }
+
+                        }
+                    }
+                    jsonBuilder.End(true);
+                }
+                jsonBuilder.End();
+            }
+            jsonBuilder.End(true);
+        }
+        jsonBuilder.End();
+        jsonBuilder.End();
+    }
+
+    void NodeGraphGroup::SetNodeFactory(NodeFactoryBase* factory) {
+        mNodeFactory = factory;
+    }
+
     void NodeGraphGroup::SetNumInputs(int8_t numInputs) {
         if (!mInputNode) {
-            mInputNode = NewNode<GraphDataCopy>(NodeType::Default, numInputs);
+            mInputNode = NewNode<GraphDataCopy>(0, NodeType::Default, numInputs);
         }
     }
 
     void NodeGraphGroup::SetNumOutputs(int8_t numOutput) {
         if (!mOutputNode) {
-            mOutputNode = NewNode<GraphDataCopy>(NodeType::ExternalOutput, numOutput);
+            mOutputNode = NewNode<GraphDataCopy>(0, NodeType::ExternalOutput, numOutput);
         }
     }
 

@@ -35,6 +35,14 @@ namespace l::serialization {
         return static_cast<float>(std::atof(as_string().data()));
     }
 
+    int8_t JsonValue::as_int8() const {
+        return static_cast<int8_t>(std::strtol(as_string().data(), nullptr, 10));
+    }
+
+    int16_t JsonValue::as_int16() const {
+        return static_cast<int16_t>(std::strtol(as_string().data(), nullptr, 10));
+    }
+
     int32_t JsonValue::as_int32() const {
         return std::strtol(as_string().data(), nullptr, 10);
     }

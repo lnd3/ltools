@@ -19,7 +19,6 @@
 #include <nodegraph/core/NodeGraphOutput.h>
 
 namespace l::nodegraph {
-    int32_t CreateUniqueId();
     bool IsValidInOutNum(int8_t inoutNum, size_t inoutSize);
 
     class NodeGraphGroup;

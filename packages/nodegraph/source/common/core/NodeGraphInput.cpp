@@ -151,6 +151,13 @@ namespace l::nodegraph {
         return nullptr;
     }
 
+    int8_t NodeGraphInput::GetInputSrcChannel() {
+        if (mInputType == InputType::INPUT_NODE && mInput.mInputNode != nullptr) {
+            return mInputFromOutputChannel;
+        }
+        return 0;
+    }
+
     void NodeGraphInput::SetConstant(float constant) {
         if (mInputType == InputType::INPUT_ARRAY && mInput.mInputFloatBuf) {
             delete mInput.mInputFloatBuf;

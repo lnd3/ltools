@@ -24,6 +24,25 @@ namespace l::nodegraph {
         current->mChildren.emplace_back("", name, nodeId);
     }
 
+    bool NodeGraphSchema::NodeGraphNewNode(int32_t typeId, int32_t nodeId) {
+        auto id = NewNode(typeId, nodeId);
+        if (id != nodeId) {
+            LOG(LogError) << "Failed to create node";
+            return false;
+        }
+        return true;
+    }
+
+    bool NodeGraphSchema::NodeGraphWireIO(int32_t srcId, int8_t srcChannel, int32_t dstId, int8_t dstChannel) {
+        auto srcNode = GetNode(srcId);
+        auto dstNode = GetNode(dstId);
+        if (srcNode && dstNode && !dstNode->SetInput(dstChannel, *srcNode, srcChannel)) {
+            LOG(LogError) << "Failed to wire nodes";
+            return false;
+        }
+        return true;
+    }
+
     void NodeGraphSchema::SetCustomCreator(std::function<CustomCreateFunctionType> customCreator) {
         mCreateCustomNode = customCreator;
     }
@@ -40,287 +59,287 @@ namespace l::nodegraph {
         mMidiManager = midiManager;
     }
 
-    int32_t NodeGraphSchema::NewNode(int32_t typeId) {
+    int32_t NodeGraphSchema::NewNode(int32_t typeId, int32_t id) {
         l::nodegraph::NodeGraphBase* node = nullptr;
 
         switch (typeId) {
 
             // Data sources from within the node graph (basically constants)
         case 0:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(NodeType::Default, 0);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(id, NodeType::Default, 0);
             break;
         case 1:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(NodeType::Default, 1);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(id, NodeType::Default, 1);
             break;
         case 2:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(NodeType::Default, 2);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(id, NodeType::Default, 2);
             break;
         case 3:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(NodeType::Default, 3);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants>(id, NodeType::Default, 3);
             break;
         case 4:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceTime>(NodeType::ExternalOutput, mAudioOutput != nullptr ? mAudioOutput->GetSampleRate() : 44100, 60);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceTime>(id, NodeType::ExternalOutput, mAudioOutput != nullptr ? mAudioOutput->GetSampleRate() : 44100, 60);
             break;
         case 5:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceText>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceText>(id, NodeType::Default);
             break;
 
             // Internal output like NG chart or debug view
         case 20:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputDebug>(NodeType::ExternalOutput);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputDebug>(id, NodeType::ExternalOutput);
             break;
         case 21:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputPlot>(NodeType::ExternalVisualOutput, 100);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputPlot>(id, NodeType::ExternalVisualOutput, 100);
             break;
 
             // Internal cache (basically bulk data input/output from external and to external)
         case 40:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphCache>(NodeType::Default, 1);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphCache>(id, NodeType::Default, 1);
             break;
         case 41:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphCache>(NodeType::Default, 2);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphCache>(id, NodeType::Default, 2);
             break;
         case 42:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphCache>(NodeType::Default, 3);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphCache>(id, NodeType::Default, 3);
             break;
         case 43:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphCache>(NodeType::Default, 4);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphCache>(id, NodeType::Default, 4);
             break;
 
 
 
             // Math aritmethic operators
         case 100:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicAdd>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicAdd>(id, NodeType::Default);
             break;
         case 101:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicSubtract>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicSubtract>(id, NodeType::Default);
             break;
         case 102:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicMultiply>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicMultiply>(id, NodeType::Default);
             break;
         case 103:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicNegate>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicNegate>(id, NodeType::Default);
             break;
         case 104:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicAbs>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicAbs>(id, NodeType::Default);
             break;
         case 105:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicLog>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicLog>(id, NodeType::Default);
             break;
         case 106:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicMultiply3>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicMultiply3>(id, NodeType::Default);
             break;
         case 107:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicMultiplyAndAdd>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicMultiplyAndAdd>(id, NodeType::Default);
             break;
         case 108:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicRound>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicRound>(id, NodeType::Default);
             break;
 
             // Math logical operators
         case 120:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathLogicalAnd>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathLogicalAnd>(id, NodeType::Default);
             break;
         case 121:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathLogicalOr>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathLogicalOr>(id, NodeType::Default);
             break;
         case 122:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathLogicalXor>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathLogicalXor>(id, NodeType::Default);
             break;
 
             // Math numerical
         case 140:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalIntegral>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalIntegral>(id, NodeType::Default);
             break;
         case 141:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalDerivate>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalDerivate>(id, NodeType::Default);
             break;
         case 142:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalDiffNorm>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalDiffNorm>(id, NodeType::Default);
             break;
         case 143:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalDiff>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalDiff>(id, NodeType::Default);
             break;
 
             // Trading data io
         case 200:
-            node = mMainNodeGraph.NewNode<l::nodegraph::TradingDataIOOCHLVDataIn>(NodeType::ExternalInput, 0);
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingDataIOOCHLVDataIn>(id, NodeType::ExternalInput, 0);
             break;
         case 201:
-            node = mMainNodeGraph.NewNode<l::nodegraph::TradingDataIOOCHLVDataIn>(NodeType::ExternalInput, 1);
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingDataIOOCHLVDataIn>(id, NodeType::ExternalInput, 1);
             break;
         case 202:
-            node = mMainNodeGraph.NewNode<l::nodegraph::TradingDataIOPlaceTrade>(NodeType::ExternalOutput);
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingDataIOPlaceTrade>(id, NodeType::ExternalOutput);
             break;
 
             // Trading detectors
         case 220:
-            node = mMainNodeGraph.NewNode<l::nodegraph::TradingDetectorTrend>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingDetectorTrend>(id, NodeType::Default);
             break;
         case 221:
-            node = mMainNodeGraph.NewNode<l::nodegraph::TradingDetectorTrendDiff>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingDetectorTrendDiff>(id, NodeType::Default);
             break;
 
             // Trading filter
         case 240:
-            node = mMainNodeGraph.NewNode<l::nodegraph::TradingFilterFlipGate>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingFilterFlipGate>(id, NodeType::Default);
             break;
         case 241:
-            node = mMainNodeGraph.NewNode<l::nodegraph::TradingFilterPulseInfo>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingFilterPulseInfo>(id, NodeType::Default);
             break;
         case 242:
-            node = mMainNodeGraph.NewNode<l::nodegraph::TradingFilterVWMA>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingFilterVWMA>(id, NodeType::Default);
             break;
 
             // Trading indicators
         case 260:
-            node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorOBV>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorOBV>(id, NodeType::Default);
             break;
         case 261:
-            node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorVPT>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorVPT>(id, NodeType::Default);
             break;
         case 262:
-            node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorOBV2>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorOBV2>(id, NodeType::Default);
             break;
         case 263:
-            node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorGA>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorGA>(id, NodeType::Default);
             break;
         case 264:
-            node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorVRSI>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorVRSI>(id, NodeType::Default);
             break;
         case 265:
-            node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorATR>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorATR>(id, NodeType::Default);
             break;
         case 266:
-            node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorSD>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingIndicatorSD>(id, NodeType::Default);
             break;
 
 
             // Signal generators (basically audio composition)
         case 300:
-            node = mMainNodeGraph.NewNode<l::nodegraph::SignalGeneratorSine>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalGeneratorSine>(id, NodeType::Default);
             break;
         case 301:
-            node = mMainNodeGraph.NewNode<l::nodegraph::SignalGeneratorSineFM>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalGeneratorSineFM>(id, NodeType::Default);
             break;
         case 302:
-            node = mMainNodeGraph.NewNode<l::nodegraph::SignalGeneratorSineFM2>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalGeneratorSineFM2>(id, NodeType::Default);
             break;
         case 303:
-            node = mMainNodeGraph.NewNode<l::nodegraph::SignalGeneratorSineFM3>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalGeneratorSineFM3>(id, NodeType::Default);
             break;
         case 304:
-            node = mMainNodeGraph.NewNode<l::nodegraph::SignalGeneratorSaw>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalGeneratorSaw>(id, NodeType::Default);
             break;
         case 305:
-            node = mMainNodeGraph.NewNode<l::nodegraph::SignalGeneratorSine2>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalGeneratorSine2>(id, NodeType::Default);
             break;
         case 306:
-            node = mMainNodeGraph.NewNode<l::nodegraph::SignalGeneratorSaw2>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalGeneratorSaw2>(id, NodeType::Default);
             break;
 
             // Signal controllers (basically audio shaping)
         case 320:
-            node = mMainNodeGraph.NewNode<l::nodegraph::SignalControlEnvelope>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalControlEnvelope>(id, NodeType::Default);
             break;
         case 321:
-            node = mMainNodeGraph.NewNode<l::nodegraph::SignalControlArpeggio>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalControlArpeggio>(id, NodeType::Default);
             break;
 
             // Signal filter
         case 340:
-            node = mMainNodeGraph.NewNode<l::nodegraph::SignalFilterLowpass>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalFilterLowpass>(id, NodeType::Default);
             break;
         case 341:
-            node = mMainNodeGraph.NewNode<l::nodegraph::SignalFilterHighpass>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalFilterHighpass>(id, NodeType::Default);
             break;
         case 342:
-            node = mMainNodeGraph.NewNode<l::nodegraph::SignalFilterChamberlain2pole>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalFilterChamberlain2pole>(id, NodeType::Default);
             break;
         case 343:
-            node = mMainNodeGraph.NewNode<l::nodegraph::SignalFilterMovingAverage>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalFilterMovingAverage>(id, NodeType::Default);
             break;
 
             // Signal effects
         case 360:
-            node = mMainNodeGraph.NewNode<l::nodegraph::SignalEffectReverb1>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalEffectReverb1>(id, NodeType::Default);
             break;
         case 361:
-            node = mMainNodeGraph.NewNode<l::nodegraph::SignalEffectReverb2>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalEffectReverb2>(id, NodeType::Default);
             break;
         case 362:
-            node = mMainNodeGraph.NewNode<l::nodegraph::SignalEffectLimiter>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalEffectLimiter>(id, NodeType::Default);
             break;
         case 363:
-            node = mMainNodeGraph.NewNode<l::nodegraph::SignalEffectEnvelopeFollower>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalEffectEnvelopeFollower>(id, NodeType::Default);
             break;
         case 364:
-            node = mMainNodeGraph.NewNode<l::nodegraph::SignalEffectSaturator>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalEffectSaturator>(id, NodeType::Default);
             break;
         case 365:
-            node = mMainNodeGraph.NewNode<l::nodegraph::SignalEffectTranceGate>(NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::SignalEffectTranceGate>(id, NodeType::Default);
             break;
 
 
             // DeviceIO (midi, keyboard piano)
         case 400:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputKeyboardPiano>(NodeType::Default, mKeyState);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputKeyboardPiano>(id, NodeType::Default, mKeyState);
             break;
         case 401:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiKeyboard>(NodeType::Default, mMidiManager);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiKeyboard>(id, NodeType::Default, mMidiManager);
             break;
         case 402:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiKnobs>(NodeType::Default, mMidiManager);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiKnobs>(id, NodeType::Default, mMidiManager);
             break;
         case 403:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(NodeType::Default, mMidiManager, 0);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(id, NodeType::Default, mMidiManager, 0);
             break;
         case 404:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(NodeType::Default, mMidiManager, 1);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(id, NodeType::Default, mMidiManager, 1);
             break;
         case 405:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(NodeType::Default, mMidiManager, 2);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(id, NodeType::Default, mMidiManager, 2);
             break;
         case 406:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(NodeType::Default, mMidiManager, 3);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(id, NodeType::Default, mMidiManager, 3);
             break;
         case 407:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(NodeType::Default, mMidiManager, 4);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMidiButtons>(id, NodeType::Default, mMidiManager, 4);
             break;
         case 408:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMic>(NodeType::Default, mAudioOutput);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputMic>(id, NodeType::Default, mAudioOutput);
             break;
 
 
             // DeviceIO (like speakers or external data sinks)
         case 420:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputPCBeep>(NodeType::ExternalOutput);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputPCBeep>(id, NodeType::ExternalOutput);
             break;
         case 421:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputSpeaker>(NodeType::ExternalOutput, mAudioOutput);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputSpeaker>(id, NodeType::ExternalOutput, mAudioOutput);
             break;
 
             // DataIO input
         case 500:
-            node = mMainNodeGraph.NewNode<l::nodegraph::DataIODataIn>(NodeType::ExternalInput, 6);
+            node = mMainNodeGraph.NewNode<l::nodegraph::DataIODataIn>(id, NodeType::ExternalInput, 6);
             break;
         case 501:
-            node = mMainNodeGraph.NewNode<l::nodegraph::DataIODataOut>(NodeType::ExternalOutput, 6);
+            node = mMainNodeGraph.NewNode<l::nodegraph::DataIODataOut>(id, NodeType::ExternalOutput, 6);
             break;
 
             // UI elements (basically ui buttons/checkboxes on the ui using the schema containing the nodes)
         case 600:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphUICheckbox>(NodeType::ExternalInput);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphUICheckbox>(id, NodeType::ExternalInput);
             break;
         case 601:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphUISlider>(NodeType::ExternalInput, 0.0f, 1.0f, 1.0f);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphUISlider>(id, NodeType::ExternalInput, 0.0f, 1.0f, 1.0f);
             break;
         case 602:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphUIChartLine>(NodeType::ExternalOutput);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphUIChartLine>(id, NodeType::ExternalOutput);
             break;
         case 603:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphUICandleSticks>(NodeType::ExternalOutput);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphUICandleSticks>(id, NodeType::ExternalOutput);
             break;
 
 
@@ -338,6 +357,9 @@ namespace l::nodegraph {
 
         if (node) {
             node->SetTypeId(typeId);
+            if (id > 0) {
+                node->SetId(id);
+            }
         }
 
         return node == nullptr ? -1 : node->GetId();

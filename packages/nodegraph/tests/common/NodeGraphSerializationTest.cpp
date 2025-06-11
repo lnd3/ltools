@@ -24,7 +24,7 @@ TEST(NodeGraph, SerializationBasic) {
 
 
 	std::stringstream dst;
-	l::serialization::JsonBuilder builder;
+	l::serialization::JsonBuilder builder(true);
 	builder.SetStream(&dst);
 
 	schema.GetArchiveData(builder);

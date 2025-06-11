@@ -52,6 +52,8 @@ namespace l::serialization {
         bool as_bool() const;
         double as_double() const;
         float as_float() const;
+        int8_t as_int8() const;
+        int16_t as_int16() const;
         int32_t as_int32() const;
         int64_t as_int64() const;
         JsonIterator as_array() const;
@@ -112,7 +114,12 @@ namespace l::serialization {
     template<int32_t MaxTokens = 1000>
     class JsonParser {
     public:
-        JsonParser() {}
+        JsonParser() {
+            jsmntok_t* tokensPtr = &mTokens[0];
+            for (int32_t i = 0; i < MaxTokens; i++) {
+                *tokensPtr++ = { 0 };
+            }
+        }
 
         std::tuple<bool, int32_t> LoadJson(const char* jsondata, size_t size) {
             mJsondata = jsondata;
@@ -155,7 +162,7 @@ namespace l::serialization {
 
     protected:
         const char* mJsondata = nullptr;
-        jsmn_parser mParser;
+        jsmn_parser mParser = {0};
         int32_t mTokenCount = 0;
         jsmntok_t mTokens[MaxTokens];
     };
