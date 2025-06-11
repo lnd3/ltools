@@ -12,16 +12,19 @@ TEST(NodeGraph, SerializationBasic) {
 	NodeGraphSchema schema;
 
 	schema.RegisterAllOperators();
-	
-	// loading all nodes and simply using a running index as id since we dont want id gaps during regeneration.
-	auto id0 = schema.NewNode(100);
-	auto id1 = schema.NewNode(100);
-	auto id2 = schema.NewNode(100);
 
-	// mapping of nodes 
-	schema.GetNode(id2)->SetInput(0, *schema.GetNode(id0), 0);
-	schema.GetNode(id2)->SetInput(1, *schema.GetNode(id1), 0);
+	if (!schema.Load("TestNodeGroup.json")) {
+		// loading all nodes and simply using a running index as id since we dont want id gaps during regeneration.
+		auto id0 = schema.NewNode(100);
+		auto id1 = schema.NewNode(100);
+		auto id2 = schema.NewNode(100);
 
+		// mapping of nodes 
+		schema.GetNode(id2)->SetInput(0, *schema.GetNode(id0), 0);
+		schema.GetNode(id2)->SetInput(1, *schema.GetNode(id1), 0);
+
+		schema.Save("TestNodeGroup.json");
+	}
 
 	std::stringstream dst;
 	l::serialization::JsonBuilder builder(true);

@@ -115,13 +115,11 @@ namespace l::serialization {
     class JsonParser {
     public:
         JsonParser() {
-            jsmntok_t* tokensPtr = &mTokens[0];
             for (int32_t i = 0; i < MaxTokens; i++) {
-                tokensPtr->end = 0;
-                tokensPtr->size = 0;
-                tokensPtr->start = 0;
-                tokensPtr->type = JSMN_UNDEFINED;
-                tokensPtr++;
+                mTokens[i].end = 0;
+                mTokens[i].size = 0;
+                mTokens[i].start = 0;
+                mTokens[i].type = JSMN_UNDEFINED;
             }
         }
 

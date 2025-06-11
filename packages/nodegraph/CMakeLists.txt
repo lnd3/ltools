@@ -4,6 +4,7 @@ set(deps
 	logging
 
 	testing
+	filesystem
 	memory
 	math
 	serialization

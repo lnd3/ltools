@@ -1,6 +1,7 @@
-#include "nodegraph/NodeGraphSchema.h"
+#include <nodegraph/NodeGraphSchema.h>
 
-#include "logging/Log.h"
+#include <logging/Log.h>
+#include <filesystem/File.h>
 
 #include <set>
 
@@ -41,6 +42,54 @@ namespace l::nodegraph {
             return false;
         }
         return true;
+    }
+
+    bool NodeGraphSchema::Load(std::string_view file) {
+        if (!file.empty()) {
+            mFileName = file;
+        }
+        if (mFileName.empty()) {
+            return false;
+        }
+        if (std::filesystem::exists(mFileName)) {
+            l::filesystem::File dataFile(mFileName);
+            dataFile.modeBinary().modeRead();
+            std::vector<unsigned char> data;
+            if (dataFile.open() && dataFile.read(data) > 0) {
+                const char* d = reinterpret_cast<const char*>(data.data());
+
+                l::serialization::JsonParser<5000> parser;
+                auto [result, error] = parser.LoadJson(d, data.size());
+                if (result) {
+                    auto root = parser.GetRoot();
+                    if (LoadArchiveData(root)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    bool NodeGraphSchema::Save(std::string_view file) {
+        if (!file.empty()) {
+            mFileName = file;
+        }
+        if (mFileName.empty()) {
+            return false;
+        }
+        std::stringstream stream;
+        l::serialization::JsonBuilder builder(true);
+        builder.SetStream(&stream);
+        GetArchiveData(builder);
+
+        l::filesystem::File dataFile(mFileName);
+        dataFile.modeBinary().modeWriteTrunc();
+        if (dataFile.open() && dataFile.write(stream) > 0) {
+            LOG(LogInfo) << "Created " << mFileName;
+            return true;
+        }
+        return false;
     }
 
     void NodeGraphSchema::SetCustomCreator(std::function<CustomCreateFunctionType> customCreator) {

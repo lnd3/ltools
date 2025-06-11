@@ -84,6 +84,7 @@ namespace l::nodegraph {
         }
 
         virtual ~NodeGraphSchema() {
+            Save();
         }
 
         NodeGraphSchema& operator=(NodeGraphSchema&& other) noexcept {
@@ -118,6 +119,9 @@ namespace l::nodegraph {
             return mName;
         }
 
+        bool Load(std::string_view file = "");
+        bool Save(std::string_view file = "");
+
         virtual bool LoadArchiveData(l::serialization::JsonValue& jsonValue) override {
             return mMainNodeGraph.LoadArchiveData(jsonValue);
         }
@@ -146,6 +150,7 @@ namespace l::nodegraph {
 
         TreeMenuNode& GetPickerRoot();
     protected:
+        std::string mFileName;
         NodeGraphGroup mMainNodeGraph;
         std::string mName;
 
