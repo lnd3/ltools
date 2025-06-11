@@ -90,41 +90,38 @@ namespace l::nodegraph {
         NodeGraphGroup(const NodeGraphGroup&) = delete;
         NodeGraphGroup& operator=(const NodeGraphGroup&) = delete;
 
-        virtual bool LoadArchiveData(std::stringstream& src) override {
-            l::serialization::JsonParser<1000> parser;
-            auto stream = src.str();
-            auto [result, error] = parser.LoadJson(stream.c_str(), stream.size());
-            if (result) {
-                auto root = parser.GetRoot();
-                LOG(LogInfo) << "NG load: \n" << root.as_dbg_string();
-                return true;
-            }
-            return false;
-        }
-
-        virtual void GetArchiveData(std::stringstream& dst) override {
-            l::serialization::JsonBuilder builder(true);
-            builder.SetStream(&dst);
-            builder.Begin("");
-            {
-                builder.Begin("NodeGraphGroup");
-                {
-                    builder.Begin("Nodes", true);
-                    {
-                        for (auto& it : mNodes) {
-                            builder.Begin("");
-                            {
-                                builder.AddNumber("TypeId", it->GetTypeId());
-                                builder.AddString("TypeName", it->GetTypeName());
-                            }
-                            builder.End();
+        virtual bool LoadArchiveData(l::serialization::JsonValue& jsonValue) override {
+            if (jsonValue.has_key("NodeGraphGroup") && jsonValue.get("NodeGraphGroup").has(JSMN_OBJECT)) {
+                auto nodeGraphGroup = jsonValue.get("NodeGraphGroup");
+                if (nodeGraphGroup.has_key("Nodes") && nodeGraphGroup.get("Nodes").has(JSMN_ARRAY)) {
+                    auto nodes = nodeGraphGroup.get("Nodes");
+                    if (nodes.valid()) {
+                        auto it = nodes.as_array();
+                        for (; it.has_next();) {
+                            auto e = it.next();
+                            LOG(LogInfo) << e.as_string();
                         }
                     }
-                    builder.End("Nodes");
                 }
-                builder.End("NodeGraphGroup");
             }
-            builder.End();
+            return true;
+        }
+
+        virtual void GetArchiveData(l::serialization::JsonBuilder& jsonBuilder) override {
+            jsonBuilder.Begin("NodeGraphGroup");
+            {
+                jsonBuilder.Begin("Nodes", true);
+                for (auto& it : mNodes) {
+                    jsonBuilder.Begin("");
+                    {
+                        jsonBuilder.AddNumber("TypeId", it->GetTypeId());
+                        jsonBuilder.AddString("TypeName", it->GetTypeName());
+                    }
+                    jsonBuilder.End();
+                }
+                jsonBuilder.End(true);
+            }
+            jsonBuilder.End();
         }
 
         void SetNumInputs(int8_t numInputs);

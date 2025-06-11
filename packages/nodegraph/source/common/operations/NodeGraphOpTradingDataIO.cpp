@@ -27,6 +27,10 @@ namespace l::nodegraph {
     void TradingDataIOOCHLVDataIn::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
 
         int32_t stride = 9;
+        
+        if (numSamples > numCacheSamples) {
+            numCacheSamples = numSamples;
+        }
 
         if (mInputHasChanged) {
             auto symbolInput = inputs.at(1).GetText(16);

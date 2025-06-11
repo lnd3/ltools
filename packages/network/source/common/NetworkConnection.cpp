@@ -92,8 +92,6 @@ namespace l::network {
 		}
 		if (l::string::equal(mRequestQuery.c_str(), "ws", 0, 0, 2)) {
 			mIsWebSocket = true;
-			mWebSocketCanReceiveData = true;
-			mWebSocketCanSendData = true;
 		}
 
 		mRequestQueryArgs = queryArguments;
@@ -150,6 +148,8 @@ namespace l::network {
 		}
 
 		if (IsWebSocket() || multiHandle != nullptr) {
+			mWebSocketCanReceiveData = true;
+			mWebSocketCanSendData = true;
 			do {
 				std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
@@ -160,6 +160,8 @@ namespace l::network {
 					}
 				}
 			} while (!mCompletedRequest);
+			mWebSocketCanSendData = false;
+			mWebSocketCanReceiveData = false;
 		}
 		else {
 			// notify manually since easy perform blocks until completed for single connections mode
@@ -182,8 +184,6 @@ namespace l::network {
 		if (IsWebSocket()) {
 			curl_easy_cleanup(mCurl);
 			mCurl = nullptr;
-			mWebSocketCanSendData = false;
-			mWebSocketCanReceiveData = false;
 		}
 
 		ASSERT(mCompletedRequest);
@@ -235,20 +235,24 @@ namespace l::network {
 
 	int32_t ConnectionBase::WSWrite(const char* buffer, size_t size) {
 		if (HasExpired()) {
+			mWebSocketCanSendData = false;
 			LOG(LogError) << "Failed wss write, connection expired";
 			return -101;
 		}
 		if (mCurl == nullptr) {
+			mWebSocketCanSendData = false;
 			LOG(LogError) << "Failed wss write, no curl instance";
 			return -102;
 		}
 		size_t sentBytes = 0;
 		auto res = curl_ws_send(mCurl, buffer, size, &sentBytes, 0, CURLWS_TEXT);
 		if (res == CURLE_OK) {
+			mWebSocketCanSendData = true;
 			return static_cast<int32_t>(sentBytes);
 		}
 		else if (res == CURLE_AGAIN) {
-			return 0;
+			mWebSocketCanSendData = true;
+			return static_cast<int32_t>(sentBytes);
 		}
 		else if (res == CURLE_GOT_NOTHING) {
 			if (mWebSocketCanSendData) {
@@ -260,16 +264,19 @@ namespace l::network {
 			if (mWebSocketCanSendData) {
 				LOG(LogError) << "Failed wss write, error: " << res;
 			}
+			mWebSocketCanSendData = false;
 		}
 		return -res;
 	}
 
 	int32_t ConnectionBase::WSRead(char* buffer, size_t size) {
 		if (HasExpired()) {
+			mWebSocketCanReceiveData = false;
 			LOG(LogError) << "Failed wss read, connection expired";
 			return -101;
 		}
 		if (mCurl == nullptr) {
+			mWebSocketCanReceiveData = false;
 			LOG(LogError) << "Failed wss read, no curl instance";
 			return -102;
 		}
@@ -309,6 +316,7 @@ namespace l::network {
 				return static_cast<int32_t>(readTotal);
 			}
 			else if (res == CURLE_AGAIN) {
+				mWebSocketCanReceiveData = true;
 				if (multiFragmentBit || maxTries-- > 0) {
 					// try again
 					res = CURLE_OK;
@@ -317,19 +325,28 @@ namespace l::network {
 				// return for handling
 				return static_cast<int32_t>(readTotal);
 			}
-			else if (res == CURLE_GOT_NOTHING) {
-				if (mWebSocketCanReceiveData) {
-					LOG(LogError) << "Failed wss read, connection closed, error: " << res;
-				}
-				mWebSocketCanReceiveData = false;
-				return -res;
-			}
-			else {
-				return -res;
-			}
 		}
-		LOG(LogError) << "Failed wss read, unknown error: ";
-		return -CURLE_RECV_ERROR;
+		
+		if (res == CURLE_GOT_NOTHING) {
+			if (mWebSocketCanReceiveData) {
+				LOG(LogError) << "Failed wss read - 'curl got nothing' - connection closed, error: " << res;
+			}
+			mWebSocketCanReceiveData = false;
+			return -res;
+		}
+		if (res == CURLE_RECV_ERROR) {
+			if (mWebSocketCanReceiveData) {
+				LOG(LogError) << "Failed wss read - 'curl recieve error' - connection closed, error: " << res;
+			}
+			mWebSocketCanReceiveData = false;
+			return -res;
+		}
+
+		if (mWebSocketCanReceiveData) {
+			LOG(LogError) << "Failed wss read, connection closed, error: " << res;
+		}
+		mWebSocketCanReceiveData = false;
+		return -res;
 	}
 
 	void ConnectionBase::WSClose() {

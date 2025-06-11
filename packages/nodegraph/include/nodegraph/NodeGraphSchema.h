@@ -114,12 +114,12 @@ namespace l::nodegraph {
             return mName;
         }
 
-        virtual bool LoadArchiveData(std::stringstream& src) override {
-            return mMainNodeGraph.LoadArchiveData(src);
+        virtual bool LoadArchiveData(l::serialization::JsonValue& jsonValue) override {
+            return mMainNodeGraph.LoadArchiveData(jsonValue);
         }
 
-        virtual void GetArchiveData(std::stringstream& dst) override {
-            mMainNodeGraph.GetArchiveData(dst);
+        virtual void GetArchiveData(l::serialization::JsonBuilder& jsonBuilder) override {
+            mMainNodeGraph.GetArchiveData(jsonBuilder);
         }
 
         void SetCustomCreator(std::function<CustomCreateFunctionType> customCreator);
