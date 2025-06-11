@@ -68,6 +68,12 @@ namespace l::nodegraph {
                                                         LOG(LogError) << "Failed to set channel constant data";
                                                     }
                                                 }
+                                                else if (data.has_key("Text")) {
+                                                    auto text= data.get("Text").as_string();
+                                                    if (!node->SetInput(channel, text)) {
+                                                        LOG(LogError) << "Failed to set channel text data";
+                                                    }
+                                                }
                                                 else if (data.has_key("SrcNodeId") && data.has_key("SrcChannel")) {
                                                     auto srcNodeId = data.get("SrcNodeId").as_int32();
                                                     auto srcChannel = data.get("SrcChannel").as_int8();
@@ -119,6 +125,14 @@ namespace l::nodegraph {
                                 }
                                 jsonBuilder.End();
                             } 
+                            else if (input.IsOfType(InputType::INPUT_TEXT)) {
+                                jsonBuilder.Begin("");
+                                {
+                                    jsonBuilder.AddNumber("Channel", i);
+                                    jsonBuilder.AddNumber("Text", input.GetText());
+                                }
+                                jsonBuilder.End();
+                            }
                             else if (input.IsOfType(InputType::INPUT_NODE)) {
                                 ASSERT(input.HasInputNode());
                                 auto srcNode = input.GetInputNode();
