@@ -91,7 +91,19 @@ namespace l::ui {
     }
 
     void UINodeEditor::SetNGSchema(l::nodegraph::NodeGraphSchema* ngSchema) {
-        ASSERT(!mNGSchema);
+        if (!ngSchema) {
+            mDrawVisitor.SetDrawChannelTextHandler(nullptr);
+            mDrawVisitor.SetDrawLineHandler(nullptr);
+            mLinkIOVisitor.SetLinkHandler(nullptr);
+            mEditVisitor.SetEditHandler(nullptr);
+            mMoveVisitor.SetMoveHandler(nullptr);
+            mResizeVisitor.SetResizeHandler(nullptr);
+            mSelectVisitor.SetDeleteHandler(nullptr);
+            mSelectVisitor.SetRemoveHandler(nullptr);
+            mNGSchema = nullptr;
+
+            return;
+        }
         mNGSchema = ngSchema;
        
         mDrawVisitor.SetDrawChannelTextHandler([&](int32_t nodeId, int8_t channelId, ImVec2 p, float scale, ImU32 color, ImDrawList* drawList) {
