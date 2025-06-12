@@ -1,14 +1,16 @@
 #include "rendering/ui/UIVisitors.h"
 #include "hid/KeyboardPiano.h"
-#include "nodegraph/NodeGraphSchema.h"
 
 
 namespace l::ui {
 
+
+    /***********************************************************************************/
     bool UIUpdate::ShouldUpdateContainer() {
         return true;
     }
 
+    /***********************************************************************************/
     bool UIZoom::Active(UIContainer&, const InputState& input) {
         return input.mScroll != 0;
     }
@@ -42,6 +44,7 @@ namespace l::ui {
         return false;
     }
 
+    /***********************************************************************************/
     bool UIDrag::Active(UIContainer&, const InputState& input) {
         return (input.mStarted && !mDragging) || mDragging;
     }
@@ -92,6 +95,7 @@ namespace l::ui {
         return false;
     }
 
+    /***********************************************************************************/
     bool UIMove::Active(UIContainer&, const InputState& input) {
         return (input.mStarted && !mMoving) || mMoving;
     }
@@ -129,6 +133,7 @@ namespace l::ui {
         return false;
     }
 
+    /***********************************************************************************/
     void UIResize::Reset() {
         mResizing = false;
         if (mSourceContainer) {
@@ -174,6 +179,7 @@ namespace l::ui {
         return false;
     }
 
+    /***********************************************************************************/
     bool UISelect::Visit(UIContainer& container, const InputState& input) {
         if (!container.HasConfigFlag(UIContainer_SelectFlag)) {
             return false;
@@ -209,11 +215,11 @@ namespace l::ui {
         if (ImGui::IsKeyDown(ImGuiKey::ImGuiKey_Delete)) {
             if (!mSelectedContainers.empty()) {
                 for (auto it : mSelectedContainers) {
-                    if (mNGSchema != nullptr) {
-                        mNGSchema->RemoveNode(it->GetNodeId());
+                    if (mRemoveHandler) {
+                        mRemoveHandler(it->GetNodeId());
                     }
-                    if (mDeleteEvent) {
-                        mDeleteEvent(it->GetId(), it->GetNodeId());
+                    if (mDeleteHandler) {
+                        mDeleteHandler(it->GetId(), it->GetNodeId());
                     }
                     DeleteContainer(mUIManager, it);
                 }
@@ -224,6 +230,7 @@ namespace l::ui {
         return false;
     }
 
+    /***********************************************************************************/
     bool UIEdit::Visit(UIContainer& container, const InputState& input) {
         if (!container.HasConfigFlag(UIContainer_EditFlag)) {
             return false;
@@ -239,42 +246,8 @@ namespace l::ui {
             auto& layoutArea = container.GetLayoutArea();
             ImVec2 move = DragMovement(input.mPrevPos, input.mCurPos, layoutArea.mScale);
 
-            if (mNGSchema) {
-                auto node = mNGSchema->GetNode(container.GetNodeId());
-                auto nodeChannel = static_cast<int8_t>(container.GetChannelId());
-                if (node->IsInputDataEditable(nodeChannel)) {
-                    float* nodeValue = nullptr;
-                    if (nodeChannel < node->GetNumInputs()) {
-                        nodeValue = &node->GetInput(nodeChannel, 1);
-                    }
-                    else if (nodeChannel < node->GetNumOutputs()) {
-                        nodeValue = &node->GetOutput(nodeChannel, 1);
-                    }
-                    if (nodeValue != nullptr) {
-                        if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftShift)) {
-                            if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftCtrl)) {
-                                *nodeValue -= move.y / 100.0f;
-                            }
-                            else {
-                                *nodeValue -= move.y / 10000.0f;
-                            }
-                        }
-                        else {
-                            if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftCtrl)) {
-                                *nodeValue -= move.y;
-                            }
-                            else {
-                                *nodeValue -= 1000.0f * move.y;
-                            }
-                        }
-                        if (nodeChannel < node->GetNumInputs()) {
-                            node->SetInput(nodeChannel, *nodeValue);
-                        }
-                        else if (nodeChannel < node->GetNumOutputs()) {
-                            node->GetOutput(nodeChannel, 1) = *nodeValue;
-                        }
-                    }
-                }
+            if (mEditHandler) {
+                mEditHandler(container.GetNodeId(), static_cast<int8_t>(container.GetChannelId()), move.x, move.y);
             }
 
             if (input.mStopped) {
@@ -286,6 +259,7 @@ namespace l::ui {
         return false;
     }
 
+    /***********************************************************************************/
     bool UIDraw::Visit(UIContainer& container, const InputState& input) {
         if (!mDebug && !container.HasConfigFlag(UIContainer_DrawFlag)) {
             return false;
@@ -384,84 +358,18 @@ namespace l::ui {
             break;
 
         case l::ui::UIRenderType::NodeOutputValue:
-            if (mNGSchema) {
-                auto node = mNGSchema->GetNode(container.GetNodeId());
-                if (node) {
-                    l::string::string_buffer<32> sb;
-                    int8_t channelId = static_cast<int8_t>(container.GetChannelId());
-                    if (channelId < node->GetNumInputs()) {
-                        if (node->IsInputDataVisible(channelId)) {
-                            if (node->IsInputDataText(channelId)) {
-                                auto nodeText = node->GetInputText(channelId, 31);
-                                sb.append(nodeText);
-                            }
-                            else if (node->IsInputDataArray(channelId)) {
-                                sb.append("{...}");
-                            }
-                            else {
-                                float nodeValue = node->GetInput(channelId);
-                                auto nodeValueAbs = l::math::abs(nodeValue);
-                                if (nodeValueAbs > 100.0f) {
-                                    sb.printf("%.0f", nodeValue);
-                                }
-                                else if (nodeValueAbs > 10.0f) {
-                                    sb.printf("%.1f", nodeValue);
-                                }
-                                else if (nodeValueAbs > 1.0f) {
-                                    sb.printf("%.2f", nodeValue);
-                                }
-                                else if (nodeValueAbs > 0.1f) {
-                                    sb.printf("%.3f", nodeValue);
-                                }
-                                else {
-                                    sb.printf("%.4f", nodeValue);
-                                }
-                            }
-                        }
-                    }
-                    else {
-                        float nodeValue = node->GetOutput(channelId);
-                        auto nodeValueAbs = l::math::abs(nodeValue);
-                        if (nodeValueAbs > 100.0f) {
-                            sb.printf("%.0f", nodeValue);
-                        }
-                        else if (nodeValueAbs > 10.0f) {
-                            sb.printf("%.1f", nodeValue);
-                        }
-                        else if (nodeValueAbs > 1.0f) {
-                            sb.printf("%.2f", nodeValue);
-                        }
-                        else if (nodeValueAbs > 0.1f) {
-                            sb.printf("%.3f", nodeValue);
-                        }
-                        else {
-                            sb.printf("%.4f", nodeValue);
-                        }
-                    }
-                    mDrawList->AddText(ImGui::GetDefaultFont(), 13.0f * container.GetScale() * layoutArea.mScale, p1, color, sb.str().data());
-                }
+            if (mDrawChannelTextHandler) {
+                auto scale = 13.0f * container.GetScale() * layoutArea.mScale;
+                mDrawChannelTextHandler(container.GetNodeId(), static_cast<int8_t>(container.GetChannelId()), p1, scale, color, mDrawList);
             }
             break;
         case l::ui::UIRenderType::NodeOutputGraph:
-            if (mNGSchema) {
-                auto node = mNGSchema->GetNode(container.GetNodeId());
-                int8_t channelId = static_cast<int8_t>(container.GetChannelId());
-                if (node && channelId < node->GetNumOutputs()) {
-                    int8_t channel = static_cast<int8_t>(container.GetChannelId());
-                    float* nodeValues = &node->GetOutput(channel);
-                    int32_t nodeValueCount = node->GetOutputSize(channel);
-                    ImVec2 size = container.GetSize();
-                    size.x *= layoutArea.mScale;
-                    size.y *= layoutArea.mScale;
-                    ImVec2 startPos = ImVec2(p1.x, p1.y + 0.5f * size.y);
-                    for (int32_t i = 0; i < nodeValueCount - 1; i++) {
-                        float xpart1 = i / static_cast<float>(nodeValueCount);
-                        float xpart2 = (i+1) / static_cast<float>(nodeValueCount);
-                        ImVec2 graphP1 = ImVec2(startPos.x + size.x * xpart1, startPos.y + 0.5f * nodeValues[i] * size.y);
-                        ImVec2 graphP2 = ImVec2(startPos.x + size.x * xpart2, startPos.y + 0.5f * nodeValues[i+1] * size.y);
-                        mDrawList->AddLine(graphP1, graphP2, color, 2.0f * container.GetScale());
-                    }
-                }
+            if (mDrawLineHandler) {
+                ImVec2 s = container.GetSize();
+                s.x *= layoutArea.mScale;
+                s.y *= layoutArea.mScale;
+                auto scale = 2.0f * container.GetScale();
+                mDrawLineHandler(container.GetNodeId(), static_cast<int8_t>(container.GetChannelId()), p1, s, scale, color, mDrawList);
             }
             break;
         }
@@ -502,6 +410,7 @@ namespace l::ui {
         return false;
     }
 
+    /***********************************************************************************/
     bool UILinkIO::Active(UIContainer& container, const InputState&) {
         return container.HasConfigFlag(UIContainer_InputFlag) || container.HasConfigFlag(UIContainer_OutputFlag) || container.HasConfigFlag(UIContainer_LinkFlag);
     }
@@ -527,7 +436,7 @@ namespace l::ui {
             ImVec2 pT = container.GetCoParent()->GetLayoutArea().Transform(pCenter);
             if (OverlapCircle(input.mCurPos, pT, 2.0f * size.x * container.GetCoParent()->GetLayoutArea().mScale)) {
                 mLinkContainer.mContainer = &container;
-                LinkHandler(mLinkContainer->GetCoParent()->GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), mLinkContainer->GetCoParent()->GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), false);
+                mLinkHandler(mLinkContainer->GetCoParent()->GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), mLinkContainer->GetCoParent()->GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), false);
                 mDragging = true;
                 return true;
             }
@@ -549,7 +458,7 @@ namespace l::ui {
             ImVec2 pT = layoutArea.Transform(pCenter);
 
             if (OverlapCircle(input.mCurPos, pT, 2.0f * size.x * layoutArea.mScale)) {
-                if (LinkHandler(container.GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), container.GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), true)) {
+                if (mLinkHandler(container.GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), container.GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), true)) {
                     mLinkContainer->SetNotification(UIContainer_LinkFlag);
                     mLinkContainer->SetCoParent(&container);
                 }
@@ -558,7 +467,7 @@ namespace l::ui {
                 }
             }
             else if (mLinkContainer->GetCoParent() == &container) {
-                LinkHandler(container.GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), container.GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), false);
+                mLinkHandler(container.GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), container.GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), false);
                 mLinkContainer->SetCoParent(nullptr);
                 mLinkContainer->ClearNotification(UIContainer_LinkFlag);
             }
@@ -578,22 +487,6 @@ namespace l::ui {
             }
         }
         return false;
-    }
-
-    bool UILinkIO::LinkHandler(int32_t linkInputId, int32_t linkOutputId, int32_t inputChannel, int32_t outputChannel, bool connected) {
-        if (mNGSchema == nullptr) {
-            return false;
-        }
-
-        auto inputNode = mNGSchema->GetNode(linkInputId);
-        if (inputNode == nullptr) {
-            return false;
-        }
-        if (connected) {
-            auto outputNode = mNGSchema->GetNode(linkOutputId);
-            return outputNode != nullptr && inputNode->SetInput(static_cast<int8_t>(inputChannel), *outputNode, static_cast<int8_t>(outputChannel));
-        }
-        return inputNode->ClearInput(static_cast<int8_t>(inputChannel));
     }
 
 }
