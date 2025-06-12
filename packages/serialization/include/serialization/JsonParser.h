@@ -115,6 +115,9 @@ namespace l::serialization {
     class JsonParser {
     public:
         JsonParser() {
+            mParser.pos = 0;
+            mParser.toknext = 0;
+            mParser.toksuper = 0;
             for (int32_t i = 0; i < MaxTokens; i++) {
                 mTokens[i].end = 0;
                 mTokens[i].size = 0;
@@ -164,7 +167,7 @@ namespace l::serialization {
 
     protected:
         const char* mJsondata = nullptr;
-        jsmn_parser mParser = {0};
+        jsmn_parser mParser;
         int32_t mTokenCount = 0;
         jsmntok_t mTokens[MaxTokens];
     };
