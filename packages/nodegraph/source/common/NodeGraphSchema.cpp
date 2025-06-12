@@ -79,9 +79,7 @@ namespace l::nodegraph {
             return false;
         }
         l::serialization::JsonBuilder builder(true);
-        builder.Begin("");
         GetArchiveData(builder);
-        builder.End();
 
         l::filesystem::File dataFile(mFileName);
         dataFile.modeBinary().modeWriteTrunc();
