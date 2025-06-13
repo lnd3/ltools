@@ -255,6 +255,6 @@ namespace l::network {
 		auto request = it->get();
 		lock.unlock();
 
-		return request->IsWebSocketAlive();
+		return request->IsAlive();
 	}
 }
