@@ -70,6 +70,179 @@ namespace l::ui {
 
             });
 
+        mDrawVisitor.SetDrawChannelTextHandler([&](int32_t nodeId, int8_t channelId, ImVec2 p, float scale, ImU32 color, ImDrawList* drawList) {
+            if (mNGSchema == nullptr) {
+                return;
+            }
+
+            auto node = mNGSchema->GetNode(nodeId);
+            if (node) {
+                l::string::string_buffer<32> sb;
+                if (channelId < node->GetNumInputs()) {
+                    if (node->IsInputDataVisible(channelId)) {
+                        if (node->IsInputDataText(channelId)) {
+                            auto nodeText = node->GetInputText(channelId, 31);
+                            sb.append(nodeText);
+                        }
+                        else if (node->IsInputDataArray(channelId)) {
+                            sb.append("{...}");
+                        }
+                        else {
+                            float nodeValue = node->GetInput(channelId);
+                            auto nodeValueAbs = l::math::abs(nodeValue);
+                            if (nodeValueAbs > 100.0f) {
+                                sb.printf("%.0f", nodeValue);
+                            }
+                            else if (nodeValueAbs > 10.0f) {
+                                sb.printf("%.1f", nodeValue);
+                            }
+                            else if (nodeValueAbs > 1.0f) {
+                                sb.printf("%.2f", nodeValue);
+                            }
+                            else if (nodeValueAbs > 0.1f) {
+                                sb.printf("%.3f", nodeValue);
+                            }
+                            else {
+                                sb.printf("%.4f", nodeValue);
+                            }
+                        }
+                    }
+                }
+                else {
+                    float nodeValue = node->GetOutput(channelId);
+                    auto nodeValueAbs = l::math::abs(nodeValue);
+                    if (nodeValueAbs > 100.0f) {
+                        sb.printf("%.0f", nodeValue);
+                    }
+                    else if (nodeValueAbs > 10.0f) {
+                        sb.printf("%.1f", nodeValue);
+                    }
+                    else if (nodeValueAbs > 1.0f) {
+                        sb.printf("%.2f", nodeValue);
+                    }
+                    else if (nodeValueAbs > 0.1f) {
+                        sb.printf("%.3f", nodeValue);
+                    }
+                    else {
+                        sb.printf("%.4f", nodeValue);
+                    }
+                }
+
+                drawList->AddText(ImGui::GetDefaultFont(), scale, p, color, sb.str().data());
+            }
+            });
+
+        mDrawVisitor.SetDrawLineHandler([&](int32_t nodeId, int8_t channelId, ImVec2 p1, ImVec2 size, float scale, ImU32 color, ImDrawList* drawList) {
+            if (mNGSchema == nullptr) {
+                return;
+            }
+
+            auto node = mNGSchema->GetNode(nodeId);
+            if (node && channelId < node->GetNumOutputs()) {
+                float* nodeValues = &node->GetOutput(channelId);
+                int32_t nodeValueCount = node->GetOutputSize(channelId);
+                ImVec2 startPos = ImVec2(p1.x, p1.y + 0.5f * size.y);
+                for (int32_t i = 0; i < nodeValueCount - 1; i++) {
+                    float xpart1 = i / static_cast<float>(nodeValueCount);
+                    float xpart2 = (i + 1) / static_cast<float>(nodeValueCount);
+                    ImVec2 graphP1 = ImVec2(startPos.x + size.x * xpart1, startPos.y + 0.5f * nodeValues[i] * size.y);
+                    ImVec2 graphP2 = ImVec2(startPos.x + size.x * xpart2, startPos.y + 0.5f * nodeValues[i + 1] * size.y);
+                    drawList->AddLine(graphP1, graphP2, color, scale);
+                }
+            }
+            });
+
+        mLinkIOVisitor.SetLinkHandler([&](int32_t linkInputId, int32_t linkOutputId, int32_t inputChannel, int32_t outputChannel, bool connected) {
+            if (mNGSchema == nullptr) {
+                return false;
+            }
+
+            auto inputNode = mNGSchema->GetNode(linkInputId);
+            if (inputNode == nullptr) {
+                return false;
+            }
+            if (connected) {
+                auto outputNode = mNGSchema->GetNode(linkOutputId);
+                return outputNode != nullptr && inputNode->SetInput(static_cast<int8_t>(inputChannel), *outputNode, static_cast<int8_t>(outputChannel));
+            }
+            return inputNode->ClearInput(static_cast<int8_t>(inputChannel));
+            });
+
+        mEditVisitor.SetEditHandler([&](int32_t nodeId, int8_t channelId, float, float dy) {
+            if (mNGSchema == nullptr) {
+                return;
+            }
+
+            auto node = mNGSchema->GetNode(nodeId);
+            if (node->IsInputDataEditable(channelId)) {
+                float* nodeValue = nullptr;
+                if (channelId < node->GetNumInputs()) {
+                    nodeValue = &node->GetInput(channelId, 1);
+                }
+                else if (channelId < node->GetNumOutputs()) {
+                    nodeValue = &node->GetOutput(channelId, 1);
+                }
+                if (nodeValue != nullptr) {
+                    if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftShift)) {
+                        if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftCtrl)) {
+                            *nodeValue -= dy / 100.0f;
+                        }
+                        else {
+                            *nodeValue -= dy / 10000.0f;
+                        }
+                    }
+                    else {
+                        if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftCtrl)) {
+                            *nodeValue -= dy;
+                        }
+                        else {
+                            *nodeValue -= 1000.0f * dy;
+                        }
+                    }
+                    if (channelId < node->GetNumInputs()) {
+                        node->SetInput(channelId, *nodeValue);
+                    }
+                    else if (channelId < node->GetNumOutputs()) {
+                        node->GetOutput(channelId, 1) = *nodeValue;
+                    }
+                }
+            }
+            });
+
+        mSelectVisitor.SetDeleteHandler([&](int32_t containerId, int32_t nodeId) {
+            if (mNGSchema == nullptr) {
+                return;
+            }
+
+            NodeEvent event;
+            event.mNodeSchema = mNGSchema;
+            event.mNodeEvent = 2; // 2 delete
+            event.mContainerId = containerId;
+            event.mNodeId = nodeId;
+
+            for (auto& it : mEventListeners) {
+                it(event);
+            }
+            });
+
+        //mMoveVisitor.SetMoveHandler([&](int32_t containerId, int32_t nodeId, float x, float y) {
+        //    if (mNGSchema == nullptr) {
+        //       return;
+        //    }
+        //    });
+
+        mSelectVisitor.SetRemoveHandler([&](int32_t nodeId) {
+            if (mNGSchema == nullptr) {
+                return;
+            }
+
+            mNGSchema->RemoveNode(nodeId);
+            });
+        //mSelectVisitor.SetDeleteHandler([&](int32_t nodeId) {
+        //    if (mNGSchema == nullptr) {
+        //       return;
+        //    }
+        //    });
 
 
     }
@@ -91,169 +264,7 @@ namespace l::ui {
     }
 
     void UINodeEditor::SetNGSchema(l::nodegraph::NodeGraphSchema* ngSchema) {
-        if (!ngSchema) {
-            mDrawVisitor.SetDrawChannelTextHandler(nullptr);
-            mDrawVisitor.SetDrawLineHandler(nullptr);
-            mLinkIOVisitor.SetLinkHandler(nullptr);
-            mEditVisitor.SetEditHandler(nullptr);
-            mMoveVisitor.SetMoveHandler(nullptr);
-            mResizeVisitor.SetResizeHandler(nullptr);
-            mSelectVisitor.SetDeleteHandler(nullptr);
-            mSelectVisitor.SetRemoveHandler(nullptr);
-            mNGSchema = nullptr;
-
-            return;
-        }
         mNGSchema = ngSchema;
-       
-        mDrawVisitor.SetDrawChannelTextHandler([&](int32_t nodeId, int8_t channelId, ImVec2 p, float scale, ImU32 color, ImDrawList* drawList) {
-                auto node = mNGSchema->GetNode(nodeId);
-                if (node) {
-                    l::string::string_buffer<32> sb;
-                    if (channelId < node->GetNumInputs()) {
-                        if (node->IsInputDataVisible(channelId)) {
-                            if (node->IsInputDataText(channelId)) {
-                                auto nodeText = node->GetInputText(channelId, 31);
-                                sb.append(nodeText);
-                            }
-                            else if (node->IsInputDataArray(channelId)) {
-                                sb.append("{...}");
-                            }
-                            else {
-                                float nodeValue = node->GetInput(channelId);
-                                auto nodeValueAbs = l::math::abs(nodeValue);
-                                if (nodeValueAbs > 100.0f) {
-                                    sb.printf("%.0f", nodeValue);
-                                }
-                                else if (nodeValueAbs > 10.0f) {
-                                    sb.printf("%.1f", nodeValue);
-                                }
-                                else if (nodeValueAbs > 1.0f) {
-                                    sb.printf("%.2f", nodeValue);
-                                }
-                                else if (nodeValueAbs > 0.1f) {
-                                    sb.printf("%.3f", nodeValue);
-                                }
-                                else {
-                                    sb.printf("%.4f", nodeValue);
-                                }
-                            }
-                        }
-                    }
-                    else {
-                        float nodeValue = node->GetOutput(channelId);
-                        auto nodeValueAbs = l::math::abs(nodeValue);
-                        if (nodeValueAbs > 100.0f) {
-                            sb.printf("%.0f", nodeValue);
-                        }
-                        else if (nodeValueAbs > 10.0f) {
-                            sb.printf("%.1f", nodeValue);
-                        }
-                        else if (nodeValueAbs > 1.0f) {
-                            sb.printf("%.2f", nodeValue);
-                        }
-                        else if (nodeValueAbs > 0.1f) {
-                            sb.printf("%.3f", nodeValue);
-                        }
-                        else {
-                            sb.printf("%.4f", nodeValue);
-                        }
-                    }
-
-                    drawList->AddText(ImGui::GetDefaultFont(), scale, p, color, sb.str().data());
-                }
-            });
-
-        mDrawVisitor.SetDrawLineHandler([&](int32_t nodeId, int8_t channelId, ImVec2 p1, ImVec2 size, float scale, ImU32 color, ImDrawList* drawList) {
-                auto node = mNGSchema->GetNode(nodeId);
-                if (node && channelId < node->GetNumOutputs()) {
-                    float* nodeValues = &node->GetOutput(channelId);
-                    int32_t nodeValueCount = node->GetOutputSize(channelId);
-                    ImVec2 startPos = ImVec2(p1.x, p1.y + 0.5f * size.y);
-                    for (int32_t i = 0; i < nodeValueCount - 1; i++) {
-                        float xpart1 = i / static_cast<float>(nodeValueCount);
-                        float xpart2 = (i + 1) / static_cast<float>(nodeValueCount);
-                        ImVec2 graphP1 = ImVec2(startPos.x + size.x * xpart1, startPos.y + 0.5f * nodeValues[i] * size.y);
-                        ImVec2 graphP2 = ImVec2(startPos.x + size.x * xpart2, startPos.y + 0.5f * nodeValues[i + 1] * size.y);
-                        drawList->AddLine(graphP1, graphP2, color, scale);
-                    }
-                }
-            });
-
-        mLinkIOVisitor.SetLinkHandler([&](int32_t linkInputId, int32_t linkOutputId, int32_t inputChannel, int32_t outputChannel, bool connected) {
-                if (mNGSchema == nullptr) {
-                    return false;
-                }
-
-                auto inputNode = mNGSchema->GetNode(linkInputId);
-                if (inputNode == nullptr) {
-                    return false;
-                }
-                if (connected) {
-                    auto outputNode = mNGSchema->GetNode(linkOutputId);
-                    return outputNode != nullptr && inputNode->SetInput(static_cast<int8_t>(inputChannel), *outputNode, static_cast<int8_t>(outputChannel));
-                }
-                return inputNode->ClearInput(static_cast<int8_t>(inputChannel));
-            });
-
-        mEditVisitor.SetEditHandler([&](int32_t nodeId, int8_t channelId, float, float dy) {
-                auto node = mNGSchema->GetNode(nodeId);
-                if (node->IsInputDataEditable(channelId)) {
-                    float* nodeValue = nullptr;
-                    if (channelId < node->GetNumInputs()) {
-                        nodeValue = &node->GetInput(channelId, 1);
-                    }
-                    else if (channelId < node->GetNumOutputs()) {
-                        nodeValue = &node->GetOutput(channelId, 1);
-                    }
-                    if (nodeValue != nullptr) {
-                        if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftShift)) {
-                            if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftCtrl)) {
-                                *nodeValue -= dy / 100.0f;
-                            }
-                            else {
-                                *nodeValue -= dy / 10000.0f;
-                            }
-                        }
-                        else {
-                            if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftCtrl)) {
-                                *nodeValue -= dy;
-                            }
-                            else {
-                                *nodeValue -= 1000.0f * dy;
-                            }
-                        }
-                        if (channelId < node->GetNumInputs()) {
-                            node->SetInput(channelId, *nodeValue);
-                        }
-                        else if (channelId < node->GetNumOutputs()) {
-                            node->GetOutput(channelId, 1) = *nodeValue;
-                        }
-                    }
-                }
-            });
-
-        mSelectVisitor.SetDeleteHandler([&](int32_t containerId, int32_t nodeId) {
-                NodeEvent event;
-                event.mNodeSchema = ngSchema;
-                event.mNodeEvent = 2; // 2 delete
-                event.mContainerId = containerId;
-                event.mNodeId = nodeId;
-
-                for (auto& it : mEventListeners) {
-                    it(event);
-                }
-            });
-
-        //mMoveVisitor.SetMoveHandler([&](int32_t containerId, int32_t nodeId, float x, float y) {
-        //    });
-
-        mSelectVisitor.SetRemoveHandler([&](int32_t nodeId) {
-                mNGSchema->RemoveNode(nodeId);
-            });
-        //mSelectVisitor.SetDeleteHandler([&](int32_t nodeId) {
-        //    });
-
     }
 
     l::nodegraph::NodeGraphSchema* UINodeEditor::GetNGSchema() {

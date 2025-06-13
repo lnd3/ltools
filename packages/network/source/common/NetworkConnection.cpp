@@ -92,6 +92,7 @@ namespace l::network {
 		}
 		if (l::string::equal(mRequestQuery.c_str(), "ws", 0, 0, 2)) {
 			mIsWebSocket = true;
+			mTimeout = -1;
 		}
 
 		mRequestQueryArgs = queryArguments;
@@ -216,6 +217,17 @@ namespace l::network {
 		return false;
 	}
 
+	void ConnectionBase::SetRunningTimeout(int32_t secondsFromNow) {
+		if (mTimeout == 0) {
+			auto elapsed = static_cast<int32_t>((l::string::get_unix_epoch_ms() - mStarted) / 1000);
+			mTimeout = elapsed + secondsFromNow;
+		}
+	}
+
+	void ConnectionBase::ClearRunningTimeout() {
+		mTimeout = -1;
+	}
+
 	void ConnectionBase::NotifyClose() {
 
 	}
@@ -224,8 +236,8 @@ namespace l::network {
 		return mIsWebSocket;
 	}
 
-	bool ConnectionBase::IsWebSocketAlive() {
-		return mWebSocketCanReceiveData;
+	bool ConnectionBase::IsAlive() {
+		return mOngoingRequest && !HasExpired();
 	}
 
 	const curl_ws_frame* ConnectionBase::GetWebSocketMeta() {
@@ -266,6 +278,7 @@ namespace l::network {
 			}
 			mWebSocketCanSendData = false;
 		}
+		SetRunningTimeout(10);
 		return -res;
 	}
 
@@ -310,6 +323,7 @@ namespace l::network {
 				}
 				if (recvMax < 10) {
 					// buffer is full
+					SetRunningTimeout(30);
 					return -103;
 				}
 				// or return for handling
@@ -332,20 +346,19 @@ namespace l::network {
 				LOG(LogError) << "Failed wss read - 'curl got nothing' - connection closed, error: " << res;
 			}
 			mWebSocketCanReceiveData = false;
-			return -res;
 		}
 		if (res == CURLE_RECV_ERROR) {
 			if (mWebSocketCanReceiveData) {
 				LOG(LogError) << "Failed wss read - 'curl recieve error' - connection closed, error: " << res;
 			}
 			mWebSocketCanReceiveData = false;
-			return -res;
 		}
 
 		if (mWebSocketCanReceiveData) {
 			LOG(LogError) << "Failed wss read, connection closed, error: " << res;
 		}
 		mWebSocketCanReceiveData = false;
+		SetRunningTimeout(10);
 		return -res;
 	}
 
