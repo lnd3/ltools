@@ -36,6 +36,8 @@ namespace l::nodegraph {
                             if (e.has_key("TypeId") && e.has_key("NodeId")) {
                                 auto typeId = e.get("TypeId").as_int32();
                                 auto nodeId = e.get("NodeId").as_int32();
+                                //auto name = e.get("Name").as_string();
+                                //auto typeName = e.get("TypeName").as_string();
                                 mNodeFactory->NodeGraphNewNode(typeId, nodeId);
                             }
                         }
@@ -102,7 +104,8 @@ namespace l::nodegraph {
                 {
                     jsonBuilder.AddNumber("TypeId", it->GetTypeId());
                     jsonBuilder.AddNumber("NodeId", it->GetId());
-                    //jsonBuilder.AddString("TypeName", it->GetTypeName());
+                    jsonBuilder.AddString("Name", it->GetName());
+                    jsonBuilder.AddString("TypeName", it->GetTypeName());
                 }
                 jsonBuilder.End();
             }

@@ -94,7 +94,30 @@ namespace l::nodegraph {
         if (jsonValue.has(JSMN_OBJECT) && jsonValue.has_key("NodeGraphSchema")) {
             auto nodeGraphSchema = jsonValue.get("NodeGraphSchema");
             if (nodeGraphSchema.has(JSMN_OBJECT) && nodeGraphSchema.has_key("Name") && nodeGraphSchema.has_key("NodeGraphGroup")) {
-                mName = nodeGraphSchema.get("Name").as_string();
+                mVersionMajor = 0;
+                mVersionMinor = 0;
+                
+                if (nodeGraphSchema.has_key("VersionMajor")) {
+                    mVersionMajor = nodeGraphSchema.get("VersionMajor").as_int32();
+                    if (nodeGraphSchema.has_key("VersionMinor")) {
+                        mVersionMinor = nodeGraphSchema.get("VersionMinor").as_int32();
+                    }
+                }
+
+                if (mVersionMajor < kVersionMajor) {
+                    LOG(LogWarning) << "Schema major version mismatch. Performing automatic upgrade but schema should be saved.";
+                    // Perform upgrade
+                }
+                else if (mVersionMinor < kVersionMinor) {
+                    LOG(LogWarning) << "Schema minor version is of old version. Schema should still work but should be resaved when suitable.";
+                }
+
+                if (nodeGraphSchema.has_key("FileName")) {
+                    mFileName = nodeGraphSchema.get("FileName").as_string();
+                }
+                if (nodeGraphSchema.has_key("Name")) {
+                    mName = nodeGraphSchema.get("Name").as_string();
+                }
                 auto nodeGraphGroup = nodeGraphSchema.get("NodeGraphGroup");
                 return mMainNodeGraph.LoadArchiveData(nodeGraphGroup);
             }
@@ -106,6 +129,9 @@ namespace l::nodegraph {
         jsonBuilder.Begin("");
         jsonBuilder.Begin("NodeGraphSchema");
         {
+            jsonBuilder.AddNumber("VersionMajor", mVersionMajor);
+            jsonBuilder.AddNumber("VersionMinor", mVersionMinor);
+            jsonBuilder.AddString("FileName", mFileName);
             jsonBuilder.AddString("Name", mName);
             jsonBuilder.BeginExternalObject("NodeGraphGroup");
             {

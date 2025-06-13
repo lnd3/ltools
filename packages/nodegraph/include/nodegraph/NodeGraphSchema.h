@@ -71,6 +71,8 @@ namespace l::nodegraph {
 
     class NodeGraphSchema : public l::serialization::JsonSerializationBase, public NodeFactoryBase {
     public:
+        const int32_t kVersionMajor = 1;
+        const int32_t kVersionMinor = 1;
 
         using CustomCreateFunctionType = NodeGraphBase * (int32_t, NodeGraphGroup&);
 
@@ -147,6 +149,8 @@ namespace l::nodegraph {
 
         TreeMenuNode& GetPickerRoot();
     protected:
+        int32_t mVersionMajor;
+        int32_t mVersionMinor;
         std::string mFileName;
         NodeGraphGroup mMainNodeGraph;
         std::string mName;
