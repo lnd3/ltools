@@ -265,6 +265,11 @@ namespace l::math::functions {
 		return a * b >= static_cast<T>(0.0);
 	}
 
+	template <class T>
+	auto sign(T a) {
+		return a >= static_cast<T>(0.0);
+	}
+
 	template<class T>
 	void swap(T& val1, T& val2) {
 		T tmp = std::move(val1);
