@@ -141,7 +141,7 @@ namespace l::nodegraph {
 				return longFactor;
 			}
 			else if (t < 0.0f) {
-				auto shortFactor = -mShortLevelNow / (1.0f - mIndecisionLevel);
+				auto shortFactor = mShortLevelNow / (1.0f - mIndecisionLevel);
 				return shortFactor;
 			}
 			else {
