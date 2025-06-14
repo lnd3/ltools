@@ -248,7 +248,7 @@ namespace l::nodegraph {
 
         int8_t mNumInputs = 0;
         int8_t mNumOutputs = 0;
-        bool mInputHasChanged = true;
+        bool mInputHasChanged = false;
     };
 
     /**********************************************************************************/

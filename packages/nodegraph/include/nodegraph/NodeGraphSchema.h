@@ -149,8 +149,8 @@ namespace l::nodegraph {
 
         TreeMenuNode& GetPickerRoot();
     protected:
-        int32_t mVersionMajor;
-        int32_t mVersionMinor;
+        int32_t mVersionMajor = 0;
+        int32_t mVersionMinor = 0;
         std::string mFileName;
         NodeGraphGroup mMainNodeGraph;
         std::string mName;

@@ -61,6 +61,7 @@ namespace l::nodegraph {
                 l::serialization::JsonParser<5000> parser;
                 auto [result, error] = parser.LoadJson(d, data.size());
                 if (result) {
+                    mMainNodeGraph.Reset();
                     auto root = parser.GetRoot();
                     if (LoadArchiveData(root)) {
                         return true;
@@ -433,7 +434,7 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphUICheckbox>(id, NodeType::ExternalInput);
             break;
         case 601:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphUISlider>(id, NodeType::ExternalInput, 0.0f, 1.0f, 1.0f);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphUISlider>(id, NodeType::ExternalInput);
             break;
         case 602:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphUIChartLine>(id, NodeType::ExternalOutput);

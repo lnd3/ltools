@@ -44,13 +44,13 @@ namespace l::nodegraph {
     /*********************************************************************/
     class GraphUISlider : public NodeGraphOp {
     public:
-        GraphUISlider(NodeGraphBase* node, float min, float max, float power) :
+        GraphUISlider(NodeGraphBase* node) :
             NodeGraphOp(node, "UI Slider")
         {
-            AddInput("In", 0.0f, 1, min, max);
+            AddInput("In", 0.0f);
             AddInput("Min", 0.0f);
             AddInput("Max", 1.0f);
-            AddInput("Power", power);
+            AddInput("Power", 1.0f);
             AddOutput("Out");
         }
 

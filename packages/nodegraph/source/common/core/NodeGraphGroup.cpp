@@ -22,6 +22,22 @@ namespace l::nodegraph {
         }
     }
 
+    void NodeGraphGroup::Reset() {
+        std::vector<int32_t> ids;
+        for (auto& node : mNodes) {
+            ids.push_back(node->GetId());
+        }
+        for (auto id : ids) {
+            RemoveNode(id);
+        }
+
+        mInputNode = nullptr;
+        mOutputNode = nullptr;
+        mInputNodes.clear();
+        mOutputNodes.clear();
+        mNodes.clear();
+    }
+
     bool NodeGraphGroup::LoadArchiveData(l::serialization::JsonValue& jsonValue) {
         if (jsonValue.has(JSMN_OBJECT) && jsonValue.has_key("Group")) {
             auto group = jsonValue.get("Group");

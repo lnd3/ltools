@@ -47,20 +47,7 @@ namespace l::nodegraph {
 
         }
         ~NodeGraphGroup() {
-            std::vector<int32_t> ids;
-            for (auto& node : mNodes) {
-                ids.push_back(node->GetId());
-            }
-            for (auto id : ids) {
-                RemoveNode(id);
-            }
-
-            mInputNode = nullptr;
-            mOutputNode = nullptr;
-            mInputNodes.clear();
-            mOutputNodes.clear();
-            mNodes.clear();
-
+            Reset();
             LOG(LogInfo) << "Node group destroyed";
         }
 
@@ -88,6 +75,7 @@ namespace l::nodegraph {
         virtual bool LoadArchiveData(l::serialization::JsonValue& jsonValue) override;
         virtual void GetArchiveData(l::serialization::JsonBuilder& jsonBuilder) override;
 
+        void Reset();
         void SetNodeFactory(NodeFactoryBase* factory);
         void SetNumInputs(int8_t numInputs);
         void SetNumOutputs(int8_t outputCount);
