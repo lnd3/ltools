@@ -326,8 +326,8 @@ namespace l::string {
 		return static_cast<size_t>(count);
 	}
 
-	uint32_t string_id(std::string_view string) {
-		std::hash<std::string_view> hasher;
+	uint32_t string_id(std::string string) {
+		std::hash<std::string> hasher;
 		auto id = hasher(string);
 		return static_cast<uint32_t>(id);
 	}

@@ -178,7 +178,7 @@ namespace l::string {
 		}
 	}
 
-	uint32_t string_id(std::string_view string);
+	uint32_t string_id(const std::string& string);
 
 	std::string encode_html(const std::string& input);
 
