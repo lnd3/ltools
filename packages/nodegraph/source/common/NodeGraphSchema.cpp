@@ -44,48 +44,57 @@ namespace l::nodegraph {
         return true;
     }
 
-    bool NodeGraphSchema::Load(std::string_view file) {
-        if (!file.empty()) {
-            mFileName = file;
-        }
-        if (mFileName.empty()) {
+    bool NodeGraphSchema::Load(std::filesystem::path file) {
+        if (!file.has_filename() || !std::filesystem::exists(file)) {
+            LOG(LogError) << "Failed to load schema: the file does not exist";
             return false;
         }
-        if (std::filesystem::exists(mFileName)) {
-            l::filesystem::File dataFile(mFileName);
-            dataFile.modeBinary().modeRead();
-            std::vector<unsigned char> data;
-            if (dataFile.open() && dataFile.read(data) > 0) {
-                const char* d = reinterpret_cast<const char*>(data.data());
 
-                l::serialization::JsonParser<5000> parser;
-                auto [result, error] = parser.LoadJson(d, data.size());
-                if (result) {
-                    mMainNodeGraph.Reset();
-                    auto root = parser.GetRoot();
-                    if (LoadArchiveData(root)) {
-                        return true;
-                    }
+        l::filesystem::File dataFile(file);
+        dataFile.modeBinary().modeRead();
+        std::vector<unsigned char> data;
+        if (dataFile.open() && dataFile.read(data) > 0) {
+            const char* d = reinterpret_cast<const char*>(data.data());
+
+            l::serialization::JsonParser<5000> parser;
+            auto [result, error] = parser.LoadJson(d, data.size());
+            if (result) {
+                auto root = parser.GetRoot();
+                if (LoadArchiveData(root)) {
+                    mFullPath = file.string();
+                    mFile = file.filename().string();
+                    return true;
                 }
             }
         }
         return false;
     }
 
-    bool NodeGraphSchema::Save(std::string_view file) {
-        if (!file.empty()) {
-            mFileName = file;
-        }
-        if (mFileName.empty()) {
+    bool NodeGraphSchema::Save(std::filesystem::path file) {
+        if (file.empty()) {
+            LOG(LogError) << "Failed to save schema: there is no file name or path";
             return false;
         }
+
+        if (!file.has_filename()) {
+            LOG(LogError) << "Failed to save schema: there is no file name";
+            return false;
+        }
+
+        if (std::filesystem::exists(file)) {
+            // check if mFileName is different than the provided name in the filepath
+            // if so we are about to overwrite another schema so exit
+            LOG(LogError) << "Failed to save schema: there is already a schema file the name: '" << file << "'";
+            return false;
+        }
+
         l::serialization::JsonBuilder builder(true);
         GetArchiveData(builder);
 
-        l::filesystem::File dataFile(mFileName);
+        l::filesystem::File dataFile(file);
         dataFile.modeBinary().modeWriteTrunc();
         if (dataFile.open() && dataFile.write(builder.GetStream()) > 0) {
-            LOG(LogInfo) << "Created " << mFileName;
+            LOG(LogInfo) << "Created " << file;
             return true;
         }
         return false;
@@ -113,13 +122,17 @@ namespace l::nodegraph {
                     LOG(LogWarning) << "Schema minor version is of old version. Schema should still work but should be resaved when suitable.";
                 }
 
-                if (nodeGraphSchema.has_key("FileName")) {
-                    mFileName = nodeGraphSchema.get("FileName").as_string();
-                }
                 if (nodeGraphSchema.has_key("Name")) {
                     mName = nodeGraphSchema.get("Name").as_string();
                 }
+                if (nodeGraphSchema.has_key("TypeName")) {
+                    mTypeName = nodeGraphSchema.get("TypeName").as_string();
+                }
+                if (nodeGraphSchema.has_key("FullPath")) {
+                    mFullPath = nodeGraphSchema.get("FullPath").as_string();
+                }
                 auto nodeGraphGroup = nodeGraphSchema.get("NodeGraphGroup");
+
                 return mMainNodeGraph.LoadArchiveData(nodeGraphGroup);
             }
         }
@@ -132,8 +145,9 @@ namespace l::nodegraph {
         {
             jsonBuilder.AddNumber("VersionMajor", mVersionMajor);
             jsonBuilder.AddNumber("VersionMinor", mVersionMinor);
-            jsonBuilder.AddString("FileName", mFileName);
             jsonBuilder.AddString("Name", mName);
+            jsonBuilder.AddString("TypeName", mTypeName);
+            jsonBuilder.AddString("FullPath", mFullPath);
             jsonBuilder.BeginExternalObject("NodeGraphGroup");
             {
                 mMainNodeGraph.GetArchiveData(jsonBuilder);

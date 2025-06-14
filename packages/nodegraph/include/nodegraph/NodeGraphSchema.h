@@ -28,6 +28,7 @@
 #include <typeinfo>
 #include <type_traits>
 #include <memory>
+#include <filesystem>
 
 namespace l::nodegraph {
 
@@ -76,8 +77,9 @@ namespace l::nodegraph {
 
         using CustomCreateFunctionType = NodeGraphBase * (int32_t, NodeGraphGroup&);
 
-        NodeGraphSchema(std::string name = "", bool useAllNodeTypes = false) :
-            mName(name.empty() ? "Schema" : name)
+        NodeGraphSchema(std::string name = "", std::string typeName = "", bool useAllNodeTypes = false) :
+            mName(name.empty() ? "Schema" : name),
+            mTypeName(typeName)
         {
             mMainNodeGraph.SetNodeFactory(this);
             if (useAllNodeTypes) {
@@ -86,14 +88,16 @@ namespace l::nodegraph {
         }
 
         virtual ~NodeGraphSchema() {
-            Save();
         }
 
         NodeGraphSchema& operator=(NodeGraphSchema&& other) noexcept {
-            mFileName = other.mFileName;
+            mVersionMajor = other.mVersionMajor;
+            mVersionMinor = other.mVersionMinor;
+            mName = other.mName;
+            mTypeName = other.mTypeName;
+            mFullPath = other.mFullPath;
             mMainNodeGraph = std::move(other.mMainNodeGraph);
             mMainNodeGraph.SetNodeFactory(this); // must set anew since schema (this) was moved as well
-            mName = other.mName;
             mRegisteredNodeTypes = std::move(other.mRegisteredNodeTypes);
             mCreateCustomNode = std::move(other.mCreateCustomNode);
             mKeyState = other.mKeyState;
@@ -119,12 +123,24 @@ namespace l::nodegraph {
         void SetName(std::string_view name) {
             mName = name;
         }
+        void SetTypeName(std::string_view typeName) {
+            mTypeName = typeName;
+        }
         std::string_view GetName() {
             return mName;
         }
+        std::string_view GetTypeName() {
+            return mTypeName;
+        }
+        std::string_view GetFullPath() {
+            return mFullPath;
+        }
+        uint32_t GetStringId() {
+            return l::string::string_id(mFullPath);
+        }
 
-        bool Load(std::string_view file = "");
-        bool Save(std::string_view file = "");
+        bool Load(std::filesystem::path file);
+        bool Save(std::filesystem::path file);
 
         virtual bool LoadArchiveData(l::serialization::JsonValue& jsonValue) override;
         virtual void GetArchiveData(l::serialization::JsonBuilder& jsonBuilder) override;
@@ -151,9 +167,12 @@ namespace l::nodegraph {
     protected:
         int32_t mVersionMajor = 0;
         int32_t mVersionMinor = 0;
-        std::string mFileName;
-        NodeGraphGroup mMainNodeGraph;
         std::string mName;
+        std::string mTypeName;
+        std::string mFullPath;
+        std::string mFile;
+
+        NodeGraphGroup mMainNodeGraph;
 
         std::function<CustomCreateFunctionType> mCreateCustomNode;
         l::hid::KeyState* mKeyState = nullptr;

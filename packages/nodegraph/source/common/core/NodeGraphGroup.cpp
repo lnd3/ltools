@@ -40,6 +40,8 @@ namespace l::nodegraph {
 
     bool NodeGraphGroup::LoadArchiveData(l::serialization::JsonValue& jsonValue) {
         if (jsonValue.has(JSMN_OBJECT) && jsonValue.has_key("Group")) {
+            Reset();
+
             auto group = jsonValue.get("Group");
             if (group.has(JSMN_OBJECT)) {
                 if (group.has_key("Nodes")) {
