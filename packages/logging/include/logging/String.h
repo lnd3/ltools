@@ -178,6 +178,13 @@ namespace l::string {
 		}
 	}
 
+	template<size_t SIZE>
+	uint32_t string_id(const char(&string)[SIZE]) {
+		std::hash<std::string_view> hasher;
+		auto id = hasher(std::string_view(&string[0], SIZE-1));
+		return static_cast<uint32_t>(id);
+	}
+	uint32_t string_id(std::string_view string);
 	uint32_t string_id(const std::string& string);
 
 	std::string encode_html(const std::string& input);

@@ -50,7 +50,7 @@ namespace l::nodegraph {
                         auto it = nodes.as_array();
                         for (; it.has_next();) {
                             auto e = it.next();
-                            LOG(LogInfo) << e.as_dbg_string();
+                            //LOG(LogInfo) << e.as_dbg_string();
                             if (e.has_key("TypeId") && e.has_key("NodeId")) {
                                 auto typeId = e.get("TypeId").as_int32();
                                 auto nodeId = e.get("NodeId").as_int32();
@@ -67,11 +67,11 @@ namespace l::nodegraph {
                         auto it = nodeData.as_array();
                         for (; it.has_next();) {
                             auto e = it.next();
-                            LOG(LogInfo) << e.as_dbg_string();
+                            //LOG(LogInfo) << e.as_dbg_string();
                             if (e.has_key("NodeId")) {
                                 auto nodeId = e.get("NodeId").as_int32();
                                 auto inputInfo = e.get("InputInfo");
-                                LOG(LogInfo) << inputInfo.as_dbg_string();
+                                //LOG(LogInfo) << inputInfo.as_dbg_string();
 
                                 auto node = GetNode(nodeId);
                                 ASSERT(node);
