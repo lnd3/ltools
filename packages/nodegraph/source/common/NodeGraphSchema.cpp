@@ -121,8 +121,13 @@ namespace l::nodegraph {
                 if (nodeGraphSchema.has_key("TypeName")) {
                     mTypeName = nodeGraphSchema.get("TypeName").as_string();
                 }
+                mStringId = 0;
                 if (nodeGraphSchema.has_key("FullPath")) {
                     mFullPath = nodeGraphSchema.get("FullPath").as_string();
+                    if (nodeGraphSchema.has_key("SID")) {
+                        auto stringId = nodeGraphSchema.get("SID").as_uint32();
+                        ASSERT(GetStringId() == stringId);
+                    }
                 }
                 auto nodeGraphGroup = nodeGraphSchema.get("NodeGraphGroup");
 
@@ -141,6 +146,7 @@ namespace l::nodegraph {
             jsonBuilder.AddString("Name", mName);
             jsonBuilder.AddString("TypeName", mTypeName);
             jsonBuilder.AddString("FullPath", mFullPath);
+            jsonBuilder.AddNumber("SID", GetStringId());
             jsonBuilder.BeginExternalObject("NodeGraphGroup");
             {
                 mMainNodeGraph.GetArchiveData(jsonBuilder);

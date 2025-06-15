@@ -51,6 +51,22 @@ namespace l::serialization {
         return std::strtoll(as_string().data(), nullptr, 10);
     }
 
+    uint8_t JsonValue::as_uint8() const {
+        return static_cast<int8_t>(std::strtoul(as_string().data(), nullptr, 10));
+    }
+
+    uint16_t JsonValue::as_uint16() const {
+        return static_cast<int16_t>(std::strtoul(as_string().data(), nullptr, 10));
+    }
+
+    uint32_t JsonValue::as_uint32() const {
+        return std::strtoul(as_string().data(), nullptr, 10);
+    }
+
+    uint64_t JsonValue::as_uint64() const {
+        return std::strtoull(as_string().data(), nullptr, 10);
+    }
+
     JsonIterator JsonValue::as_array() const {
         assert(type() & JSMN_ARRAY);
         return JsonIterator(mJson, mTokens + 1, mCount - 1);

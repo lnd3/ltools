@@ -56,6 +56,10 @@ namespace l::serialization {
         int16_t as_int16() const;
         int32_t as_int32() const;
         int64_t as_int64() const;
+        uint8_t as_uint8() const;
+        uint16_t as_uint16() const;
+        uint32_t as_uint32() const;
+        uint64_t as_uint64() const;
         JsonIterator as_array() const;
         
         JsonValue get(const std::string_view& key) const;

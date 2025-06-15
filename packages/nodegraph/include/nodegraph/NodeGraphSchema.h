@@ -136,7 +136,10 @@ namespace l::nodegraph {
             return mFullPath;
         }
         uint32_t GetStringId() {
-            return l::string::string_id(mFullPath);
+            if (mStringId == 0) {
+                mStringId = l::string::string_id(mFullPath);
+            }
+            return mStringId;
         }
 
         bool Load(std::filesystem::path file);
@@ -171,6 +174,7 @@ namespace l::nodegraph {
         std::string mTypeName;
         std::string mFullPath;
         std::string mFile;
+        uint32_t mStringId;
 
         NodeGraphGroup mMainNodeGraph;
 
