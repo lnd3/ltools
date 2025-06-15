@@ -81,13 +81,6 @@ namespace l::nodegraph {
             return false;
         }
 
-        if (std::filesystem::exists(file)) {
-            // check if mFileName is different than the provided name in the filepath
-            // if so we are about to overwrite another schema so exit
-            LOG(LogError) << "Failed to save schema: there is already a schema file the name: '" << file << "'";
-            return false;
-        }
-
         l::serialization::JsonBuilder builder(true);
         GetArchiveData(builder);
 
