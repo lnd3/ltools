@@ -43,6 +43,7 @@ namespace l::string {
 
 		void clear() {
 			mPos = 0;
+			cur() = 0;
 		}
 
 		size_t left() {
