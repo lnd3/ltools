@@ -381,6 +381,10 @@ namespace l::string {
 		return output;
 	}
 
+	void replace(std::string& str, const char find_char, const char new_char) {
+		std::replace_if(str.begin(), str.end(), [&](const char& c) {return c == find_char; }, new_char);
+	}
+
 	bool equal(const char* a, const char* b, size_t a_offset, size_t b_offset, size_t maxCount) {
 		return !strncmp(a + a_offset, b + b_offset, maxCount);
 	}
@@ -424,19 +428,17 @@ namespace l::string {
 		return true;
 	}
 
-	bool equal_anywhere(std::string_view src, std::string_view search) {
+	int32_t equal_anywhere(std::string_view src, std::string_view search) {
 		if (search.empty() || src.empty() || src.size() < search.size()) {
-			return false;
+			return -1;
 		}
-		bool found = false;
 		size_t searchSize = search.size();
 		for (size_t i = 0; i <= src.size() - searchSize; i++) {
 			if (src.substr(i, searchSize) == search) {
-				found = true;
-				break;
+				return static_cast<int32_t>(i);
 			}
 		}
-		return found;
+		return -1;
 	}
 
 	std::vector<std::wstring_view> split(std::wstring_view text, std::wstring_view delim, char escapeChar) {

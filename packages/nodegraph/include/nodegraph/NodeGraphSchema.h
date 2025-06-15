@@ -95,7 +95,9 @@ namespace l::nodegraph {
             mVersionMinor = other.mVersionMinor;
             mName = other.mName;
             mTypeName = other.mTypeName;
+            mFileName = other.mFileName;
             mFullPath = other.mFullPath;
+            mStringId = other.mStringId;
             mMainNodeGraph = std::move(other.mMainNodeGraph);
             mMainNodeGraph.SetNodeFactory(this); // must set anew since schema (this) was moved as well
             mRegisteredNodeTypes = std::move(other.mRegisteredNodeTypes);
@@ -132,6 +134,9 @@ namespace l::nodegraph {
         std::string_view GetTypeName() {
             return mTypeName;
         }
+        std::string_view GetFileName() {
+            return mFileName;
+        }
         std::string_view GetFullPath() {
             return mFullPath;
         }
@@ -143,7 +148,7 @@ namespace l::nodegraph {
         }
 
         bool Load(std::filesystem::path file);
-        bool Save(std::filesystem::path file);
+        bool Save(std::filesystem::path file, bool cloneOnly = false);
 
         virtual bool LoadArchiveData(l::serialization::JsonValue& jsonValue) override;
         virtual void GetArchiveData(l::serialization::JsonBuilder& jsonBuilder) override;
@@ -172,9 +177,9 @@ namespace l::nodegraph {
         int32_t mVersionMinor = 0;
         std::string mName;
         std::string mTypeName;
+        std::string mFileName;
         std::string mFullPath;
-        std::string mFile;
-        uint32_t mStringId;
+        uint32_t mStringId = 0;
 
         NodeGraphGroup mMainNodeGraph;
 

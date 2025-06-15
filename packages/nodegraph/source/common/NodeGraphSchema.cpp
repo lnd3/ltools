@@ -61,8 +61,10 @@ namespace l::nodegraph {
             if (result) {
                 auto root = parser.GetRoot();
                 if (LoadArchiveData(root)) {
+                    mFileName = file.filename().string();
                     mFullPath = file.string();
-                    mFile = file.filename().string();
+                    l::string::replace(mFullPath);
+                    mStringId = GetStringId();
                     return true;
                 }
             }
@@ -70,7 +72,7 @@ namespace l::nodegraph {
         return false;
     }
 
-    bool NodeGraphSchema::Save(std::filesystem::path file) {
+    bool NodeGraphSchema::Save(std::filesystem::path file, bool cloneOnly) {
         if (file.empty()) {
             LOG(LogError) << "Failed to save schema: there is no file name or path";
             return false;
@@ -79,6 +81,13 @@ namespace l::nodegraph {
         if (!file.has_filename()) {
             LOG(LogError) << "Failed to save schema: there is no file name";
             return false;
+        }
+
+        if (!cloneOnly) {
+            mFileName = file.filename().string();
+            mFullPath = file.string();
+            l::string::replace(mFullPath);
+            mStringId = GetStringId();
         }
 
         l::serialization::JsonBuilder builder(true);
@@ -121,12 +130,14 @@ namespace l::nodegraph {
                 if (nodeGraphSchema.has_key("TypeName")) {
                     mTypeName = nodeGraphSchema.get("TypeName").as_string();
                 }
+                if (nodeGraphSchema.has_key("FileName")) {
+                    mFileName = nodeGraphSchema.get("FileName").as_string();
+                }
                 mStringId = 0;
                 if (nodeGraphSchema.has_key("FullPath")) {
                     mFullPath = nodeGraphSchema.get("FullPath").as_string();
-                    if (nodeGraphSchema.has_key("SID")) {
-                        auto stringId = nodeGraphSchema.get("SID").as_uint32();
-                        ASSERT(GetStringId() == stringId);
+                    if (nodeGraphSchema.has_key("StringId")) {
+                        mStringId = nodeGraphSchema.get("StringId").as_uint32();
                     }
                 }
                 auto nodeGraphGroup = nodeGraphSchema.get("NodeGraphGroup");
@@ -145,8 +156,9 @@ namespace l::nodegraph {
             jsonBuilder.AddNumber("VersionMinor", mVersionMinor);
             jsonBuilder.AddString("Name", mName);
             jsonBuilder.AddString("TypeName", mTypeName);
+            jsonBuilder.AddString("FileName", mFileName);
             jsonBuilder.AddString("FullPath", mFullPath);
-            jsonBuilder.AddNumber("SID", GetStringId());
+            jsonBuilder.AddNumber("StringId", GetStringId());
             jsonBuilder.BeginExternalObject("NodeGraphGroup");
             {
                 mMainNodeGraph.GetArchiveData(jsonBuilder);
