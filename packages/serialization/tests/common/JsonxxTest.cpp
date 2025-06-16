@@ -134,7 +134,7 @@ public:
 		jsonxx::Object parser;
 		if (parser.parse(src)) {
 			mName = parser.get<jsonxx::String>("name");
-			mId = parser.get<jsonxx::Number>("id");
+			mId = static_cast<float>(parser.get<jsonxx::Number>("id"));
 			auto& array = parser.get<jsonxx::Array>("array");
 			for (auto e : array.values()) {
 				auto value = e->get<jsonxx::Number>();
