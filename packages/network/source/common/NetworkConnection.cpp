@@ -218,7 +218,7 @@ namespace l::network {
 	}
 
 	void ConnectionBase::SetRunningTimeout(int32_t secondsFromNow) {
-		if (mTimeout == 0) {
+		if (mTimeout <= 0) {
 			auto elapsed = static_cast<int32_t>((l::string::get_unix_epoch_ms() - mStarted) / 1000);
 			mTimeout = elapsed + secondsFromNow;
 		}
