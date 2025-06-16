@@ -76,14 +76,15 @@ namespace l::nodegraph {
         {
             AddInput2("x", 1, InputFlags(false, false, false, false));
             AddInput2("y", 1, InputFlags(false, false, false, false));
-            AddInput2("name", 1, InputFlags(false, true, false, true));
-            mNode->SetInput(2, "Chart Lines");
+            AddInput2("name", 1, InputFlags(false, false, false, true));
             AddOutput("Interleaved Data");
         }
         virtual ~GraphUIChartLine() {
 
         }
-
+        virtual void DefaultDataInit() override {
+            mNode->SetInput(2, "Chart Lines");
+        }
         virtual void Reset() override;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
 
@@ -105,12 +106,13 @@ namespace l::nodegraph {
             AddInput2("high", 1, InputFlags(false, false, false, false));
             AddInput2("low", 1, InputFlags(false, false, false, false));
             AddInput2("volume", 1, InputFlags(false, false, false, false));
-            AddInput2("name", 1, InputFlags(false, true, false, true));
-            mNode->SetInput(6, "Candle Sticks");
+            AddInput2("name", 1, InputFlags(false, false, false, true));
             AddOutput("Interleaved Data");
         }
         virtual ~GraphUICandleSticks() = default;
-
+        virtual void DefaultDataInit() override {
+            mNode->SetInput(6, "Candle Sticks");
+        }
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         int32_t mWrittenSamples = 0;
