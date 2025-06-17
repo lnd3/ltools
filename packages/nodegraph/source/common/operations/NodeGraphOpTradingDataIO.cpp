@@ -169,6 +169,8 @@ namespace l::nodegraph {
         auto trendOut = &outputs.at(4).Get(numSamples);
         auto convictionOut = &outputs.at(5).Get(numSamples);
         auto reversalOut = &outputs.at(6).Get(numSamples);
+        auto longOut = &outputs.at(7).Get(numSamples);
+        auto shortOut = &outputs.at(8).Get(numSamples);
 
         if (mWrittenSamples < numCacheSamples) {
             for (int32_t i = 0; i < numSamples; i++) {
@@ -189,6 +191,8 @@ namespace l::nodegraph {
                     convictionOut[i] = trade.trendConviction();
                     reversalOut[i] = trade.isTrendReversal();
 
+                    longOut[i] = longInput[i];
+                    shortOut[i] = shortInput[i];
                     mUnixtimePrev = unixtime;
 
                     trade.step(i);

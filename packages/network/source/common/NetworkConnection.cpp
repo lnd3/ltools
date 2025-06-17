@@ -297,7 +297,7 @@ namespace l::network {
 		size_t readTotal = 0;
 		CURLcode res = CURLE_OK;
 		while (!res) {
-			size_t recv;
+			size_t recv = 0;
 			const struct curl_ws_frame* meta = nullptr;
 			auto recvMax = size - readTotal;
 			res = curl_ws_recv(mCurl, buffer + readTotal, recvMax, &recv, &meta);
@@ -350,6 +350,12 @@ namespace l::network {
 		if (res == CURLE_RECV_ERROR) {
 			if (mWebSocketCanReceiveData) {
 				LOG(LogError) << "Failed wss read - 'curl recieve error' - connection closed, error: " << res;
+			}
+			mWebSocketCanReceiveData = false;
+		}
+		if (res == CURLE_BAD_FUNCTION_ARGUMENT) {
+			if (mWebSocketCanReceiveData) {
+				LOG(LogError) << "Failed wss read - 'curl bad function arg' - connection closed, error: " << res;
 			}
 			mWebSocketCanReceiveData = false;
 		}

@@ -203,8 +203,10 @@ namespace l::nodegraph {
             AddOutput("Unixtime", 0.0f, 2, false);
             AddOutput("Trend", 0.0f, 2, false);
             AddOutput("Conviction", 0.0f, 2, false);
-            AddOutput("Reversa", 0.0f, 2, false);
-        }
+			AddOutput("Reverse", 0.0f, 2, false);
+			AddOutput("Long Level", 0.0f, 2, false);
+			AddOutput("Short Level", 0.0f, 2, false);
+		}
         virtual ~TradingDataIOPlaceTrade() = default;
 
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
