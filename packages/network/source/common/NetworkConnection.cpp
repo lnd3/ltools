@@ -209,12 +209,17 @@ namespace l::network {
 	}
 
 	bool ConnectionBase::HasExpired() {
+		bool expired = false;
 		if (mOngoingRequest && mTimeout > 0) {
-			auto timeWaitingMs = static_cast<int32_t>(l::string::get_unix_epoch_ms() - mStarted);
-			auto expired = timeWaitingMs > mTimeout * 1000;
-			return expired;
+			auto timeWaitingMs = static_cast<int32_t>(l::string::get_unix_epoch_ms() - mStarted) / 1000;
+			expired = timeWaitingMs > mTimeout;
 		}
-		return false;
+		if (IsWebSocket()) {
+			if (mWebSocketCanSendData && mWebSocketCanReceiveData) {
+				mTimeout = -1;
+			}
+		}
+		return expired;
 	}
 
 	void ConnectionBase::SetRunningTimeout(int32_t secondsFromNow) {
@@ -278,7 +283,7 @@ namespace l::network {
 			}
 			mWebSocketCanSendData = false;
 		}
-		SetRunningTimeout(10);
+		SetRunningTimeout(20);
 		return -res;
 	}
 
@@ -341,6 +346,7 @@ namespace l::network {
 			}
 		}
 		
+		// In this path only if there's an error
 		if (res == CURLE_GOT_NOTHING) {
 			if (mWebSocketCanReceiveData) {
 				LOG(LogError) << "Failed wss read - 'curl got nothing' - connection closed, error: " << res;
@@ -355,7 +361,7 @@ namespace l::network {
 		}
 		if (res == CURLE_BAD_FUNCTION_ARGUMENT) {
 			if (mWebSocketCanReceiveData) {
-				LOG(LogError) << "Failed wss read - 'curl bad function arg' - connection closed, error: " << res;
+				LOG(LogError) << "Failed wss read - 'curl bad function arg', error: " << res;
 			}
 			mWebSocketCanReceiveData = false;
 		}
@@ -364,7 +370,7 @@ namespace l::network {
 			LOG(LogError) << "Failed wss read, connection closed, error: " << res;
 		}
 		mWebSocketCanReceiveData = false;
-		SetRunningTimeout(10);
+		SetRunningTimeout(20);
 		return -res;
 	}
 
