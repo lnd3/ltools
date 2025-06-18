@@ -75,7 +75,7 @@ namespace l::nodegraph {
         const int32_t kVersionMajor = 1;
         const int32_t kVersionMinor = 1;
 
-        using CustomCreateFunctionType = NodeGraphBase * (int32_t, NodeGraphGroup&);
+        using CustomCreateFunctionType = std::function<NodeGraphBase*(int32_t, int32_t, NodeGraphGroup&)>;
 
         NodeGraphSchema(std::string name = "", std::string typeName = "", bool useAllNodeTypes = false) :
             mName(name.empty() ? "Schema" : name),
@@ -101,7 +101,7 @@ namespace l::nodegraph {
             mMainNodeGraph = std::move(other.mMainNodeGraph);
             mMainNodeGraph.SetNodeFactory(this); // must set anew since schema (this) was moved as well
             mRegisteredNodeTypes = std::move(other.mRegisteredNodeTypes);
-            mCreateCustomNode = std::move(other.mCreateCustomNode);
+            mCustomNodeCreatorListeners = std::move(other.mCustomNodeCreatorListeners);
             mKeyState = other.mKeyState;
             mAudioOutput = other.mAudioOutput;
             mMidiManager = other.mMidiManager;
@@ -153,7 +153,7 @@ namespace l::nodegraph {
         virtual bool LoadArchiveData(l::serialization::JsonValue& jsonValue) override;
         virtual void GetArchiveData(l::serialization::JsonBuilder& jsonBuilder) override;
 
-        void SetCustomCreator(std::function<CustomCreateFunctionType> customCreator);
+        void AddCustomNodeCreator(CustomCreateFunctionType customCreator);
         void SetKeyState(l::hid::KeyState* keyState);
         void SetAudioOutput(l::audio::AudioStream* audioStream);
         void SetMidiManager(l::hid::midi::MidiManager* midiManager);
@@ -183,7 +183,7 @@ namespace l::nodegraph {
 
         NodeGraphGroup mMainNodeGraph;
 
-        std::function<CustomCreateFunctionType> mCreateCustomNode;
+        std::vector<CustomCreateFunctionType> mCustomNodeCreatorListeners;
         l::hid::KeyState* mKeyState = nullptr;
         l::audio::AudioStream* mAudioOutput = nullptr;
         l::hid::midi::MidiManager* mMidiManager = nullptr;

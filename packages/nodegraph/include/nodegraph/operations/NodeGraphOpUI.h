@@ -36,9 +36,9 @@ namespace l::nodegraph {
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Tick(int32_t, float) override;
 
-        bool& GetStatePtr();
+        bool& GetInputState();
     protected:
-        bool mState = false;
+        bool mInputState = false;
     };
 
     /*********************************************************************/
@@ -60,14 +60,31 @@ namespace l::nodegraph {
 
         float& GetMin();
         float& GetMax();
-        float& GetValue();
+        float& GetInputValue();
     protected:
         bool mExternallyChanged = false;
-        float mValue = 0.0f;
+        float mInputValue = 0.0f;
         float mMin = 0.0f;
         float mMax = 1.0f;
     };
 
+    /*********************************************************************/
+    class GraphUIText : public NodeGraphOp {
+    public:
+        GraphUIText(NodeGraphBase* node) :
+            NodeGraphOp(node, "UI Text")
+        {
+            AddInput2("In", 1, InputFlags(false, false, false, true));
+        }
+
+        virtual ~GraphUIText() = default;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Tick(int32_t, float) override;
+
+        std::string_view GetOutputText();
+    protected:
+        l::string::string_buffer<64> mOutputText;
+    };
     /*********************************************************************/
     class GraphUIChartLine : public NodeGraphOp {
     public:

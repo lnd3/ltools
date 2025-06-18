@@ -141,6 +141,8 @@ namespace l::nodegraph {
         if (mInputType == InputType::INPUT_TEXT) {
             if (!mInput.mInputTextBuf) {
                 mInput.mInputTextBuf = new std::vector<char>();
+                mInput.mInputTextBuf->resize(minSize + 1, 0);
+                mInput.mInputTextBuf->at(0) = 0;
             }
             if (static_cast<int32_t>(mInput.mInputTextBuf->size()) < minSize + 1) {
                 mInput.mInputTextBuf->resize(minSize + 1, 0);
@@ -223,6 +225,8 @@ namespace l::nodegraph {
         if (mInputType != InputType::INPUT_TEXT || !mInput.mInputTextBuf) {
             mInputType = InputType::INPUT_TEXT;
             mInput.mInputTextBuf = new std::vector<char>();
+            mInput.mInputTextBuf->resize(text.size() + 1, 0);
+            mInput.mInputTextBuf->at(0) = 0;
         }
         if (static_cast<int32_t>(mInput.mInputTextBuf->size()) < static_cast<int32_t>(text.size()) + 1) {
             mInput.mInputTextBuf->resize(text.size() + 1, 0);

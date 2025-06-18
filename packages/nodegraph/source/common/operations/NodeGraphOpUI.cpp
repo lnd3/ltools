@@ -17,18 +17,18 @@ namespace l::nodegraph {
         auto output = outputs.at(0).GetIterator(1);
 
         if (mInputHasChanged) {
-            *input = mState ? 1.0f : 0.0f;
+            *input = mInputState ? 1.0f : 0.0f;
             mInputHasChanged = false;
         }
         else {
-            mState = *input;
+            mInputState = *input;
         }
        
         *output = *input != 0.0f ? 1.0f : 0.0f;
     }
 
-    bool& GraphUICheckbox::GetStatePtr() {
-        return mState;
+    bool& GraphUICheckbox::GetInputState() {
+        return mInputState;
     }
 
     void GraphUICheckbox::Tick(int32_t, float) {
@@ -47,18 +47,18 @@ namespace l::nodegraph {
         mMax = *max;
 
         if (mInputHasChanged) {
-            *input = mValue;
+            *input = mInputValue;
             mInputHasChanged = false;
         }
         else {
-            mValue = *input;
+            mInputValue = *input;
         }
 
         float length = mMax - mMin;
         if (length <= 0.0f) {
             *output = mMin;
         }
-        float value = (mValue - mMin) / length;
+        float value = (mInputValue - mMin) / length;
         value = mMin + length * l::math::pow(value, *power);
         *output = l::math::clamp(value, mMin, mMax);
     }
@@ -75,10 +75,28 @@ namespace l::nodegraph {
         return mMax;
     }
 
-    float& GraphUISlider::GetValue() {
-        return mValue;
+    float& GraphUISlider::GetInputValue() {
+        return mInputValue;
     }
 
+    /*********************************************************************/
+    void GraphUIText::Process(int32_t, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
+        auto input = inputs.at(0).GetText(64);
+
+        if (mInputHasChanged) {
+            mOutputText.clear();
+            mOutputText.append(input);
+            mInputHasChanged = false;
+        }
+    }
+
+    void GraphUIText::Tick(int32_t, float) {
+        mNode->ProcessSubGraph(1);
+    }
+
+    std::string_view GraphUIText::GetOutputText() {
+        return mOutputText.str();
+    }
     /*********************************************************************/
     void GraphUIChartLine::Reset() {
         mNode->ForEachInput(

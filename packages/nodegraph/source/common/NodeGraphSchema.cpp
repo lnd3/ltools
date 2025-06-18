@@ -169,8 +169,8 @@ namespace l::nodegraph {
         jsonBuilder.End();
     }
 
-    void NodeGraphSchema::SetCustomCreator(std::function<CustomCreateFunctionType> customCreator) {
-        mCreateCustomNode = customCreator;
+    void NodeGraphSchema::AddCustomNodeCreator(CustomCreateFunctionType customCreator) {
+        mCustomNodeCreatorListeners.emplace_back(std::move(customCreator));
     }
 
     void NodeGraphSchema::SetKeyState(l::hid::KeyState* keyState) {
@@ -294,9 +294,6 @@ namespace l::nodegraph {
             break;
         case 201:
             node = mMainNodeGraph.NewNode<l::nodegraph::TradingDataIOOCHLVDataIn>(id, NodeType::ExternalInput, 1);
-            break;
-        case 202:
-            node = mMainNodeGraph.NewNode<l::nodegraph::TradingDataIOPlaceTrade>(id, NodeType::ExternalOutput);
             break;
 
             // Trading detectors
@@ -467,6 +464,9 @@ namespace l::nodegraph {
         case 603:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphUICandleSticks>(id, NodeType::ExternalOutput);
             break;
+        case 604:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphUIText>(id, NodeType::ExternalInput);
+            break;
 
 
 
@@ -475,8 +475,13 @@ namespace l::nodegraph {
         //    break;
 
         default:
-            if (typeId >= 10000 && mCreateCustomNode) {
-                node = mCreateCustomNode(typeId, mMainNodeGraph);
+            if (typeId >= 10000 && !mCustomNodeCreatorListeners.empty()) {
+                for (auto& creator : mCustomNodeCreatorListeners) {
+                    node = creator(typeId, id, mMainNodeGraph);
+                    if (node != nullptr) {
+                        break;
+                    }
+                }
             }
             break;
         };
@@ -581,7 +586,6 @@ namespace l::nodegraph {
         else if (typeGroup == "Trading.Data IO") {
             RegisterNodeType("Trading.Data IO", 200, "OCHLV Data In");
             RegisterNodeType("Trading.Data IO", 201, "Heikin-Ashi Data In");
-            RegisterNodeType("Trading.Data IO", 202, "Place Trade");
         }
         else if (typeGroup == "Trading.Detector") {
             RegisterNodeType("Trading.Detector", 220, "Trend");
@@ -651,7 +655,8 @@ namespace l::nodegraph {
             RegisterNodeType("UI", 601, "UI Slider");
             RegisterNodeType("UI", 602, "UI Chart Lines");
             RegisterNodeType("UI", 603, "UI Candle Sticks");
-        }
+            RegisterNodeType("UI", 604, "UI Text");
+            }
         else {
             LOG(LogWarning) << "Type group does not exist: " << typeGroup;
         }
