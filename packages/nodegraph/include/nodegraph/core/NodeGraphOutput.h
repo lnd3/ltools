@@ -36,6 +36,7 @@ namespace l::nodegraph {
 
         void Reset();
         void Clear();
+        void MinimizeBuffer(int32_t size);
         float& Get(int32_t minSize = 1, int32_t offset = 0);
         std::string_view GetText(int32_t minSize = 16);
         void SetText(std::string_view text);

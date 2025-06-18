@@ -66,6 +66,7 @@ namespace l::nodegraph {
         bool HasInputNode(NodeGraphBase* node);
         bool HasInputValue(float* floatPtr);
 
+        void MinimizeBuffer(int32_t size);
         float& Get(int32_t minSize = 1, int32_t offset = 0);
         float& GetArray(int32_t minSize = 1, int32_t offset = 0);
         std::string_view GetText(int32_t minSize = 16);

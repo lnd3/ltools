@@ -62,7 +62,7 @@ namespace l::nodegraph {
 
         if (mWrittenSamples < numCacheSamples) {
             mInputHasChanged = true;
-            if (static_cast<int32_t>(mBuffer.size()) < numCacheSamples * mChannels) {
+            if (static_cast<int32_t>(mBuffer.size()) != numCacheSamples * mChannels) {
                 mBuffer.resize(static_cast<size_t>(numCacheSamples * mChannels));
             }
 

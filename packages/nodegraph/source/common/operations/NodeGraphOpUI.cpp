@@ -111,6 +111,7 @@ namespace l::nodegraph {
             }
         }
 
+        outputs.at(0).MinimizeBuffer(numCacheSamples * mChannels);
         float* out = &outputs.at(0).Get(numCacheSamples * mChannels);
 
         if (mWrittenSamples < numCacheSamples) {
@@ -160,6 +161,7 @@ namespace l::nodegraph {
         }
 
         const int32_t stride = 6;
+        outputs.at(0).MinimizeBuffer(numCacheSamples * stride);
         float* out = &outputs.at(0).Get(numCacheSamples * stride);
 
         if (mWrittenSamples < numCacheSamples) {

@@ -87,6 +87,20 @@ namespace l::nodegraph {
         return false;
     }
 
+    void NodeGraphInput::MinimizeBuffer(int32_t size) {
+        if (mInputType == InputType::INPUT_NODE) {
+            if (mInput.mInputNode != nullptr) {
+                ASSERT(mInput.mInputNode->GetOutputSize(mInputFromOutputChannel) == size);
+                //mInput.mInputNode->GetOutputOf(mInputFromOutputChannel).MinimizeBuffer(size);
+            }
+        }
+        else if (mInputType == InputType::INPUT_ARRAY) {
+            if (!mInput.mInputFloatBuf) {
+                mInput.mInputFloatBuf->resize(size);
+            }
+        }
+    }
+
     float& NodeGraphInput::Get(int32_t minSize, int32_t offset) {
         if (minSize > 1 && (mInputType == InputType::INPUT_CONSTANT || mInputType == InputType::INPUT_VALUE)) {
             mInputType = InputType::INPUT_ARRAY;
@@ -243,7 +257,7 @@ namespace l::nodegraph {
         switch (mInputType) {
         case InputType::INPUT_NODE:
             if (mInput.mInputNode != nullptr) {
-                return mInput.mInputNode->GetOutputOf(mInputFromOutputChannel).GetIterator();
+                return mInput.mInputNode->GetOutputOf(mInputFromOutputChannel).GetIterator(minSize);
             }
             break;
         case InputType::INPUT_ARRAY:

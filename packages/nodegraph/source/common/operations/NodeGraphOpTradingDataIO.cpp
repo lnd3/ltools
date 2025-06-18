@@ -44,6 +44,7 @@ namespace l::nodegraph {
         }
 
         if (mReadSamples < mWrittenSamples) {
+            inputs.at(0).MinimizeBuffer(numCacheSamples * stride);
             auto in = &inputs.at(0).Get(numCacheSamples * stride, mReadSamples * stride);
 
             float* out1 = &outputs.at(3).Get(numSamples); // unixtime

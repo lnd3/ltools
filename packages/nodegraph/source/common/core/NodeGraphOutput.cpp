@@ -19,6 +19,15 @@ namespace l::nodegraph {
         }
     }
 
+    void NodeGraphOutput::MinimizeBuffer(int32_t size) {
+        if (mOutputBuf != nullptr) {
+            int32_t lodSize = static_cast<int32_t>(size / mOutputLod);
+            if (static_cast<int32_t>(mOutputBuf->size()) != lodSize) {
+                mOutputBuf->resize(lodSize);
+            }
+        }
+    }
+
     float& NodeGraphOutput::Get(int32_t minSize, int32_t offset) {
         if (mOutputBuf == nullptr) {
             if (minSize <= 1) {
