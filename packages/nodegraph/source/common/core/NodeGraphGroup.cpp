@@ -57,6 +57,15 @@ namespace l::nodegraph {
                                 //auto name = e.get("Name").as_string();
                                 //auto typeName = e.get("TypeName").as_string();
                                 mNodeFactory->NodeGraphNewNode(typeId, nodeId);
+
+                                if (e.has_key("x") && e.has_key("y")) {
+                                    GetNode(nodeId)->GetUIData().x = e.get("x").as_float();
+                                    GetNode(nodeId)->GetUIData().y = e.get("y").as_float();
+                                }
+                                if (e.has_key("w") && e.has_key("w")) {
+                                    GetNode(nodeId)->GetUIData().w = e.get("w").as_float();
+                                    GetNode(nodeId)->GetUIData().h = e.get("h").as_float();
+                                }
                             }
                         }
                     }
@@ -124,6 +133,10 @@ namespace l::nodegraph {
                     jsonBuilder.AddNumber("NodeId", it->GetId());
                     jsonBuilder.AddString("Name", it->GetName());
                     jsonBuilder.AddString("TypeName", it->GetTypeName());
+                    jsonBuilder.AddNumber("x", it->GetUIData().x);
+                    jsonBuilder.AddNumber("y", it->GetUIData().y);
+                    jsonBuilder.AddNumber("w", it->GetUIData().w);
+                    jsonBuilder.AddNumber("h", it->GetUIData().h);
                 }
                 jsonBuilder.End();
             }
@@ -294,6 +307,14 @@ namespace l::nodegraph {
             });
         delete node;
         return true;
+    }
+
+    void NodeGraphGroup::ForEachNode(std::function<bool(NodeGraphBase*)> cb) {
+        for (auto& it : mNodes) {
+            if (!cb(it)) {
+                break;
+            }
+        }
     }
 
     void NodeGraphGroup::ForEachInputNode(std::function<bool(NodeGraphBase*)> cb) {

@@ -84,9 +84,11 @@ namespace l::ui {
         mContent.clear();
     }
 
-    void UIContainer::ForEachChild(std::function<void(UIContainer*)> cb) {
+    void UIContainer::ForEachChild(bool recursive, std::function<void(UIContainer*)> cb) {
         for (auto it : mContent) {
-            it->ForEachChild(cb);
+            if (recursive) {
+                ForEachChild(recursive, cb);
+            }
             cb(it);
         }
     }
@@ -303,6 +305,15 @@ namespace l::ui {
         }
     }
 
+    UIContainer* UIManager::FindNodeId(uint32_t flag, int32_t nodeId, int32_t channelId) {
+        for (auto& c : mContainers) {
+            if (c.second->HasConfigFlag(flag) && c.second->GetNodeId() == nodeId && (channelId == -1 || c.second->GetChannelId() == channelId)) {
+                return c.second.get();
+            }
+        }
+        return nullptr;
+    }
+
     UIHandle CreateContainer(UIManager& uiManager, uint32_t flags, UIRenderType renderType, UIAlignH alignH, UIAlignV alignV, UILayoutH layoutH, UILayoutV layoutV) {
         std::unique_ptr<UIContainer> container = std::make_unique<UIContainer>(flags, renderType, alignH, alignV, layoutH, layoutV);
 
@@ -321,26 +332,66 @@ namespace l::ui {
         return uiManager.Add(std::move(container));
     }
 
-    void DeleteContainer(UIManager& uiManager, UIHandle handle) {
+    void DeleteContainer(UIManager& uiManager, UIHandle handle, bool alsoRemoveFromParent) {
         if (handle.IsValid()) {
-            ASSERT(handle.Get()->GetParent() != nullptr);
-            handle.Get()->GetParent()->Remove(handle);
-            handle->ForEachChild([&](UIContainer* container) {
-                uiManager.Remove(container);
-                });
-            uiManager.Remove(handle);
+            DeleteContainer(uiManager, handle.Get(), alsoRemoveFromParent);
         }
     }
 
-    void DeleteContainer(UIManager& uiManager, UIContainer* container) {
+    void DeleteContainer(UIManager& uiManager, UIContainer* container, bool alsoRemoveFromParent) {
         if (container != nullptr) {
-            ASSERT(container->GetParent() != nullptr);
-            container->GetParent()->Remove(container);
-            container->ForEachChild([&](UIContainer* c) {
-                uiManager.Remove(c);
+            if (container->HasConfigFlag(UIContainer_InputFlag)) {
+                auto inputContainer = container;
+
+                // check for link and remove it as well
+                auto linkContainer = inputContainer->GetCoParent();
+                if (linkContainer != nullptr && linkContainer->HasConfigFlag(UIContainer_LinkFlag)) {
+                    DeleteContainer(uiManager, linkContainer, true); // manually trigger removal from parent since it is removed externally from hierarchy
+                }
+            }
+            else if (container->HasConfigFlag(UIContainer_LinkFlag)) {
+                // check for link and remove it as well
+                auto linkContainer = container;
+
+                auto inputContainer = linkContainer->GetCoParent();
+                if (inputContainer != nullptr && inputContainer->HasConfigFlag(UIContainer_InputFlag)) {
+                    inputContainer->SetCoParent(nullptr);
+                }
+            }
+
+            // remove all of its children
+            container->ForEachChild(false, [&](UIContainer* c) {
+                DeleteContainer(uiManager, c, false);
                 });
 
+            // We also remove the container from its parent if its the first 
+            // DeleteContainer call beacuse otherwise the parent is also being removed 
+            // in which case it doesn't matter since its also not around.
+            // The only edge case is when a container is being removed externally
+            // from its parent hierarchy in which case it is not deleted by its parent.
+            // This currently only happens when a link container is being removed or 
+            // indirectly by removing an input container
+            if (alsoRemoveFromParent) {
+                ASSERT(container->GetParent() != nullptr);
+                container->GetParent()->Remove(container);
+            }
+
+            // finally remove the container itself
             uiManager.Remove(container);
         }
     }
+
+    void ForEachChildOf(uint32_t flag, UIContainer* rootContainer, bool recursive, std::function<bool(UIContainer*)> cb) {
+        rootContainer->ForEachChild(false, [&](UIContainer* c) {
+            if (c->HasConfigFlag(flag)) {
+                if (!cb(c)) {
+                    return;
+                }
+            }
+            if (recursive) {
+                ForEachChildOf(flag, c, recursive, cb);
+            }
+            });
+    }
+
 }

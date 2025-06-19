@@ -127,6 +127,7 @@ namespace l::nodegraph {
         //    return groupPtr;
         //}
 
+        void ForEachNode(std::function<bool(NodeGraphBase*)> cb);
         void ForEachInputNode(std::function<bool(NodeGraphBase*)> cb);
         void ForEachOutputNode(std::function<bool(NodeGraphBase*)> cb);
 

@@ -63,6 +63,14 @@ namespace l::ui {
                     if (node != nullptr) {
                         auto uiNode = l::ui::CreateUINode(mUIManager, *node, p);
                         mUIRoot->Add(uiNode);
+
+                        auto& uiData = node->GetUIData();
+                        auto position = uiNode->GetPosition();
+                        auto size = uiNode->GetSize();
+                        uiData.x = position.x;
+                        uiData.y = position.y;
+                        uiData.w = size.x;
+                        uiData.h = size.y;
                     }
                 }
 
@@ -225,11 +233,31 @@ namespace l::ui {
             }
             });
 
-        //mMoveVisitor.SetMoveHandler([&](int32_t containerId, int32_t nodeId, float x, float y) {
-        //    if (mNGSchema == nullptr) {
-        //       return;
-        //    }
-        //    });
+        mMoveVisitor.SetMoveHandler([&](int32_t containerId, int32_t nodeId, float x, float y) {
+            if (mNGSchema == nullptr) {
+                return;
+            }
+            LOG(LogInfo) << "Container " << containerId << " moved to " << x << ", " << y;
+            auto node = mNGSchema->GetNode(nodeId);
+            if (node != nullptr) {
+                auto& uiData = node->GetUIData();
+                uiData.x = x;
+                uiData.y = y;
+            }
+            });
+
+        mResizeVisitor.SetResizeHandler([&](int32_t containerId, int32_t nodeId, float w, float h) {
+            if (mNGSchema == nullptr) {
+                return;
+            }
+            LOG(LogInfo) << "Container " << containerId << " resized to " << w << ", " << h;
+            auto node = mNGSchema->GetNode(nodeId);
+            if (node != nullptr) {
+                auto& uiData = node->GetUIData();
+                uiData.w = w;
+                uiData.h = h;
+            }
+            });
 
         mSelectVisitor.SetRemoveHandler([&](int32_t nodeId) {
             if (mNGSchema == nullptr) {
@@ -263,8 +291,61 @@ namespace l::ui {
         mUIWindow.Close();
     }
 
+    void UINodeEditor::SetWindowName(std::string_view windowName) {
+        mUIWindow.SetWindowName(windowName);
+
+    }
+
     void UINodeEditor::SetNGSchema(l::nodegraph::NodeGraphSchema* ngSchema) {
+        mUIRoot->RemoveAll();
+
         mNGSchema = ngSchema;
+
+        mNGSchema->ForEachNode([&](nodegraph::NodeGraphBase* node) {
+            if (node != nullptr) {
+                auto& uiData = node->GetUIData();
+                auto p = ImVec2(uiData.x, uiData.y);
+                auto s = ImVec2(uiData.w, uiData.h);
+                auto uiNode = l::ui::CreateUINode(mUIManager, *node, p);
+                //uiNode->SetSize(s);
+
+                LOG(LogInfo) << "Replicated node type " << node->GetTypeId() << " as a ui node";
+                mUIRoot->Add(uiNode);
+            }
+
+            return true;
+            });
+
+        mNGSchema->ForEachNode([&](nodegraph::NodeGraphBase* node) {
+            if (node != nullptr) {
+                int inputChannel = 0;
+
+                node->ForEachInput([&](l::nodegraph::NodeGraphInput& input) {
+                    if (input.HasInputNode()) {
+
+                        auto outputNode = input.GetInputNode();
+                        auto outputChannel = input.GetInputSrcChannel();
+                        auto mLinkContainer = CreateContainer(mUIManager, UIContainer_LinkFlag | UIContainer_DrawFlag, UIRenderType::LinkH);
+
+                        auto outputContainer = mUIManager.FindNodeId(UIContainer_OutputFlag, outputNode->GetId(), outputChannel);
+                        auto inputContainer = mUIManager.FindNodeId(UIContainer_InputFlag, node->GetId(), inputChannel);
+
+                        ASSERT(outputContainer);
+                        ASSERT(inputContainer);
+
+                        outputContainer->Add(mLinkContainer);
+
+                        // connect link to input
+                        mLinkContainer->SetCoParent(inputContainer);
+                        // and input to link
+                        inputContainer->SetCoParent(mLinkContainer.Get());
+                    }
+                    inputChannel++;
+                    });
+            }
+
+            return true;
+            });
     }
 
     l::nodegraph::NodeGraphSchema* UINodeEditor::GetNGSchema() {

@@ -315,7 +315,7 @@ namespace l::ui {
         virtual void Remove(UIContainer* container);
         virtual void RemoveAll();
 
-        virtual void ForEachChild(std::function<void(UIContainer*)> cb);
+        virtual void ForEachChild(bool recursive, std::function<void(UIContainer*)> cb);
 
         void SetNotification(uint32_t flag) { mNotificationFlags |= flag; }
         void ClearNotifications() { mNotificationFlags = 0; }
@@ -365,8 +365,8 @@ namespace l::ui {
         void DebugLog() { LOG(LogDebug) << "UIContainer: " << mDisplayName << ", [" << mDisplayArea.mScale << "][" << mDisplayArea.mPosition.x << ", " << mDisplayArea.mPosition.y << "][" << mDisplayArea.mSize.x << ", " << mDisplayArea.mSize.y << "]"; }
     protected:
         int32_t mId = 0;
-        int32_t mNodeId = 0;
-        int32_t mChannelId = 0;
+        int32_t mNodeId = -1;
+        int32_t mChannelId = -1;
         std::string mStringId;
         std::string mDisplayName;
 
@@ -414,6 +414,7 @@ namespace l::ui {
         UIHandle Add(std::unique_ptr<UIContainer> container);
         void Remove(const UIHandle& handle);
         void Remove(UIContainer* container);
+        UIContainer* FindNodeId(uint32_t flag, int32_t nodeId, int32_t channelId = -1);
     protected:
         std::unordered_map<uint32_t, std::unique_ptr<UIContainer>> mContainers;
         int32_t mIdCounter = 1;
@@ -421,7 +422,8 @@ namespace l::ui {
 
     UIHandle CreateContainer(UIManager& uiManager, uint32_t flags, UIRenderType renderType = UIRenderType::Rect, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed);
     UIHandle CreateSplit(UIManager& uiManager, uint32_t flags, UIRenderType renderType, UISplitMode splitMode = UISplitMode::AppendV, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed);
-    void DeleteContainer(UIManager& uiManager, UIHandle handle);
-    void DeleteContainer(UIManager& uiManager, UIContainer* container);
+    void DeleteContainer(UIManager& uiManager, UIHandle handle, bool alsoRemoveFromParent = true);
+    void DeleteContainer(UIManager& uiManager, UIContainer* container, bool alsoRemoveFromParent = true);
+    void ForEachChildOf(uint32_t flags, UIContainer* rootContainer, bool recursive, std::function<bool(UIContainer*)> cb);
 
 }

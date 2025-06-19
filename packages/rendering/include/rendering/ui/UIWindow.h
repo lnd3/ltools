@@ -24,6 +24,8 @@ namespace l::ui {
         UIWindow(std::string_view windowName) : mWindowName(windowName), mPopupName(mWindowName + "Popup") {}
         ~UIWindow() = default;
 
+        void SetWindowName(std::string_view windowName);
+
         void Show() override;
         bool IsShowing() override;
 

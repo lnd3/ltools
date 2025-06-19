@@ -149,6 +149,10 @@ namespace l::nodegraph {
             }
         }
 
+        NodeGraphUIData& GetUIData() {
+            return mUiData;
+        }
+
     protected:
         virtual void SetNumInputs(int8_t numInputs);
         virtual void SetNumOutputs(int8_t outputCount);
@@ -169,7 +173,7 @@ namespace l::nodegraph {
         bool mProcessUpdateHasRun = false;
         int32_t mLastTickCount = 0;
 
-        //NodeGraphUIData mUiData;
+        NodeGraphUIData mUiData;
     };
 
     /**********************************************************************************/

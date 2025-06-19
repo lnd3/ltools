@@ -42,6 +42,7 @@ namespace l::ui {
         void Open();
         void Close();
 
+        void SetWindowName(std::string_view windowName);
         void SetNGSchema(l::nodegraph::NodeGraphSchema* ngSchema);
         void SetEventListener(std::function<void(const NodeEvent& event)> cb);
 

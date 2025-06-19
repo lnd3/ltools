@@ -24,6 +24,11 @@ namespace l::ui {
         mOpened = false;
     }
 
+    void UIWindow::SetWindowName(std::string_view windowName) {
+        mWindowName = windowName;
+        mPopupName = mWindowName + "Popup";
+    }
+
     bool UIWindow::IsHovered() {
         return mWindowPtr && mIsHovered;
     }

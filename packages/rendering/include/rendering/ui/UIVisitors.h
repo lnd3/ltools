@@ -27,9 +27,14 @@ namespace l::ui {
         virtual bool Active(UIContainer& container, const InputState& input);
         virtual bool Visit(UIContainer& container, const InputState& input);
         void Reset();
+
+        void SetDragHandler(std::function<void(int32_t containerId, int32_t nodeId, float x, float y)> handler) {
+            mDragHandler = handler;
+        }
     protected:
         bool mDragging = false;
         UIContainer* mSourceContainer = nullptr;
+        std::function<void(int32_t containerId, int32_t nodeId, float x, float y)> mDragHandler = nullptr;
     };
 
     class UIMove : public UIVisitor {

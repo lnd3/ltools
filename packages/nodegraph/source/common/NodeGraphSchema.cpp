@@ -517,6 +517,10 @@ namespace l::nodegraph {
         return false;
     }
 
+    void NodeGraphSchema::ForEachNode(std::function<bool(NodeGraphBase*)> cb) {
+        mMainNodeGraph.ForEachNode(std::move(cb));
+    }
+
     void NodeGraphSchema::ForEachInputNode(std::function<bool(NodeGraphBase*)> cb) {
         mMainNodeGraph.ForEachInputNode(std::move(cb));
     }
