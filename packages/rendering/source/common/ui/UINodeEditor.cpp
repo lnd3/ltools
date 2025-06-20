@@ -307,9 +307,9 @@ namespace l::ui {
                 auto p = ImVec2(uiData.x, uiData.y);
                 auto s = ImVec2(uiData.w, uiData.h);
                 auto uiNode = l::ui::CreateUINode(mUIManager, *node, p);
-                if (s.x > 10.0f && s.y > 10.0f) {
-                    uiNode->SetSize(s);
-                }
+                //if (s.x > 10.0f && s.y > 10.0f) {
+                //    uiNode->SetSize(s);
+                //}
 
                 //LOG(LogInfo) << "Replicated node type " << node->GetTypeId() << " as a ui node";
                 mUIRoot->Add(uiNode);
@@ -328,6 +328,7 @@ namespace l::ui {
                         auto outputNode = input.GetInputNode();
                         auto outputChannel = input.GetInputSrcChannel();
                         auto mLinkContainer = CreateContainer(mUIManager, UIContainer_LinkFlag | UIContainer_DrawFlag, UIRenderType::LinkH);
+                        mLinkContainer->SetColor(l::ui::pastellYellow);
 
                         auto outputContainer = mUIManager.FindNodeId(UIContainer_OutputFlag, outputNode->GetId(), outputChannel);
                         auto inputContainer = mUIManager.FindNodeId(UIContainer_InputFlag, node->GetId(), inputChannel);

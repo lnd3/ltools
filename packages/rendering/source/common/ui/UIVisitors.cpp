@@ -390,7 +390,7 @@ namespace l::ui {
             nameEnd = container.GetStringId().data() + container.GetStringId().size();
             mDrawList->AddText(p1, color, nameStart, nameEnd);
         }
-
+        
         switch (container.GetRenderData().mType) {
         case l::ui::UIRenderType::Rect:
         case l::ui::UIRenderType::RectFilled:
@@ -399,7 +399,7 @@ namespace l::ui {
             if (container.HasConfigFlag(UIContainer_SelectFlag) && container.HasNotification(UIContainer_SelectFlag)) {
                 auto p1cpy = ImVec2(p1.x - 1.0f, p1.y - 1.0f);
                 auto p2cpy = ImVec2(p2.x + 1.0f, p2.y + 1.0f);
-                mDrawList->AddRect(p1cpy, p2cpy, ImColor(ImVec4(0.7f, 1.0f, 1.0f, 1.0f)), 0.0f, 0, 1.0f);
+                mDrawList->AddRect(p1cpy, p2cpy, mSelectColor, 0.0f, 0, 1.0f);
             }
             if (container.HasConfigFlag(ui::UIContainer_ResizeFlag)) {
                 float size = 3.0f * layoutArea.mScale;
@@ -453,6 +453,7 @@ namespace l::ui {
                 if (OverlapCircle(input.mCurPos, pT, 2.0f * size.x * layoutArea.mScale)) {
                     mDragging = true;
                     mLinkContainer = CreateContainer(mUIManager, UIContainer_LinkFlag | UIContainer_DrawFlag, UIRenderType::LinkH);
+                    mLinkContainer->SetColor(mColorLink);
                     outputContainer.Add(mLinkContainer);
                     return true;
                 }

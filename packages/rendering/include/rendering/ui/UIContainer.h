@@ -10,6 +10,16 @@
 
 namespace l::ui {
 
+    constexpr ImVec4 darkBlack = ImVec4(15.0f / 255.0f, 15.0f / 255.0f, 15.0f / 255.0f, 1.0f); // background
+    constexpr ImVec4 darkGrey = ImVec4(38.0f / 255.0f, 38.0f / 255.0f, 38.0f / 255.0f, 1.0f); // node background
+    constexpr ImVec4 darkBlue = ImVec4(17.0f / 255.0f, 26.0f / 255.0f, 37.0f / 255.0f, 1.0f); // unselected tabs
+    constexpr ImVec4 mediumBlue = ImVec4(27.0f / 255.0f, 47.0f / 255.0f, 73.0f / 255.0f, 1.0f); // selected tabs and ui element background
+    constexpr ImVec4 lightBlue = ImVec4(61.0f / 255.0f, 133.0f / 255.0f, 224.0f / 255.0f, 1.0f); // interactive ui elements
+    constexpr ImVec4 brightYellow = ImVec4(147.0f / 255.0f, 232.0f / 255.0f, 102.0f / 255.0f, 1.0f); // selection?
+    constexpr ImVec4 pastellYellow = ImVec4(204.0f / 255.0f, 185.0f / 255.0f, 116.0f / 255.0f, 0.25f); // links?
+    constexpr ImVec4 brightWhite = ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // text
+    constexpr ImVec4 mediumWhite = ImVec4(0.6f, 0.6f, 0.6f, 1.0f); // text data
+
     enum class UIAlignH {
         Left = 0,
         Center = 1,
@@ -88,9 +98,9 @@ namespace l::ui {
 
     struct ContainerArea {
         ImVec2 mPosition;
-        ImVec2 mSize = ImVec2(20.0f, 20.0f);
+        ImVec2 mSize = ImVec2(20.0f, 16.0f);
         float mScale = 1.0f;
-        float mMargin = 3.0f;
+        float mMargin = 2.0f;
 
         UILayoutData mLayout;
         UIRenderData mRender;

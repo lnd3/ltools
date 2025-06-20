@@ -117,11 +117,14 @@ namespace l::ui {
         void SetDrawLineHandler(std::function<void(int32_t, int8_t, ImVec2, ImVec2, float, ImU32, ImDrawList*)> handler) {
             mDrawLineHandler = handler;
         }
-
+        void SetColorSelect(ImVec4 color) {
+            mSelectColor = ImColor(color);
+        }
     protected:
         ImDrawList* mDrawList;
         std::function<void(int32_t, int8_t, ImVec2, float, ImU32, ImDrawList*)> mDrawChannelTextHandler = nullptr;
         std::function<void(int32_t, int8_t, ImVec2, ImVec2, float, ImU32, ImDrawList*)> mDrawLineHandler = nullptr;
+        ImColor mSelectColor = ImColor(darkGrey);
     };
 
     class UILinkIO : public UIVisitor {
@@ -137,11 +140,15 @@ namespace l::ui {
         void SetLinkHandler(std::function<bool(int32_t linkInputId, int32_t linkOutputId, int32_t inputChannel, int32_t outputChannel, bool connected)> handler) {
             mLinkHandler = handler;
         }
+        void SetColorLink(ImVec4 color) {
+            mColorLink = ImColor(color);
+        }
     protected:
         bool mDragging = false;
         UIHandle mLinkContainer;
         UIManager& mUIManager;
         std::function<bool(int32_t linkInputId, int32_t linkOutputId, int32_t inputChannel, int32_t outputChannel, bool connected)> mLinkHandler = nullptr;
+        ImColor mColorLink = ImColor(pastellYellow);
     };
 
 }
