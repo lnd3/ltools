@@ -57,9 +57,9 @@ namespace l::nodegraph {
             mInputNode = other.mInputNode;
             mOutputNode = other.mOutputNode;
 
-            mNodes = other.mNodes;
-            mOutputNodes = other.mOutputNodes;
-            mInputNodes = other.mInputNodes;
+            mNodes = std::move(other.mNodes);
+            mOutputNodes = std::move(other.mOutputNodes);
+            mInputNodes = std::move(other.mInputNodes);
 
             mLastTickCount = other.mLastTickCount;
             mIds = other.mIds;
