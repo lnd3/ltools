@@ -153,6 +153,7 @@ namespace l::nodegraph {
             return mStringId;
         }
 
+        void Unload();
         bool Load(std::filesystem::path file);
         bool Save(std::filesystem::path file, bool cloneOnly = false);
 

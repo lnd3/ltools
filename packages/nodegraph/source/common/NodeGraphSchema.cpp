@@ -44,6 +44,19 @@ namespace l::nodegraph {
         return true;
     }
 
+    void NodeGraphSchema::Unload() {
+        mMainNodeGraph.Reset();
+
+        mVersionMajor = 0;
+        mVersionMinor = 0;
+
+        mName.clear();
+        mTypeName.clear();
+        mFileName.clear();
+        mFullPath.clear();
+        mStringId = 0;
+    }
+
     bool NodeGraphSchema::Load(std::filesystem::path file) {
         if (!file.has_filename() || !std::filesystem::exists(file)) {
             LOG(LogError) << "Failed to load schema: the file does not exist";

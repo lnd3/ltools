@@ -24,7 +24,7 @@ namespace l::ui {
     }
 
     void UINodeEditor::Init() {
-        mUIWindow.SetContentWindow([&]() {
+        mUIWindow.SetContentWindow([&](UIWindow&) {
             ImGui::PushItemWidth(400);
 
             UIUpdate updateVisitor;
@@ -35,6 +35,10 @@ namespace l::ui {
             mUIRoot->Accept(mDrawVisitor, mUIInput, l::ui::UITraversalMode::BFS);
 
             ImGui::PopItemWidth();
+
+            if (mOverlayContentWindow) {
+                mOverlayContentWindow(*this);
+            }
 
             });
 
@@ -231,11 +235,11 @@ namespace l::ui {
             }
             });
 
-        mMoveVisitor.SetMoveHandler([&](int32_t containerId, int32_t nodeId, float x, float y) {
+        mMoveVisitor.SetMoveHandler([&](int32_t, int32_t nodeId, float x, float y) {
             if (mNGSchema == nullptr) {
                 return;
             }
-            LOG(LogInfo) << "Container " << containerId << " moved to " << x << ", " << y;
+            //LOG(LogInfo) << "Container " << containerId << " moved to " << x << ", " << y;
             auto node = mNGSchema->GetNode(nodeId);
             if (node != nullptr) {
                 auto& uiData = node->GetUIData();
@@ -244,11 +248,11 @@ namespace l::ui {
             }
             });
 
-        mResizeVisitor.SetResizeHandler([&](int32_t containerId, int32_t nodeId, float w, float h) {
+        mResizeVisitor.SetResizeHandler([&](int32_t, int32_t nodeId, float w, float h) {
             if (mNGSchema == nullptr) {
                 return;
             }
-            LOG(LogInfo) << "Container " << containerId << " resized to " << w << ", " << h;
+            //LOG(LogInfo) << "Container " << containerId << " resized to " << w << ", " << h;
             auto node = mNGSchema->GetNode(nodeId);
             if (node != nullptr) {
                 auto& uiData = node->GetUIData();
@@ -294,6 +298,10 @@ namespace l::ui {
 
     }
 
+    void UINodeEditor::SetOverlayContentWindow(std::function<void(UINodeEditor&)> action) {
+        mOverlayContentWindow = action;
+    }
+
     void UINodeEditor::SetNGSchema(l::nodegraph::NodeGraphSchema* ngSchema) {
         if (ngSchema == nullptr) {
             return;
@@ -313,11 +321,10 @@ namespace l::ui {
             ngSchema->SetFileName("schema.json");
         }
         mUIWindow.SetWindowName(ngSchema->GetFileName());
-        mUIManager.Reset();
         if (mUIRoot.IsValid()) {
             mUIRoot->RemoveAll();
         }
-
+        mUIManager.Reset();
         mUIRoot = CreateContainer(mUIManager, l::ui::UIContainer_DragFlag | l::ui::UIContainer_ZoomFlag);
 
         mNGSchema = ngSchema;

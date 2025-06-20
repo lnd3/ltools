@@ -29,7 +29,7 @@ namespace l::ui {
         void Show() override;
         bool IsShowing() override;
 
-        void SetContentWindow(std::function<void()> action);
+        void SetContentWindow(std::function<void(UIWindow&)> action);
         void SetPointerPopup(std::function<void()> popup);
 
         void Open();
@@ -46,7 +46,7 @@ namespace l::ui {
         bool mOpened = false; 
         bool mIsHovered = false;
         bool mIsFocused = false;
-        std::function<void()> mWindowFunction = nullptr;
+        std::function<void(UIWindow&)> mWindowFunction = nullptr;
         std::function<void()> mPointerPopupMenu = nullptr;
         bool mPopupOpen = false;
 

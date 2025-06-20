@@ -43,6 +43,7 @@ namespace l::ui {
         void Close();
 
         void SetWindowName(std::string_view windowName);
+        void SetOverlayContentWindow(std::function<void(UINodeEditor&)> action);
         void SetNGSchema(l::nodegraph::NodeGraphSchema* ngSchema);
         void SetEventListener(std::function<void(const NodeEvent& event)> cb);
 
@@ -65,5 +66,6 @@ namespace l::ui {
         l::nodegraph::NodeGraphSchema* mNGSchema = nullptr;
 
         std::vector<std::function<void(const NodeEvent&)>> mEventListeners;
+        std::function<void(UINodeEditor&)> mOverlayContentWindow = nullptr;
     };
 }

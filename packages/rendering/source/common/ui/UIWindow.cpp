@@ -8,7 +8,7 @@ namespace l::ui {
         return mWindowPtr && mOpened;
     }
 
-    void UIWindow::SetContentWindow(std::function<void()> action) {
+    void UIWindow::SetContentWindow(std::function<void(UIWindow&)> action) {
         mWindowFunction = action;
     }
 
@@ -49,7 +49,7 @@ namespace l::ui {
             mIsFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_NoPopupHierarchy);
 
             if (mWindowPtr && mWindowFunction) {
-                mWindowFunction();
+                mWindowFunction(*this);
             }
 
             if (mPointerPopupMenu) {
