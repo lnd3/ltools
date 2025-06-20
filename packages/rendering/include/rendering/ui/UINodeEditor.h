@@ -53,8 +53,6 @@ namespace l::ui {
         UIHandle mUIRoot;
         InputState mUIInput;
 
-        l::nodegraph::NodeGraphSchema* mNGSchema = nullptr;
-
         UIDraw mDrawVisitor;
         UILinkIO mLinkIOVisitor;
         UISelect mSelectVisitor;
@@ -63,6 +61,8 @@ namespace l::ui {
         UIMove mMoveVisitor;
         UIResize mResizeVisitor;
         UIEdit mEditVisitor;
+
+        l::nodegraph::NodeGraphSchema* mNGSchema = nullptr;
 
         std::vector<std::function<void(const NodeEvent&)>> mEventListeners;
     };

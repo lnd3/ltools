@@ -240,6 +240,10 @@ namespace l::ui {
         return false;
     }
 
+    void UISelect::Reset() {
+        mSelectedContainers.clear();
+    }
+
     /***********************************************************************************/
     bool UIEdit::Visit(UIContainer& container, const InputState& input) {
         if (!container.HasConfigFlag(UIContainer_EditFlag)) {
@@ -267,6 +271,11 @@ namespace l::ui {
             return mEditing;
         }
         return false;
+    }
+
+    void UIEdit::Reset() {
+        mEditing = false;
+        mSourceContainer = nullptr;
     }
 
     /***********************************************************************************/
@@ -534,6 +543,14 @@ namespace l::ui {
             }
         }
         return false;
+    }
+
+    void UILinkIO::Reset() {
+        if (mLinkContainer.IsValid()) {
+            DeleteContainer(mUIManager, mLinkContainer.Get());
+        }
+        mDragging = false;
+        mLinkContainer.Reset();
     }
 
 }

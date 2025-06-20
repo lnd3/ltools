@@ -285,6 +285,10 @@ namespace l::ui {
         return false;
     }
 
+    void UIManager::Reset() {
+        mContainers.clear();
+    }
+
     UIHandle UIManager::Add(std::unique_ptr<UIContainer> container) {
         auto id = mIdCounter++;
         auto stringId = container->GetStringId();

@@ -26,7 +26,7 @@ namespace l::ui {
     public:
         virtual bool Active(UIContainer& container, const InputState& input);
         virtual bool Visit(UIContainer& container, const InputState& input);
-        void Reset();
+        virtual void Reset();
 
         void SetDragHandler(std::function<void(int32_t containerId, int32_t nodeId, float x, float y)> handler) {
             mDragHandler = handler;
@@ -41,7 +41,7 @@ namespace l::ui {
     public:
         virtual bool Active(UIContainer& container, const InputState& input);
         virtual bool Visit(UIContainer& container, const InputState& input);
-        void Reset();
+        virtual void Reset();
 
         void SetMoveHandler(std::function<void(int32_t containerId, int32_t nodeId, float x, float y)> handler) {
             mMoveHandler = handler;
@@ -55,7 +55,7 @@ namespace l::ui {
     class UIResize : public UIVisitor {
     public:
         virtual bool Visit(UIContainer& container, const InputState& input);
-        void Reset();
+        virtual void Reset();
 
         void SetResizeHandler(std::function<void(int32_t containerId, int32_t nodeId, float width, float height)> handler) {
             mResizeHandler = handler;
@@ -71,6 +71,7 @@ namespace l::ui {
         UISelect(UIManager& uiManager) : mUIManager(uiManager) {}
 
         virtual bool Visit(UIContainer& container, const InputState& input);
+        virtual void Reset();
 
         void SetDeleteHandler(std::function<void(int32_t, int32_t)> handler) {
             mDeleteHandler = handler;
@@ -88,6 +89,7 @@ namespace l::ui {
     class UIEdit : public UIVisitor {
     public:
         virtual bool Visit(UIContainer& container, const InputState& input);
+        virtual void Reset();
 
         void SetEditHandler(std::function<void(int32_t nodeId, int8_t channelId, float dx, float dy)> handler) {
             mEditHandler = handler;
@@ -136,6 +138,7 @@ namespace l::ui {
 
         virtual bool Active(UIContainer& container, const InputState& input);
         virtual bool Visit(UIContainer& container, const InputState& input);
+        virtual void Reset();
 
         void SetLinkHandler(std::function<bool(int32_t linkInputId, int32_t linkOutputId, int32_t inputChannel, int32_t outputChannel, bool connected)> handler) {
             mLinkHandler = handler;

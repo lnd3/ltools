@@ -128,6 +128,12 @@ namespace l::nodegraph {
         void SetTypeName(std::string_view typeName) {
             mTypeName = typeName;
         }
+        void SetFileName(std::string_view fileName) {
+            mFileName = fileName;
+        }
+        void SetFullPath(std::string_view fullPath) {
+            mFullPath = fullPath;
+        }
         std::string_view GetName() {
             return mName;
         }

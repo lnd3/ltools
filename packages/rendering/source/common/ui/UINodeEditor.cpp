@@ -24,8 +24,6 @@ namespace l::ui {
     }
 
     void UINodeEditor::Init() {
-        mUIRoot = CreateContainer(mUIManager, l::ui::UIContainer_DragFlag | l::ui::UIContainer_ZoomFlag);
-
         mUIWindow.SetContentWindow([&]() {
             ImGui::PushItemWidth(400);
 
@@ -297,10 +295,32 @@ namespace l::ui {
     }
 
     void UINodeEditor::SetNGSchema(l::nodegraph::NodeGraphSchema* ngSchema) {
-        mUIRoot->RemoveAll();
+        if (ngSchema == nullptr) {
+            return;
+        }
+
+        mDrawVisitor.Reset();
+        mLinkIOVisitor.Reset();
+        mSelectVisitor.Reset();
+        mZoomVisitor.Reset();
+        mDragVisitor.Reset();
+        mMoveVisitor.Reset();
+        mResizeVisitor.Reset();
+        mEditVisitor.Reset();
+
+        auto editorName = ngSchema->GetFileName();
+        if (editorName.empty()) {
+            ngSchema->SetFileName("schema.json");
+        }
+        mUIWindow.SetWindowName(ngSchema->GetFileName());
+        mUIManager.Reset();
+        if (mUIRoot.IsValid()) {
+            mUIRoot->RemoveAll();
+        }
+
+        mUIRoot = CreateContainer(mUIManager, l::ui::UIContainer_DragFlag | l::ui::UIContainer_ZoomFlag);
 
         mNGSchema = ngSchema;
-
         mNGSchema->ForEachNode([&](nodegraph::NodeGraphBase* node) {
             if (node != nullptr) {
                 auto& uiData = node->GetUIData();

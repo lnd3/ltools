@@ -223,6 +223,7 @@ namespace l::ui {
         virtual bool ShouldUpdateContainer() {
             return false;
         }
+        virtual void Reset() {}
 
     protected:
         bool mDebug = false;
@@ -421,6 +422,7 @@ namespace l::ui {
         UIManager() = default;
         ~UIManager() = default;
 
+        void Reset();
         UIHandle Add(std::unique_ptr<UIContainer> container);
         void Remove(const UIHandle& handle);
         void Remove(UIContainer* container);
