@@ -26,30 +26,23 @@ namespace l::ui {
         int32_t mNodeId = 0;
     };
 
-    class UINodeEditor : public UIBase {
+    class UINodeEditor : public UIWindow {
     public:
-        UINodeEditor(std::string_view editorName) : mUIWindow(editorName), mLinkIOVisitor(mUIManager), mSelectVisitor(mUIManager) {
+        UINodeEditor(std::string_view editorName) : UIWindow(editorName), mLinkIOVisitor(mUIManager), mSelectVisitor(mUIManager) {
             Init();
         }
         ~UINodeEditor() = default;
 
         void Init();
 
-        void Show() override;
-        bool IsShowing() override;
         void Update(double, float) override;
 
-        void Open();
-        void Close();
-
-        void SetWindowName(std::string_view windowName);
         void SetOverlayContentWindow(std::function<void(UINodeEditor&)> action);
         void SetNGSchema(l::nodegraph::NodeGraphSchema* ngSchema);
         void SetEventListener(std::function<void(const NodeEvent& event)> cb);
 
         l::nodegraph::NodeGraphSchema* GetNGSchema();
     protected:
-        UIWindow mUIWindow;
         UIManager mUIManager;
         UIHandle mUIRoot;
         InputState mUIInput;

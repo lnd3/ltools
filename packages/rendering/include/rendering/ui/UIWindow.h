@@ -5,25 +5,19 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 
+#include <rendering/ui/UIBase.h>
+
 #include <functional>
+#include <string_view>
 
 namespace l::ui {
 
-    class UIBase {
-    public:
-        UIBase() = default;
-        virtual ~UIBase() = default;
-
-        virtual void Show() = 0;
-        virtual bool IsShowing() = 0;
-        virtual void Update(double, float) {}
-    };
-
-    class UIWindow final : public UIBase {
+    class UIWindow : public UIBase {
     public:
         UIWindow(std::string_view windowName) : mWindowName(windowName), mPopupName(mWindowName + "Popup") {}
         ~UIWindow() = default;
 
+        std::string_view GetWindowName() const;
         void SetWindowName(std::string_view windowName);
 
         void Show() override;

@@ -24,13 +24,17 @@ namespace l::ui {
     }
 
     void UINodeEditor::Init() {
-        mUIWindow.SetContentWindow([&](UIWindow&) {
+        SetContentWindow([&](UIWindow&) {
             ImGui::PushItemWidth(400);
+
+            if (mNGSchema == nullptr) {
+                return;
+            }
 
             UIUpdate updateVisitor;
             mDrawVisitor.SetDrawList(ImGui::GetWindowDrawList());
-            mUIRoot->SetLayoutSize(mUIWindow.GetSize());
-            mUIRoot->SetLayoutPosition(mUIWindow.GetPosition());
+            mUIRoot->SetLayoutSize(GetSize());
+            mUIRoot->SetLayoutPosition(GetPosition());
             mUIRoot->Accept(updateVisitor, mUIInput, l::ui::UITraversalMode::BFS);
             mUIRoot->Accept(mDrawVisitor, mUIInput, l::ui::UITraversalMode::BFS);
 
@@ -42,7 +46,7 @@ namespace l::ui {
 
             });
 
-        mUIWindow.SetPointerPopup([&]() {
+        SetPointerPopup([&]() {
             ImGui::Text("Node picker");
             ImGui::Separator();
 
@@ -53,7 +57,7 @@ namespace l::ui {
             std::vector<std::string> path;
             depthFirstTraversal(mNGSchema->GetPickerRoot(), path, [&](std::string_view menuName, int32_t menuId) {
                 if (!menuName.empty() && ImGui::MenuItem(menuName.data())) {
-                    ImVec2 p = ImVec2(mUIInput.mCurPos.x - mUIWindow.GetPosition().x, mUIInput.mCurPos.y - mUIWindow.GetPosition().y);
+                    ImVec2 p = ImVec2(mUIInput.mCurPos.x - GetPosition().x, mUIInput.mCurPos.y - GetPosition().y);
                     p.x -= mUIRoot->GetPosition().x;
                     p.y -= mUIRoot->GetPosition().y;
                     p.x /= mUIRoot->GetScale();
@@ -277,27 +281,6 @@ namespace l::ui {
 
     }
 
-    bool UINodeEditor::IsShowing() {
-        return mUIWindow.IsShowing();
-    }
-
-    void UINodeEditor::Show() {
-        mUIWindow.Show();
-    }
-
-    void UINodeEditor::Open() {
-        mUIWindow.Open();
-    }
-
-    void UINodeEditor::Close() {
-        mUIWindow.Close();
-    }
-
-    void UINodeEditor::SetWindowName(std::string_view windowName) {
-        mUIWindow.SetWindowName(windowName);
-
-    }
-
     void UINodeEditor::SetOverlayContentWindow(std::function<void(UINodeEditor&)> action) {
         mOverlayContentWindow = action;
     }
@@ -306,6 +289,8 @@ namespace l::ui {
         if (ngSchema == nullptr) {
             return;
         }
+
+        mNGSchema = ngSchema;
 
         mDrawVisitor.Reset();
         mLinkIOVisitor.Reset();
@@ -316,18 +301,20 @@ namespace l::ui {
         mResizeVisitor.Reset();
         mEditVisitor.Reset();
 
-        auto editorName = ngSchema->GetFileName();
+        auto editorName = mNGSchema->GetFileName();
         if (editorName.empty()) {
-            ngSchema->SetFileName("schema.json");
+            mNGSchema->SetFileName("schema.json");
         }
-        mUIWindow.SetWindowName(ngSchema->GetFileName());
+        else {
+            SetWindowName(editorName);
+        }
+
         if (mUIRoot.IsValid()) {
             mUIRoot->RemoveAll();
         }
         mUIManager.Reset();
         mUIRoot = CreateContainer(mUIManager, l::ui::UIContainer_DragFlag | l::ui::UIContainer_ZoomFlag);
 
-        mNGSchema = ngSchema;
         mNGSchema->ForEachNode([&](nodegraph::NodeGraphBase* node) {
             if (node != nullptr) {
                 auto& uiData = node->GetUIData();
@@ -388,7 +375,7 @@ namespace l::ui {
 
     void UINodeEditor::Update(double, float) {
 
-        if (mUIWindow.IsShowing()) {
+        if (IsShowing()) {
             ImGuiIO& io = ImGui::GetIO();
             io.ConfigWindowsMoveFromTitleBarOnly = true;
 
@@ -399,7 +386,7 @@ namespace l::ui {
             mUIInput.mStarted = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
             mUIInput.mStopped = ImGui::IsMouseReleased(ImGuiMouseButton_Left);
 
-            if (mUIWindow.IsHovered()) {
+            if (IsHovered()) {
                 if (mUIRoot->Accept(mLinkIOVisitor, mUIInput, l::ui::UITraversalMode::DFS)) {
                 }
                 else if (mUIRoot->Accept(mEditVisitor, mUIInput, l::ui::UITraversalMode::DFS)) {

@@ -24,6 +24,10 @@ namespace l::ui {
         mOpened = false;
     }
 
+    std::string_view UIWindow::GetWindowName() const {
+        return mWindowName;
+    }
+
     void UIWindow::SetWindowName(std::string_view windowName) {
         mWindowName = windowName;
         mPopupName = mWindowName + "Popup";
