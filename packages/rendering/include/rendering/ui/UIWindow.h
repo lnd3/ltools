@@ -17,16 +17,16 @@ namespace l::ui {
         UIWindow(std::string_view windowName) : mWindowName(windowName), mPopupName(mWindowName + "Popup") {}
         ~UIWindow() = default;
 
-        std::string_view GetWindowName() const;
-        void SetWindowName(std::string_view windowName);
-
+        void Open() override;
         void Show() override;
         bool IsShowing() override;
+        std::string_view GetName() const;
+
+        void SetName(std::string_view windowName);
 
         void SetContentWindow(std::function<void(UIWindow&)> action);
         void SetPointerPopup(std::function<void()> popup);
 
-        void Open();
         void Close();
         bool IsHovered();
         ImVec2 GetPosition();

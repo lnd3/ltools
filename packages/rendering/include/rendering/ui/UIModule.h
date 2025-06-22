@@ -2,11 +2,9 @@
 
 #include <string_view>
 
-#include <rendering/ui/UIBase.h>
-
 namespace l::ui {
 
-    class UIModule : public UIBase {
+    class UIModule {
     public:
         UIModule() = default;
         virtual ~UIModule() = default;

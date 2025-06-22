@@ -286,12 +286,6 @@ namespace l::ui {
     }
 
     void UINodeEditor::SetNGSchema(l::nodegraph::NodeGraphSchema* ngSchema) {
-        if (ngSchema == nullptr) {
-            return;
-        }
-
-        mNGSchema = ngSchema;
-
         mDrawVisitor.Reset();
         mLinkIOVisitor.Reset();
         mSelectVisitor.Reset();
@@ -301,18 +295,26 @@ namespace l::ui {
         mResizeVisitor.Reset();
         mEditVisitor.Reset();
 
+        if (mUIRoot.IsValid()) {
+            mUIRoot->RemoveAll();
+        }
+        mUIRoot.Reset();
+        mUIManager.Reset();
+
+        if (ngSchema == nullptr) {
+            SetName("");
+            return;
+        }
+
+        mNGSchema = ngSchema;
+
         auto editorName = mNGSchema->GetFileName();
         if (editorName.empty()) {
             mNGSchema->SetFileName("schema.json");
         }
-        else {
-            SetWindowName(editorName);
-        }
 
-        if (mUIRoot.IsValid()) {
-            mUIRoot->RemoveAll();
-        }
-        mUIManager.Reset();
+        SetName(mNGSchema->GetFileName());
+
         mUIRoot = CreateContainer(mUIManager, l::ui::UIContainer_DragFlag | l::ui::UIContainer_ZoomFlag);
 
         mNGSchema->ForEachNode([&](nodegraph::NodeGraphBase* node) {
