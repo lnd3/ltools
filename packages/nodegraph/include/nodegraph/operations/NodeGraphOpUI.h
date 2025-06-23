@@ -86,10 +86,10 @@ namespace l::nodegraph {
         l::string::string_buffer<64> mOutputText;
     };
     /*********************************************************************/
-    class GraphUIChartLine : public NodeGraphOp {
+    class GraphUIChartLine : public NodeGraphOpCached {
     public:
         GraphUIChartLine(NodeGraphBase* node) :
-            NodeGraphOp(node, "Chart Lines")
+            NodeGraphOpCached(node, "Chart Lines")
         {
             AddInput2("x", 1, InputFlags(false, false, false, false));
             AddInput2("y", 1, InputFlags(false, false, false, false));
@@ -103,11 +103,8 @@ namespace l::nodegraph {
             mNode->SetInput(2, "Chart Lines");
         }
         virtual void Reset() override;
-        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-
-        int32_t GetNumSamplesLeft();
+        virtual void ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
-        int32_t mWrittenSamples = 0;
         int32_t mLatestUnixtime = 0;
     };
 

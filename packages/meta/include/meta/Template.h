@@ -12,5 +12,8 @@ namespace meta{
 
 	template<class T>
 	using enable_if_floating_point_t = std::enable_if_t<std::is_floating_point_v<T>>;
+
+	template<typename V, typename T>
+	concept DerivedFrom = std::derived_from<V, T>;
 }
 }

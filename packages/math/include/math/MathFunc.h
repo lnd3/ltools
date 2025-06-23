@@ -262,12 +262,12 @@ namespace l::math::functions {
 
 	template <class T>
 	auto samesign(T a, T b) {
-		return a * b >= static_cast<T>(0.0);
+		return a * b >= static_cast<T>(0.0) ? 1.0f : -1.0f;
 	}
 
 	template <class T>
 	auto sign(T a) {
-		return a >= static_cast<T>(0.0);
+		return a >= static_cast<T>(0.0) ? 1.0f : -1.0f;
 	}
 
 	template<class T>

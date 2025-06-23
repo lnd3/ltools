@@ -37,6 +37,7 @@ namespace l::ui {
                 theUI = p;
                 return false;
             }
+            return true;
             });
         return theUI;
     }

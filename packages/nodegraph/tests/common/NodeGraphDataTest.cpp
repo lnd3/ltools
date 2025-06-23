@@ -157,7 +157,7 @@ TEST(NodeGraphData, CandleStickData) {
             *in++ = static_cast<float>(i);
         }
     }
-    node0.NodeHasChanged(20);
+    node0.NodeHasChanged();
 
     for (int j = 0; j < 5; j++) {
         node1.ClearProcessFlags();

@@ -99,69 +99,41 @@ namespace l::nodegraph {
     }
     /*********************************************************************/
     void GraphUIChartLine::Reset() {
-        mNode->ForEachInput(
-            [&](NodeGraphInput& input) {
-                if (input.HasInputNode() && input.GetInputNode()->IsOutOfDate()) {
-                    mInputHasChanged = true;
-                    mWrittenSamples = 0;
-                }
-            });
+        if (mNode->IsOutOfDate2()) {
+            mInputHasChanged = true;
+            mWrittenSamples = 0;
+            mLatestUnixtime = 0;
+        }
     }
 
-    int32_t GraphUIChartLine::GetNumSamplesLeft() {
-        return mWrittenSamples;
-    }
-
-    void GraphUIChartLine::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphUIChartLine::ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         int32_t mChannels = 2;
-
-        if (numSamples > numCacheSamples) {
-            numCacheSamples = numSamples;
-        }
-
-        if (!mInputHasChanged) {
-            for (auto& in : inputs) {
-                if (in.HasInputNode() && in.GetInputNode()->IsOutOfDate()) {
-                    mInputHasChanged = true;
-                    mWrittenSamples = 0;
-                    mLatestUnixtime = 0;
-                }
-            }
-        }
 
         outputs.at(0).MinimizeBuffer(numCacheSamples * mChannels);
         float* out = &outputs.at(0).Get(numCacheSamples * mChannels);
 
-        if (mWrittenSamples < numCacheSamples) {
-            float* input[2];
-            for (int32_t j = 0; j < mChannels; j++) {
-                input[j] = &inputs.at(j).Get(numSamples);
-            }
-            auto buf = out + mWrittenSamples * mChannels;
-            int32_t j = 0;
-            for (j = 0; j < numSamples; j++) {
-                auto unixtimef = *input[0];
-                auto unixtime = l::math::algorithm::convert<int32_t>(unixtimef);
-                if (unixtimef == 0.0f || mLatestUnixtime >= unixtime) {
-                    mLatestUnixtime = unixtime;
-                    break;
-                }
-                mLatestUnixtime = unixtime;
-                for (int32_t i = 0; i < mChannels; i++) {
-                    *buf++ = *input[i]++;
-                }
-            }
-            for (; j < numSamples; j++) {
-                for (int32_t i = 0; i < mChannels; i++) {
-                    *buf++ = 0.0f;
-                }
-            }
-
-            mWrittenSamples += numSamples;
+        float* input[2];
+        for (int32_t j = 0; j < mChannels; j++) {
+            input[j] = &inputs.at(j).Get(numSamples);
         }
-
-        if (mWrittenSamples >= numCacheSamples) {
-            mInputHasChanged = false;
+        auto buf = out + writtenSamples * mChannels;
+        int32_t j = 0;
+        for (j = 0; j < numSamples; j++) {
+            auto unixtimef = *input[0];
+            auto unixtime = l::math::algorithm::convert<int32_t>(unixtimef);
+            if (unixtimef == 0.0f || mLatestUnixtime >= unixtime) {
+                mLatestUnixtime = unixtime;
+                break;
+            }
+            mLatestUnixtime = unixtime;
+            for (int32_t i = 0; i < mChannels; i++) {
+                *buf++ = *input[i]++;
+            }
+        }
+        for (; j < numSamples; j++) {
+            for (int32_t i = 0; i < mChannels; i++) {
+                *buf++ = 0.0f;
+            }
         }
     }
 
@@ -170,7 +142,7 @@ namespace l::nodegraph {
 
         if (!mInputHasChanged) {
             for (auto& in : inputs) {
-                if (in.HasInputNode() && in.GetInputNode()->IsOutOfDate()) {
+                if (in.HasInputNode() && in.GetInputNode()->IsOutOfDate2()) {
                     mInputHasChanged = true;
                     mWrittenSamples = 0;
                     mLatestUnixtime = 0;

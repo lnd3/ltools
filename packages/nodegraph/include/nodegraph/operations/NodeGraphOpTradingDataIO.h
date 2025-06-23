@@ -54,11 +54,9 @@ namespace l::nodegraph {
         }
         virtual ~TradingDataIOOCHLVDataIn() = default;
 
-        virtual void InputHasChanged(int32_t numSamplesWritten) override;
+        virtual void InputHasChanged() override;
         virtual void Reset() override;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-
-        int32_t GetNumSamplesLeft();
     protected:
 		int32_t mMode = 0; // 0 - ochlv, 1 - heikin-ashi
 

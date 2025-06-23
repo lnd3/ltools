@@ -46,22 +46,24 @@ namespace l::nodegraph {
         }
     }
 
+    bool NodeGraphBase::IsProcessed() {
+        return mProcessUpdateHasRun;
+    }
+
     void NodeGraphBase::ProcessSubGraph(int32_t numSamples, int32_t numCacheSamples, bool recomputeSubGraphCache) {
         if (recomputeSubGraphCache) {
             ClearProcessFlags();
         }
-        ProcessOperation(numSamples, numCacheSamples);
+        ProcessNode(numSamples, numCacheSamples);
     }
 
-    void NodeGraphBase::ProcessOperation(int32_t numSamples, int32_t numCacheSamples) {
-        if (mProcessUpdateHasRun) {
+    void NodeGraphBase::ProcessNode(int32_t numSamples, int32_t numCacheSamples) {
+        if (IsProcessed()) {
             return;
         }
-        for (auto& link : mInputs) {
-            if (link.HasInputNode() && link.GetInputNode() != this) {
-                link.GetInputNode()->ProcessOperation(numSamples, numCacheSamples);
-            }
-        }
+
+        GetOperation()->ProcessOperation(numSamples, numCacheSamples, mInputs, mOutputs);
+
         mProcessUpdateHasRun = true;
     }
 
@@ -238,12 +240,32 @@ namespace l::nodegraph {
         return mOutputs.at(outputChannel).IsPolled();
     }
 
-    bool NodeGraphBase::IsOutOfDate() {
-        return GetOperation()->HasInputChanged();
+    void NodeGraphBase::NodeHasChanged() {
+        GetOperation()->InputHasChanged();
     }
 
-    void NodeGraphBase::NodeHasChanged(int32_t samplesWritten) {
-        GetOperation()->InputHasChanged(samplesWritten);
+    bool NodeGraphBase::IsOutOfDate2() {
+        bool hasChanged = false;
+        if (!mProcessUpdateHasRun) {
+            // if the node's process operation has not already been run (by another node link)
+            // we can check if the node inputs has changed 
+            // (after which we should also run there process operations)
+            for (auto& in : mInputs) {
+                if (in.HasInputNode() && in.GetInputNode()->IsOutOfDate2()) {
+                    hasChanged = true;
+                    // if any node inputs has changed, then this node has also changed
+                    GetOperation()->InputHasChanged();
+                }
+            }
+        }
+
+        // if the nodes process operation has already run, we should only check this nodes
+        // change state
+        if (GetOperation()->HasInputChanged()) {
+            // if this node has changed, but no input nodes has changed, we must set it to changed manually
+            hasChanged = true;
+        }
+        return hasChanged;
     }
 
     NodeType NodeGraphBase::GetOutputType() {
@@ -285,7 +307,7 @@ namespace l::nodegraph {
         return mNumOutputs;
     }
 
-    void NodeGraphOp::InputHasChanged(int32_t) {
+    void NodeGraphOp::InputHasChanged() {
         mInputHasChanged = true;
     }
 
@@ -400,6 +422,66 @@ namespace l::nodegraph {
         mDefaultOutStrings.push_back(std::string(name));
         mDefaultOutData.push_back({ 0.0f, minSize, flags });
         return static_cast<int32_t>(mDefaultOutData.size() - 1);
+    }
+
+    void NodeGraphOp::ProcessOperation(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        mNode->IsOutOfDate2();
+        
+        for (auto& link : inputs) {
+            if (link.HasInputNode() && link.GetInputNode() != mNode) {
+                link.GetInputNode()->ProcessNode(numSamples, numCacheSamples);
+            }
+        }
+
+        Process(numSamples, numCacheSamples, inputs, outputs);
+    }
+
+    /**********************************************************************************/
+
+    void NodeGraphOpCached::ProcessOperation(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        if (numSamples > numCacheSamples) {
+            // if cache samples has been ignored set it to minimum value so updating works
+            numCacheSamples = numSamples;
+        }
+        if (mReadSamples == 0 && (mWrittenSamples == 0 || mWrittenSamples >= numCacheSamples)) {
+            // we may write samples AND read them on the same call, and we may also only read them.
+            // In both cases we must not perform a node changed check unless we have not yet begun 
+            // reading and we have either completed writing or not written any
+            if (mNode->IsOutOfDate2()) {
+                mWrittenSamples = 0;
+            }
+        }
+
+        for (auto& link : inputs) {
+            if (link.HasInputNode() && link.GetInputNode() != mNode) {
+                link.GetInputNode()->ProcessNode(numSamples, numCacheSamples);
+            }
+        }
+
+        if (mWrittenSamples < numCacheSamples) {
+            // only perform writing if is not complete
+            ProcessWriteCached(mWrittenSamples, numSamples, numCacheSamples, inputs, outputs);
+            mWrittenSamples += numSamples;
+        }
+
+        if (mReadSamples < numCacheSamples) {
+            // allow node to process written data as it see fit
+            ProcessReadCached(mReadSamples, numSamples, numCacheSamples, inputs, outputs);
+            mReadSamples += numSamples;
+        }
+
+        if (mWrittenSamples >= numCacheSamples) {
+            mInputHasChanged = false;
+            mUnixtimePrev = 0;
+        }
+
+        if (mReadSamples >= numCacheSamples) {
+            // reading can be reset when a full read has been completed
+            mReadSamples = 0;
+        }
+    }
+
+    void NodeGraphOpCached::ProcessReadCached(int32_t, int32_t, int32_t, std::vector<nodegraph::NodeGraphInput>&, std::vector<nodegraph::NodeGraphOutput>&) {
     }
 
     /**********************************************************************************/

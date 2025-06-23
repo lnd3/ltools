@@ -14,14 +14,9 @@ namespace l::nodegraph {
         mReadSamples = 0;
     }
 
-    void TradingDataIOOCHLVDataIn::InputHasChanged(int32_t numSamplesWritten) {
+    void TradingDataIOOCHLVDataIn::InputHasChanged() {
         mInputHasChanged = true;
-        mWrittenSamples = numSamplesWritten;
         mReadSamples = 0;
-    }
-
-    int32_t TradingDataIOOCHLVDataIn::GetNumSamplesLeft() {
-        return mWrittenSamples - mReadSamples;
     }
 
     void TradingDataIOOCHLVDataIn::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
@@ -33,6 +28,7 @@ namespace l::nodegraph {
         }
 
         if (mInputHasChanged) {
+            mWrittenSamples = numCacheSamples;
             auto symbolInput = inputs.at(1).GetText(16);
             auto baseInput = inputs.at(2).GetText(16);
             auto intervalInput = static_cast<int32_t>(l::math::clamp(inputs.at(3).Get(1), 0.0f, 9.0f));

@@ -79,6 +79,7 @@ namespace l::nodegraph {
 
 
         void ClearProcessFlags();
+        bool IsProcessed();
         virtual void ProcessSubGraph(int32_t numSamples = 1, int32_t numCacheSamples = -1, bool recomputeSubGraphCache = true);
         virtual void Tick(int32_t tickCount, float delta);
 
@@ -125,9 +126,8 @@ namespace l::nodegraph {
         virtual bool IsInputDataArray(int8_t) { return false; }
         virtual bool IsOutputDataVisible(int8_t) { return false; }
         virtual bool IsOutputPolled(int8_t outputChannel);
-        virtual bool IsOutOfDate();
-        virtual void NodeHasChanged(int32_t numSamplesWritten = 1);
-
+        virtual void NodeHasChanged();
+        bool IsOutOfDate2();
         virtual NodeType GetOutputType();
 
         template<class T>
@@ -153,11 +153,12 @@ namespace l::nodegraph {
             return mUiData;
         }
 
+        void ProcessNode(int32_t numSamples, int32_t numCacheSamples);
+
     protected:
         virtual void SetNumInputs(int8_t numInputs);
         virtual void SetNumOutputs(int8_t outputCount);
 
-        virtual void ProcessOperation(int32_t numSamples = 1, int32_t numCacheSamples = 0);
         virtual NodeGraphOp* GetOperation() = 0;
 
 
@@ -212,9 +213,11 @@ namespace l::nodegraph {
 
         virtual void DefaultDataInit();
         virtual void Reset() {};
+
+        virtual void ProcessOperation(int32_t, int32_t, std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&);
         virtual void Process(int32_t, int32_t, std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
         virtual void Tick(int32_t /*tickCount*/, float /*delta*/) {}
-        virtual void InputHasChanged(int32_t numSamplesWritten = 1);
+        virtual void InputHasChanged();
 
         int8_t GetNumInputs();
         int8_t GetNumOutputs();
@@ -255,9 +258,43 @@ namespace l::nodegraph {
         bool mInputHasChanged = false;
     };
 
-    /**********************************************************************************/
+    class NodeGraphOpCached : public NodeGraphOp {
+    public:
+        NodeGraphOpCached(NodeGraphBase* node, std::string_view name) :
+            NodeGraphOp(node, name)
+        {
+        }
+        virtual ~NodeGraphOpCached() {
+            LOG(LogInfo) << "Buffered operation destroyed";
+        }
 
-    template<class T, class... Params>
+        NodeGraphOpCached& operator=(NodeGraphOpCached&& other) noexcept {
+            *this = std::move(other);
+            mWrittenSamples = other.mWrittenSamples;
+            mUnixtimePrev = other.mUnixtimePrev;
+            return *this;
+        }
+        NodeGraphOpCached(NodeGraphOpCached&& other) = delete;
+        NodeGraphOpCached& operator=(const NodeGraphOpCached&) = delete;
+        NodeGraphOpCached(const NodeGraphOpCached&) = delete;
+
+        void ProcessOperation(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+
+        virtual void ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<nodegraph::NodeGraphInput>& inputs, std::vector<nodegraph::NodeGraphOutput>& outputs) = 0;
+        virtual void ProcessReadCached(int32_t readSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<nodegraph::NodeGraphInput>& inputs, std::vector<nodegraph::NodeGraphOutput>& outputs);
+
+        void InputHasChanged() override {
+            mWrittenSamples = 0;
+        }
+
+    protected:
+        int32_t mReadSamples = 0;
+        int32_t mWrittenSamples = 0;
+        int32_t mUnixtimePrev = 0;
+    };
+
+    /**********************************************************************************/
+    template<l::meta::DerivedFrom<NodeGraphOp> T, class... Params>
     class NodeGraph : public NodeGraphBase {
     public:
         NodeGraph(int32_t id = -1, NodeType outputType = NodeType::Default, Params&&... params) :
@@ -318,17 +355,6 @@ namespace l::nodegraph {
         virtual void Reset() override {
             NodeGraphBase::Reset();
             mOperation.Reset();
-        }
-
-        virtual void ProcessOperation(int32_t numSamples = 1, int32_t numCacheSamples = 0) override {
-            if (mProcessUpdateHasRun) {
-                return;
-            }
-
-            NodeGraphBase::ProcessOperation(numSamples, numCacheSamples);
-            mOperation.Process(numSamples, numCacheSamples, mInputs, mOutputs);
-
-            mProcessUpdateHasRun = true;
         }
 
         virtual void Tick(int32_t tickCount, float delta) override {

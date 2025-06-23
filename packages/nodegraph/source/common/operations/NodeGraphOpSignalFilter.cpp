@@ -176,7 +176,7 @@ namespace l::nodegraph {
                         }
                         for (int32_t j = 0; j < widthInt; j++) {
                             mFilterState[j] = inputValue;
-                            mFilterWeight[j] = inputWeight;
+                            mFilterWeight[j] = l::math::pow(inputWeight, weightAccent);
                         }
                     }
 

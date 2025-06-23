@@ -98,7 +98,7 @@ namespace l::nodegraph {
         bool RemoveNode(l::nodegraph::NodeGraphBase* node);
         bool RemoveNode(int32_t id);
 
-        template<class T, std::enable_if_t<std::is_base_of_v<NodeGraphOp, T>, int> = 0, class... Params>
+        template<l::meta::DerivedFrom<NodeGraphOp> T, class... Params>
         l::nodegraph::NodeGraphBase* NewNode(int32_t id, NodeType nodeType, Params&&... params) {
             if (id > 0) {
                 if (mIds < id) {

@@ -54,6 +54,12 @@ namespace l::nodegraph {
                             if (e.has_key("TypeId") && e.has_key("NodeId")) {
                                 auto typeId = e.get("TypeId").as_int32();
                                 auto nodeId = e.get("NodeId").as_int32();
+
+                                // If we load nodes the node id counter must be higher than the highest node id so we don't get duplicates later
+                                if (mIds <= nodeId) {
+                                    mIds = nodeId + 1;
+                                }
+
                                 //auto name = e.get("Name").as_string();
                                 //auto typeName = e.get("TypeName").as_string();
                                 mNodeFactory->NodeGraphNewNode(typeId, nodeId);

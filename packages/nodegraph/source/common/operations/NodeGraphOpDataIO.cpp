@@ -37,71 +37,41 @@ namespace l::nodegraph {
     /*********************************************************************/
     void GraphCache::Reset() {
         mReadSamples = 0;
-        mNode->ForEachInput(
-            [&](NodeGraphInput& input) {
-                if (input.HasInputNode() && input.GetInputNode()->IsOutOfDate()) {
-                    mInputHasChanged = true;
-                    mWrittenSamples = 0;
-                }
-            });
+        if (mNode->IsOutOfDate2()) {
+            mInputHasChanged = true;
+            mWrittenSamples = 0;
+        }
     }
 
-    void GraphCache::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        if (numSamples > numCacheSamples) {
-            numCacheSamples = numSamples;
+    void GraphCache::ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
+        if (static_cast<int32_t>(mBuffer.size()) != numCacheSamples * mChannels) {
+            mBuffer.resize(static_cast<size_t>(numCacheSamples * mChannels));
         }
 
-        if (!mInputHasChanged) {
-            for (auto& in : inputs) {
-                if (in.HasInputNode() && in.GetInputNode()->IsOutOfDate()) {
-                    mInputHasChanged = true;
-                    mWrittenSamples = 0;
-                }
+        float* input[4];
+        for (int32_t j = 0; j < mChannels; j++) {
+            input[j] = &inputs.at(j).Get(numSamples);
+        }
+        auto buf = mBuffer.data() + writtenSamples * mChannels;
+        for (int32_t j = 0; j < numSamples; j++) {
+            for (int32_t i = 0; i < mChannels; i++) {
+                *buf++ = *(input[i])++;
             }
         }
+    }
 
-        if (mWrittenSamples < numCacheSamples) {
-            mInputHasChanged = true;
-            if (static_cast<int32_t>(mBuffer.size()) != numCacheSamples * mChannels) {
-                mBuffer.resize(static_cast<size_t>(numCacheSamples * mChannels));
-            }
-
-            float* input[4];
-            for (int32_t j = 0; j < mChannels; j++) {
-                input[j] = &inputs.at(j).Get(numSamples);
-            }
-            auto buf = mBuffer.data() + mWrittenSamples * mChannels;
-            for (int32_t j = 0; j < numSamples; j++) {
-                for (int32_t i = 0; i < mChannels; i++) {
-                    *buf++ = *(input[i])++;
-                }
-            }
-
-            mWrittenSamples += numSamples;
+    void GraphCache::ProcessReadCached(int32_t readSamples, int32_t numSamples, int32_t, std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>& outputs) {
+        float* output[4];
+        for (int32_t j = 0; j < mChannels; j++) {
+            output[j] = &outputs.at(j).Get(numSamples);
         }
 
-        if (mReadSamples < numCacheSamples) {
-            float* output[4];
-            for (int32_t j = 0; j < mChannels; j++) {
-                output[j] = &outputs.at(j).Get(numSamples);
+        auto buf = mBuffer.data() + readSamples * mChannels;
+
+        for (int32_t j = 0; j < numSamples; j++) {
+            for (int32_t i = 0; i < mChannels; i++) {
+                *(output[i])++ = *buf++;
             }
-
-            auto buf = mBuffer.data() + mReadSamples * mChannels;
-
-            for (int32_t j = 0; j < numSamples; j++) {
-                for (int32_t i = 0; i < mChannels; i++) {
-                    *(output[i])++ = *buf++;
-                }
-            }
-
-            mReadSamples += numSamples;
-        }
-
-        if (mWrittenSamples >= numCacheSamples) {
-            mInputHasChanged = false;
-        }
-        if (mReadSamples >= numCacheSamples) {
-            mReadSamples = 0;
         }
     }
 

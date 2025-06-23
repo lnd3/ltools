@@ -71,14 +71,12 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphCache : public NodeGraphOp {
+    class GraphCache : public NodeGraphOpCached {
     public:
         GraphCache(NodeGraphBase* node, int32_t channels) :
-            NodeGraphOp(node, "Data Buffer"),
+            NodeGraphOpCached(node, "Data Buffer"),
             mChannels(channels)
         {
-            mInputHasChanged = false;
-
             for (int32_t i = 0; i < mChannels; i++) {
                 auto id = std::to_string(i);
                 AddInput2("In" + id, 2, InputFlags(false, false, false, false));
@@ -88,11 +86,10 @@ namespace l::nodegraph {
         virtual ~GraphCache() = default;
 
         virtual void Reset() override;
-        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void ProcessReadCached(int32_t readSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         int32_t mChannels = 1;
-        int32_t mReadSamples = 0;
-        int32_t mWrittenSamples = 0;
         std::vector<float> mBuffer;
     };
 
