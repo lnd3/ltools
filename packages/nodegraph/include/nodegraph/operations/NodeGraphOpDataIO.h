@@ -30,7 +30,7 @@ namespace l::nodegraph {
             mInputManager(*this),
             mInputDataStride(inputDataStride)
         {
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput2("Bus Data", 2, InputFlags(false, false, false, false)));
+            mInputManager.AddInput(InputIterationType::SAMPLED_ARRAY, AddInput2("Bus Data", 2, InputFlags(false, false, false, false)));
 
             for (int32_t i = 0; i < mInputDataStride; i++) {
                 AddOutput("Out " + std::to_string(i), 0.0f, 2, false);
@@ -55,7 +55,7 @@ namespace l::nodegraph {
             mOutputDataStride(outputDataStride)
         {
             for (int32_t i = 0; i < mOutputDataStride; i++) {
-                mInputManager.AddInput(InputIterationType::SAMPLED, AddInput2("In " + std::to_string(i), 2, InputFlags(false, false, false, false)));
+                mInputManager.AddInput(InputIterationType::SAMPLED_ARRAY, AddInput2("In " + std::to_string(i), 2, InputFlags(false, false, false, false)));
             }
             AddOutput("Bus Data", 0.0f, 2, false);
         }

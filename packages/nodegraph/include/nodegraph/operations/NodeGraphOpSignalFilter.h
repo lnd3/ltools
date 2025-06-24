@@ -37,8 +37,8 @@ namespace l::nodegraph {
             mDefaultOutStrings.clear();
             mDefaultInData.clear();
 
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Sync", 0.0f));
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("In"));
+            mInputManager.AddInput(InputIterationType::SAMPLED_ARRAY, AddInput("Sync", 0.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED_ARRAY, AddInput("In"));
             mInputManager.AddInput(InputIterationType::SAMPLED_RWA, AddInput("Cutoff", 1.0f, 1, 0.0f, 1.0f));
             mInputManager.AddInput(InputIterationType::SAMPLED_RWA, AddInput("Resonance", 0.0f, 1, 0.0f, 1.0f));
 
@@ -99,7 +99,7 @@ namespace l::nodegraph {
         SignalFilterChamberlain2pole(NodeGraphBase* node) :
             SignalFilterBase(node, "Chamberlin two-pole")
         {
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Mode"));
+            mInputManager.AddInput(InputIterationType::SAMPLED_ARRAY, AddInput("Mode"));
             mState.resize(4);
         }
         virtual ~SignalFilterChamberlain2pole() = default;
@@ -131,13 +131,14 @@ namespace l::nodegraph {
             mDefaultOutStrings.clear();
             mDefaultInData.clear();
 
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Sync", 0.0f));
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("In"));
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Weight"));
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Kernel Size", 1.0f, 1, 1.0f, 5000.0f));
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Kernel Balance", 0.0f, 1, 0.0f, 10.0f));
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Weight Accent", 1.0f, 1, 0.0f, 10.0f));
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Gamma", 1.0f, 1, 0.0f, 10.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED_ARRAY, AddInput("Sync", 0.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED_ARRAY, AddInput("In"));
+            mInputManager.AddInput(InputIterationType::SAMPLED_ARRAY, AddInput("Weight"));
+
+            AddInput("Kernel Size", 1.0f, 1, 1.0f, 5000.0f);
+            AddInput("Kernel Balance", 0.0f, 1, 0.0f, 10.0f);
+            AddInput("Weight Accent", 1.0f, 1, 0.0f, 10.0f);
+            AddInput("Gamma", 1.0f, 1, 0.0f, 10.0f);
 
             AddOutput("Out", 0.0f);
         }

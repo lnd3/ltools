@@ -142,6 +142,10 @@ namespace l::nodegraph {
             mNode->SetInput(1, 0.0f, numSamples);
         }
 
+        auto width = inputs.at(3).Get();
+        auto balance = inputs.at(4).Get();
+        auto weightAccent = inputs.at(5).Get();
+        auto gamma = inputs.at(6).Get();
         auto output = outputs.at(0).GetIterator(numSamples);
 
         mSamplesUntilUpdate = l::audio::BatchUpdate(mUpdateRate, mSamplesUntilUpdate, 0, numSamples,
@@ -150,11 +154,6 @@ namespace l::nodegraph {
                 return mUpdateRate;
             },
             [&](int32_t start, int32_t end, bool) {
-                float width = l::math::max2(mInputManager.GetValueNext(3), 1.0f);
-                float balance = mInputManager.GetValueNext(4);
-                float weightAccent = mInputManager.GetValueNext(5);
-                float gamma = mInputManager.GetValueNext(6);
-
                 int32_t widthInt = 1 + static_cast<int32_t>(width);
                 int32_t bufferSize = widthInt;
                 float widthFrac = width - l::math::floor(width);

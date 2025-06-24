@@ -312,7 +312,7 @@ namespace l::nodegraph {
         case InputIterationType::CUSTOM_INTERP_RWA_MS: // must set it manually
             mInput.mFilterRWA.SetRWAUpdateRate(updateRate);
             break;
-        case InputIterationType::SAMPLED:
+        case InputIterationType::SAMPLED_ARRAY:
         case InputIterationType::CONSTANT_ARRAY:
         case InputIterationType::SAMPLED_RWA:
             break;
@@ -328,7 +328,7 @@ namespace l::nodegraph {
         case InputIterationType::CUSTOM_INTERP_TWEEN_MS:
             mInput.mTween.SetTweenLength(ticks);
             break;
-        case InputIterationType::SAMPLED:
+        case InputIterationType::SAMPLED_ARRAY:
         case InputIterationType::SAMPLED_RWA:
         case InputIterationType::CONSTANT_ARRAY:
             break;
@@ -344,7 +344,7 @@ namespace l::nodegraph {
         case InputIterationType::CUSTOM_INTERP_TWEEN_MS:
             mInput.mTween.SetTweenLength(l::audio::GetAudioTicksFromMS(ms));
             break;
-        case InputIterationType::SAMPLED:
+        case InputIterationType::SAMPLED_ARRAY:
         case InputIterationType::SAMPLED_RWA:
         case InputIterationType::CONSTANT_ARRAY:
             break;
@@ -360,7 +360,7 @@ namespace l::nodegraph {
         case InputIterationType::CUSTOM_INTERP_TWEEN_MS:
             mInput.mTween.SetTarget(value);
             break;
-        case InputIterationType::SAMPLED:
+        case InputIterationType::SAMPLED_ARRAY:
         case InputIterationType::SAMPLED_RWA:
         case InputIterationType::CONSTANT_ARRAY:
             break;
@@ -376,7 +376,7 @@ namespace l::nodegraph {
         case InputIterationType::CUSTOM_INTERP_TWEEN_MS:
             mInput.mTween.Reset(value);
             break;
-        case InputIterationType::SAMPLED:
+        case InputIterationType::SAMPLED_ARRAY:
         case InputIterationType::SAMPLED_RWA:
         case InputIterationType::CONSTANT_ARRAY:
             break;
@@ -390,7 +390,7 @@ namespace l::nodegraph {
         case InputIterationType::CUSTOM_INTERP_TWEEN:
         case InputIterationType::CUSTOM_INTERP_TWEEN_MS:
             return mInput.mTween.Next();
-        case InputIterationType::SAMPLED:
+        case InputIterationType::SAMPLED_ARRAY:
         case InputIterationType::CONSTANT_ARRAY:
             return *mInput.mIterator++;
         case InputIterationType::SAMPLED_RWA:
@@ -406,7 +406,7 @@ namespace l::nodegraph {
         case InputIterationType::CUSTOM_INTERP_TWEEN:
         case InputIterationType::CUSTOM_INTERP_TWEEN_MS:
             return mInput.mTween.Value();
-        case InputIterationType::SAMPLED:
+        case InputIterationType::SAMPLED_ARRAY:
         case InputIterationType::CONSTANT_ARRAY:
             return *mInput.mIterator;
         case InputIterationType::SAMPLED_RWA:
@@ -430,7 +430,7 @@ namespace l::nodegraph {
         case InputIterationType::CUSTOM_INTERP_TWEEN:
         case InputIterationType::CUSTOM_INTERP_TWEEN_MS:
             break;
-        case InputIterationType::SAMPLED:
+        case InputIterationType::SAMPLED_ARRAY:
             mInput.mIterator = input.at(mInputIndex).GetIterator(numSamples);
             break;
         case InputIterationType::SAMPLED_RWA:
@@ -450,7 +450,7 @@ namespace l::nodegraph {
             mInput.mTween.Update(updateRate);
             break;
         case InputIterationType::CUSTOM_INTERP_RWA_MS: // must set it manually
-        case InputIterationType::SAMPLED:
+        case InputIterationType::SAMPLED_ARRAY:
         case InputIterationType::SAMPLED_RWA:
         case InputIterationType::CONSTANT_ARRAY:
             break;

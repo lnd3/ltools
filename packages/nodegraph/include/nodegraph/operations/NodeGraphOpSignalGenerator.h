@@ -32,11 +32,11 @@ namespace l::nodegraph {
             NodeGraphOp(node, name),
             mInputManager(*this)
         {
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Sync", 0.0f, 1, 0.0f, 1.0f));
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Rate", 256.0f, 1, 1.0f, 2048.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED_ARRAY, AddInput("Sync", 0.0f, 1, 0.0f, 1.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED_ARRAY, AddInput("Rate", 256.0f, 1, 1.0f, 2048.0f));
             mInputManager.AddInput(InputIterationType::SAMPLED_RWA, AddInput("Freq", 0.0f, 1, 0.0f, 22050.0f));
             mInputManager.AddInput(InputIterationType::SAMPLED_RWA, AddInput("Volume", 0.0f, 1, 0.0f, 5.0f));
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Smooth", 1.0f, 1, 0.0f, 1.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED_ARRAY, AddInput("Smooth", 1.0f, 1, 0.0f, 1.0f));
 
             AddOutput("Out", 0.0f, 2);
 

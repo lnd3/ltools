@@ -78,7 +78,7 @@ namespace l::nodegraph {
             mInputManager(*this),
             mPlotSamples(plotSamples)
         {
-            mInputManager.AddInput(InputIterationType::SAMPLED, AddInput("Plot", 0.0f, 1, -1.0f, 1.0f));
+            mInputManager.AddInput(InputIterationType::SAMPLED_ARRAY, AddInput("Plot", 0.0f, 1, -1.0f, 1.0f));
             AddInput2("Scale", 1, InputFlags(false, true, true, false));
             AddOutput("Plot", 0.0f, mPlotSamples, false);
         }

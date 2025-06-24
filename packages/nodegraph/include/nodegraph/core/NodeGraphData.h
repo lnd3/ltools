@@ -115,7 +115,7 @@ namespace l::nodegraph {
     };
     /*********************************************************************************/
     enum class InputIterationType {
-        SAMPLED = 0, // interpolate in a buffer the size of a ProcessSubGraph(size) call. The actual size is defined by the lod factor of the source output buffer.
+        SAMPLED_ARRAY = 0, // interpolate in a buffer the size of a ProcessSubGraph(size) call. The actual size is defined by the lod factor of the source output buffer.
         SAMPLED_RWA, // same as SAMPLED, but it also uses RWA on the output with a smoothing factor defined by the lod factor of the source output buffer
         CONSTANT_ARRAY, // user defined array for custom usage
         CUSTOM_INTERP_TWEEN, // custom input vars that tweens the input like a s curve
