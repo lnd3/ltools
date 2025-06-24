@@ -102,7 +102,6 @@ namespace l::nodegraph {
         virtual void DefaultDataInit() override {
             mNode->SetInput(2, "Chart Lines");
         }
-        virtual void Reset() override;
         virtual void ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         int32_t mLatestUnixtime = 0;

@@ -98,14 +98,6 @@ namespace l::nodegraph {
         return mOutputText.str();
     }
     /*********************************************************************/
-    void GraphUIChartLine::Reset() {
-        if (mNode->IsOutOfDate2()) {
-            mInputHasChanged = true;
-            mWrittenSamples = 0;
-            mLatestUnixtime = 0;
-        }
-    }
-
     void GraphUIChartLine::ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         int32_t mChannels = 2;
 

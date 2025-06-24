@@ -10,15 +10,6 @@
 namespace l::nodegraph {
 
     /*********************************************************************/
-    void TradingDataIOOCHLVDataIn::Reset() {
-        mReadSamples = 0;
-    }
-
-    void TradingDataIOOCHLVDataIn::InputHasChanged() {
-        mInputHasChanged = true;
-        mReadSamples = 0;
-    }
-
     void TradingDataIOOCHLVDataIn::ProcessWriteCached(int32_t, int32_t, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         if (mInputHasChanged) {
             auto symbolInput = inputs.at(1).GetText(16);

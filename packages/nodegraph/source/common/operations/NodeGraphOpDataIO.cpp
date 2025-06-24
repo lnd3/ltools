@@ -35,13 +35,6 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphCache::Reset() {
-        mReadSamples = 0;
-        if (mNode->IsOutOfDate2()) {
-            mInputHasChanged = true;
-            mWrittenSamples = 0;
-        }
-    }
 
     void GraphCache::ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
         if (static_cast<int32_t>(mBuffer.size()) != numCacheSamples * mChannels) {
