@@ -319,7 +319,7 @@ namespace l::filecache {
 						break;
 					}
 					beginPosition += cacheBlockWidth;
-				} while (beginPosition < endPosition);
+				} while (beginPosition <= endPosition);
 			}
 			else {
 				do {
@@ -333,7 +333,7 @@ namespace l::filecache {
 						break;
 					}
 					beginPosition -= cacheBlockWidth;
-				} while (beginPosition > endPosition);
+				} while (beginPosition >= endPosition);
 			}
 			return cacheBlock != nullptr;
 		}
@@ -384,7 +384,7 @@ namespace l::filecache {
 			CacheBlock<T>* cacheBlock1 = nullptr;
 			CacheBlock<T>* cacheBlock2 = nullptr;
 			beginPosition = GetClampedPosition(beginPosition, cacheBlockWidth1);
-			if (beginPosition < endPosition) {
+			if (beginPosition <= endPosition) {
 				do {
 					cacheBlock1 = sequentialCacheMap1->Get(beginPosition);
 					if (cacheBlock1 != nullptr) {
@@ -399,7 +399,7 @@ namespace l::filecache {
 						break;
 					}
 					beginPosition += cacheBlockWidth1;
-				} while (beginPosition < endPosition);
+				} while (beginPosition <= endPosition);
 			}
 			else {
 				do {
@@ -416,7 +416,7 @@ namespace l::filecache {
 						break;
 					}
 					beginPosition -= cacheBlockWidth1;
-				} while (beginPosition > endPosition);
+				} while (beginPosition >= endPosition);
 			}
 			return cacheBlock1 != nullptr && (sequentialCacheMap2 == nullptr || cacheBlock2 != nullptr);
 		}

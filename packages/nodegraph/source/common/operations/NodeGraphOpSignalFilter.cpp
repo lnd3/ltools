@@ -190,24 +190,27 @@ namespace l::nodegraph {
                     float balanceDivisorSum = 0.0f;
                     { // remove a part of the first sample of the sum as it is not part of the moving average
                         auto fac = mFilterWeight[mFilterStateIndex] * l::math::abs(balanceFactor) * widthFrac;
-                        fac = l::math::pow(fac, gamma);
-                        fac *= l::math::functions::sign(balanceFactor);
+                        auto sign = l::math::functions::sign(fac);
+                        fac = l::math::pow(fac * sign, gamma);
+                        fac *= sign;
                         outVal += fac * mFilterState[mFilterStateIndex];
                         balanceDivisorSum += fac;
                         balanceFactor += balanceDelta * widthFrac;
                     }
                     for (int32_t j = mFilterStateIndex + 1; j < bufferSize; j++) {
                         auto fac = mFilterWeight[j] * l::math::abs(balanceFactor);
-                        fac = l::math::pow(fac, gamma);
-                        fac *= l::math::functions::sign(balanceFactor);
+                        auto sign = l::math::functions::sign(fac);
+                        fac = l::math::pow(fac * sign, gamma);
+                        fac *= sign;
                         outVal += fac * mFilterState[j];
                         balanceDivisorSum += fac;
                         balanceFactor += balanceDelta;
                     }
                     for (int32_t j = 0; j < mFilterStateIndex; j++) {
                         auto fac = mFilterWeight[j] * l::math::abs(balanceFactor);
-                        fac = l::math::pow(fac, gamma);
-                        fac *= l::math::functions::sign(balanceFactor);
+                        auto sign = l::math::functions::sign(fac);
+                        fac = l::math::pow(fac * sign, gamma);
+                        fac *= sign;
                         outVal += fac * mFilterState[j];
                         balanceDivisorSum += fac;
                         balanceFactor += balanceDelta;
