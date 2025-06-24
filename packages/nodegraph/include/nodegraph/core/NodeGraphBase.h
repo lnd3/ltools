@@ -269,9 +269,8 @@ namespace l::nodegraph {
         }
 
         NodeGraphOpCached& operator=(NodeGraphOpCached&& other) noexcept {
-            *this = std::move(other);
             mWrittenSamples = other.mWrittenSamples;
-            mUnixtimePrev = other.mUnixtimePrev;
+            mReadSamples = other.mReadSamples;
             return *this;
         }
         NodeGraphOpCached(NodeGraphOpCached&& other) = delete;
@@ -284,13 +283,13 @@ namespace l::nodegraph {
         virtual void ProcessReadCached(int32_t readSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<nodegraph::NodeGraphInput>& inputs, std::vector<nodegraph::NodeGraphOutput>& outputs);
 
         void InputHasChanged() override {
+            mInputHasChanged = true;
             mWrittenSamples = 0;
         }
 
     protected:
         int32_t mReadSamples = 0;
         int32_t mWrittenSamples = 0;
-        int32_t mUnixtimePrev = 0;
     };
 
     /**********************************************************************************/

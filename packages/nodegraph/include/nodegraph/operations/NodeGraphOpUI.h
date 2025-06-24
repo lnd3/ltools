@@ -109,10 +109,10 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class GraphUICandleSticks : public NodeGraphOp {
+    class GraphUICandleSticks : public NodeGraphOpCached {
     public:
         GraphUICandleSticks(NodeGraphBase* node) :
-            NodeGraphOp(node, "Candle Sticks")
+            NodeGraphOpCached(node, "Candle Sticks")
         {
             AddInput2("unixtime", 1, InputFlags(false, false, false, false));
             AddInput2("open", 1, InputFlags(false, false, false, false));
@@ -127,9 +127,8 @@ namespace l::nodegraph {
         virtual void DefaultDataInit() override {
             mNode->SetInput(6, "Candle Sticks");
         }
-        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        void ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
-        int32_t mWrittenSamples = 0;
         int32_t mLatestUnixtime = 0;
     };
 }

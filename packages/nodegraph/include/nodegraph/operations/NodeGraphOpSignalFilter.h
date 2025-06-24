@@ -152,7 +152,7 @@ namespace l::nodegraph {
 
         float mSync = 0.0f;
         float mSamplesUntilUpdate = 0.0f;
-        float mUpdateRate = 1000.0f;
+        float mUpdateRate = 100.0f;
 
         int32_t mDefaultKernelSize = 50;
         int32_t mWidth = mDefaultKernelSize;

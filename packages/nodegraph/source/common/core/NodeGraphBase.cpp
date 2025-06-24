@@ -472,7 +472,6 @@ namespace l::nodegraph {
 
         if (mWrittenSamples >= numCacheSamples) {
             mInputHasChanged = false;
-            mUnixtimePrev = 0;
         }
 
         if (mReadSamples >= numCacheSamples) {

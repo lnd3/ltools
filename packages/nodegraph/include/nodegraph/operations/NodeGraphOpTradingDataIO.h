@@ -17,13 +17,13 @@
 
 namespace l::nodegraph {
     /*********************************************************************/
-    class TradingDataIOOCHLVDataIn : public NodeGraphOp {
+    class TradingDataIOOCHLVDataIn : public NodeGraphOpCached {
     public:
         static const int32_t kIntervalCount = 10;
         const int32_t kIntervals[kIntervalCount] = { 1, 5, 15, 30, 60, 120, 240, 720, 1440, 10080 };
 
         TradingDataIOOCHLVDataIn(NodeGraphBase* node, int32_t mode = 0) :
-            NodeGraphOp(node, "OCHLV Data In"),
+            NodeGraphOpCached(node, "OCHLV Data In"),
 			mMode(mode)
         {
 			if (mMode == 1) {
@@ -56,13 +56,12 @@ namespace l::nodegraph {
 
         virtual void InputHasChanged() override;
         virtual void Reset() override;
-        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void ProcessReadCached(int32_t readSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
 		int32_t mMode = 0; // 0 - ochlv, 1 - heikin-ashi
 
         int32_t mUnixtimePrev = 0;
-        int32_t mReadSamples = 0;
-        int32_t mWrittenSamples = 0;
 
 		float mOpenPrev = 0.0f;
 		float mClosePrev = 0.0f;
