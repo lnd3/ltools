@@ -1,14 +1,16 @@
 #include "rendering/ui/UIVisitors.h"
 #include "hid/KeyboardPiano.h"
-#include "nodegraph/NodeGraphSchema.h"
 
 
 namespace l::ui {
 
+
+    /***********************************************************************************/
     bool UIUpdate::ShouldUpdateContainer() {
         return true;
     }
 
+    /***********************************************************************************/
     bool UIZoom::Active(UIContainer&, const InputState& input) {
         return input.mScroll != 0;
     }
@@ -42,8 +44,17 @@ namespace l::ui {
         return false;
     }
 
+    /***********************************************************************************/
     bool UIDrag::Active(UIContainer&, const InputState& input) {
         return (input.mStarted && !mDragging) || mDragging;
+    }
+
+    void UIDrag::Reset() {
+        mDragging = false;
+        if (mSourceContainer) {
+            mSourceContainer->ClearNotification(UIContainer_DragFlag);
+            mSourceContainer = nullptr;
+        }
     }
 
     bool UIDrag::Visit(UIContainer& container, const InputState& input) {
@@ -76,6 +87,7 @@ namespace l::ui {
 
             if (input.mStopped) {
                 mDragging = false;
+                mSourceContainer->ClearNotification(UIContainer_DragFlag);
                 mSourceContainer = nullptr;
             }
             return mDragging;
@@ -83,8 +95,17 @@ namespace l::ui {
         return false;
     }
 
+    /***********************************************************************************/
     bool UIMove::Active(UIContainer&, const InputState& input) {
         return (input.mStarted && !mMoving) || mMoving;
+    }
+
+    void UIMove::Reset() {
+        mMoving = false;
+        if (mSourceContainer) {
+            mSourceContainer->ClearNotification(UIContainer_MoveFlag);
+            mSourceContainer = nullptr;
+        }
     }
 
     bool UIMove::Visit(UIContainer& container, const InputState& input) {
@@ -105,12 +126,25 @@ namespace l::ui {
             container.SetNotification(UIContainer_MoveFlag);
 
             if (input.mStopped) {
-                mMoving = false;
-                mSourceContainer = nullptr;
+                Reset();
+
+                if (mMoveHandler) {
+                    auto p = container.GetPosition();
+                    mMoveHandler(container.GetId(), container.GetNodeId(), p.x, p.y);
+                }
             }
             return mMoving;
         }
         return false;
+    }
+
+    /***********************************************************************************/
+    void UIResize::Reset() {
+        mResizing = false;
+        if (mSourceContainer) {
+            mSourceContainer->ClearNotification(UIContainer_ResizeFlag);
+            mSourceContainer = nullptr;
+        }
     }
 
     bool UIResize::Visit(UIContainer& container, const InputState& input) {
@@ -143,22 +177,26 @@ namespace l::ui {
             container.Resize(move);
 
             if (input.mStopped) {
-                mResizing = false;
-                mSourceContainer = nullptr;
-                container.ClearNotification(UIContainer_ResizeFlag);
+                Reset();
+
+                if (mResizeHandler) {
+                    auto s = container.GetSize();
+                    mResizeHandler(container.GetId(), container.GetNodeId(), s.x, s.y);
+                }
             }
             return mResizing;
         }
         return false;
     }
 
+    /***********************************************************************************/
     bool UISelect::Visit(UIContainer& container, const InputState& input) {
         if (!container.HasConfigFlag(UIContainer_SelectFlag)) {
             return false;
         }
         if (input.mStarted) {
+            auto& layoutArea = container.GetLayoutArea();
             if (ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftShift)) {
-                auto& layoutArea = container.GetLayoutArea();
                 if (Overlap(input.GetLocalPos(), container.GetPosition(), container.GetPositionAtSize(), layoutArea)) {
                     if (!mSelectedContainers.contains(&container)) {
                         mSelectedContainers.emplace(&container);
@@ -168,21 +206,30 @@ namespace l::ui {
                         mSelectedContainers.erase(&container);
                         container.ClearNotification(UIContainer_SelectFlag);
                     }
+                    return true;
                 }
             }
-            else if (!mSelectedContainers.empty()) {
+            else if (Overlap(input.GetLocalPos(), container.GetPosition(), container.GetPositionAtSize(), layoutArea)) {
                 for (auto it : mSelectedContainers) {
                     it->ClearNotification(UIContainer_SelectFlag);
                 }
                 mSelectedContainers.clear();
-                return true;
+                mSelectedContainers.emplace(&container);
+                container.SetNotification(UIContainer_SelectFlag);
+            }
+            else if (mSelectedContainers.contains(&container)){
+                mSelectedContainers.erase(&container);
+                container.ClearNotification(UIContainer_SelectFlag);
             }
         }
-        if (!mSelectedContainers.empty()) {
-            if (ImGui::IsKeyDown(ImGuiKey::ImGuiKey_Delete)) {
+        if (ImGui::IsKeyDown(ImGuiKey::ImGuiKey_Delete)) {
+            if (!mSelectedContainers.empty()) {
                 for (auto it : mSelectedContainers) {
-                    if (mNGSchema != nullptr) {
-                        mNGSchema->RemoveNode(it->GetNodeId());
+                    if (mRemoveHandler) {
+                        mRemoveHandler(it->GetNodeId());
+                    }
+                    if (mDeleteHandler) {
+                        mDeleteHandler(it->GetId(), it->GetNodeId());
                     }
                     DeleteContainer(mUIManager, it);
                 }
@@ -193,6 +240,11 @@ namespace l::ui {
         return false;
     }
 
+    void UISelect::Reset() {
+        mSelectedContainers.clear();
+    }
+
+    /***********************************************************************************/
     bool UIEdit::Visit(UIContainer& container, const InputState& input) {
         if (!container.HasConfigFlag(UIContainer_EditFlag)) {
             return false;
@@ -208,42 +260,8 @@ namespace l::ui {
             auto& layoutArea = container.GetLayoutArea();
             ImVec2 move = DragMovement(input.mPrevPos, input.mCurPos, layoutArea.mScale);
 
-            if (mNGSchema) {
-                auto node = mNGSchema->GetNode(container.GetNodeId());
-                auto nodeChannel = static_cast<int8_t>(container.GetChannelId());
-                if (node->IsDataEditable(nodeChannel)) {
-                    float* nodeValue = nullptr;
-                    if (nodeChannel < node->GetNumInputs()) {
-                        nodeValue = &node->GetInput(nodeChannel, 1);
-                    }
-                    else if (nodeChannel < node->GetNumOutputs()) {
-                        nodeValue = &node->GetOutput(nodeChannel, 1);
-                    }
-                    if (nodeValue != nullptr) {
-                        if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftShift)) {
-                            if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftCtrl)) {
-                                *nodeValue -= move.y / 100.0f;
-                            }
-                            else {
-                                *nodeValue -= move.y / 10000.0f;
-                            }
-                        }
-                        else {
-                            if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftCtrl)) {
-                                *nodeValue -= move.y;
-                            }
-                            else {
-                                *nodeValue -= 1000.0f * move.y;
-                            }
-                        }
-                        if (nodeChannel < node->GetNumInputs()) {
-                            node->SetInput(nodeChannel, *nodeValue);
-                        }
-                        else if (nodeChannel < node->GetNumOutputs()) {
-                            node->GetOutput(nodeChannel, 1) = *nodeValue;
-                        }
-                    }
-                }
+            if (mEditHandler) {
+                mEditHandler(container.GetNodeId(), static_cast<int8_t>(container.GetChannelId()), move.x, move.y);
             }
 
             if (input.mStopped) {
@@ -255,6 +273,12 @@ namespace l::ui {
         return false;
     }
 
+    void UIEdit::Reset() {
+        mEditing = false;
+        mSourceContainer = nullptr;
+    }
+
+    /***********************************************************************************/
     bool UIDraw::Visit(UIContainer& container, const InputState& input) {
         if (!mDebug && !container.HasConfigFlag(UIContainer_DrawFlag)) {
             return false;
@@ -353,38 +377,18 @@ namespace l::ui {
             break;
 
         case l::ui::UIRenderType::NodeOutputValue:
-            if (mNGSchema) {
-                auto node = mNGSchema->GetNode(container.GetNodeId());
-                float nodeValue = 0.0f;
-                if (container.GetChannelId() < node->GetNumInputs()) {
-                    nodeValue = node->GetInput(static_cast<int8_t>(container.GetChannelId()));
-                }
-                else {
-                    nodeValue = node->GetOutput(static_cast<int8_t>(container.GetChannelId()));
-                }
-                auto nodeString = std::to_string(nodeValue);
-                mDrawList->AddText(ImGui::GetDefaultFont(), 13.0f * container.GetScale() * layoutArea.mScale, p1, color, nodeString.c_str());
+            if (mDrawChannelTextHandler) {
+                auto scale = 13.0f * container.GetScale() * layoutArea.mScale;
+                mDrawChannelTextHandler(container.GetNodeId(), static_cast<int8_t>(container.GetChannelId()), p1, scale, color, mDrawList);
             }
             break;
         case l::ui::UIRenderType::NodeOutputGraph:
-            if (mNGSchema) {
-                auto node = mNGSchema->GetNode(container.GetNodeId());
-                if (container.GetChannelId() < node->GetNumOutputs()) {
-                    int8_t channel = static_cast<int8_t>(container.GetChannelId());
-                    float* nodeValues = &node->GetOutput(channel);
-                    int32_t nodeValueCount = node->GetOutputSize(channel);
-                    ImVec2 size = container.GetSize();
-                    size.x *= layoutArea.mScale;
-                    size.y *= layoutArea.mScale;
-                    ImVec2 startPos = ImVec2(p1.x, p1.y + 0.5f * size.y);
-                    for (int32_t i = 0; i < nodeValueCount - 1; i++) {
-                        float xpart1 = i / static_cast<float>(nodeValueCount);
-                        float xpart2 = (i+1) / static_cast<float>(nodeValueCount);
-                        ImVec2 graphP1 = ImVec2(startPos.x + size.x * xpart1, startPos.y + 0.5f * nodeValues[i] * size.y);
-                        ImVec2 graphP2 = ImVec2(startPos.x + size.x * xpart2, startPos.y + 0.5f * nodeValues[i+1] * size.y);
-                        mDrawList->AddLine(graphP1, graphP2, color, 2.0f * container.GetScale());
-                    }
-                }
+            if (mDrawLineHandler) {
+                ImVec2 s = container.GetSize();
+                s.x *= layoutArea.mScale;
+                s.y *= layoutArea.mScale;
+                auto scale = 2.0f * container.GetScale();
+                mDrawLineHandler(container.GetNodeId(), static_cast<int8_t>(container.GetChannelId()), p1, s, scale, color, mDrawList);
             }
             break;
         }
@@ -395,14 +399,16 @@ namespace l::ui {
             nameEnd = container.GetStringId().data() + container.GetStringId().size();
             mDrawList->AddText(p1, color, nameStart, nameEnd);
         }
-
+        
         switch (container.GetRenderData().mType) {
         case l::ui::UIRenderType::Rect:
         case l::ui::UIRenderType::RectFilled:
         case l::ui::UIRenderType::Texture:
         case l::ui::UIRenderType::LinkH:
             if (container.HasConfigFlag(UIContainer_SelectFlag) && container.HasNotification(UIContainer_SelectFlag)) {
-                mDrawList->AddRect(p1, p2, ImColor(ImVec4(0.9f, 1.0f, 1.0f, 1.0f)), 0.0f, 0, 2.0f);
+                auto p1cpy = ImVec2(p1.x - 1.0f, p1.y - 1.0f);
+                auto p2cpy = ImVec2(p2.x + 1.0f, p2.y + 1.0f);
+                mDrawList->AddRect(p1cpy, p2cpy, mSelectColor, 0.0f, 0, 1.0f);
             }
             if (container.HasConfigFlag(ui::UIContainer_ResizeFlag)) {
                 float size = 3.0f * layoutArea.mScale;
@@ -423,98 +429,128 @@ namespace l::ui {
         return false;
     }
 
+    /***********************************************************************************/
     bool UILinkIO::Active(UIContainer& container, const InputState&) {
         return container.HasConfigFlag(UIContainer_InputFlag) || container.HasConfigFlag(UIContainer_OutputFlag) || container.HasConfigFlag(UIContainer_LinkFlag);
     }
 
     bool UILinkIO::Visit(UIContainer& container, const InputState& input) {
-        // Create link at from a clicked output container
-        if (container.HasConfigFlag(UIContainer_OutputFlag) && !mDragging && input.mStarted && mLinkContainer.Get() == nullptr) {
-            ImVec2 pCenter = container.GetPosition();
-            ImVec2 size = container.GetSize();
-            auto& layoutArea = container.GetLayoutArea();
+        // A link is a container object that is a child of another container with an output flag
+        // The link itself has a parent (the container with an output flag)
+        // and a co-parent (the container with an input flag)
+        // The container with an input flag also has a co-parent and it is the link container
+        // That way we have links with parents that are output containers
+        // And links that have co-parents that are input containers
+        // And input containers that have co-parents that are link containers
+        // When deleting a node we must therefore remember to null all of those
+        // * output container children -> link containers
+        // * link container parent -> output container
+        // * link container co-parent -> input container
+        // * input container co-parent -> link container
+        // But a link container is still owned by only one container, the output container
 
-            ImVec2 pT = layoutArea.Transform(pCenter);
-            if (OverlapCircle(input.mCurPos, pT, 2.0f * size.x * layoutArea.mScale)) {
-                mDragging = true;
-                mLinkContainer = CreateContainer(mUIManager, UIContainer_LinkFlag | UIContainer_DrawFlag, UIRenderType::LinkH);
-                container.Add(mLinkContainer);
-                return true;
-            }
-        }
-        if (container.HasConfigFlag(UIContainer_LinkFlag) && !mDragging && input.mStarted && mLinkContainer.Get() == nullptr && container.GetCoParent() != nullptr) {
-            ImVec2 pCenter = container.GetCoParent()->GetPosition();
-            ImVec2 size = container.GetCoParent()->GetSize();
-            ImVec2 pT = container.GetCoParent()->GetLayoutArea().Transform(pCenter);
-            if (OverlapCircle(input.mCurPos, pT, 2.0f * size.x * container.GetCoParent()->GetLayoutArea().mScale)) {
-                mLinkContainer.mContainer = &container;
-                LinkHandler(mLinkContainer->GetCoParent()->GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), mLinkContainer->GetCoParent()->GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), false);
-                mDragging = true;
-                return true;
-            }
-        }
+        {
+            auto& outputContainer = container;
 
-        if (mDragging && mLinkContainer.Get() != nullptr && container.HasConfigFlag(UIContainer_LinkFlag) && mLinkContainer.Get() == &container) {
-            // On the newly created link container, drag the end point along the mouse movement
-            auto& layoutArea = container.GetLayoutArea();
+            // Create a link connection and attach it at a source node
+            if (outputContainer.HasConfigFlag(UIContainer_OutputFlag) && !mDragging && input.mStarted && mLinkContainer.Get() == nullptr) {
+                ImVec2 pCenter = outputContainer.GetPosition();
+                ImVec2 size = outputContainer.GetSize();
+                auto& layoutArea = outputContainer.GetLayoutArea();
 
-            ImVec2 move = DragMovement(input.mPrevPos, input.mCurPos, layoutArea.mScale * container.GetScale());
-            mLinkContainer->Move(move);
-        }
-
-        if (mDragging && mLinkContainer.Get() != nullptr && container.HasConfigFlag(UIContainer_InputFlag)) {
-            ImVec2 pCenter = container.GetPosition();
-            ImVec2 size = container.GetSize();
-            auto& layoutArea = container.GetLayoutArea();
-
-            ImVec2 pT = layoutArea.Transform(pCenter);
-
-            if (OverlapCircle(input.mCurPos, pT, 2.0f * size.x * layoutArea.mScale)) {
-                if (LinkHandler(container.GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), container.GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), true)) {
-                    mLinkContainer->SetNotification(UIContainer_LinkFlag);
-                    mLinkContainer->SetCoParent(&container);
-                }
-                else {
-                    // Failed to connect link
-                }
-            }
-            else if (mLinkContainer->GetCoParent() == &container) {
-                LinkHandler(container.GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), container.GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), false);
-                mLinkContainer->SetCoParent(nullptr);
-                mLinkContainer->ClearNotification(UIContainer_LinkFlag);
-            }
-
-            if (input.mStopped) {
-                mLinkContainer->ClearNotification(UIContainer_LinkFlag);
-                if (mLinkContainer->GetCoParent() != nullptr) {
-                    mDragging = false;
-                    mLinkContainer.Reset();
-                }
-                else {
-                    DeleteContainer(mUIManager, mLinkContainer.Get());
-                    mDragging = false;
-                    mLinkContainer.Reset();
+                ImVec2 pT = layoutArea.Transform(pCenter);
+                if (OverlapCircle(input.mCurPos, pT, 2.0f * size.x * layoutArea.mScale)) {
+                    mDragging = true;
+                    mLinkContainer = CreateContainer(mUIManager, UIContainer_LinkFlag | UIContainer_DrawFlag, UIRenderType::LinkH);
+                    mLinkContainer->SetColor(mColorLink);
+                    outputContainer.Add(mLinkContainer);
                     return true;
+                }
+            }
+        }
+
+        {
+            auto& linkContainer = container;
+
+            // Detach a link connection from a destination node with an existing link connection
+            if (linkContainer.HasConfigFlag(UIContainer_LinkFlag) && !mDragging && input.mStarted && mLinkContainer.Get() == nullptr && linkContainer.GetCoParent() != nullptr) {
+                ImVec2 pCenter = linkContainer.GetCoParent()->GetPosition();
+                ImVec2 size = linkContainer.GetCoParent()->GetSize();
+                ImVec2 pT = linkContainer.GetCoParent()->GetLayoutArea().Transform(pCenter);
+                if (OverlapCircle(input.mCurPos, pT, 2.0f * size.x * linkContainer.GetCoParent()->GetLayoutArea().mScale)) {
+                    mLinkContainer.mContainer = &linkContainer;
+                    mLinkHandler(mLinkContainer->GetCoParent()->GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), mLinkContainer->GetCoParent()->GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), false);
+                    mDragging = true;
+                    return true;
+                }
+            }
+
+            // Drag the link end
+            if (mDragging && mLinkContainer.Get() != nullptr && linkContainer.HasConfigFlag(UIContainer_LinkFlag) && mLinkContainer.Get() == &linkContainer) {
+                // On the newly created link container, drag the end point along the mouse movement
+                auto& layoutArea = mLinkContainer->GetLayoutArea();
+
+                ImVec2 move = DragMovement(input.mPrevPos, input.mCurPos, layoutArea.mScale * mLinkContainer->GetScale());
+                mLinkContainer->Move(move);
+            }
+        }
+
+        {
+            auto& inputContainer = container;
+
+            // Check containers with input flags, i.e. a node input channel area
+            if (mDragging && mLinkContainer.Get() != nullptr && inputContainer.HasConfigFlag(UIContainer_InputFlag)) {
+                ImVec2 pCenter = inputContainer.GetPosition();
+                ImVec2 size = inputContainer.GetSize();
+                auto& layoutArea = inputContainer.GetLayoutArea();
+
+                ImVec2 pT = layoutArea.Transform(pCenter);
+
+                // if there is overlap we connect it
+                if (OverlapCircle(input.mCurPos, pT, 2.0f * size.x * layoutArea.mScale)) {
+                    if (mLinkHandler(inputContainer.GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), inputContainer.GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), true)) {
+                        mLinkContainer->SetNotification(UIContainer_LinkFlag);
+                        mLinkContainer->SetCoParent(&inputContainer);
+                        inputContainer.SetCoParent(mLinkContainer.Get());
+                    }
+                    else {
+                        // This link is already connected (or there is another link connected already)
+                    }
+                }
+                // If this link if connected to this input node channel area, we detach it because the overlap failed (we moved it away)
+                else if (mLinkContainer->GetCoParent() == &inputContainer) {
+                    mLinkHandler(inputContainer.GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), inputContainer.GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), false);
+                    mLinkContainer->SetCoParent(nullptr);
+                    mLinkContainer->ClearNotification(UIContainer_LinkFlag);
+                }
+
+                if (input.mStopped) {
+                    mLinkContainer->ClearNotification(UIContainer_LinkFlag);
+
+                    // dragging stopped and the link is attached
+                    if (mLinkContainer->GetCoParent() != nullptr) {
+                        mDragging = false;
+                        mLinkContainer.Reset();
+                    }
+                    // dragging stopped and the link is detached so delete it
+                    else {
+                        DeleteContainer(mUIManager, mLinkContainer.Get());
+                        mDragging = false;
+                        mLinkContainer.Reset();
+                        return true;
+                    }
                 }
             }
         }
         return false;
     }
 
-    bool UILinkIO::LinkHandler(int32_t linkInputId, int32_t linkOutputId, int32_t inputChannel, int32_t outputChannel, bool connected) {
-        if (mNGSchema == nullptr) {
-            return false;
+    void UILinkIO::Reset() {
+        if (mLinkContainer.IsValid()) {
+            DeleteContainer(mUIManager, mLinkContainer.Get());
         }
-
-        auto inputNode = mNGSchema->GetNode(linkInputId);
-        if (inputNode == nullptr) {
-            return false;
-        }
-        if (connected) {
-            auto outputNode = mNGSchema->GetNode(linkOutputId);
-            return outputNode != nullptr && inputNode->SetInput(static_cast<int8_t>(inputChannel), *outputNode, static_cast<int8_t>(outputChannel));
-        }
-        return inputNode->ClearInput(static_cast<int8_t>(inputChannel));
+        mDragging = false;
+        mLinkContainer.Reset();
     }
 
 }

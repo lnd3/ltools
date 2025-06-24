@@ -15,6 +15,9 @@ namespace l::hid {
 	}
 
 	void KeyboardPiano::ForEachNoteChange(std::function<void(int32_t, bool)> noteHandler) {
+		if (!mKeyState) {
+			return;
+		}
 		mKeyState->ForEachKeyChange([&](int32_t keyCode, bool pressedNow, bool releasedNow) {
 			if (pressedNow) {
 				if (keyCode == mKeyFunctions[KeyFunctionTypes::OCTAVE_DOWN]) {

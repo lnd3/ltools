@@ -6,10 +6,6 @@
 #include <unordered_set>
 #include <deque>
 
-namespace l::nodegraph {
-    class NodeGraphSchema;
-}
-
 namespace l::ui {
 
     class UIUpdate : public UIVisitor {
@@ -30,26 +26,44 @@ namespace l::ui {
     public:
         virtual bool Active(UIContainer& container, const InputState& input);
         virtual bool Visit(UIContainer& container, const InputState& input);
+        virtual void Reset();
+
+        void SetDragHandler(std::function<void(int32_t containerId, int32_t nodeId, float x, float y)> handler) {
+            mDragHandler = handler;
+        }
     protected:
         bool mDragging = false;
         UIContainer* mSourceContainer = nullptr;
+        std::function<void(int32_t containerId, int32_t nodeId, float x, float y)> mDragHandler = nullptr;
     };
 
     class UIMove : public UIVisitor {
     public:
         virtual bool Active(UIContainer& container, const InputState& input);
         virtual bool Visit(UIContainer& container, const InputState& input);
+        virtual void Reset();
+
+        void SetMoveHandler(std::function<void(int32_t containerId, int32_t nodeId, float x, float y)> handler) {
+            mMoveHandler = handler;
+        }
     protected:
         bool mMoving = false;
         UIContainer* mSourceContainer = nullptr;
+        std::function<void(int32_t containerId, int32_t nodeId, float x, float y)> mMoveHandler = nullptr;
     };
 
     class UIResize : public UIVisitor {
     public:
         virtual bool Visit(UIContainer& container, const InputState& input);
+        virtual void Reset();
+
+        void SetResizeHandler(std::function<void(int32_t containerId, int32_t nodeId, float width, float height)> handler) {
+            mResizeHandler = handler;
+        }
     protected:
         bool mResizing = false;
         UIContainer* mSourceContainer = nullptr;
+        std::function<void(int32_t containerId, int32_t nodeId, float width, float height)> mResizeHandler = nullptr;
     };
 
     class UISelect : public UIVisitor {
@@ -57,27 +71,34 @@ namespace l::ui {
         UISelect(UIManager& uiManager) : mUIManager(uiManager) {}
 
         virtual bool Visit(UIContainer& container, const InputState& input);
+        virtual void Reset();
 
-        void SetNGSchema(l::nodegraph::NodeGraphSchema* ngSchema) {
-            mNGSchema = ngSchema;
+        void SetDeleteHandler(std::function<void(int32_t, int32_t)> handler) {
+            mDeleteHandler = handler;
+        }
+        void SetRemoveHandler(std::function<void(int32_t)> handler) {
+            mRemoveHandler = handler;
         }
     protected:
         std::unordered_set<UIContainer*> mSelectedContainers;
         UIManager& mUIManager;
-        l::nodegraph::NodeGraphSchema* mNGSchema = nullptr;
+        std::function<void(int32_t, int32_t)> mDeleteHandler = nullptr;
+        std::function<void(int32_t)> mRemoveHandler = nullptr;
     };
 
     class UIEdit : public UIVisitor {
     public:
         virtual bool Visit(UIContainer& container, const InputState& input);
+        virtual void Reset();
 
-        void SetNGSchema(l::nodegraph::NodeGraphSchema* ngSchema) {
-            mNGSchema = ngSchema;
+        void SetEditHandler(std::function<void(int32_t nodeId, int8_t channelId, float dx, float dy)> handler) {
+            mEditHandler = handler;
         }
+
     protected:
         bool mEditing = false;
         UIContainer* mSourceContainer = nullptr;
-        l::nodegraph::NodeGraphSchema* mNGSchema = nullptr;
+        std::function<void(int32_t nodeId, int8_t channelId, float dx, float dy)> mEditHandler = nullptr;
     };
 
     class UIDraw : public UIVisitor {
@@ -91,13 +112,21 @@ namespace l::ui {
             mDrawList = drawList;
         }
 
-        void SetNGSchema(l::nodegraph::NodeGraphSchema* ngSchema) {
-            mNGSchema = ngSchema;
+        void SetDrawChannelTextHandler(std::function<void(int32_t, int8_t, ImVec2, float, ImU32, ImDrawList*)> handler) {
+            mDrawChannelTextHandler = handler;
         }
 
+        void SetDrawLineHandler(std::function<void(int32_t, int8_t, ImVec2, ImVec2, float, ImU32, ImDrawList*)> handler) {
+            mDrawLineHandler = handler;
+        }
+        void SetColorSelect(ImVec4 color) {
+            mSelectColor = ImColor(color);
+        }
     protected:
         ImDrawList* mDrawList;
-        l::nodegraph::NodeGraphSchema* mNGSchema = nullptr;
+        std::function<void(int32_t, int8_t, ImVec2, float, ImU32, ImDrawList*)> mDrawChannelTextHandler = nullptr;
+        std::function<void(int32_t, int8_t, ImVec2, ImVec2, float, ImU32, ImDrawList*)> mDrawLineHandler = nullptr;
+        ImColor mSelectColor = ImColor(darkGrey);
     };
 
     class UILinkIO : public UIVisitor {
@@ -109,18 +138,20 @@ namespace l::ui {
 
         virtual bool Active(UIContainer& container, const InputState& input);
         virtual bool Visit(UIContainer& container, const InputState& input);
+        virtual void Reset();
 
-        bool LinkHandler(int32_t linkInputId, int32_t linkOutputId, int32_t inputChannel, int32_t outputChannel, bool connected);
-
-        void SetNGSchema(l::nodegraph::NodeGraphSchema* ngSchema) {
-            mNGSchema = ngSchema;
+        void SetLinkHandler(std::function<bool(int32_t linkInputId, int32_t linkOutputId, int32_t inputChannel, int32_t outputChannel, bool connected)> handler) {
+            mLinkHandler = handler;
         }
-
+        void SetColorLink(ImVec4 color) {
+            mColorLink = ImColor(color);
+        }
     protected:
         bool mDragging = false;
         UIHandle mLinkContainer;
         UIManager& mUIManager;
-        l::nodegraph::NodeGraphSchema* mNGSchema = nullptr;
+        std::function<bool(int32_t linkInputId, int32_t linkOutputId, int32_t inputChannel, int32_t outputChannel, bool connected)> mLinkHandler = nullptr;
+        ImColor mColorLink = ImColor(pastellYellow);
     };
 
 }

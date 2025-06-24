@@ -1,6 +1,7 @@
-#include "testing/Test.h"
+#include <testing/Test.h>
 
-#include "serialization/SerializationBase.h"
+#include <serialization/SerializationBase.h>
+#include <logging/String.h>
 
 #include <memory>
 #include <filesystem>
@@ -10,7 +11,7 @@ using namespace serialization;
 
 class TestData : public SerializationBase {
 public:
-	TestData(int32_t version, int a, bool useVersion) : SerializationBase(version, 5, useVersion, false), mA(a) {}
+	TestData(int32_t version, int a, bool useVersion, bool useIdentifier, bool expectVersion, bool expectIdentifier) : SerializationBase(version, 5, useVersion, false, useIdentifier, expectIdentifier, expectVersion), mA(a) {}
 	virtual ~TestData() = default;
 
 	friend zpp::serializer::access;
@@ -88,7 +89,7 @@ TEST(SerializationBase, Basics) {
 	std::vector<unsigned char> dataHeaderAndVersion;
 	
 	{ // load simple data
-		TestData storage(3, 10, false);
+		TestData storage(3, 10, true, true, false, false);
 		storage.LoadArchiveData(dataNoVersion);
 		TEST_TRUE(dataNoVersion.empty(), "");
 		TEST_TRUE(storage.GetVersion() == 5, "");
@@ -101,8 +102,13 @@ TEST(SerializationBase, Basics) {
 		TEST_TRUE(dataHeaderAndVersion.at(1) == 0xfa, "");
 		TEST_TRUE(dataHeaderAndVersion.at(2) == 0xde, "");
 		TEST_TRUE(dataHeaderAndVersion.at(3) == 0, "");
+		TEST_TRUE(dataHeaderAndVersion.at(4) == 5, "");
+		TEST_TRUE(dataHeaderAndVersion.at(5) == 0, "");
+		TEST_TRUE(dataHeaderAndVersion.at(6) == 0, "");
+		TEST_TRUE(dataHeaderAndVersion.at(7) == 0, "");
+		TEST_TRUE(dataHeaderAndVersion.at(8) == 10, "");
 
-		TestData storage2(0, 0, false);
+		TestData storage2(0, 0, true, true, true, true);
 		storage2.LoadArchiveData(dataHeaderAndVersion);
 		TEST_TRUE(storage2.GetVersion() == 5, "");
 		TEST_TRUE(storage2.mA == 10, "");
@@ -117,7 +123,7 @@ TEST(SerializationBase, Basics) {
 		dataHeaderAndVersion.clear();
 	}
 	{ // have to explicitly set use version to true for versioned only data
-		TestData storage(0, 0, true);
+		TestData storage(0, 0, true, true, true, false);
 		storage.LoadArchiveData(dataOnlyVersion);
 		TEST_TRUE(dataOnlyVersion.empty(), "");
 		TEST_TRUE(storage.GetVersion() == 5, "");
@@ -132,8 +138,10 @@ TEST(SerializationBase, Basics) {
 		TEST_TRUE(dataHeaderAndVersion.at(3) == 0, "");
 		dataHeaderAndVersion.clear();
 	}
+	{
 
 
+	}
 	return 0;
 }
 
@@ -176,13 +184,13 @@ TEST(Serialization, ZppSerializer) {
 		out(point(2, 3, "4"));
 		out(point(5, 6, "7"));
 
-		serialization::convert(stream, data);
+		string::convert(stream, data);
 	}
 
 	data.clear();
 
 	{
-		serialization::convert(data, stream);
+		string::convert(data, stream);
 
 		point my_point0;
 		point my_point1;

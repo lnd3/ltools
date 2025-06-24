@@ -13,7 +13,7 @@
 #include <iostream>
 
 struct TickData {
-	float elapsedTime;
+	double elapsedTime;
 	float deltaTime;
 };
 
@@ -126,6 +126,10 @@ namespace l::ecs {
 
 		auto& getComponents() {
 			return mComponents;
+		}
+
+		int32_t getSize() {
+			return static_cast<int32_t>(mComponents.size());
 		}
 
 		bool tryAdd(Entity* e) {
@@ -361,7 +365,10 @@ namespace l::ecs {
 		ComponentHandle<T> getFirst() {
 			ComponentViewCache<T>* components = getComponentCache<T>();
 			Entity* entity = components->getFirst();
-			return entity->get<T>();
+			if (entity) {
+				return entity->get<T>();
+			}
+			return ComponentHandle<T>();
 		}
 
 		template<typename... Types>

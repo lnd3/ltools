@@ -7,4 +7,4 @@ set(deps
 	memory
 )
 
-bs_generate_package(concurrency "tier2" "${deps}" "")
+bs_generate_package(concurrency "tier1" "${deps}" "")

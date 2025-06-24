@@ -21,16 +21,17 @@ else()
 		logging
 
 		testing
+		filesystem
 		meta
 		memory
+		concurrency
 		serialization
+		crypto
 		math
 		audio
 		hid
 		nodegraph
 
-		concurrency
-		filesystem
 		network
 		storage
 		tools

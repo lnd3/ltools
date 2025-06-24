@@ -46,6 +46,16 @@ namespace l::math {
 	}
 
 	template<class T>
+	auto min3(T val1, T val2, T val3) {
+		return val1 < val2 ? (val3 < val1 ? val3 : val1) : val2;
+	}
+
+	template<class T>
+	auto max3(T val1, T val2, T val3) {
+		return val1 > val2 ? (val1 > val3 ? val1 : val3) : val2;
+	}
+
+	template<class T>
 	auto clamp(T val, T min, T max) {
 		return val < min ? min : val > max ? max : val;
 	}
@@ -59,6 +69,19 @@ namespace l::math {
 			}
 			else if constexpr (sizeof(T) == 8) {
 				return ::floor(val);
+			}
+		}
+	}
+
+	template<class V, class T>
+		requires std::is_floating_point_v<T>
+	V floor(T val) {
+		if constexpr (std::is_floating_point_v<T>) {
+			if constexpr (sizeof(T) == 4) {
+				return static_cast<V>(floorf(val));
+			}
+			else if constexpr (sizeof(T) == 8) {
+				return static_cast<V>(::floor(val));
 			}
 		}
 	}
@@ -195,6 +218,18 @@ namespace l::math {
 		}
 	}
 
+	template<class V, class T>
+	V round(T val) {
+		if constexpr (std::is_floating_point_v<T>) {
+			if constexpr (sizeof(T) == 4) {
+				return static_cast<V>(roundf(val));
+			}
+			else if constexpr (sizeof(T) == 8) {
+				return static_cast<V>(roundl(val));
+			}
+		}
+	}
+
 	template<class T>
 	auto log(T val) {
 		if constexpr (std::is_floating_point_v<T>) {
@@ -227,7 +262,12 @@ namespace l::math::functions {
 
 	template <class T>
 	auto samesign(T a, T b) {
-		return a * b >= static_cast<T>(0.0);
+		return a * b >= static_cast<T>(0.0) ? 1.0f : -1.0f;
+	}
+
+	template <class T>
+	auto sign(T a) {
+		return a >= static_cast<T>(0.0) ? 1.0f : -1.0f;
 	}
 
 	template<class T>

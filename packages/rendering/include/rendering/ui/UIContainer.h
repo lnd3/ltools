@@ -2,20 +2,23 @@
 
 #include "logging/LoggingAll.h"
 
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
-
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
-#include "implot/implot.h"
-#include "implot/implot_internal.h"
 
 #include <functional>
 #include <unordered_map>
 
 namespace l::ui {
+
+    constexpr ImVec4 darkBlack = ImVec4(15.0f / 255.0f, 15.0f / 255.0f, 15.0f / 255.0f, 1.0f); // background
+    constexpr ImVec4 darkGrey = ImVec4(38.0f / 255.0f, 38.0f / 255.0f, 38.0f / 255.0f, 1.0f); // node background
+    constexpr ImVec4 darkBlue = ImVec4(17.0f / 255.0f, 26.0f / 255.0f, 37.0f / 255.0f, 1.0f); // unselected tabs
+    constexpr ImVec4 mediumBlue = ImVec4(27.0f / 255.0f, 47.0f / 255.0f, 73.0f / 255.0f, 1.0f); // selected tabs and ui element background
+    constexpr ImVec4 lightBlue = ImVec4(61.0f / 255.0f, 133.0f / 255.0f, 224.0f / 255.0f, 1.0f); // interactive ui elements
+    constexpr ImVec4 brightYellow = ImVec4(147.0f / 255.0f, 232.0f / 255.0f, 102.0f / 255.0f, 1.0f); // selection?
+    constexpr ImVec4 pastellYellow = ImVec4(204.0f / 255.0f, 185.0f / 255.0f, 116.0f / 255.0f, 0.25f); // links?
+    constexpr ImVec4 brightWhite = ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // text
+    constexpr ImVec4 mediumWhite = ImVec4(0.6f, 0.6f, 0.6f, 1.0f); // text data
 
     enum class UIAlignH {
         Left = 0,
@@ -95,9 +98,9 @@ namespace l::ui {
 
     struct ContainerArea {
         ImVec2 mPosition;
-        ImVec2 mSize = ImVec2(20.0f, 20.0f);
+        ImVec2 mSize = ImVec2(20.0f, 16.0f);
         float mScale = 1.0f;
-        float mMargin = 3.0f;
+        float mMargin = 2.0f;
 
         UILayoutData mLayout;
         UIRenderData mRender;
@@ -220,6 +223,7 @@ namespace l::ui {
         virtual bool ShouldUpdateContainer() {
             return false;
         }
+        virtual void Reset() {}
 
     protected:
         bool mDebug = false;
@@ -322,7 +326,7 @@ namespace l::ui {
         virtual void Remove(UIContainer* container);
         virtual void RemoveAll();
 
-        virtual void ForEachChild(std::function<void(UIContainer*)> cb);
+        virtual void ForEachChild(bool recursive, std::function<void(UIContainer*)> cb);
 
         void SetNotification(uint32_t flag) { mNotificationFlags |= flag; }
         void ClearNotifications() { mNotificationFlags = 0; }
@@ -372,8 +376,8 @@ namespace l::ui {
         void DebugLog() { LOG(LogDebug) << "UIContainer: " << mDisplayName << ", [" << mDisplayArea.mScale << "][" << mDisplayArea.mPosition.x << ", " << mDisplayArea.mPosition.y << "][" << mDisplayArea.mSize.x << ", " << mDisplayArea.mSize.y << "]"; }
     protected:
         int32_t mId = 0;
-        int32_t mNodeId = 0;
-        int32_t mChannelId = 0;
+        int32_t mNodeId = -1;
+        int32_t mChannelId = -1;
         std::string mStringId;
         std::string mDisplayName;
 
@@ -418,9 +422,11 @@ namespace l::ui {
         UIManager() = default;
         ~UIManager() = default;
 
+        void Reset();
         UIHandle Add(std::unique_ptr<UIContainer> container);
         void Remove(const UIHandle& handle);
         void Remove(UIContainer* container);
+        UIContainer* FindNodeId(uint32_t flag, int32_t nodeId, int32_t channelId = -1);
     protected:
         std::unordered_map<uint32_t, std::unique_ptr<UIContainer>> mContainers;
         int32_t mIdCounter = 1;
@@ -428,7 +434,8 @@ namespace l::ui {
 
     UIHandle CreateContainer(UIManager& uiManager, uint32_t flags, UIRenderType renderType = UIRenderType::Rect, UIAlignH alignH = UIAlignH::Left, UIAlignV alignV = UIAlignV::Top, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed);
     UIHandle CreateSplit(UIManager& uiManager, uint32_t flags, UIRenderType renderType, UISplitMode splitMode = UISplitMode::AppendV, UILayoutH layoutH = UILayoutH::Fixed, UILayoutV layoutV = UILayoutV::Fixed);
-    void DeleteContainer(UIManager& uiManager, UIHandle handle);
-    void DeleteContainer(UIManager& uiManager, UIContainer* container);
+    void DeleteContainer(UIManager& uiManager, UIHandle handle, bool alsoRemoveFromParent = true);
+    void DeleteContainer(UIManager& uiManager, UIContainer* container, bool alsoRemoveFromParent = true);
+    void ForEachChildOf(uint32_t flags, UIContainer* rootContainer, bool recursive, std::function<bool(UIContainer*)> cb);
 
 }

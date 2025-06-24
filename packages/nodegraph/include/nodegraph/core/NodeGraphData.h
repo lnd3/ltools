@@ -18,7 +18,8 @@ namespace l::nodegraph {
         INPUT_NODE,
         INPUT_CONSTANT,
         INPUT_VALUE,
-        INPUT_ARRAY
+        INPUT_ARRAY,
+        INPUT_TEXT,
     };
 
     enum class InputBound {
@@ -45,6 +46,8 @@ namespace l::nodegraph {
         NodeGraphBase* mInputNode = nullptr;
         float* mInputFloat;
         float mInputFloatConstant;
+        std::vector<float>* mInputFloatBuf;
+        std::vector<char>* mInputTextBuf;
     };
 
     /**********************************************************************************/
@@ -103,6 +106,7 @@ namespace l::nodegraph {
         void Reset(NodeDataIterator&& iterator) {
             mIterator = std::move(iterator);
             mRwa.Value() = *mIterator;
+            //mRwa.SetTarget(*mIterator);
             mRwa.SetConvergenceInTicks(l::math::max2(4.0f, iterator.GetStepsPerIncrement()), 0.35f);
         }
     protected:
@@ -111,7 +115,7 @@ namespace l::nodegraph {
     };
     /*********************************************************************************/
     enum class InputIterationType {
-        SAMPLED = 0, // interpolate in a buffer the size of a ProcessSubGraph(size) call. The actual size is defined by the lod factor of the source output buffer.
+        SAMPLED_ARRAY = 0, // interpolate in a buffer the size of a ProcessSubGraph(size) call. The actual size is defined by the lod factor of the source output buffer.
         SAMPLED_RWA, // same as SAMPLED, but it also uses RWA on the output with a smoothing factor defined by the lod factor of the source output buffer
         CONSTANT_ARRAY, // user defined array for custom usage
         CUSTOM_INTERP_TWEEN, // custom input vars that tweens the input like a s curve
@@ -127,6 +131,13 @@ namespace l::nodegraph {
 
         InputUnion() : mFilterRWA() {}
         ~InputUnion() = default;
+    };
+
+    struct NodeGraphUIData {
+        float x = 0.0f;
+        float y = 0.0f;
+        float w = 0.0f;
+        float h = 0.0f;
     };
 
 }

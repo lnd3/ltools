@@ -7,6 +7,14 @@
 #include <memory>
 #include <filesystem>
 
+
+class CacheBlock {
+public:
+	CacheBlock() = default;
+	~CacheBlock() = default;
+
+};
+
 class Data {
 public:
 	Data() = default;
@@ -22,7 +30,7 @@ public:
 	int32_t mValue = 0;
 };
 
-TEST(SequentialCache, Setup) {
+TEST(SequentialCacheStore, Setup) {
 	l::filecache::FileCacheProvider fileCacheProvider("tests/store", ".test");
 	{
 		l::filecache::SequentialCacheStore<Data> store(&fileCacheProvider);
@@ -42,7 +50,53 @@ TEST(SequentialCache, Setup) {
 	return 0;
 }
 
-TEST(SequentialCache, CacheGroup) {
+TEST(SequentialCacheStore, ForEach) {
+	{
+		for (int32_t blockSize = 2; blockSize < 6; blockSize++) {
+			l::filecache::SequentialCacheStore<Data> store;
+			for (int32_t start = 0; start < blockSize * 3; start++) {
+				for (int32_t length = blockSize / 2; length < 3 * blockSize; length++) {
+					int32_t expectedBlockCount = 1 + (start + length) / blockSize - start / blockSize;
+					int32_t blockCount = 0;
+					store.ForEach("Cache", start, start + length, blockSize, [&](int32_t s, int32_t bs, l::filecache::CacheBlock<Data>* block) {
+						TEST_TRUE_NO_RET(block != nullptr, "");
+						TEST_TRUE_NO_RET(!block->HasData(), "");
+						TEST_TRUE_NO_RET(bs == blockSize, "");
+						TEST_TRUE_NO_RET(s == (blockSize * (start / blockSize) + blockSize * blockCount), "");
+						blockCount++;
+						return true;
+						});
+					TEST_TRUE(blockCount == expectedBlockCount, "");
+				}
+			}
+		}
+	}
+	{
+		for (int32_t blockSize = 2; blockSize < 6; blockSize++) {
+			l::filecache::SequentialCacheStore<Data> store;
+			for (int32_t start = 0; start < blockSize * 3; start++) {
+				for (int32_t length = blockSize / 2; length < 3 * blockSize; length++) {
+					int32_t expectedBlockCount = 1 + (start + length) / blockSize - start / blockSize;
+					int32_t blockCount = 0;
+					store.ForEach2("Cache", "key", start, start + length, blockSize, [&](int32_t s, int32_t bs, l::filecache::CacheBlock<Data>* block1, l::filecache::CacheBlock<Data>* block2) {
+						TEST_TRUE_NO_RET(block1 != nullptr, "");
+						TEST_TRUE_NO_RET(block2 != nullptr, "");
+						TEST_TRUE_NO_RET(!block1->HasData(), "");
+						TEST_TRUE_NO_RET(!block2->HasData(), "");
+						TEST_TRUE_NO_RET(bs == blockSize, "");
+						TEST_TRUE_NO_RET(s == (blockSize * (start / blockSize) + blockSize * blockCount), "");
+						blockCount++;
+						return true;
+						});
+					TEST_TRUE(blockCount == expectedBlockCount, "");
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+TEST(SequentialCacheStore, CacheGroup) {
 	l::filecache::SequentialCacheStore<Data> store;
 
 	//auto a = store.GetCache("Key1");

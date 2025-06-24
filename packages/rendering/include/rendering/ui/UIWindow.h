@@ -2,41 +2,31 @@
 
 #include "logging/LoggingAll.h"
 
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
-
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
-#include "implot/implot.h"
-#include "implot/implot_internal.h"
+
+#include <rendering/ui/UIBase.h>
 
 #include <functional>
+#include <string_view>
 
 namespace l::ui {
 
-    class UIBase {
-    public:
-        UIBase() = default;
-        virtual ~UIBase() = default;
-
-        virtual void Show() = 0;
-        virtual bool IsShowing() = 0;
-    };
-
-    class UIWindow final : public UIBase {
+    class UIWindow : public UIBase {
     public:
         UIWindow(std::string_view windowName) : mWindowName(windowName), mPopupName(mWindowName + "Popup") {}
         ~UIWindow() = default;
 
+        void Open() override;
         void Show() override;
         bool IsShowing() override;
+        std::string_view GetName() const;
 
-        void SetContentWindow(std::function<void()> action);
+        void SetName(std::string_view windowName);
+
+        void SetContentWindow(std::function<void(UIWindow&)> action);
         void SetPointerPopup(std::function<void()> popup);
 
-        void Open();
         void Close();
         bool IsHovered();
         ImVec2 GetPosition();
@@ -50,7 +40,7 @@ namespace l::ui {
         bool mOpened = false; 
         bool mIsHovered = false;
         bool mIsFocused = false;
-        std::function<void()> mWindowFunction = nullptr;
+        std::function<void(UIWindow&)> mWindowFunction = nullptr;
         std::function<void()> mPointerPopupMenu = nullptr;
         bool mPopupOpen = false;
 

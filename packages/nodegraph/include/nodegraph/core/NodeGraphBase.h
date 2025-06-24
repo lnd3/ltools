@@ -1,7 +1,9 @@
 #pragma once
 
-#include "logging/LoggingAll.h"
-#include "meta/Reflection.h"
+#include <logging/LoggingAll.h>
+#include <meta/Reflection.h>
+
+#include <jsonxx/jsonxx.h>
 
 #include <string>
 #include <vector>
@@ -10,104 +12,122 @@
 #include <type_traits>
 #include <memory>
 
-#include "math/MathConstants.h"
+#include <math/MathConstants.h>
 
-#include "nodegraph/core/NodeGraphData.h"
-#include "nodegraph/core/NodeGraphInput.h"
-#include "nodegraph/core/NodeGraphOutput.h"
+#include <nodegraph/core/NodeGraphData.h>
+#include <nodegraph/core/NodeGraphInput.h>
+#include <nodegraph/core/NodeGraphOutput.h>
 
 namespace l::nodegraph {
-
-    int32_t CreateUniqueId();
     bool IsValidInOutNum(int8_t inoutNum, size_t inoutSize);
 
     class NodeGraphGroup;
-
+    class NodeGraphOp;
 
     /**********************************************************************************/
     class NodeGraphBase {
     public:
-        NodeGraphBase(NodeType outputType) : 
-            mId(CreateUniqueId()), 
+        NodeGraphBase(int32_t id = -1, NodeType outputType = NodeType::Default) :
+            mId(id),
             mOutputType(outputType),
-			mOperationTypeHash(l::meta::class_hash<NodeGraphBase>())
+            mTypeId(-1),
+            mOperationTypeHash(l::meta::class_hash<NodeGraphBase>()),
+            mProcessUpdateHasRun(false),
+            mLastTickCount(0)
         {}
 
         virtual ~NodeGraphBase() {
+            for (auto& in : mInputs) {
+                in.Reset();
+            }
+            for (auto& out : mOutputs) {
+                out.Reset();
+            }
+            mInputs.clear();
+            mOutputs.clear();
+
             LOG(LogInfo) << "Node graph base destroyed";
         }
 
         NodeGraphBase& operator=(NodeGraphBase&& other) noexcept {
-            this->mId = other.mId;
-            //this->mInputs = std::move(other.mInputs);
-            //this->mOutputs = std::move(other.mOutputs);
-            this->mName = std::move(other.mName);
-            this->mLastTickCount = other.mLastTickCount;
-            this->mOutputType = other.mOutputType;
-            this->mProcessUpdateHasRun = other.mProcessUpdateHasRun;
-            this->mOperationTypeHash = other.mOperationTypeHash;
-            return *this;
-        }
-        NodeGraphBase& operator=(const NodeGraphBase& other) noexcept {
-            this->mId = other.mId;
-            //this->mInputs = std::move(other.mInputs);
-            //this->mOutputs = std::move(other.mOutputs);
-            this->mName = std::move(other.mName);
-            this->mLastTickCount = other.mLastTickCount;
-            this->mOutputType = other.mOutputType;
-            this->mProcessUpdateHasRun = other.mProcessUpdateHasRun;
-            this->mOperationTypeHash = other.mOperationTypeHash;
+            mId = other.mId;
+            mOutputType = other.mOutputType;
+
+            mTypeId = other.mTypeId;
+            mOperationTypeHash = other.mOperationTypeHash;
+
+            mInputs = other.mInputs;
+            mOutputs = other.mOutputs;
+
+            mProcessUpdateHasRun = other.mProcessUpdateHasRun;
+            mLastTickCount = other.mLastTickCount;
+
             return *this;
         }
         NodeGraphBase(NodeGraphBase&& other) noexcept {
             *this = std::move(other);
         }
-        NodeGraphBase(const NodeGraphBase& other) noexcept {
-            *this = other;
-        }
+        NodeGraphBase& operator=(const NodeGraphBase&) = delete;
+        NodeGraphBase(const NodeGraphBase&) = delete;
 
         virtual void Reset();
         virtual void DefaultDataInit() {};
         virtual void SetId(int32_t id) { mId = id; }
+        virtual void SetTypeId(int32_t typeId) { mTypeId = typeId; }
         virtual int32_t GetId() const { return mId; }
+        virtual int32_t GetTypeId() const { return mTypeId; }
+
 
         void ClearProcessFlags();
-        virtual void ProcessSubGraph(int32_t numSamples = 1, bool recomputeSubGraphCache = true);
-        virtual void Tick(int32_t tickCount, float elapsed);
+        bool IsProcessed();
+        virtual void ProcessSubGraph(int32_t numSamples = 1, int32_t numCacheSamples = -1, bool recomputeSubGraphCache = true);
+        virtual void Tick(int32_t tickCount, float delta);
 
         virtual int8_t GetNumInputs();
         virtual int8_t GetNumOutputs();
 
-        virtual float& GetInput(int8_t inputChannel, int32_t size = 1);
-        virtual float& GetOutput(int8_t outputChannel, int32_t size = 1);
+        virtual float& GetInput(int8_t inputChannel, int32_t minSize = 1, int32_t offset = 0);
+        virtual std::string_view GetInputText(int8_t inputChannel, int32_t minSize = 16);
+
+        virtual float& GetOutput(int8_t outputChannel, int32_t minSize = 1, int32_t offset = 0);
+        virtual std::string_view GetOutputText(int8_t outputChannel, int32_t minSize);
         virtual NodeGraphInput& GetInputOf(int8_t inputChannel);
         virtual NodeGraphOutput& GetOutputOf(int8_t outputChannel);
 
         virtual int32_t GetInputSize(int8_t inputChannel);
         virtual int32_t GetOutputSize(int8_t outputChannel);
 
-        virtual std::string_view GetName();
-        virtual std::string_view GetInputName(int8_t inputChannel);
-        virtual std::string_view GetOutputName(int8_t outputChannel);
-        virtual void SetInputName(int8_t inputChannel, std::string_view name);
-        virtual void SetOutputName(int8_t outputChannel, std::string_view name);
+        virtual std::string_view GetName() = 0;
+        virtual std::string_view GetTypeName() = 0;
+
+        virtual std::string_view GetInputName(int8_t inputChannel) = 0;
+        virtual std::string_view GetOutputName(int8_t outputChannel) = 0;
+        //virtual void SetInputName(int8_t inputChannel, std::string_view name) = 0;
+        //virtual void SetOutputName(int8_t outputChannel, std::string_view name) = 0;
 
         virtual bool ClearInput(int8_t inputChannel);
+        void ClearInputs();
 
         virtual bool SetInput(int8_t inputChannel, NodeGraphBase& source, int8_t sourceOutputChannel);
         virtual bool SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceOutputChannel);
-        virtual bool SetInput(int8_t inputChannel, float initialValue, int32_t size = 1);
+        virtual bool SetInput(int8_t inputChannel, float initialValue, int32_t minSize = 1);
         virtual bool SetInput(int8_t inputChannel, float* floatPtr);
-        virtual void SetDefaultOutput(int8_t outputChannel, float constant, int32_t size = 1);
+        virtual bool SetInput(int8_t inputChannel, std::string_view text);
+
+        virtual void SetDefaultOutput(int8_t outputChannel, float constant, int32_t minSize = 1);
 
         virtual bool SetInputBound(int8_t inputChannel, InputBound bound = InputBound::INPUT_0_TO_1, float boundMin = 0.0f, float boundMax = 1.0f);
         virtual bool DetachInput(void* source);
 
-        virtual bool IsDataConstant(int8_t num);
-        virtual bool IsDataVisible(int8_t num);
-        virtual bool IsDataEditable(int8_t num);
+        virtual bool IsInputDataConstant(int8_t) { return false; }
+        virtual bool IsInputDataVisible(int8_t) { return false; }
+        virtual bool IsInputDataEditable(int8_t) { return false; }
+        virtual bool IsInputDataText(int8_t) { return false; }
+        virtual bool IsInputDataArray(int8_t) { return false; }
+        virtual bool IsOutputDataVisible(int8_t) { return false; }
         virtual bool IsOutputPolled(int8_t outputChannel);
-
+        virtual void NodeHasChanged();
+        bool IsOutOfDate2();
         virtual NodeType GetOutputType();
 
         template<class T>
@@ -115,22 +135,46 @@ namespace l::nodegraph {
 			return l::meta::class_hash<T>() == mOperationTypeHash;
 		}
 
+        template<class T>
+        T* GetOp() {
+            if (l::meta::class_hash<T>() == mOperationTypeHash) {
+                return reinterpret_cast<T*>(GetOperation());
+            }
+            return nullptr;
+        }
+
+        void ForEachInput(std::function<void(NodeGraphInput& input)> cb) {
+            for (auto& in : mInputs) {
+                cb(in);
+            }
+        }
+
+        NodeGraphUIData& GetUIData() {
+            return mUiData;
+        }
+
+        void ProcessNode(int32_t numSamples, int32_t numCacheSamples);
+
     protected:
         virtual void SetNumInputs(int8_t numInputs);
         virtual void SetNumOutputs(int8_t outputCount);
 
-        virtual void ProcessOperation(int32_t numSamples = 1);
+        virtual NodeGraphOp* GetOperation() = 0;
 
-        bool mProcessUpdateHasRun = false;
-        int32_t mLastTickCount = 0;
+
+        int32_t mId = -1;
+        NodeType mOutputType = NodeType::Default;
+
+        int32_t mTypeId = -1;
+        size_t mOperationTypeHash = 0;
+
         std::vector<NodeGraphInput> mInputs;
         std::vector<NodeGraphOutput> mOutputs;
 
-        int32_t mId = -1;
-        NodeType mOutputType;
+        bool mProcessUpdateHasRun = false;
+        int32_t mLastTickCount = 0;
 
-        std::string mName;
-        size_t mOperationTypeHash;
+        NodeGraphUIData mUiData;
     };
 
     /**********************************************************************************/
@@ -145,46 +189,115 @@ namespace l::nodegraph {
             LOG(LogInfo) << "Node operation destroyed";
         }
 
+        NodeGraphOp& operator=(NodeGraphOp&& other) noexcept {
+            mNode = other.mNode;
+            mName = other.mName;
+            mTypeName = other.mTypeName;
+
+            mDefaultInStrings = other.mDefaultInStrings;
+            mDefaultOutStrings = other.mDefaultOutStrings;
+            mDefaultInData = other.mDefaultInData;
+            mDefaultOutData = other.mDefaultOutData;
+
+            mNumInputs = other.mNumInputs;
+            mNumOutputs = other.mNumOutputs;
+            mInputHasChanged = other.mInputHasChanged;
+
+            return *this;
+        }
+        NodeGraphOp(NodeGraphOp&& other) noexcept {
+            *this = std::move(other);
+        }
+        NodeGraphOp& operator=(const NodeGraphOp&) = delete;
+        NodeGraphOp(const NodeGraphOp&) = delete;
+
         virtual void DefaultDataInit();
         virtual void Reset() {};
-        virtual void Process(int32_t, std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
-        virtual void Tick(int32_t, float) {}
+
+        virtual void ProcessOperation(int32_t, int32_t, std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&);
+        virtual void Process(int32_t, int32_t, std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
+        virtual void Tick(int32_t /*tickCount*/, float /*delta*/) {}
+        virtual void InputHasChanged();
 
         int8_t GetNumInputs();
         int8_t GetNumOutputs();
 
-        virtual bool IsDataConstant(int8_t channel);
-        virtual bool IsDataVisible(int8_t channel);
-        virtual bool IsDataEditable(int8_t channel);
+        virtual bool HasInputChanged();
+        virtual bool IsInputDataConstant(int8_t channel);
+        virtual bool IsInputDataVisible(int8_t channel);
+        virtual bool IsInputDataEditable(int8_t channel);
+        virtual bool IsInputDataText(int8_t channel);
+        virtual bool IsInputDataArray(int8_t channel);
+        virtual bool IsOutputDataVisible(int8_t channel);
+
         virtual std::string_view GetInputName(int8_t inputChannel);
         virtual std::string_view GetOutputName(int8_t outputChannel);
         virtual std::string_view GetName();
+        virtual std::string_view GetTypeName();
         virtual float GetDefaultData(int8_t inputChannel);
 
-    protected:
-        virtual int32_t AddInput(std::string_view name, float defaultValue = 0.0f, int32_t size = 1, float boundMin = -l::math::constants::FLTMAX, float boundMax = l::math::constants::FLTMAX, bool visible = true, bool editable = true);
-        virtual int32_t AddOutput(std::string_view name, float defaultValue = 0.0f, int32_t size = 1);
-        virtual int32_t AddConstant(std::string_view name, float defaultValue = 0.0f, int32_t size = 1, float boundMin = -l::math::constants::FLTMAX, float boundMax = l::math::constants::FLTMAX, bool visible = true, bool editable = true);
 
-        NodeGraphBase* mNode;
+    protected:
+        virtual int32_t AddInput(std::string_view name, float defaultValue = 0.0f, int32_t minSize = 1, float boundMin = -l::math::constants::FLTMAX, float boundMax = l::math::constants::FLTMAX, bool visible = true, bool editable = true);
+        virtual int32_t AddOutput(std::string_view name, float defaultValue = 0.0f, int32_t minSize = 1, bool visible = true);
+        virtual int32_t AddConstant(std::string_view name, float defaultValue = 0.0f, int32_t minSize = 1, float boundMin = -l::math::constants::FLTMAX, float boundMax = l::math::constants::FLTMAX, bool visible = true, bool editable = true);
+        virtual int32_t AddInput2(std::string_view name, int32_t minSize, InputFlags flags);
+        virtual int32_t AddOutput2(std::string_view name, int32_t minSize, OutputFlags flags);
+
+        NodeGraphBase* mNode = nullptr;
         std::string mName;
+        std::string mTypeName;
 
         std::vector<std::string> mDefaultInStrings;
         std::vector<std::string> mDefaultOutStrings;
-        std::vector<std::tuple<float, int32_t, float, float, bool, bool, bool>> mDefaultInData;
-        std::vector<std::tuple<float, int32_t>> mDefaultOutData;
+        std::vector<std::tuple<float, int32_t, float, float, InputFlags>> mDefaultInData;
+        std::vector<std::tuple<float, int32_t, OutputFlags>> mDefaultOutData;
 
         int8_t mNumInputs = 0;
         int8_t mNumOutputs = 0;
+        bool mInputHasChanged = false;
+    };
+
+    class NodeGraphOpCached : public NodeGraphOp {
+    public:
+        NodeGraphOpCached(NodeGraphBase* node, std::string_view name) :
+            NodeGraphOp(node, name)
+        {
+        }
+        virtual ~NodeGraphOpCached() {
+            LOG(LogInfo) << "Buffered operation destroyed";
+        }
+
+        NodeGraphOpCached& operator=(NodeGraphOpCached&& other) noexcept {
+            mWrittenSamples = other.mWrittenSamples;
+            mReadSamples = other.mReadSamples;
+            return *this;
+        }
+        NodeGraphOpCached(NodeGraphOpCached&& other) = delete;
+        NodeGraphOpCached& operator=(const NodeGraphOpCached&) = delete;
+        NodeGraphOpCached(const NodeGraphOpCached&) = delete;
+
+        void ProcessOperation(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+
+        virtual void ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<nodegraph::NodeGraphInput>& inputs, std::vector<nodegraph::NodeGraphOutput>& outputs) = 0;
+        virtual void ProcessReadCached(int32_t readSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<nodegraph::NodeGraphInput>& inputs, std::vector<nodegraph::NodeGraphOutput>& outputs);
+
+        void InputHasChanged() override {
+            mInputHasChanged = true;
+            mWrittenSamples = 0;
+        }
+
+    protected:
+        int32_t mReadSamples = 0;
+        int32_t mWrittenSamples = 0;
     };
 
     /**********************************************************************************/
-
-    template<class T, class... Params>
+    template<l::meta::DerivedFrom<NodeGraphOp> T, class... Params>
     class NodeGraph : public NodeGraphBase {
     public:
-        NodeGraph(NodeType outputType = NodeType::Default, Params&&... params) :
-            NodeGraphBase(outputType),
+        NodeGraph(int32_t id = -1, NodeType outputType = NodeType::Default, Params&&... params) :
+            NodeGraphBase(id, outputType),
             mOperation(this, std::forward<Params>(params)...)
         {
             mOperationTypeHash = l::meta::class_hash<T>();
@@ -198,16 +311,39 @@ namespace l::nodegraph {
             LOG(LogInfo) << "Node destroyed";
         }
 
-        virtual bool IsDataConstant(int8_t num) override {
-            return mOperation.IsDataConstant(num);
+        NodeGraph& operator=(NodeGraph&& other) noexcept {
+            mOperation = std::move(other.mOperation);
+            return *this;
+        }
+        NodeGraph(NodeGraph&& other) noexcept {
+            *this = std::move(other);
+        }
+        NodeGraph(const NodeGraph&) = delete;
+        NodeGraph& operator=(const NodeGraph&) = delete;
+
+        virtual bool IsInputDataConstant(int8_t num) override {
+            return mOperation.IsInputDataConstant(num);
         }
 
-        virtual bool IsDataVisible(int8_t num) override {
-            return mOperation.IsDataVisible(num);
+        virtual bool IsInputDataVisible(int8_t num) override {
+            return mOperation.IsInputDataVisible(num);
         }
 
-        virtual bool IsDataEditable(int8_t num) override {
-            return mOperation.IsDataEditable(num);
+        virtual bool IsInputDataEditable(int8_t num) override {
+            return mOperation.IsInputDataEditable(num);
+        }
+
+        virtual bool IsInputDataText(int8_t channel) override {
+            return mOperation.IsInputDataText(channel);
+        }
+
+        virtual bool IsInputDataArray(int8_t channel) override {
+            auto& input = mInputs.at(channel);
+            return input.IsOfType(InputType::INPUT_ARRAY);
+        }
+
+        virtual bool IsOutputDataVisible(int8_t num) override {
+            return mOperation.IsOutputDataVisible(num);
         }
 
         virtual void DefaultDataInit() override {
@@ -220,44 +356,33 @@ namespace l::nodegraph {
             mOperation.Reset();
         }
 
-        virtual void ProcessOperation(int32_t numSamples = 1) override {
-            if (mProcessUpdateHasRun) {
-                return;
-            }
-
-            NodeGraphBase::ProcessOperation(numSamples);
-            mOperation.Process(numSamples, mInputs, mOutputs);
-
-            mProcessUpdateHasRun = true;
-        }
-
-        virtual void Tick(int32_t tickCount, float elapsed) override {
+        virtual void Tick(int32_t tickCount, float delta) override {
             if (tickCount <= mLastTickCount) {
                 return;
             }
-            NodeGraphBase::Tick(tickCount, elapsed);
-            mOperation.Tick(tickCount, elapsed);
+            NodeGraphBase::Tick(tickCount, delta);
+            mOperation.Tick(tickCount, delta);
             mLastTickCount = tickCount;
         }
 
-        virtual std::string_view GetInputName(int8_t inputChannel) {
-            auto& customName = mInputs.at(inputChannel).mName;
-            if (customName && !customName->empty()) {
-                return *customName;
-            }
+        virtual std::string_view GetInputName(int8_t inputChannel) override {
             return mOperation.GetInputName(inputChannel);
         }
 
-        virtual std::string_view GetOutputName(int8_t outputChannel) {
-            auto& customName = mOutputs.at(outputChannel).mName;
-            if (customName && !customName->empty()) {
-                return *customName;
-            }
+        virtual std::string_view GetOutputName(int8_t outputChannel) override {
             return mOperation.GetOutputName(outputChannel);
         }
 
-        virtual std::string_view GetName() {
+        virtual std::string_view GetName() override {
             return mOperation.GetName();
+        }
+
+        virtual std::string_view GetTypeName() override {
+            return mOperation.GetTypeName();
+        }
+
+        virtual NodeGraphOp* GetOperation() override {
+            return &mOperation;
         }
 
     protected:
@@ -273,7 +398,10 @@ namespace l::nodegraph {
             mNodeGraphOperation(nodeGraphOperation)
         {
         }
-        ~InputManager() = default;
+        ~InputManager() {
+            mInputs.clear();
+            mCustom.clear();
+        }
 
         int32_t AddInput(InputIterationType type, int32_t inputIndex = -1);
         int32_t AddCustom(InputIterationType type);
@@ -308,7 +436,7 @@ namespace l::nodegraph {
 
         virtual void Tick(int32_t, float) override;
 
-        int32_t AddInput2(
+        int32_t AddInput3(
             InputIterationType type,
             std::string_view name, 
             float defaultValue = 0.0f, 
@@ -318,7 +446,7 @@ namespace l::nodegraph {
             bool visible = true, 
             bool editable = true);
 
-        int32_t AddConstant2(
+        int32_t AddConstant3(
             InputIterationType type,
             std::string_view name, 
             float defaultValue = 0.0f, 
@@ -328,7 +456,7 @@ namespace l::nodegraph {
             bool visible = true, 
             bool editable = true);
 
-        int32_t AddCustom2(
+        int32_t AddCustom3(
             InputIterationType type);
 
     protected:

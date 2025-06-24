@@ -10,8 +10,76 @@
 #include <string>
 #include <memory>
 
-namespace l {
-namespace string {
+namespace l::string {
+
+	template<class T>
+	void convert(std::stringstream& dst, std::vector<T>& src, size_t count = 0) {
+		static_assert(sizeof(T) == sizeof(char));
+		dst.write(reinterpret_cast<char*>(src.data()), count > 0 ? count : src.size());
+	}
+
+	template<class T, const size_t SIZE>
+	void convert(std::stringstream& dst, std::array<T, SIZE>& src, size_t count = 0) {
+		static_assert(sizeof(T) == sizeof(char));
+		dst.write(reinterpret_cast<char*>(src.data()), count > 0 ? count : src.size());
+	}
+
+	template<class T>
+	void convert(std::vector<T>& dst, std::stringstream& src) {
+		T tmp{};
+		static_assert(sizeof(T) == sizeof(char));
+		while (src >> tmp) dst.push_back(tmp);
+	}
+
+	template<int32_t BUFSIZE>
+	class string_buffer {
+	public:
+		string_buffer() = default;
+		~string_buffer() = default;
+
+		void pos(int32_t p) {
+			mPos = (p < 0) ? 0 : (p >= BUFSIZE ? BUFSIZE - 1 : p);
+		}
+
+		void clear() {
+			mPos = 0;
+			cur() = 0;
+		}
+
+		size_t left() {
+			return static_cast<size_t>(BUFSIZE - mPos);
+		}
+
+		char& cur() {
+			return mBuf[size()];
+		}
+		size_t size() {
+			return static_cast<size_t>(mPos);
+		}
+
+		int32_t append(std::string_view s) {
+			int32_t count = static_cast<int32_t>(s.size() < left() ? s.size() : left() - 1);
+			memcpy(&cur(), s.data(), static_cast<size_t>(count));
+			mPos += count;
+			cur() = 0;
+			return count;
+		}
+
+		template<class ...T>
+		int32_t printf(const char* format, T ...args) {
+			int count = std::snprintf(&cur(), left(), format, std::forward<T>(args)...);
+			mPos += count;
+			return count;
+		}
+
+		std::string_view str() {
+			return std::string_view( &mBuf[0], size());
+		}
+
+	protected:
+		int32_t mPos = 0;
+		char mBuf[BUFSIZE];
+	};
 
 	class stackstringview {
 	public:
@@ -80,7 +148,45 @@ namespace string {
 
 	size_t get_local_time_string_verbose(char* buf, size_t maxSize);
 	
+	template<size_t BUFSIZE>
+	void get_local_date(string_buffer<BUFSIZE>& buf, const int32_t unixtime, bool fullYear = false) {
+		struct std::tm tminfo = {};
+		convert_to_local_tm_from_utc_time(unixtime, &tminfo, false);
+		if (fullYear) {
+			buf.printf("%4d-%2d-%2d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday);
+		}
+		else {
+			buf.printf("%4d-%2d-%2d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday);
+		}
+	}
+
+	template<size_t BUFSIZE>
+	void get_local_time(string_buffer<BUFSIZE>& buf, const int32_t unixtime) {
+		struct std::tm tminfo = {};
+		convert_to_local_tm_from_utc_time(unixtime, &tminfo, false);
+		buf.printf("%2d:%2d:%2d", tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
+	}
+
+	template<size_t BUFSIZE>
+	void get_local_date_and_time(string_buffer<BUFSIZE>& buf, const int32_t unixtime, bool fullYear = false) {
+		struct std::tm tminfo = {};
+		convert_to_local_tm_from_utc_time(unixtime, &tminfo, false);
+		if (fullYear) {
+			buf.printf("%4d-%2d-%2d %2d:%2d:%2d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday, tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
+		}
+		else {
+			buf.printf("%2d-%2d-%2d %2d:%2d:%2d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday, tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
+		}
+	}
+
+	template<size_t SIZE>
+	uint32_t string_id(const char(&string)[SIZE]) {
+		std::hash<std::string_view> hasher;
+		auto id = hasher(std::string_view(&string[0], SIZE-1));
+		return static_cast<uint32_t>(id);
+	}
 	uint32_t string_id(std::string_view string);
+	uint32_t string_id(const std::string& string);
 
 	std::string encode_html(const std::string& input);
 
@@ -102,9 +208,12 @@ namespace string {
 		}
 	}
 
+	void replace(std::string& str, const char find_char = '\\', const char new_char = '/');
+
 	bool equal(const char* a, const char* b, size_t a_offset = 0, size_t b_offset = 0, size_t maxCount = 20);
 	bool equal_partial(const char* a, const char* b, size_t a_offset = 0, size_t b_offset = 0, size_t maxCount = 20);
 	bool equal_partial(std::string_view a, std::string_view b, size_t a_offset = 0, size_t b_offset = 0);
+	int32_t equal_anywhere(std::string_view a, std::string_view b);
 
 	std::vector<std::wstring_view> split(std::wstring_view text, std::wstring_view delim = L" \t\n", char escapeChar = '\"');
 	std::vector<std::string_view> split(std::string_view text, std::string_view delim = " \t\n", char escapeChar = '\"');
@@ -115,7 +224,7 @@ namespace string {
 	int count_digits(int number);
 
 	template<class T>
-	concept Number = requires(T a) { std::convertible_to<T, float> || std::convertible_to<T, uint32_t>; };
+	concept Number = requires(T a) { requires std::convertible_to<T, float> || std::convertible_to<T, uint32_t>; };
 	template<Number T>
 	void cstring_to_numbers(const char* src, size_t count, char separator, std::vector<T>& dst) {
 		constexpr size_t bufferSize = 1024;
@@ -196,6 +305,14 @@ namespace string {
 
 	std::string_view rcut(std::string_view s, const char ch);
 	std::wstring_view rcut(std::wstring_view s, const wchar_t ch);
-}
+
+	std::string to_hex2(unsigned char* src, size_t hex_len);
+	std::string to_hex2(std::string_view str);
+
+	std::string hex_encode(unsigned char* src, size_t len);
+	void hex_decode(unsigned char* dst, std::string_view src);
+
+	std::string hex_encode(std::string_view str);
+	std::string hex_decode(std::string_view str);
 }
 

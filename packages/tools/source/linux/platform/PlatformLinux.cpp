@@ -14,15 +14,11 @@ std::wstring FS::GetSeparator() {
 }
 
 std::wstring FS::GetProgramPath() {
-	constexpr size_t buffer_size = 1024;
-	wchar_t wbuffer[buffer_size];
-	return std::wstring(wbuffer);
+	return L"";
 }
 
 std::wstring FS::GetAppDataPath() {
-	constexpr size_t buffer_size = 1024;
-	wchar_t wbuffer[buffer_size];
-	return std::wstring(wbuffer);
+	return L"";
 }
 
 void Cmd::ParseArguments(int argc, const char* argv[]) {

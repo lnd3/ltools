@@ -16,27 +16,79 @@
 
 namespace l::nodegraph {
 
+    struct InputFlags {
+        InputFlags(bool constant, bool visible, bool editable, bool text) {
+            mConstant = constant;
+            mVisible = visible;
+            mEditable = editable;
+            mText = text;
+        }
+
+        bool mConstant = false;
+        bool mVisible = true;
+        bool mEditable = true;
+        bool mText = false;
+    };
+
     class NodeGraphInput {
     public:
-        Input mInput;
-        InputType mInputType = InputType::INPUT_CONSTANT;
+        NodeGraphInput() {
+
+        }
+
+        ~NodeGraphInput() noexcept {
+            switch (mInputType) {
+            case InputType::INPUT_NODE:
+                mInput.mInputNode = nullptr;
+                break;
+            case InputType::INPUT_ARRAY:
+                if (mInput.mInputFloatBuf) {
+                    delete mInput.mInputFloatBuf;
+                }
+                break;
+            case InputType::INPUT_TEXT:
+                if (mInput.mInputTextBuf) {
+                    delete mInput.mInputTextBuf;
+                }
+                break;
+            case InputType::INPUT_CONSTANT:
+            case InputType::INPUT_VALUE:
+            default:
+                break;
+            }
+        }
+
+        void Clear();
+        void Reset();
+        bool IsOfType(InputType type);
+
+        bool HasInputNode();
+        bool HasInputNode(NodeGraphBase* node);
+        bool HasInputValue(float* floatPtr);
+
+        void MinimizeBuffer(int32_t size);
+        float& Get(int32_t minSize = 1, int32_t offset = 0);
+        float& GetArray(int32_t minSize = 1, int32_t offset = 0);
+        std::string_view GetText(int32_t minSize = 16);
+        NodeGraphBase* GetInputNode();
+        int8_t GetInputSrcChannel();
+
+        NodeDataIterator GetIterator(int32_t minSize = 1);
+        int32_t GetSize();
+
+        void SetConstant(float constant);
+        void SetValue(float* floatPtr);
+        void SetArray(float defaultValue, int32_t minSize);
+        void SetText(std::string_view text);
+        bool SetInputNode(NodeGraphBase* source, int8_t sourceOutputChannel);
 
         float mBoundMin = -l::math::constants::FLTMAX;
         float mBoundMax = l::math::constants::FLTMAX;
-
-        int8_t mInputFromOutputChannel = 0;
-        std::unique_ptr<std::string> mName = nullptr;
-
-        // hack to get input buffers working
-        std::unique_ptr<std::vector<float>> mInputBuf = nullptr;
         float mInputLod = 1.0f; // buffer size level of detail  value[1.0f, buffer size] (if 1 it will write all generated values to the buffer, if 'buffer size' it will only have the latest written value),
-
-        void Reset();
-        bool HasInputNode();
-        float& Get(int32_t size = 1);
-        NodeDataIterator GetIterator(int32_t size = 1);
-        NodeDataIterator GetArrayIterator();
-        int32_t GetSize();
+        int8_t mInputFromOutputChannel = 0;
+    protected:
+        Input mInput;
+        InputType mInputType = InputType::INPUT_CONSTANT;
     };
 
 

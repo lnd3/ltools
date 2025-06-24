@@ -17,6 +17,8 @@
 
 #include "LocalStore.h"
 
+#include <storage/FileCacheProvider.h>
+
 namespace l::filecache {
 
 	int32_t GetClampedPosition(int32_t position, int32_t blockWidth);
@@ -28,64 +30,30 @@ namespace l::filecache {
 		int32_t blockWidth, 
 		int32_t clampedPos);
 
-	class ICacheProvider {
-	public:
-		ICacheProvider() = default;
-		virtual ~ICacheProvider() = default;
-		virtual bool PersistData(std::string_view, const std::vector<unsigned char>&) {
-			return false;
-		};
-		virtual bool ProvideData(std::string_view, std::vector<unsigned char>&) {
-			return false;
-		};
-	};
-
-	class FileCacheProvider : public l::filecache::ICacheProvider {
-	public:
-		FileCacheProvider() :
-			mLocation("./"),
-			mExtension("") {}
-		FileCacheProvider(std::string_view location, std::string_view extension) :
-			mLocation(location),
-			mExtension(extension) {}
-		~FileCacheProvider() = default;
-
-		virtual bool PersistData(std::string_view path, const std::vector<unsigned char>& data) override;
-		virtual bool ProvideData(std::string_view path, std::vector<unsigned char>& data) override;
-
-		void ScanLocation(
-			std::string_view location, 
-			std::string_view extension, 
-			std::string_view cacheKey,
-			std::function<void(int32_t position, int32_t blockwidth)> handler);
-	protected:
-		std::filesystem::path mLocation;
-		std::string mExtension;
-
-		std::mutex mFileMutex;
-	};
-
-
 	template<class T>
 	class CacheBlock {
 	public:
 		CacheBlock() :
 			mPath(""),
 			mData(nullptr),
-			mCacheProvider(nullptr)
+			mCacheProvider(nullptr),
+			mPersistOnDestruction(false)
 		{}
 
-		CacheBlock(std::string_view path, ICacheProvider* provider, bool noProvisioning = false) :
+		CacheBlock(std::string_view path, ICacheProvider* provider, bool noProvisioning = false, bool persistOnDestruction = false) :
 			mPath(path),
 			mData(nullptr),
-			mCacheProvider(provider)
+			mCacheProvider(provider),
+			mPersistOnDestruction(persistOnDestruction)
 		{
 			if (!noProvisioning) {
 				ProvideData();
 			}
 		}
 		~CacheBlock() {
-			PersistData();
+			if (mPersistOnDestruction) {
+				PersistData();
+			}
 		}
 
 		friend zpp::serializer::access;
@@ -127,6 +95,15 @@ namespace l::filecache {
 			if (!mData) {
 				return false;
 			}
+
+			if constexpr (std::is_base_of_v<l::serialization::SerializationBase, T>) {
+				auto sb = reinterpret_cast<l::serialization::SerializationBase*>(mData.get());
+				if (sb != nullptr) {
+					sb->GetArchiveData(data);
+					return true;
+				}
+			}
+
 			zpp::serializer::memory_output_archive out(data);
 			out(*this);
 
@@ -138,6 +115,13 @@ namespace l::filecache {
 				std::lock_guard lock(mDataMutex);
 				if (!mData) {
 					mData = std::make_unique<T>();
+				}
+				if constexpr (std::is_base_of_v<l::serialization::SerializationBase, T>) {
+					auto sb = reinterpret_cast<l::serialization::SerializationBase*>(mData.get());
+					if (sb != nullptr) {
+						sb->LoadArchiveData(data);
+						return true;
+					}
 				}
 
 				zpp::serializer::memory_input_archive in(data);
@@ -171,6 +155,8 @@ namespace l::filecache {
 		std::string mPath;
 		std::mutex mPathMutex;
 		ICacheProvider* mCacheProvider;
+
+		bool mPersistOnDestruction;
 	};
 
 	template<class T>
@@ -265,7 +251,7 @@ namespace l::filecache {
 			int32_t beginPosition,
 			int32_t endPosition,
 			int32_t blockWidth,
-			std::function<bool(CacheBlock<T>*)> callback) {
+			std::function<bool(int32_t start, int32_t size, CacheBlock<T>*)> callback) {
 
 			std::unique_lock<std::mutex> lock(mMutexSequentialCacheMap);
 			auto it = mSequentialCacheMap.find(cacheKey.data());
@@ -283,11 +269,13 @@ namespace l::filecache {
 
 			auto cacheBlockWidth = sequentialCacheMap->GetBlockWidth();
 			CacheBlock<T>* cacheBlock = nullptr;
+
+			beginPosition = GetClampedPosition(beginPosition, cacheBlockWidth);
 			if (beginPosition < endPosition) {
 				do {
 					cacheBlock = sequentialCacheMap->Get(beginPosition);
 					if (cacheBlock != nullptr) {
-						if (!callback(cacheBlock)) {
+						if (!callback(beginPosition, cacheBlockWidth, cacheBlock)) {
 							break;
 						}
 					}
@@ -295,13 +283,13 @@ namespace l::filecache {
 						break;
 					}
 					beginPosition += cacheBlockWidth;
-				} while (beginPosition < endPosition + cacheBlockWidth);
+				} while (beginPosition <= endPosition);
 			}
 			else {
 				do {
 					cacheBlock = sequentialCacheMap->Get(beginPosition);
 					if (cacheBlock != nullptr) {
-						if (!callback(cacheBlock)) {
+						if (!callback(beginPosition, cacheBlockWidth, cacheBlock)) {
 							break;
 						}
 					}
@@ -309,7 +297,7 @@ namespace l::filecache {
 						break;
 					}
 					beginPosition -= cacheBlockWidth;
-				} while (beginPosition > endPosition - cacheBlockWidth);
+				} while (beginPosition >= endPosition);
 			}
 			return cacheBlock != nullptr;
 		}
@@ -320,7 +308,7 @@ namespace l::filecache {
 			int32_t beginPosition,
 			int32_t endPosition,
 			int32_t blockWidth,
-			std::function<bool(CacheBlock<T>*, CacheBlock<T>*)> callback) {
+			std::function<bool(int32_t, int32_t, CacheBlock<T>*, CacheBlock<T>*)> callback) {
 
 			std::unique_lock<std::mutex> lock(mMutexSequentialCacheMap);
 			auto it1 = mSequentialCacheMap.find(cacheKey1.data());
@@ -359,14 +347,15 @@ namespace l::filecache {
 
 			CacheBlock<T>* cacheBlock1 = nullptr;
 			CacheBlock<T>* cacheBlock2 = nullptr;
-			if (beginPosition < endPosition) {
+			beginPosition = GetClampedPosition(beginPosition, cacheBlockWidth1);
+			if (beginPosition <= endPosition) {
 				do {
 					cacheBlock1 = sequentialCacheMap1->Get(beginPosition);
 					if (cacheBlock1 != nullptr) {
 						if (sequentialCacheMap2 != nullptr) {
 							cacheBlock2 = sequentialCacheMap2->Get(beginPosition);
 						}
-						if (!callback(cacheBlock1, cacheBlock2)) {
+						if (!callback(beginPosition, cacheBlockWidth1, cacheBlock1, cacheBlock2)) {
 							break;
 						}
 					}
@@ -374,7 +363,7 @@ namespace l::filecache {
 						break;
 					}
 					beginPosition += cacheBlockWidth1;
-				} while (beginPosition < endPosition + cacheBlockWidth1);
+				} while (beginPosition <= endPosition);
 			}
 			else {
 				do {
@@ -383,7 +372,7 @@ namespace l::filecache {
 						if (sequentialCacheMap2 != nullptr) {
 							cacheBlock2 = sequentialCacheMap2->Get(beginPosition);
 						}
-						if (!callback(cacheBlock1, cacheBlock2)) {
+						if (!callback(beginPosition, cacheBlockWidth1, cacheBlock1, cacheBlock2)) {
 							break;
 						}
 					}
@@ -391,7 +380,7 @@ namespace l::filecache {
 						break;
 					}
 					beginPosition -= cacheBlockWidth1;
-				} while (beginPosition > endPosition - cacheBlockWidth1);
+				} while (beginPosition >= endPosition);
 			}
 			return cacheBlock1 != nullptr && (sequentialCacheMap2 == nullptr || cacheBlock2 != nullptr);
 		}

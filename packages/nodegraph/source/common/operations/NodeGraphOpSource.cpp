@@ -12,7 +12,7 @@ namespace l::nodegraph {
     /* Mathematical operations */
 
     /*********************************************************************/
-    void GraphSourceConstants::Process(int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphSourceConstants::Process(int32_t, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto input0 = inputs.at(0).GetIterator(1);
         auto output0 = outputs.at(0).GetIterator(1);
 
@@ -26,7 +26,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void GraphSourceTime::Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void GraphSourceTime::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
 
         auto input0 = inputs.at(0).GetIterator(numSamples);
         auto input1 = inputs.at(1).GetIterator(numSamples);
@@ -77,4 +77,9 @@ namespace l::nodegraph {
         mFrameTime += deltaTime;
     }
 
+    /*********************************************************************/
+    void GraphSourceText::Process(int32_t, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        auto textIn = inputs.at(0).GetText(16);
+        outputs.at(0).SetText(textIn);
+    }
 }

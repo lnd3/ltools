@@ -5,6 +5,7 @@
 #include "nodegraph/core/NodeGraphInput.h"
 #include "nodegraph/core/NodeGraphOutput.h"
 #include "nodegraph/core/NodeGraphBase.h"
+#include "nodegraph/operations/NodeGraphOpTradingDataIO.h"
 
 using namespace l;
 using namespace l::nodegraph;
@@ -15,14 +16,14 @@ public:
     TestOp(NodeGraphBase* node) :
         NodeGraphOp2(node, "TestOp")
     {
-        AddInput2(InputIterationType::SAMPLED, "In 0", 0.0f, 1, 0.0f, 1.0f);
-        AddInput2(InputIterationType::SAMPLED_RWA, "In 1", 0.0f, 1, 0.0f, 1.0f);
+        AddInput3(InputIterationType::SAMPLED_ARRAY, "In 0", 0.0f, 1, 0.0f, 1.0f);
+        AddInput3(InputIterationType::SAMPLED_RWA, "In 1", 0.0f, 1, 0.0f, 1.0f);
         AddOutput("Out 0");
         AddOutput("Out 1");
     }
 
     virtual ~TestOp() = default;
-    virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+    virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
         mInputManager.BatchUpdate(inputs, numSamples);
         auto out0 = outputs.at(0).GetIterator(numSamples, 4.0f);
         auto out1 = outputs.at(1).GetIterator(numSamples, 4.0f);
@@ -39,7 +40,28 @@ public:
 protected:
 };
 
+class Copy : public NodeGraphOp {
+public:
+    Copy(NodeGraphBase* node) :
+        NodeGraphOp(node, "Copy")
+    {
+        AddInput("In", 0.0f, 1, 0.0f, 1.0f);
+        AddOutput("Out");
+    }
 
+    virtual ~Copy() = default;
+    virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+        auto in = &inputs.at(0).Get(numSamples);
+        auto out = &outputs.at(0).Get(5);
+
+        for (int i = 0; i < numSamples; i++) {
+            auto in1 = *in++;
+            *out++ = in1;
+            LOG(LogInfo) << "Node input(" << i << "): " << in1;
+        }
+    }
+protected:
+};
 
 TEST(NodeGraphData, Sampler) {
 
@@ -71,14 +93,14 @@ public:
     TestOp2(NodeGraphBase* node) :
         NodeGraphOp2(node, "TestOp")
     {
-        AddInput2(InputIterationType::CUSTOM_INTERP_TWEEN, "In 0", 0.0f, 1, 0.0f, 1.0f);
-        AddInput2(InputIterationType::CUSTOM_INTERP_TWEEN_MS, "In 1", 0.0f, 1, 0.0f, 1.0f);
+        AddInput3(InputIterationType::CUSTOM_INTERP_TWEEN, "In 0", 0.0f, 1, 0.0f, 1.0f);
+        AddInput3(InputIterationType::CUSTOM_INTERP_TWEEN_MS, "In 1", 0.0f, 1, 0.0f, 1.0f);
         AddOutput("Out 0");
         AddOutput("Out 1");
     }
 
     virtual ~TestOp2() = default;
-    virtual void Process(int32_t numSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+    virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
         mInputManager.BatchUpdate(inputs, numSamples);
         auto out0 = outputs.at(0).GetIterator(numSamples, 4.0f);
         auto out1 = outputs.at(1).GetIterator(numSamples, 4.0f);
@@ -122,3 +144,30 @@ TEST(NodeGraphData, Tweening) {
     return 0;
 }
 
+TEST(NodeGraphData, CandleStickData) {
+
+    NodeGraph<TradingDataIOOCHLVDataIn> node0;
+    NodeGraph<Copy> node1;
+
+    node1.SetInput(0, node0, 0);
+
+    auto in = &node0.GetInput(0, 20 * 6);
+    for (int i = 0; i < 20; i++) {
+        for (int j = 0; j < 6; j++) {
+            *in++ = static_cast<float>(i);
+        }
+    }
+    node0.NodeHasChanged();
+
+    for (int j = 0; j < 5; j++) {
+        node1.ClearProcessFlags();
+        node1.ProcessSubGraph(5);
+
+        auto out = &node1.GetOutput(0, 5);
+        for (int i = 0; i < 5; i++) {
+            LOG(LogInfo) << "node1(0):" << *out++;
+        }
+    }
+
+    return 0;
+}

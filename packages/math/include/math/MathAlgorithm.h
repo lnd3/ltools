@@ -71,7 +71,7 @@ namespace l::math::algorithm {
 			}
 			n++;
 			T aEval = eval(a);
-			if (l::math::functions::samesign(cEval, aEval)) {
+			if (l::math::functions::samesign(cEval, aEval) > 0.0f) {
 				a = c;
 			}
 			else {
