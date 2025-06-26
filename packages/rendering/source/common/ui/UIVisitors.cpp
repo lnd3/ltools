@@ -480,6 +480,9 @@ namespace l::ui {
                 if (OverlapCircle(input.mCurPos, pT, 2.0f * size.x * linkContainer.GetCoParent()->GetLayoutArea().mScale)) {
                     mLinkContainer.mContainer = &linkContainer;
                     mLinkHandler(mLinkContainer->GetCoParent()->GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), mLinkContainer->GetCoParent()->GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), false);
+                    if (linkContainer.GetCoParent()) {
+                        linkContainer.GetCoParent()->SetCoParent(nullptr);
+                    }
                     mDragging = true;
                     return true;
                 }
@@ -520,8 +523,9 @@ namespace l::ui {
                 // If this link if connected to this input node channel area, we detach it because the overlap failed (we moved it away)
                 else if (mLinkContainer->GetCoParent() == &inputContainer) {
                     mLinkHandler(inputContainer.GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), inputContainer.GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), false);
-                    mLinkContainer->SetCoParent(nullptr);
                     mLinkContainer->ClearNotification(UIContainer_LinkFlag);
+                    mLinkContainer->SetCoParent(nullptr);
+                    inputContainer.SetCoParent(nullptr);
                 }
 
                 if (input.mStopped) {
