@@ -360,9 +360,9 @@ namespace l::nodegraph {
             if (tickCount <= mLastTickCount) {
                 return;
             }
+            mLastTickCount = tickCount;
             NodeGraphBase::Tick(tickCount, delta);
             mOperation.Tick(tickCount, delta);
-            mLastTickCount = tickCount;
         }
 
         virtual std::string_view GetInputName(int8_t inputChannel) override {
