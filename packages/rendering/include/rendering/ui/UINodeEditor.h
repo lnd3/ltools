@@ -60,7 +60,8 @@ namespace l::ui {
 
         l::nodegraph::NodeGraphSchema* mNGSchema = nullptr;
         l::hid::KeyState* mKeyState = nullptr;
-        char mLastKeyPressed = 0;
+        int32_t mLastKeyPressed = 0;
+        int32_t mLastKeyDetections = 0;
 
         std::vector<std::function<void(const NodeEvent&)>> mEventListeners;
         std::function<void(UINodeEditor&)> mOverlayContentWindow = nullptr;

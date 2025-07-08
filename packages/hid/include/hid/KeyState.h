@@ -37,8 +37,9 @@ namespace l::hid {
 		}
 		~KeyState() = default;
 
-		char LastKeyPressed();
-		int32_t LastKeyDetections();
+		std::tuple<char, int32_t> LastKeyPressed();
+		void UpdateKeyPress(int32_t scanCode);
+
 		void UpdateKeyDown(int32_t keyCode);
 		void UpdateKeyUp(int32_t keyCode);
 		bool IsReleased(int32_t keyCode);

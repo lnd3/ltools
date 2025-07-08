@@ -106,7 +106,7 @@ namespace l::ui {
         virtual bool Visit(UIContainer& container, const InputState& input);
         virtual void Reset();
 
-        void SetEditHandler(std::function<void(int32_t nodeId, int8_t channelId, std::string& text)> handler) {
+        void SetEditHandler(std::function<void(int32_t nodeId, int8_t channelId, std::string& text, bool noedit)> handler) {
             mEditHandler = handler;
         }
 
@@ -114,7 +114,7 @@ namespace l::ui {
         std::string mEditedText;
         bool mEditing = false;
         UIContainer* mSourceContainer = nullptr;
-        std::function<void(int32_t nodeId, int8_t channelId, std::string& text)> mEditHandler = nullptr;
+        std::function<void(int32_t nodeId, int8_t channelId, std::string& text, bool noedit)> mEditHandler = nullptr;
     };
 
     class UIDraw : public UIVisitor {

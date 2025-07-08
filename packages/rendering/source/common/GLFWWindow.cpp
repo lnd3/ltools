@@ -29,19 +29,24 @@ namespace {
         std::function<l::rendering::KeyCB> key;
         std::function<l::rendering::MouseCB> mouse;
         std::function<l::rendering::ScrollCB> scroll;
+        std::function<l::rendering::CharsCB> chars;
     };
 
     std::unordered_map<GLFWwindow*, Callbacks> sCallbacks;
     std::atomic_int sGLFWWindowCount = 0;
 
-    void set_callbacks(GLFWwindow* window, std::function<l::rendering::KeyCB> key = nullptr, 
-        std::function<l::rendering::MouseCB> mouse = nullptr, 
-        std::function<l::rendering::ScrollCB> scroll = nullptr) {
-        if (key || mouse || scroll) {
+    void set_callbacks(GLFWwindow* window, 
+        std::function<l::rendering::KeyCB> key = nullptr,
+        std::function<l::rendering::MouseCB> mouse = nullptr,
+        std::function<l::rendering::ScrollCB> scroll = nullptr,
+        std::function<l::rendering::CharsCB> chars = nullptr
+    ) {
+        if (chars || key || mouse || scroll) {
             Callbacks cb;
             cb.key = std::move(key);
             cb.mouse = std::move(mouse);
             cb.scroll = std::move(scroll);
+            cb.chars = std::move(chars);
             sCallbacks.emplace(window, std::move(cb));
         }
         else {
@@ -74,6 +79,14 @@ namespace {
             it->second.scroll(window, static_cast<float>(xoffset), static_cast<float>(yoffset));
         }
     }
+
+    static void invoke_chars(GLFWwindow* window, unsigned int codepoint) {
+        auto it = sCallbacks.find(window);
+        if (it != sCallbacks.end() && it->second.key) {
+            it->second.chars(window, codepoint);
+        }
+    }
+
 }
 
 namespace l {
@@ -165,6 +178,7 @@ namespace l {
                 glfwSetKeyCallback(window, invoke_key);
                 glfwSetMouseButtonCallback(window, invoke_mouse);
                 glfwSetScrollCallback(window, invoke_scroll);
+                glfwSetCharCallback(window, invoke_chars);
 
                 //l::rendering::read("images/favicon.ico")
                 //GLFWimage icon;
@@ -202,11 +216,13 @@ namespace l {
         void GLFWWindowHandle::SetInput(
             std::function<KeyCB> keyCallback, 
             std::function<MouseCB> mouseCallback, 
-            std::function<ScrollCB> scrollCallback) {
+            std::function<ScrollCB> scrollCallback,
+            std::function<CharsCB> charsCallback
+        ) {
             if (!IsValid()) {
                 return;
             }
-            set_callbacks(mHandle.get(), std::move(keyCallback), std::move(mouseCallback), std::move(scrollCallback));
+            set_callbacks(mHandle.get(), std::move(keyCallback), std::move(mouseCallback), std::move(scrollCallback), std::move(charsCallback));
 
             SetMouseMode();
             

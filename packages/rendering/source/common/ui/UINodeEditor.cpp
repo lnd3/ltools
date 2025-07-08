@@ -223,44 +223,33 @@ namespace l::ui {
             }
             });
 
-        mTextEditVisitor.SetEditHandler([&](int32_t nodeId, int8_t channelId, std::string& text) {
-            if (mNGSchema == nullptr) {
+        mTextEditVisitor.SetEditHandler([&](int32_t nodeId, int8_t channelId, std::string& text, bool noedit) {
+            if (mNGSchema == nullptr || mKeyState == nullptr) {
                 return;
             }
 
+            auto [keyPressed, keyDetections] = mKeyState->LastKeyPressed();
             auto node = mNGSchema->GetNode(nodeId);
-            if (text.empty() && node->IsInputDataEditable(channelId) && node->IsInputDataText(channelId)) {
+            if (noedit && node->IsInputDataEditable(channelId) && node->IsInputDataText(channelId)) {
                 if (channelId < node->GetNumInputs()) {
                     text = node->GetInputText(channelId);
                 }
                 else if (channelId < node->GetNumOutputs()) {
                     text = node->GetOutputText(channelId);
                 }
-                if (ImGui::IsKeyDown(ImGuiKey::ImGuiKey_Enter)) {
-                }
+                mLastKeyPressed = keyPressed;
+                mLastKeyDetections = keyDetections;
             }
 
-            if (mLastKeyPressed != mKeyState->LastKeyPressed() || mKeyState->LastKeyDetections() % 10 == 0) {
-                mLastKeyPressed = mKeyState->LastKeyPressed();
-                if(
-                    mLastKeyPressed >= 'a' && mLastKeyPressed <= 'z' ||
-                    mLastKeyPressed >= 'A' && mLastKeyPressed <= 'Z' || 
-                    mLastKeyPressed >= '0' && mLastKeyPressed <= '9' || 
-                    mLastKeyPressed == ' ' ||
-                    mLastKeyPressed == '-' ||
-                    mLastKeyPressed == '_' ||
-                    mLastKeyPressed == '.' ||
-                    mLastKeyPressed == ':' ||
-                    mLastKeyPressed == '(' ||
-                    mLastKeyPressed == ')' ||
-                    mLastKeyPressed == '[' ||
-                    mLastKeyPressed == ']'
-                    )
-                text += mLastKeyPressed;
-
-                if (channelId < node->GetNumInputs()) {
-                    node->SetInput(channelId, text);
+            if (mLastKeyPressed != keyPressed || keyDetections != mLastKeyDetections) {
+                if (text.size() <= 16) {
+                    text += keyPressed;
                 }
+                mLastKeyPressed = keyPressed;
+                mLastKeyDetections = keyDetections;
+            }
+            if (!noedit && channelId < node->GetNumInputs()) {
+                node->SetInput(channelId, text);
             }
 
             });

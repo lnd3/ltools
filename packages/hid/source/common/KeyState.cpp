@@ -50,23 +50,22 @@ namespace l::hid {
 		return pressedNow;
 	}
 
-	char KeyState::LastKeyPressed() {
-		return static_cast<char>(mLastKeyPressed);
+	std::tuple<char, int32_t> KeyState::LastKeyPressed() {
+		return { static_cast<char>(mLastKeyPressed), mLastKeyDetections };
 	}
 
-	int32_t KeyState::LastKeyDetections() {
-		return mLastKeyDetections;
+	void KeyState::UpdateKeyPress(int32_t scanCode) {
+		if (scanCode >= 32 && scanCode <= 126) {
+			if (mLastKeyPressed != scanCode) {
+				mLastKeyDetections = 0;
+			}
+			mLastKeyPressed = scanCode;
+			mLastKeyDetections++;
+		}
 	}
 
 	void KeyState::UpdateKeyDown(int32_t keyCode) {
 		mActiveKeys[keyCode].UpdateKeyDown();
-		if (mLastKeyPressed != keyCode) {
-			mLastKeyPressed = keyCode;
-			mLastKeyDetections = 1;
-		}
-		else {
-			mLastKeyDetections++;
-		}
 	}
 
 	void KeyState::UpdateKeyUp(int32_t keyCode) {

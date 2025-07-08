@@ -294,21 +294,25 @@ namespace l::ui {
                 mEditing = true;
                 mSourceContainer = &container;
                 mSourceContainer->SetNotification(UIContainer_TextEditFlag);
+                if (mEditHandler) {
+                    mEditHandler(container.GetNodeId(), static_cast<int8_t>(container.GetChannelId()), mEditedText, true);
+                }
             }
         }
         if (mEditing && mSourceContainer == &container) {
-            if (mEditHandler) {
-                mEditHandler(container.GetNodeId(), static_cast<int8_t>(container.GetChannelId()), mEditedText);
+            if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_Backspace, true)) {
+                if (!mEditedText.empty()) {
+                    mEditedText.pop_back();
+                }
             }
-
+            if (mEditHandler) {
+                mEditHandler(container.GetNodeId(), static_cast<int8_t>(container.GetChannelId()), mEditedText, false);
+            }
             if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_Enter, false)) {
                 mSourceContainer->ClearNotification(UIContainer_TextEditFlag);
                 mEditing = false;
                 mSourceContainer = nullptr;
                 mEditedText.clear();
-            }
-            if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_Backspace, false)) {
-                mEditedText.pop_back();
             }
             return mEditing;
         }
