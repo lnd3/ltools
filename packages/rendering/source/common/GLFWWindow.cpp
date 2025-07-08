@@ -82,7 +82,7 @@ namespace {
 
     static void invoke_chars(GLFWwindow* window, unsigned int codepoint) {
         auto it = sCallbacks.find(window);
-        if (it != sCallbacks.end() && it->second.key) {
+        if (it != sCallbacks.end() && it->second.chars) {
             it->second.chars(window, codepoint);
         }
     }

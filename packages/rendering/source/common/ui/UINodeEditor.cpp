@@ -224,11 +224,10 @@ namespace l::ui {
             });
 
         mTextEditVisitor.SetEditHandler([&](int32_t nodeId, int8_t channelId, std::string& text, bool noedit) {
-            if (mNGSchema == nullptr || mKeyState == nullptr) {
+            if (mNGSchema == nullptr) {
                 return;
             }
 
-            auto [keyPressed, keyDetections] = mKeyState->LastKeyPressed();
             auto node = mNGSchema->GetNode(nodeId);
             if (noedit && node->IsInputDataEditable(channelId) && node->IsInputDataText(channelId)) {
                 if (channelId < node->GetNumInputs()) {
@@ -237,16 +236,14 @@ namespace l::ui {
                 else if (channelId < node->GetNumOutputs()) {
                     text = node->GetOutputText(channelId);
                 }
-                mLastKeyPressed = keyPressed;
-                mLastKeyDetections = keyDetections;
             }
 
-            if (mLastKeyPressed != keyPressed || keyDetections != mLastKeyDetections) {
+            ImGuiIO& io = ImGui::GetIO();
+            for (int i = 0; i < io.InputQueueCharacters.Size; i++) {
+                ImWchar c = io.InputQueueCharacters[i];
                 if (text.size() <= 16) {
-                    text += keyPressed;
+                    text += static_cast<char>(c);
                 }
-                mLastKeyPressed = keyPressed;
-                mLastKeyDetections = keyDetections;
             }
             if (!noedit && channelId < node->GetNumInputs()) {
                 node->SetInput(channelId, text);
@@ -397,10 +394,6 @@ namespace l::ui {
 
             return true;
             });
-    }
-
-    void UINodeEditor::SetKeyState(l::hid::KeyState* keyState) {
-        mKeyState = keyState;
     }
 
     l::nodegraph::NodeGraphSchema* UINodeEditor::GetNGSchema() {
