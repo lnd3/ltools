@@ -247,8 +247,9 @@ namespace l::ui {
     const uint32_t UIContainer_OutputFlag = 0x00000400;
     const uint32_t UIContainer_LinkFlag = 0x00000800;
     const uint32_t UIContainer_SelectFlag = 0x00001000;
-    const uint32_t UIContainer_EditFlag = 0x00002000;
+    const uint32_t UIContainer_TouchEditFlag = 0x00002000;
     const uint32_t UIContainer_ConstantsKeyboardFlag = 0x00004000;
+    const uint32_t UIContainer_TextEditFlag = 0x00008000;
 
     class UIDraw;
 

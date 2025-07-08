@@ -39,6 +39,7 @@ namespace l::ui {
 
         void SetOverlayContentWindow(std::function<void(UINodeEditor&)> action);
         void SetNGSchema(l::nodegraph::NodeGraphSchema* ngSchema);
+        void SetKeyState(l::hid::KeyState* keyState);
         void SetEventListener(std::function<void(const NodeEvent& event)> cb);
 
         l::nodegraph::NodeGraphSchema* GetNGSchema();
@@ -54,9 +55,12 @@ namespace l::ui {
         UIDrag mDragVisitor;
         UIMove mMoveVisitor;
         UIResize mResizeVisitor;
-        UIEdit mEditVisitor;
+        UITouchEdit mTouchEditVisitor;
+        UITextEdit mTextEditVisitor;
 
         l::nodegraph::NodeGraphSchema* mNGSchema = nullptr;
+        l::hid::KeyState* mKeyState = nullptr;
+        char mLastKeyPressed = 0;
 
         std::vector<std::function<void(const NodeEvent&)>> mEventListeners;
         std::function<void(UINodeEditor&)> mOverlayContentWindow = nullptr;

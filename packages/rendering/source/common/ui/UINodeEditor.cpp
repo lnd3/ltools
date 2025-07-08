@@ -182,13 +182,13 @@ namespace l::ui {
             return inputNode->ClearInput(static_cast<int8_t>(inputChannel));
             });
 
-        mEditVisitor.SetEditHandler([&](int32_t nodeId, int8_t channelId, float, float dy) {
+        mTouchEditVisitor.SetEditHandler([&](int32_t nodeId, int8_t channelId, float, float dy) {
             if (mNGSchema == nullptr) {
                 return;
             }
 
             auto node = mNGSchema->GetNode(nodeId);
-            if (node->IsInputDataEditable(channelId)) {
+            if (node->IsInputDataEditable(channelId) && !node->IsInputDataText(channelId)) {
                 float* nodeValue = nullptr;
                 if (channelId < node->GetNumInputs()) {
                     nodeValue = &node->GetInput(channelId, 1);
@@ -221,6 +221,48 @@ namespace l::ui {
                     }
                 }
             }
+            });
+
+        mTextEditVisitor.SetEditHandler([&](int32_t nodeId, int8_t channelId, std::string& text) {
+            if (mNGSchema == nullptr) {
+                return;
+            }
+
+            auto node = mNGSchema->GetNode(nodeId);
+            if (text.empty() && node->IsInputDataEditable(channelId) && node->IsInputDataText(channelId)) {
+                if (channelId < node->GetNumInputs()) {
+                    text = node->GetInputText(channelId);
+                }
+                else if (channelId < node->GetNumOutputs()) {
+                    text = node->GetOutputText(channelId);
+                }
+                if (ImGui::IsKeyDown(ImGuiKey::ImGuiKey_Enter)) {
+                }
+            }
+
+            if (mLastKeyPressed != mKeyState->LastKeyPressed() || mKeyState->LastKeyDetections() % 10 == 0) {
+                mLastKeyPressed = mKeyState->LastKeyPressed();
+                if(
+                    mLastKeyPressed >= 'a' && mLastKeyPressed <= 'z' ||
+                    mLastKeyPressed >= 'A' && mLastKeyPressed <= 'Z' || 
+                    mLastKeyPressed >= '0' && mLastKeyPressed <= '9' || 
+                    mLastKeyPressed == ' ' ||
+                    mLastKeyPressed == '-' ||
+                    mLastKeyPressed == '_' ||
+                    mLastKeyPressed == '.' ||
+                    mLastKeyPressed == ':' ||
+                    mLastKeyPressed == '(' ||
+                    mLastKeyPressed == ')' ||
+                    mLastKeyPressed == '[' ||
+                    mLastKeyPressed == ']'
+                    )
+                text += mLastKeyPressed;
+
+                if (channelId < node->GetNumInputs()) {
+                    node->SetInput(channelId, text);
+                }
+            }
+
             });
 
         mSelectVisitor.SetDeleteHandler([&](int32_t containerId, int32_t nodeId) {
@@ -293,7 +335,8 @@ namespace l::ui {
         mDragVisitor.Reset();
         mMoveVisitor.Reset();
         mResizeVisitor.Reset();
-        mEditVisitor.Reset();
+        mTouchEditVisitor.Reset();
+        mTextEditVisitor.Reset();
 
         if (mUIRoot.IsValid()) {
             mUIRoot->RemoveAll();
@@ -367,6 +410,10 @@ namespace l::ui {
             });
     }
 
+    void UINodeEditor::SetKeyState(l::hid::KeyState* keyState) {
+        mKeyState = keyState;
+    }
+
     l::nodegraph::NodeGraphSchema* UINodeEditor::GetNGSchema() {
         return mNGSchema;
     }
@@ -391,7 +438,9 @@ namespace l::ui {
             if (IsHovered()) {
                 if (mUIRoot->Accept(mLinkIOVisitor, mUIInput, l::ui::UITraversalMode::DFS)) {
                 }
-                else if (mUIRoot->Accept(mEditVisitor, mUIInput, l::ui::UITraversalMode::DFS)) {
+                else if (mUIRoot->Accept(mTouchEditVisitor, mUIInput, l::ui::UITraversalMode::DFS)) {
+                }
+                else if (mUIRoot->Accept(mTextEditVisitor, mUIInput, l::ui::UITraversalMode::DFS)) {
                 }
                 else if (mUIRoot->Accept(mSelectVisitor, mUIInput, l::ui::UITraversalMode::BFS)) {
                 }

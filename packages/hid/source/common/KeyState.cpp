@@ -50,8 +50,23 @@ namespace l::hid {
 		return pressedNow;
 	}
 
+	char KeyState::LastKeyPressed() {
+		return static_cast<char>(mLastKeyPressed);
+	}
+
+	int32_t KeyState::LastKeyDetections() {
+		return mLastKeyDetections;
+	}
+
 	void KeyState::UpdateKeyDown(int32_t keyCode) {
 		mActiveKeys[keyCode].UpdateKeyDown();
+		if (mLastKeyPressed != keyCode) {
+			mLastKeyPressed = keyCode;
+			mLastKeyDetections = 1;
+		}
+		else {
+			mLastKeyDetections++;
+		}
 	}
 
 	void KeyState::UpdateKeyUp(int32_t keyCode) {

@@ -245,8 +245,8 @@ namespace l::ui {
     }
 
     /***********************************************************************************/
-    bool UIEdit::Visit(UIContainer& container, const InputState& input) {
-        if (!container.HasConfigFlag(UIContainer_EditFlag)) {
+    bool UITouchEdit::Visit(UIContainer& container, const InputState& input) {
+        if (!container.HasConfigFlag(UIContainer_TouchEditFlag)) {
             return false;
         }
         if (input.mStarted && !mEditing) {
@@ -254,6 +254,7 @@ namespace l::ui {
             if (Overlap(input.GetLocalPos(), container.GetPosition(), container.GetPositionAtSize(), layoutArea)) {
                 mEditing = true;
                 mSourceContainer = &container;
+                mSourceContainer->SetNotification(UIContainer_TouchEditFlag);
             }
         }
         if (mEditing && mSourceContainer == &container) {
@@ -265,6 +266,7 @@ namespace l::ui {
             }
 
             if (input.mStopped) {
+                mSourceContainer->ClearNotification(UIContainer_TouchEditFlag);
                 mEditing = false;
                 mSourceContainer = nullptr;
             }
@@ -273,7 +275,50 @@ namespace l::ui {
         return false;
     }
 
-    void UIEdit::Reset() {
+    void UITouchEdit::Reset() {
+        if (mSourceContainer) {
+            mSourceContainer->ClearNotification(UIContainer_TouchEditFlag);
+        }
+        mEditing = false;
+        mSourceContainer = nullptr;
+    }
+
+    /***********************************************************************************/
+    bool UITextEdit::Visit(UIContainer& container, const InputState& input) {
+        if (!container.HasConfigFlag(UIContainer_TextEditFlag)) {
+            return false;
+        }
+        if (input.mStarted && !mEditing) {
+            auto& layoutArea = container.GetLayoutArea();
+            if (Overlap(input.GetLocalPos(), container.GetPosition(), container.GetPositionAtSize(), layoutArea)) {
+                mEditing = true;
+                mSourceContainer = &container;
+                mSourceContainer->SetNotification(UIContainer_TextEditFlag);
+            }
+        }
+        if (mEditing && mSourceContainer == &container) {
+            if (mEditHandler) {
+                mEditHandler(container.GetNodeId(), static_cast<int8_t>(container.GetChannelId()), mEditedText);
+            }
+
+            if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_Enter, false)) {
+                mSourceContainer->ClearNotification(UIContainer_TextEditFlag);
+                mEditing = false;
+                mSourceContainer = nullptr;
+                mEditedText.clear();
+            }
+            if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_Backspace, false)) {
+                mEditedText.pop_back();
+            }
+            return mEditing;
+        }
+        return false;
+    }
+
+    void UITextEdit::Reset() {
+        if (mSourceContainer) {
+            mSourceContainer->ClearNotification(UIContainer_TextEditFlag);
+        }
         mEditing = false;
         mSourceContainer = nullptr;
     }

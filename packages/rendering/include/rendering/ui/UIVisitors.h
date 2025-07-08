@@ -86,7 +86,7 @@ namespace l::ui {
         std::function<void(int32_t)> mRemoveHandler = nullptr;
     };
 
-    class UIEdit : public UIVisitor {
+    class UITouchEdit : public UIVisitor {
     public:
         virtual bool Visit(UIContainer& container, const InputState& input);
         virtual void Reset();
@@ -99,6 +99,22 @@ namespace l::ui {
         bool mEditing = false;
         UIContainer* mSourceContainer = nullptr;
         std::function<void(int32_t nodeId, int8_t channelId, float dx, float dy)> mEditHandler = nullptr;
+    };
+
+    class UITextEdit : public UIVisitor {
+    public:
+        virtual bool Visit(UIContainer& container, const InputState& input);
+        virtual void Reset();
+
+        void SetEditHandler(std::function<void(int32_t nodeId, int8_t channelId, std::string& text)> handler) {
+            mEditHandler = handler;
+        }
+
+    protected:
+        std::string mEditedText;
+        bool mEditing = false;
+        UIContainer* mSourceContainer = nullptr;
+        std::function<void(int32_t nodeId, int8_t channelId, std::string& text)> mEditHandler = nullptr;
     };
 
     class UIDraw : public UIVisitor {

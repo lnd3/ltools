@@ -65,7 +65,9 @@ namespace l::ui {
                     }
 
                     if (node.IsInputDataVisible(i)) {
-                        auto inputDataText = CreateContainer(uiManager, (node.IsInputDataEditable(i) ? l::ui::UIContainer_EditFlag : 0) | l::ui::UIContainer_DrawFlag, l::ui::UIRenderType::NodeOutputValue, l::ui::UIAlignH::Left);
+                        bool isText = node.IsInputDataText(i);
+                        bool isEditable = node.IsInputDataEditable(i);
+                        auto inputDataText = CreateContainer(uiManager, (isEditable ? (isText ? l::ui::UIContainer_TextEditFlag : l::ui::UIContainer_TouchEditFlag) : 0) | l::ui::UIContainer_DrawFlag, l::ui::UIRenderType::NodeOutputValue, l::ui::UIAlignH::Left);
                         inputDataText->SetColor(mediumWhite);
                         inputDataText->SetPosition(ImVec2(estimatedWidth, 0.0f));
                         inputDataText->SetSize(ImVec2(10 * 7, 14.0f));
