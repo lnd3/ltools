@@ -93,7 +93,7 @@ namespace l::nodegraph {
         {
             AddInput2("x", 1, InputFlags(false, false, false, false));
             AddInput2("y", 1, InputFlags(false, false, false, false));
-            AddInput2("name", 1, InputFlags(false, false, false, true));
+            AddInput2("name", 1, InputFlags(false, true, true, true));
             AddOutput("Interleaved Data");
         }
         virtual ~GraphUIChartLine() {
@@ -119,7 +119,7 @@ namespace l::nodegraph {
             AddInput2("high", 1, InputFlags(false, false, false, false));
             AddInput2("low", 1, InputFlags(false, false, false, false));
             AddInput2("volume", 1, InputFlags(false, false, false, false));
-            AddInput2("name", 1, InputFlags(false, false, false, true));
+            AddInput2("name", 1, InputFlags(false, true, true, true));
             AddOutput("Interleaved Data");
         }
         virtual ~GraphUICandleSticks() = default;
