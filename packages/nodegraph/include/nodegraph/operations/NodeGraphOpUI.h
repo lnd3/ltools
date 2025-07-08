@@ -89,7 +89,7 @@ namespace l::nodegraph {
     class GraphUIChartLine : public NodeGraphOpCached {
     public:
         GraphUIChartLine(NodeGraphBase* node) :
-            NodeGraphOpCached(node, "Chart Lines")
+            NodeGraphOpCached(node, "Chart Line")
         {
             AddInput2("x", 1, InputFlags(false, false, false, false));
             AddInput2("y", 1, InputFlags(false, false, false, false));
@@ -100,7 +100,7 @@ namespace l::nodegraph {
 
         }
         virtual void DefaultDataInit() override {
-            mNode->SetInput(2, "Chart Lines");
+            mNode->SetInput(2, "Chart Line");
         }
         virtual void ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
