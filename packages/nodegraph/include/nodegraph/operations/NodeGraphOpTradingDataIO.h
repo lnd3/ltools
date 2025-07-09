@@ -40,7 +40,7 @@ namespace l::nodegraph {
             AddOutput2("Base", 16, OutputFlags(false, true));
             AddOutput("Min", 1.0f);
 
-            AddOutput("Unixtime", 0.0f, 2);
+            AddOutput("Time", 0.0f, 2);
             AddOutput("Open", 0.0f, 2);
             AddOutput("Close", 0.0f, 2);
             AddOutput("High", 0.0f, 2);

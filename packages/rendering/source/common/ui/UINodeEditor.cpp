@@ -350,11 +350,8 @@ namespace l::ui {
             if (node != nullptr) {
                 auto& uiData = node->GetUIData();
                 auto p = ImVec2(uiData.x, uiData.y);
-                //auto s = ImVec2(uiData.w, uiData.h);
-                auto uiNode = l::ui::CreateUINode(mUIManager, *node, p);
-                //if (s.x > 10.0f && s.y > 10.0f) {
-                //    uiNode->SetSize(s);
-                //}
+                auto s = ImVec2(uiData.w, uiData.h);
+                auto uiNode = l::ui::CreateUINode(mUIManager, *node, p, s);
 
                 //LOG(LogInfo) << "Replicated node type " << node->GetTypeId() << " as a ui node";
                 mUIRoot->Add(uiNode);

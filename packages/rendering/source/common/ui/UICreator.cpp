@@ -8,7 +8,7 @@
 namespace l::ui {
 
 
-    UIHandle CreateUINode(UIManager& uiManager, l::nodegraph::NodeGraphBase& node, ImVec2 p) {
+    UIHandle CreateUINode(UIManager& uiManager, l::nodegraph::NodeGraphBase& node, ImVec2 p, ImVec2 s) {
 
         auto numInputChannels = node.GetNumInputs();
         auto numOutputChannels = node.GetNumOutputs();
@@ -128,6 +128,9 @@ namespace l::ui {
         }
 
         sizeEstimate.x += node4->GetContainerArea().mMargin * 2 + 2.0f;
+        if (sizeEstimate.x < s.x) {
+            sizeEstimate.x = s.x;
+        }
         node4->SetSize(sizeEstimate);
 
         return node4;

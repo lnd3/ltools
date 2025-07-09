@@ -114,7 +114,7 @@ namespace l::nodegraph {
         GraphUICandleSticks(NodeGraphBase* node) :
             NodeGraphOpCached(node, "Candle Sticks")
         {
-            AddInput2("Unixtime", 1, InputFlags(false, false, false, false));
+            AddInput2("Time", 1, InputFlags(false, false, false, false));
             AddInput2("Open", 1, InputFlags(false, false, false, false));
             AddInput2("Close", 1, InputFlags(false, false, false, false));
             AddInput2("High", 1, InputFlags(false, false, false, false));
