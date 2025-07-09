@@ -67,13 +67,21 @@ namespace l::ui {
                     if (node.IsInputDataVisible(i)) {
                         bool isText = node.IsInputDataText(i);
                         bool isEditable = node.IsInputDataEditable(i);
+
                         auto inputDataText = CreateContainer(uiManager, (isEditable ? (isText ? l::ui::UIContainer_TextEditFlag : l::ui::UIContainer_TouchEditFlag) : 0) | l::ui::UIContainer_DrawFlag, l::ui::UIRenderType::NodeOutputValue, l::ui::UIAlignH::Left);
                         inputDataText->SetColor(mediumWhite);
                         inputDataText->SetPosition(ImVec2(estimatedWidth, 0.0f));
-                        inputDataText->SetSize(ImVec2(10 * 7, 14.0f));
+                        if (isText) {
+                            auto textSize = ImGui::CalcTextSize(node.GetInputText(i).data());
+                            inputDataText->SetSize(ImVec2(textSize.x < 100.0f ? 100.0f : textSize.x, 14.0f));
+                            estimatedWidth += textSize.x;
+                        }
+                        else {
+                            inputDataText->SetSize(ImVec2(10.0f * 4 + 10.0f, 14.0f));
+                            estimatedWidth += 10.0f * 4 + 10.0f;
+                        }
                         inputDataText->SetNodeId(node.GetId());
                         inputDataText->SetChannelId(i);
-                        estimatedWidth += 10 * 7 + 10;
                         row->Add(inputDataText);
                     }
 

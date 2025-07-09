@@ -29,8 +29,8 @@ namespace l::nodegraph {
         MathAritmethicAdd(NodeGraphBase* node) :
             NodeGraphOp(node, "Add")
         {
-            AddInput("In1");
-            AddInput("In2");
+            AddInput2("In1", 1, InputFlags(false, false, false, false));
+            AddInput2("In2", 1, InputFlags(false, false, false, false));
             AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
             AddOutput("In1+In2");
         }
@@ -54,8 +54,8 @@ namespace l::nodegraph {
         MathAritmethicMultiply(NodeGraphBase* node) :
             NodeGraphOp(node, "Multiply")
         {
-            AddInput("In1");
-            AddInput("In2");
+            AddInput2("In1", 1, InputFlags(false, false, false, false));
+            AddInput2("In2", 1, InputFlags(false, false, false, false));
             AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
             AddOutput("In1*In2");
         }
@@ -80,8 +80,8 @@ namespace l::nodegraph {
         MathAritmethicSubtract(NodeGraphBase* node) :
             NodeGraphOp(node, "Subtract")
         {
-            AddInput("In1");
-            AddInput("In2");
+            AddInput2("In1", 1, InputFlags(false, false, false, false));
+            AddInput2("In2", 1, InputFlags(false, false, false, false));
             AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
             AddOutput("In1-In2");
             AddOutput("In2-In1");
@@ -109,7 +109,7 @@ namespace l::nodegraph {
         MathAritmethicNegate(NodeGraphBase* node) :
             NodeGraphOp(node, "Negate")
         {
-            AddInput("In");
+            AddInput2("In", 1, InputFlags(false, false, false, false));
             AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
             AddOutput("-In");
         }
@@ -134,7 +134,7 @@ namespace l::nodegraph {
         MathAritmethicAbs(NodeGraphBase* node) :
             NodeGraphOp(node, "Abs")
         {
-            AddInput("In");
+            AddInput2("In", 1, InputFlags(false, false, false, false));
             AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
             AddOutput("abs(In)");
             AddOutput("max(In,0)");
@@ -165,7 +165,7 @@ namespace l::nodegraph {
         MathAritmethicLog(NodeGraphBase* node) :
             NodeGraphOp(node, "Log")
         {
-            AddInput("In");
+            AddInput2("In", 1, InputFlags(false, false, false, false));
             AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
             AddInput("Base", 2.72f, 1, 1.0f, 10.0f);
             AddOutput("ln(In)");
@@ -200,9 +200,9 @@ namespace l::nodegraph {
         MathAritmethicMultiply3(NodeGraphBase* node) :
             NodeGraphOp(node, "Multiply3")
         {
-            AddInput("In1");
-            AddInput("In2");
-            AddInput("In3");
+            AddInput2("In1", 1, InputFlags(false, false, false, false));
+            AddInput2("In2", 1, InputFlags(false, false, false, false));
+            AddInput2("In3", 1, InputFlags(false, false, false, false));
             AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
             AddOutput("In1*In2*In3");
         }
@@ -228,9 +228,9 @@ namespace l::nodegraph {
         MathAritmethicMultiplyAndAdd(NodeGraphBase* node) :
             NodeGraphOp(node, "Multiply & Add")
         {
-            AddInput("In1");
-            AddInput("In2");
-            AddInput("In3");
+            AddInput2("In1", 1, InputFlags(false, false, false, false));
+            AddInput2("In2", 1, InputFlags(false, false, false, false));
+            AddInput2("In3", 1, InputFlags(false, false, false, false));
             AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
             AddOutput("In1*In2+In3");
         }
@@ -256,7 +256,7 @@ namespace l::nodegraph {
         MathAritmethicRound(NodeGraphBase* node) :
             NodeGraphOp(node, "Round")
         {
-            AddInput("In");
+            AddInput2("In", 1, InputFlags(false, false, false, false));
             AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
             AddOutput("int(In+0.5)");
         }

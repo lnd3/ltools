@@ -47,7 +47,7 @@ namespace l::nodegraph {
         GraphUISlider(NodeGraphBase* node) :
             NodeGraphOp(node, "UI Slider")
         {
-            AddInput("In", 0.0f);
+            AddInput2("In", 1, InputFlags(false, false, false, false));
             AddInput("Min", 0.0f);
             AddInput("Max", 1.0f);
             AddInput("Power", 1.0f);
@@ -91,10 +91,11 @@ namespace l::nodegraph {
         GraphUIChartLine(NodeGraphBase* node) :
             NodeGraphOpCached(node, "Chart Line")
         {
-            AddInput2("x", 1, InputFlags(false, false, false, false));
-            AddInput2("y", 1, InputFlags(false, false, false, false));
-            AddInput2("name", 1, InputFlags(false, true, true, true));
-            AddOutput("Interleaved Data");
+
+            AddInput2("X", 1, InputFlags(false, false, false, false));
+            AddInput2("Y", 1, InputFlags(false, false, false, false));
+            AddInput2("Name", 1, InputFlags(false, true, true, true));
+            AddOutput("Data");
         }
         virtual ~GraphUIChartLine() {
 
@@ -113,14 +114,14 @@ namespace l::nodegraph {
         GraphUICandleSticks(NodeGraphBase* node) :
             NodeGraphOpCached(node, "Candle Sticks")
         {
-            AddInput2("unixtime", 1, InputFlags(false, false, false, false));
-            AddInput2("open", 1, InputFlags(false, false, false, false));
-            AddInput2("close", 1, InputFlags(false, false, false, false));
-            AddInput2("high", 1, InputFlags(false, false, false, false));
-            AddInput2("low", 1, InputFlags(false, false, false, false));
-            AddInput2("volume", 1, InputFlags(false, false, false, false));
-            AddInput2("name", 1, InputFlags(false, true, true, true));
-            AddOutput("Interleaved Data");
+            AddInput2("Unixtime", 1, InputFlags(false, false, false, false));
+            AddInput2("Open", 1, InputFlags(false, false, false, false));
+            AddInput2("Close", 1, InputFlags(false, false, false, false));
+            AddInput2("High", 1, InputFlags(false, false, false, false));
+            AddInput2("Low", 1, InputFlags(false, false, false, false));
+            AddInput2("Volume", 1, InputFlags(false, false, false, false));
+            AddInput2("Name", 1, InputFlags(false, true, true, true));
+            AddOutput("Data");
         }
         virtual ~GraphUICandleSticks() = default;
         virtual void DefaultDataInit() override {

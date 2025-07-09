@@ -308,7 +308,7 @@ namespace l::ui {
             if (mEditHandler) {
                 mEditHandler(container.GetNodeId(), static_cast<int8_t>(container.GetChannelId()), mEditedText, false);
             }
-            if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_Enter, false)) {
+            if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_Enter, false) || ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_Escape, false)) {
                 mSourceContainer->ClearNotification(UIContainer_TextEditFlag);
                 mEditing = false;
                 mSourceContainer = nullptr;
@@ -352,6 +352,24 @@ namespace l::ui {
         const char* nameEnd;
 
         auto renderType = container.GetRenderData().mType;
+
+
+        switch (container.GetRenderData().mType) {
+        case l::ui::UIRenderType::Rect:
+        case l::ui::UIRenderType::RectFilled:
+        case l::ui::UIRenderType::Texture:
+        case l::ui::UIRenderType::LinkH:
+        case l::ui::UIRenderType::NodeOutputValue:
+            if (container.HasConfigFlag(UIContainer_SelectFlag) && container.HasNotification(UIContainer_SelectFlag)) {
+                auto p1cpy = ImVec2(p1.x - 1.0f, p1.y - 1.0f);
+                auto p2cpy = ImVec2(p2.x + 1.0f, p2.y + 1.0f);
+                mDrawList->AddRect(p1cpy, p2cpy, mSelectColor, 0.0f, 0, 3.0f * container.GetScale() * layoutArea.mScale);
+            }
+            break;
+        default:
+            break;
+        }
+
         switch (renderType) {
         case l::ui::UIRenderType::Rect:
             mDrawList->AddRect(p1, p2, color, 5.0f, ImDrawFlags_RoundCornersAll, 1.0f * container.GetScale() * layoutArea.mScale);
@@ -454,21 +472,30 @@ namespace l::ui {
         case l::ui::UIRenderType::RectFilled:
         case l::ui::UIRenderType::Texture:
         case l::ui::UIRenderType::LinkH:
-            if (container.HasConfigFlag(UIContainer_SelectFlag) && container.HasNotification(UIContainer_SelectFlag)) {
+        case l::ui::UIRenderType::NodeOutputValue:
+            if (container.HasConfigFlag(UIContainer_TouchEditFlag) && container.HasNotification(UIContainer_TouchEditFlag)) {
                 auto p1cpy = ImVec2(p1.x - 1.0f, p1.y - 1.0f);
                 auto p2cpy = ImVec2(p2.x + 1.0f, p2.y + 1.0f);
-                mDrawList->AddRect(p1cpy, p2cpy, mSelectColor, 0.0f, 0, 1.0f);
+                mDrawList->AddRect(p1cpy, p2cpy, mSelectColor, 0.0f, 0, 1.0f * container.GetScale() * layoutArea.mScale);
+            }
+            if (container.HasConfigFlag(UIContainer_TextEditFlag) && container.HasNotification(UIContainer_TextEditFlag)) {
+                auto p1cpy = ImVec2(p1.x - 1.0f, p1.y - 1.0f);
+                auto p2cpy = ImVec2(p2.x + 1.0f, p2.y + 1.0f);
+                mDrawList->AddRect(p1cpy, p2cpy, mSelectColor, 0.0f, 0, 1.0f * container.GetScale() * layoutArea.mScale);
             }
             if (container.HasConfigFlag(ui::UIContainer_ResizeFlag)) {
                 float size = 3.0f * layoutArea.mScale;
                 ImVec2 p3 = layoutArea.Transform(pLowRight, ImVec2(-size, -size));
-                ImVec2 p4 = layoutArea.Transform(pLowRight, ImVec2(size, size));
+                ImVec2 p4 = layoutArea.Transform(pLowRight, ImVec2(size - 2, size - 2));
                 if (container.HasNotification(ui::UIContainer_ResizeFlag)) {
                     float size2 = 5.0f * layoutArea.mScale;
                     p3 = layoutArea.Transform(pLowRight, ImVec2(-size2, -size2));
-                    p4 = layoutArea.Transform(pLowRight, ImVec2(size2, size2));
+                    p4 = layoutArea.Transform(pLowRight, ImVec2(size2 - 1, size2 - 1));
+                    mDrawList->AddRectFilled(p3, p4, mSelectColor);
                 }
-                mDrawList->AddRectFilled(p3, p4, color);
+                else {
+                    mDrawList->AddRectFilled(p3, p4, color);
+                }
             }
             break;
         default:

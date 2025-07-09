@@ -30,15 +30,15 @@ namespace l::nodegraph {
 				mName = "OCHLV Heikin-Ashi In";
 			}
 
-            AddInput("In", 0.0f, 2, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
-            AddInput2("Symbol", 16, InputFlags(false, true, true, true));
-            AddInput2("Base", 16, InputFlags(false, true, true, true));
+            AddInput2("In", 16, InputFlags(false, false, false, false));
+            AddInput2("Symbol", 16, InputFlags(false, true, false, true));
+            AddInput2("Base", 16, InputFlags(false, true, false, true));
             AddInput("Index", 2.0f, 1, 0.0f, 10.0f);
 
 
-            AddOutput2("Symbol", 16, OutputFlags(true, true));
-            AddOutput2("Base", 16, OutputFlags(true, true));
-            AddOutput("Interval Min", 1.0f);
+            AddOutput2("Symbol", 16, OutputFlags(false, true));
+            AddOutput2("Base", 16, OutputFlags(false, true));
+            AddOutput("Min", 1.0f);
 
             AddOutput("Unixtime", 0.0f, 2);
             AddOutput("Open", 0.0f, 2);

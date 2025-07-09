@@ -142,7 +142,7 @@ namespace l::ui {
         ImDrawList* mDrawList;
         std::function<void(int32_t, int8_t, ImVec2, float, ImU32, ImDrawList*)> mDrawChannelTextHandler = nullptr;
         std::function<void(int32_t, int8_t, ImVec2, ImVec2, float, ImU32, ImDrawList*)> mDrawLineHandler = nullptr;
-        ImColor mSelectColor = ImColor(darkGrey);
+        ImColor mSelectColor = ImColor(pastellYellow);
     };
 
     class UILinkIO : public UIVisitor {
