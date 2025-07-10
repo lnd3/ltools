@@ -128,8 +128,11 @@ namespace l::ui {
         }
 
         sizeEstimate.x += node4->GetContainerArea().mMargin * 2 + 2.0f;
-        if (sizeEstimate.x < s.x) {
+        if (s.x > 0.0f) {
             sizeEstimate.x = s.x;
+        }
+        if (s.y > sizeEstimate.y) {
+            sizeEstimate.y = s.y;
         }
         node4->SetSize(sizeEstimate);
 

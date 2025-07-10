@@ -275,6 +275,9 @@ namespace l::nodegraph {
         case 108:
             node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicRound>(id, NodeType::Default);
             break;
+        case 109:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicPow>(id, NodeType::Default);
+            break;
 
             // Math logical operators
         case 120:
@@ -299,6 +302,9 @@ namespace l::nodegraph {
             break;
         case 143:
             node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalDiff>(id, NodeType::Default);
+            break;
+        case 144:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalLevelTrigger>(id, NodeType::Default);
             break;
 
             // Trading data io
@@ -588,6 +594,7 @@ namespace l::nodegraph {
             RegisterNodeType("Math.Aritmethic", 106, "Mul3");
             RegisterNodeType("Math.Aritmethic", 107, "Madd");
             RegisterNodeType("Math.Aritmethic", 108, "Round");
+            RegisterNodeType("Math.Aritmethic", 109, "Pow");
         }
         else if (typeGroup == "Math.Logic") {
             RegisterNodeType("Math.Logic", 120, "And");
@@ -599,6 +606,7 @@ namespace l::nodegraph {
             RegisterNodeType("Math.Numerical", 141, "Derivate");
             RegisterNodeType("Math.Numerical", 142, "Difference Normalized");
             RegisterNodeType("Math.Numerical", 143, "Difference");
+            RegisterNodeType("Math.Numerical", 144, "Level Trigger");
         }
         else if (typeGroup == "Trading.Data IO") {
             RegisterNodeType("Trading.Data IO", 200, "OCHLV Data In");

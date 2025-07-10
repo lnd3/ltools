@@ -206,4 +206,55 @@ namespace l::nodegraph {
         float mInputPrev = 0.0f;
     };
 
+    /*********************************************************************/
+    class MathNumericalLevelTrigger : public NodeGraphOp {
+    public:
+        MathNumericalLevelTrigger(NodeGraphBase* node) :
+            NodeGraphOp(node, "Level Trigger")
+        {
+            AddInput2("In", 1, InputFlags(false, false, false, false));
+            AddInput2("In limits", 1, InputFlags(false, false, false, false));
+            AddInput("Num levels", 1.0f, 1, 1.0f, 10.0f, true, true);
+            AddInput("Min%", 1.0f, 1, 0.0f, 1.0f, true, true);
+            AddInput("Max%", 1.0f, 1, 0.0f, 1.0f, true, true);
+            AddOutput("Level", 0.0f, 1);
+            AddOutput("Pulse", 0.0f, 1);
+        }
+
+        virtual ~MathNumericalLevelTrigger() = default;
+        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+            auto input = &inputs.at(0).Get(numSamples);
+            auto inlimit = l::math::abs(inputs.at(1).Get());
+            auto numLevels = l::math::clamp(inputs.at(2).Get(), 1.0f, 10.0f);
+            auto min = l::math::clamp(inputs.at(3).Get(), 0.0f, 1.0f);
+            auto max = l::math::clamp(inputs.at(4).Get(), min, 1.0f);
+            auto levelOutput = &outputs.at(0).Get(numSamples);
+            auto pulseOutput = &outputs.at(1).Get(numSamples);
+
+            for (int32_t i = 0; i < numSamples; i++) {
+                float in = *input++;
+                float inLimited = l::math::clamp(in, -inlimit, inlimit);
+                float inNorm = 0.0f;
+                if (inlimit > 0.0f) {
+                    inNorm = (inLimited + inlimit) / (2.0f * inlimit);
+                }
+                float inClamped = l::math::clamp(inNorm, min, max);
+                float minmax = max - min;
+                float level = 0.0f;
+                if (minmax > 0.0f) {
+                    level = numLevels * inClamped / minmax;
+                }
+                float pulse = 0.0f;
+                if (static_cast<int32_t>(mLevelPrev) != static_cast<int32_t>(level)) {
+                    pulse = level > mLevelPrev ? 1.0f : -1.0f;
+                }
+
+                mLevelPrev = level;
+                *levelOutput++ = level;
+                *pulseOutput++ = pulse;
+            }
+        }
+    protected:
+        float mLevelPrev = 0.0f;
+    };
 }
