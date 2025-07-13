@@ -100,7 +100,15 @@ namespace l::network {
 
 		SetResponseSize(expectedResponseSize);
 
-		curl_easy_setopt(mCurl, CURLOPT_CONNECT_ONLY, mIsWebSocket ? 2L : 0L);
+		if (mIsWebSocket) {
+			curl_easy_setopt(mCurl, CURLOPT_CONNECT_ONLY, 2L);
+			auto res = curl_easy_setopt(mCurl, CURLOPT_WS_OPTIONS, 0L); // CURLWS_RAW_MODE, CURLWS_NOAUTOPONG
+			ASSERT(res == CURLE_OK);
+		}
+		else {
+			curl_easy_setopt(mCurl, CURLOPT_CONNECT_ONLY, 0L);
+		}
+
 		curl_easy_setopt(mCurl, CURLOPT_URL, mRequestQuery.c_str());
 		LOG(LogDebug) << mRequestQuery;
 		//curl_easy_setopt(mCurl, CURLOPT_FRESH_CONNECT, 0L); // only use if necessary to create a new connection
