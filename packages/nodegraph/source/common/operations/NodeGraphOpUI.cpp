@@ -114,10 +114,12 @@ namespace l::nodegraph {
             auto unixtimef = *input[0];
             auto unixtime = l::math::algorithm::convert<int32_t>(unixtimef);
             if (unixtimef == 0.0f || mLatestUnixtime >= unixtime) {
-                mLatestUnixtime = unixtime;
-                break;
+                //mLatestUnixtime = unixtime;
+                //break;
             }
-            mLatestUnixtime = unixtime;
+            else {
+                mLatestUnixtime = unixtime;
+            }
             for (int32_t i = 0; i < mChannels; i++) {
                 *buf++ = *input[i]++;
             }

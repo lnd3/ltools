@@ -57,7 +57,7 @@ namespace l::nodegraph {
                 if (mUnixtimePrev == 0) {
                     mUnixtimePrev = unixtime;
                 }
-                else if (unixtime != mUnixtimePrev + intervalMinutes * 60) {
+                else if (unixtime == mUnixtimePrev) {
                     unixtime = 0;
                     unixtimef = l::math::algorithm::convert<float>(unixtime);
                 }
