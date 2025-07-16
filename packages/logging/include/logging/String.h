@@ -34,7 +34,9 @@ namespace l::string {
 	template<int32_t BUFSIZE>
 	class string_buffer {
 	public:
-		string_buffer() = default;
+		string_buffer() {
+			memset(mBuf, 0, BUFSIZE);
+		}
 		~string_buffer() = default;
 
 		void pos(int32_t p) {
@@ -42,6 +44,7 @@ namespace l::string {
 		}
 
 		void clear() {
+			mBuf[0] = 0;
 			mPos = 0;
 			cur() = 0;
 		}
