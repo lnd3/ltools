@@ -176,6 +176,40 @@ namespace l::filecache {
 		}
 		~SequentialCache() = default;
 
+		bool HasAny(int32_t startposition, int32_t endposition) {
+			auto clampedStartPos = GetClampedPosition(startposition, mCacheBlockWidth);
+			auto clampedEndPos = GetClampedPosition(endposition, mCacheBlockWidth);
+
+			std::lock_guard<std::mutex> lock(mMutexCacheBlockMap);
+
+			if (clampedStartPos < clampedEndPos) {
+				do {
+					auto it = mCacheBlockMap.find(clampedStartPos);
+					if (it != mCacheBlockMap.end()) {
+						return true;
+					}
+					if (static_cast<int64_t>(clampedStartPos) + mCacheBlockWidth >= l::math::constants::INTMAX) {
+						break;
+					}
+					clampedStartPos += mCacheBlockWidth;
+				} while (clampedStartPos <= clampedEndPos);
+			}
+			else {
+				do {
+					auto it = mCacheBlockMap.find(clampedStartPos);
+					if (it != mCacheBlockMap.end()) {
+						return true;
+					}
+					if (static_cast<int64_t>(clampedStartPos) - mCacheBlockWidth <= l::math::constants::INTMIN) {
+						break;
+					}
+					clampedStartPos -= mCacheBlockWidth;
+				} while (clampedStartPos >= clampedEndPos);
+			}
+
+			return false;
+		}
+
 		bool Has(int32_t position) {
 			auto clampedPos = GetClampedPosition(position, mCacheBlockWidth);
 
@@ -221,6 +255,18 @@ namespace l::filecache {
 			mCacheProvider(cacheProvider)
 		{}
 		~SequentialCacheStore() = default;
+
+		bool HasAny(std::string_view cacheKey, int32_t startposition, int32_t endposition) {
+			std::unique_lock<std::mutex> lock(mMutexSequentialCacheMap);
+			auto it = mSequentialCacheMap.find(cacheKey.data());
+			if (it == mSequentialCacheMap.end()) {
+				return false;
+			}
+			SequentialCache<T>* sequentialCacheMap = it->second.get();
+			lock.unlock();
+
+			return sequentialCacheMap->HasAny(startposition, endposition);
+		}
 
 		bool Has(std::string_view cacheKey, int32_t position) {
 			std::unique_lock<std::mutex> lock(mMutexSequentialCacheMap);
