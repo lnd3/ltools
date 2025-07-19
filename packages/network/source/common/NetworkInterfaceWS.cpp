@@ -30,7 +30,8 @@ namespace l::network {
 	void NetworkInterfaceWS::Disconnect(std::string_view interfaceName) {
 		auto networkManager = mNetworkManager.lock();
 		if (networkManager) {
-			networkManager->WSClose(interfaceName);
+			auto queryName = interfaceName; // With websocket, we have one query only per interface and it has the same name
+			networkManager->WSClose(queryName);
 		}
 	}
 
@@ -48,7 +49,8 @@ namespace l::network {
 				if (!query.empty()) {
 					auto networkManager = mNetworkManager.lock();
 					if (networkManager) {
-						result = networkManager->PostQuery(interfaceName, "", retries, query, expectedResponseSize, timeOut, cb);
+						auto queryName = interfaceName; // With websocket, we have one query only per interface and it has the same name
+						result = networkManager->PostQuery(queryName, "", retries, query, expectedResponseSize, timeOut, cb);
 					}
 				}
 			}
@@ -63,7 +65,8 @@ namespace l::network {
 			if (NetworkStatus(interfaceName)) {
 				auto networkManager = mNetworkManager.lock();
 				if (networkManager) {
-					read = networkManager->WSRead(interfaceName, buffer, size);
+					auto queryName = interfaceName; // With websocket, we have one query only per interface and it has the same name
+					read = networkManager->WSRead(queryName, buffer, size);
 				}
 			}
 		}
@@ -93,7 +96,8 @@ namespace l::network {
 					auto& queue = it->second.GetQueue();
 					while (!queue.empty() && maxQueued > 0) {
 						auto& command = queue.front();
-						auto written = networkManager->WSWrite(interfaceName, command.c_str(), command.size());
+						auto queryName = interfaceName; // With websocket, we have one query only per interface and it has the same name
+						auto written = networkManager->WSWrite(queryName, command.c_str(), command.size());
 						if (written > 0) {
 							queue.pop_front();
 						}
@@ -134,7 +138,8 @@ namespace l::network {
 			if (NetworkStatus(interfaceName)) {
 				auto networkManager = mNetworkManager.lock();
 				if (networkManager) {
-					written = networkManager->WSWrite(interfaceName, buffer, size) >= 0;
+					auto queryName = interfaceName; // With websocket, we have one query only per interface and it has the same name
+					written = networkManager->WSWrite(queryName, buffer, size) >= 0;
 					if (written < 0) {
 						LOG(LogWarning) << "Failed to write to: " << interfaceName << " : error: " << written;
 					}
@@ -149,10 +154,34 @@ namespace l::network {
 		if (it != mInterfaces.end()) {
 			auto networkManager = mNetworkManager.lock();
 			if (networkManager) {
-				return networkManager->WSConnected(interfaceName);
+				auto queryName = interfaceName; // With websocket, we have one query only per interface and it has the same name
+				return networkManager->WSConnected(queryName);
 			}
 		}
 		return false;
+	}
+
+	bool NetworkInterfaceWS::IsAutoConnecting(std::string_view interfaceName) {
+		auto it = mInterfaces.find(interfaceName.data());
+		if (it != mInterfaces.end()) {
+			auto networkManager = mNetworkManager.lock();
+			if (networkManager) {
+				auto queryName = interfaceName; // With websocket, we have one query only per interface and it has the same name
+				return networkManager->WSAutoConnectEnabled(queryName);
+			}
+		}
+		return false;
+	}
+
+	void NetworkInterfaceWS::SetAutoConnect(std::string_view interfaceName, bool autoConnect) {
+		auto it = mInterfaces.find(interfaceName.data());
+		if (it != mInterfaces.end()) {
+			auto networkManager = mNetworkManager.lock();
+			if (networkManager) {
+				auto queryName = interfaceName; // With websocket, we have one query only per interface and it has the same name
+				networkManager->WSSetAutoConnect(queryName, autoConnect);
+			}
+		}
 	}
 
 	bool NetworkInterfaceWS::NetworkStatus(std::string_view interfaceName) {

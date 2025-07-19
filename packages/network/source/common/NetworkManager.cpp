@@ -257,4 +257,41 @@ namespace l::network {
 
 		return request->IsAlive();
 	}
+
+	bool NetworkManager::WSAutoConnectEnabled(std::string_view queryName) {
+		std::unique_lock lock(mConnectionsMutex);
+		auto it = std::find_if(mConnections.begin(), mConnections.end(), [&](std::unique_ptr<ConnectionBase>& request) {
+			if (queryName == request->GetRequestName()) {
+				return true;
+			}
+			return false;
+			});
+
+		if (it == mConnections.end()) {
+			return false;
+		}
+		auto request = it->get();
+		lock.unlock();
+
+		return request->WSAutoConnectEnabled();
+	}
+
+	void NetworkManager::WSSetAutoConnect(std::string_view queryName, bool autoConnect) {
+		std::unique_lock lock(mConnectionsMutex);
+		auto it = std::find_if(mConnections.begin(), mConnections.end(), [&](std::unique_ptr<ConnectionBase>& request) {
+			if (queryName == request->GetRequestName()) {
+				return true;
+			}
+			return false;
+			});
+
+		if (it == mConnections.end()) {
+			return ;
+		}
+		auto request = it->get();
+		lock.unlock();
+
+		request->WSSetAutoConnect(autoConnect);
+	}
+
 }

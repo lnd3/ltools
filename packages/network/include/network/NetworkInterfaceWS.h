@@ -39,6 +39,8 @@ namespace l::network {
 		void ClearQueued(std::string_view interfaceName);
 
 		bool IsConnected(std::string_view interfaceName);
+		bool IsAutoConnecting(std::string_view queryName);
+		void SetAutoConnect(std::string_view queryName, bool autoConnect);
 
 		bool NetworkStatus(std::string_view interfaceName);
 

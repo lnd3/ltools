@@ -51,6 +51,8 @@ namespace l::network {
 		int32_t WSWrite(std::string_view queryName, const char* buffer, size_t size);
 		int32_t WSRead(std::string_view queryName, char* buffer, size_t size);
 		bool WSConnected(std::string_view queryName);
+		bool WSAutoConnectEnabled(std::string_view queryName);
+		void WSSetAutoConnect(std::string_view queryName, bool autoConnect);
 
 	protected:
 		std::thread mCurlPerformer;

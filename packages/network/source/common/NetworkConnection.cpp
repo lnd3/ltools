@@ -408,6 +408,14 @@ namespace l::network {
 		NotifyCompleteRequest(true);
 	}
 
+	bool ConnectionBase::WSAutoConnectEnabled() {
+		return mWebSocketAutoConnect;
+	}
+
+	void ConnectionBase::WSSetAutoConnect(bool autoReconnect) {
+		mWebSocketAutoConnect = autoReconnect;
+	}
+
 	void ConnectionBase::NotifyAppendHeader(const char* contents, size_t size) {
 		if (HasExpired()) {
 			mWebSocketCanSendData = false;

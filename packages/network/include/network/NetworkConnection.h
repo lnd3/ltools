@@ -84,6 +84,8 @@ namespace l::network {
 		int32_t WSWrite(const char* buffer, size_t size);
 		int32_t WSRead(char* buffer, size_t size);
 		void WSClose();
+		bool WSAutoConnectEnabled();
+		void WSSetAutoConnect(bool autoReconnect);
 
 		const curl_ws_frame* GetWebSocketMeta();
 
@@ -120,6 +122,7 @@ namespace l::network {
 		bool mIsWebSocket = false;
 		bool mWebSocketCanReceiveData = false;
 		bool mWebSocketCanSendData = false;
+		bool mWebSocketAutoConnect = false;
 	};
 
 	template<class T>
