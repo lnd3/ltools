@@ -242,6 +242,11 @@ namespace l::math {
 		}
 	}
 
+	template<class T>
+	auto logx(T base, T val) {
+		return log(val) / log(base);
+	}
+
 	// Sinc curve
 // A phase shifted sinc curve can be useful if it starts at zeroand ends at zero, for some bouncing behaviors(suggested by Hubert - Jan).Give k different integer values to tweak the amount of bounces.It peaks at 1.0, but that take negative values, which can make it unusable in some applications.
 	template<class T>
