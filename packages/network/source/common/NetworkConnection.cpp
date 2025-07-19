@@ -383,6 +383,22 @@ namespace l::network {
 	}
 
 	void ConnectionBase::WSClose() {
+		if (HasExpired()) {
+			mWebSocketCanSendData = false;
+			LOG(LogError) << "Failed wss close, connection expired";
+		}
+		if (mCurl == nullptr) {
+			mWebSocketCanSendData = false;
+			LOG(LogError) << "Failed wss close, no curl instance";
+		}
+
+		ASSERT(mOngoingRequest);
+
+		if (mCompletedRequest) {
+			// request probably timed out so discard data
+			return;
+		}
+
 		size_t sentBytes = 0;
 		auto res = curl_ws_send(mCurl, nullptr, 0, &sentBytes, 0, CURLWS_CLOSE);
 		if (res == CURLE_OK) {
@@ -393,6 +409,15 @@ namespace l::network {
 	}
 
 	void ConnectionBase::NotifyAppendHeader(const char* contents, size_t size) {
+		if (HasExpired()) {
+			mWebSocketCanSendData = false;
+			LOG(LogError) << "Failed notify append header, connection expired";
+		}
+		if (mCurl == nullptr) {
+			mWebSocketCanSendData = false;
+			LOG(LogError) << "Failed notify append header, no curl instance";
+		}
+
 		ASSERT(mOngoingRequest);
 
 		if (mCompletedRequest) {
@@ -422,6 +447,15 @@ namespace l::network {
 	}
 
 	void ConnectionBase::NotifyAppendResponse(const char* contents, size_t size) {
+		if (HasExpired()) {
+			mWebSocketCanSendData = false;
+			LOG(LogError) << "Failed notify append response, connection expired";
+		}
+		if (mCurl == nullptr) {
+			mWebSocketCanSendData = false;
+			LOG(LogError) << "Failed notify append response, no curl instance";
+		}
+
 		ASSERT(mOngoingRequest);
 
 		if (mCompletedRequest) {
