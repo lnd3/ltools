@@ -48,7 +48,7 @@ namespace l::nodegraph {
         }
         ~NodeGraphGroup() {
             Reset();
-            LOG(LogInfo) << "Node group destroyed";
+            //LOG(LogInfo) << "Node group destroyed";
         }
 
         NodeGraphGroup& operator=(NodeGraphGroup&& other) noexcept {
