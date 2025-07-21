@@ -62,9 +62,9 @@ namespace l::filecache {
 			archive(*self.mData.get());
 		}
 
-		bool UnpersistData() {
+		void UnpersistData() {
 			std::lock_guard lock(mPathMutex);
-			std::filesystem::remove(mPath);
+			mCacheProvider->UnPersistData(mPath);
 		}
 
 		bool PersistData() {

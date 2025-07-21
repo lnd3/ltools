@@ -22,6 +22,7 @@ namespace l::filecache {
 			mExtension(extension) {}
 		~FileCacheProvider() = default;
 
+		virtual void UnPersistData(std::string_view path) override;
 		virtual bool PersistData(std::string_view path, const std::vector<unsigned char>& data) override;
 		virtual bool ProvideData(std::string_view path, std::vector<unsigned char>& data) override;
 

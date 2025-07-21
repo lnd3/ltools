@@ -131,6 +131,24 @@ namespace l::network {
 		}
 	}
 
+	int32_t NetworkInterfaceWS::Keepalive(std::string_view interfaceName) {
+		int32_t written = 0;
+		auto it = mInterfaces.find(interfaceName.data());
+		if (it != mInterfaces.end()) {
+			if (NetworkStatus(interfaceName)) {
+				auto networkManager = mNetworkManager.lock();
+				if (networkManager) {
+					auto queryName = interfaceName; // With websocket, we have one query only per interface and it has the same name
+					written = networkManager->WSKeepalive(queryName) >= 0;
+					if (written < 0) {
+						LOG(LogWarning) << "Failed to send keepalive: " << interfaceName << " : error: " << written;
+					}
+				}
+			}
+		}
+		return written;
+	}
+
 	int32_t NetworkInterfaceWS::Write(std::string_view interfaceName, const char* buffer, size_t size) {
 		int32_t written = 0;
 		auto it = mInterfaces.find(interfaceName.data());

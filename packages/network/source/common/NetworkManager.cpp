@@ -202,6 +202,25 @@ namespace l::network {
 		}
 	}
 
+	int32_t NetworkManager::WSKeepalive(std::string_view queryName) {
+		std::unique_lock lock(mConnectionsMutex);
+		auto it = std::find_if(mConnections.begin(), mConnections.end(), [&](std::unique_ptr<ConnectionBase>& request) {
+			if (queryName == request->GetRequestName()) {
+				return true;
+			}
+			return false;
+			});
+
+		if (it == mConnections.end()) {
+			LOG(LogError) << "Failed to find connection: " << queryName;
+			return -201;
+		}
+		auto request = it->get();
+		lock.unlock();
+
+		return request->WSKeepalive();
+	}
+
 	int32_t NetworkManager::WSWrite(std::string_view queryName, const char* buffer, size_t size) {
 		std::unique_lock lock(mConnectionsMutex);
 		auto it = std::find_if(mConnections.begin(), mConnections.end(), [&](std::unique_ptr<ConnectionBase>& request) {

@@ -258,6 +258,30 @@ namespace l::network {
 		return m;
 	}
 
+	int32_t ConnectionBase::WSKeepalive() {
+		if (HasExpired()) {
+			mWebSocketCanSendData = false;
+			LOG(LogError) << "Failed wss write, connection expired";
+			return -101;
+		}
+		if (mCurl == nullptr) {
+			mWebSocketCanSendData = false;
+			LOG(LogError) << "Failed wss write, no curl instance";
+			return -102;
+		}
+
+		const char* payload = "keepalive";
+		size_t sentBytes = 0;
+		auto rc = curl_ws_send(mCurl, payload, strlen(payload), &sentBytes, 0, CURLWS_PONG);
+		if (rc == CURLE_OK) {
+			LOG(LogError) << "[Keepalive] Sent PONG";
+		}
+		else {
+			LOG(LogError) << "[Keepalive] Failed to send PONG: " << curl_easy_strerror(rc);
+		}
+		return rc;
+	}
+
 	int32_t ConnectionBase::WSWrite(const char* buffer, size_t size) {
 		if (HasExpired()) {
 			mWebSocketCanSendData = false;
@@ -322,6 +346,15 @@ namespace l::network {
 			if (meta) {
 				multiFragmentBit = (meta->flags & CURLWS_CONT) == CURLWS_CONT;
 				recvLeft = static_cast<size_t>(meta->bytesleft);
+
+				if (meta->flags & CURLWS_PONG) {
+					LOG(LogInfo) << "[WebSocket] Received PONG: ";
+				}
+				else if (meta->flags & CURLWS_PING) {
+					LOG(LogInfo) << "[WebSocket] Received PING: ";
+				}
+				//else if (meta->flags & CURLWS_TEXT) {
+				//}
 			}
 
 			if (res == CURLE_OK) {
