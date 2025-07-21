@@ -69,7 +69,7 @@ namespace l::network {
 		int32_t timeOut,
 		std::function<void(bool, std::string_view)> cb
 	) {
-		ASSERT(mOngoingRequest) << "Request has not been reserved for usage";
+		ASSERT(mOngoingRequest) << "[Request] Request has not been reserved for usage";
 		ASSERT(!mCompletedRequest);
 
 		if (mRequestQuery.empty() && query.empty()) {
@@ -113,11 +113,11 @@ namespace l::network {
 		LOG(LogDebug) << mRequestQuery;
 		//curl_easy_setopt(mCurl, CURLOPT_FRESH_CONNECT, 0L); // only use if necessary to create a new connection
 		auto res_verify_peer = curl_easy_setopt(mCurl, CURLOPT_SSL_VERIFYPEER, 0L);
-		ASSERT(res_verify_peer == CURLE_OK) << "Failed to verify peer: " << std::to_string(res_verify_peer);
+		ASSERT(res_verify_peer == CURLE_OK) << "[Request] Failed to verify peer: " << std::to_string(res_verify_peer);
 		auto res_verify_host = curl_easy_setopt(mCurl, CURLOPT_SSL_VERIFYHOST, 0L);
-		ASSERT(res_verify_host == CURLE_OK) << "Failed to verify host: " << std::to_string(res_verify_host);
+		ASSERT(res_verify_host == CURLE_OK) << "[Request] Failed to verify host: " << std::to_string(res_verify_host);
 		auto res_ssl = curl_easy_setopt(mCurl, CURLOPT_SSL_OPTIONS, (long)CURLSSLOPT_ALLOW_BEAST | CURLSSLOPT_NO_REVOKE);
-		ASSERT(res_ssl == CURLE_OK) << "Failed to set ssl options: " << std::to_string(res_ssl);
+		ASSERT(res_ssl == CURLE_OK) << "[Request] Failed to set ssl options: " << std::to_string(res_ssl);
 
 		//curl_easy_setopt(mCurl, CURLOPT_NOSIGNAL, 1);
 		curl_easy_setopt(mCurl, CURLOPT_CLOSESOCKETFUNCTION, CurlClientCloseSocket);
@@ -143,7 +143,7 @@ namespace l::network {
 #endif
 			auto curlMCode = curl_multi_add_handle(multiHandle, mCurl);
 			if (curlMCode != CURLMcode::CURLM_OK) {
-				LOG(LogError) << "Curl failure  " << std::to_string(curlMCode) << ": " << mRequestQueryArgs;
+				LOG(LogError) << "[Request] Curl failure  " << std::to_string(curlMCode) << ": " << mRequestQueryArgs;
 				mSuccess = false;
 			}
 		}
@@ -151,7 +151,7 @@ namespace l::network {
 			auto curlCode = curl_easy_perform(mCurl);
 			//curl_easy_header()
 			if (curlCode != CURLE_OK) {
-				LOG(LogError) << "Curl failure  " << std::to_string(curlCode) << ": " << mRequestQueryArgs;
+				LOG(LogError) << "[Request] Curl failure  " << std::to_string(curlCode) << ": " << mRequestQueryArgs;
 				mSuccess = false;
 			}
 		}
@@ -261,12 +261,12 @@ namespace l::network {
 	int32_t ConnectionBase::WSKeepalive() {
 		if (HasExpired()) {
 			mWebSocketCanSendData = false;
-			LOG(LogError) << "Failed wss write, connection expired";
+			LOG(LogError) << "[Keepalive] connection expired";
 			return -101;
 		}
 		if (mCurl == nullptr) {
 			mWebSocketCanSendData = false;
-			LOG(LogError) << "Failed wss write, no curl instance";
+			LOG(LogError) << "[Keepalive] no curl instance";
 			return -102;
 		}
 
@@ -285,12 +285,12 @@ namespace l::network {
 	int32_t ConnectionBase::WSWrite(const char* buffer, size_t size) {
 		if (HasExpired()) {
 			mWebSocketCanSendData = false;
-			LOG(LogError) << "Failed wss write, connection expired";
+			LOG(LogError) << "[Websocket] Failed write, connection expired";
 			return -101;
 		}
 		if (mCurl == nullptr) {
 			mWebSocketCanSendData = false;
-			LOG(LogError) << "Failed wss write, no curl instance";
+			LOG(LogError) << "[Websocket] Failed write, no curl instance";
 			return -102;
 		}
 		size_t sentBytes = 0;
@@ -305,13 +305,13 @@ namespace l::network {
 		}
 		else if (res == CURLE_GOT_NOTHING) {
 			if (mWebSocketCanSendData) {
-				LOG(LogError) << "Failed wss write got nothing, error: " << res;
+				LOG(LogError) << "[Websocket] Failed write: got nothing, error: " << res;
 			}
 			mWebSocketCanSendData = false;
 		}
 		else {
 			if (mWebSocketCanSendData) {
-				LOG(LogError) << "Failed wss write, error: " << res;
+				LOG(LogError) << "[Websocket] Failed write, error: " << res;
 			}
 			mWebSocketCanSendData = false;
 		}
@@ -322,12 +322,12 @@ namespace l::network {
 	int32_t ConnectionBase::WSRead(char* buffer, size_t size) {
 		if (HasExpired()) {
 			mWebSocketCanReceiveData = false;
-			LOG(LogError) << "Failed wss read, connection expired";
+			LOG(LogError) << "[Websocket] Failed read, connection expired";
 			return -101;
 		}
 		if (mCurl == nullptr) {
 			mWebSocketCanReceiveData = false;
-			LOG(LogError) << "Failed wss read, no curl instance";
+			LOG(LogError) << "[Websocket] Failed read, no curl instance";
 			return -102;
 		}
 		int32_t maxTries = 3;
@@ -390,25 +390,25 @@ namespace l::network {
 		// In this path only if there's an error
 		if (res == CURLE_GOT_NOTHING) {
 			if (mWebSocketCanReceiveData) {
-				LOG(LogError) << "Failed wss read - 'curl got nothing' - connection closed, error: " << res;
+				LOG(LogError) << "[Websocket] Failed read - 'curl got nothing' - connection closed, error: " << res;
 			}
 			mWebSocketCanReceiveData = false;
 		}
 		if (res == CURLE_RECV_ERROR) {
 			if (mWebSocketCanReceiveData) {
-				LOG(LogError) << "Failed wss read - 'curl recieve error' - connection closed, error: " << res;
+				LOG(LogError) << "[Websocket] Failed read - 'curl recieve error' - connection closed, error: " << res;
 			}
 			mWebSocketCanReceiveData = false;
 		}
 		if (res == CURLE_BAD_FUNCTION_ARGUMENT) {
 			if (mWebSocketCanReceiveData) {
-				LOG(LogError) << "Failed wss read - 'curl bad function arg', error: " << res;
+				LOG(LogError) << "[Websocket] Failed read - 'curl bad function arg', error: " << res;
 			}
 			mWebSocketCanReceiveData = false;
 		}
 
 		if (mWebSocketCanReceiveData) {
-			LOG(LogError) << "Failed wss read, connection closed, error: " << res;
+			LOG(LogError) << "[Websocket] Failed read, connection closed, error: " << res;
 		}
 		mWebSocketCanReceiveData = false;
 		SetRunningTimeout(20);
@@ -418,11 +418,11 @@ namespace l::network {
 	void ConnectionBase::WSClose() {
 		if (HasExpired()) {
 			mWebSocketCanSendData = false;
-			LOG(LogError) << "Failed wss close, connection expired";
+			LOG(LogError) << "[Websocket] Failed close, connection expired";
 		}
 		if (mCurl == nullptr) {
 			mWebSocketCanSendData = false;
-			LOG(LogError) << "Failed wss close, no curl instance";
+			LOG(LogError) << "[Websocket] Failed close, no curl instance";
 		}
 
 		ASSERT(mOngoingRequest);
@@ -435,7 +435,7 @@ namespace l::network {
 		size_t sentBytes = 0;
 		auto res = curl_ws_send(mCurl, nullptr, 0, &sentBytes, 0, CURLWS_CLOSE);
 		if (res == CURLE_OK) {
-			LOG(LogInfo) << "Closed connection";
+			LOG(LogInfo) << "[Websocket] Closed connection";
 		}
 
 		NotifyCompleteRequest(true);
@@ -452,11 +452,11 @@ namespace l::network {
 	void ConnectionBase::NotifyAppendHeader(const char* contents, size_t size) {
 		if (HasExpired()) {
 			mWebSocketCanSendData = false;
-			LOG(LogError) << "Failed notify append header, connection expired";
+			LOG(LogError) << "[Request] Failed notify append header, connection expired";
 		}
 		if (mCurl == nullptr) {
 			mWebSocketCanSendData = false;
-			LOG(LogError) << "Failed notify append header, no curl instance";
+			LOG(LogError) << "[Request] Failed notify append header, no curl instance";
 		}
 
 		ASSERT(mOngoingRequest);
@@ -490,11 +490,11 @@ namespace l::network {
 	void ConnectionBase::NotifyAppendResponse(const char* contents, size_t size) {
 		if (HasExpired()) {
 			mWebSocketCanSendData = false;
-			LOG(LogError) << "Failed notify append response, connection expired";
+			LOG(LogError) << "[Request] Failed notify append response, connection expired";
 		}
 		if (mCurl == nullptr) {
 			mWebSocketCanSendData = false;
-			LOG(LogError) << "Failed notify append response, no curl instance";
+			LOG(LogError) << "[Request] Failed notify append response, no curl instance";
 		}
 
 		ASSERT(mOngoingRequest);
