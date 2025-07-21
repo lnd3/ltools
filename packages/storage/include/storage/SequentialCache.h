@@ -62,6 +62,11 @@ namespace l::filecache {
 			archive(*self.mData.get());
 		}
 
+		bool UnpersistData() {
+			std::lock_guard lock(mPathMutex);
+			std::filesystem::remove(mPath);
+		}
+
 		bool PersistData() {
 			if (!mCacheProvider) {
 				return false;
@@ -140,6 +145,13 @@ namespace l::filecache {
 			std::lock_guard<std::mutex> lock(mDataMutex);
 			if (!mData) {
 				mData = std::make_unique<T>(blockSize);
+			}
+		}
+
+		void Deallocate() {
+			std::lock_guard<std::mutex> lock(mDataMutex);
+			if (!mData) {
+				mData = nullptr;
 			}
 		}
 
