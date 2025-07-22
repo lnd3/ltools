@@ -46,6 +46,10 @@ TEST(SequentialCacheStore, Setup) {
 
 		TEST_TRUE(block->HasData(), "");
 		TEST_TRUE(block->Get()->mValue == 1, "");
+
+		block->UnpersistData();
+
+		TEST_FALSE(std::filesystem::exists("tests/store/Key_10_20.test"), "");
 	}
 	return 0;
 }

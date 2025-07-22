@@ -261,12 +261,12 @@ namespace l::network {
 	int32_t ConnectionBase::WSKeepalive() {
 		if (HasExpired()) {
 			mWebSocketCanSendData = false;
-			LOG(LogError) << "[Keepalive] connection expired";
+			LOG(LogWarning) << "[Keepalive] connection expired";
 			return -101;
 		}
 		if (mCurl == nullptr) {
 			mWebSocketCanSendData = false;
-			LOG(LogError) << "[Keepalive] no curl instance";
+			LOG(LogWarning) << "[Keepalive] no curl instance";
 			return -102;
 		}
 
@@ -274,10 +274,10 @@ namespace l::network {
 		size_t sentBytes = 0;
 		auto rc = curl_ws_send(mCurl, payload, strlen(payload), &sentBytes, 0, CURLWS_PONG);
 		if (rc == CURLE_OK) {
-			LOG(LogError) << "[Keepalive] Sent PONG";
+			//LOG(LogInfo) << "[Keepalive] Sent PONG";
 		}
 		else {
-			LOG(LogError) << "[Keepalive] Failed to send PONG: " << curl_easy_strerror(rc);
+			LOG(LogWarning) << "[Keepalive] Failed to send PONG: " << curl_easy_strerror(rc);
 		}
 		return rc;
 	}
@@ -285,12 +285,12 @@ namespace l::network {
 	int32_t ConnectionBase::WSWrite(const char* buffer, size_t size) {
 		if (HasExpired()) {
 			mWebSocketCanSendData = false;
-			LOG(LogError) << "[Websocket] Failed write, connection expired";
+			LOG(LogWarning) << "[Websocket] Failed write, connection expired";
 			return -101;
 		}
 		if (mCurl == nullptr) {
 			mWebSocketCanSendData = false;
-			LOG(LogError) << "[Websocket] Failed write, no curl instance";
+			LOG(LogWarning) << "[Websocket] Failed write, no curl instance";
 			return -102;
 		}
 		size_t sentBytes = 0;
@@ -305,13 +305,13 @@ namespace l::network {
 		}
 		else if (res == CURLE_GOT_NOTHING) {
 			if (mWebSocketCanSendData) {
-				LOG(LogError) << "[Websocket] Failed write: got nothing, error: " << res;
+				LOG(LogWarning) << "[Websocket] Failed write: got nothing, error: " << res;
 			}
 			mWebSocketCanSendData = false;
 		}
 		else {
 			if (mWebSocketCanSendData) {
-				LOG(LogError) << "[Websocket] Failed write, error: " << res;
+				LOG(LogWarning) << "[Websocket] Failed write, error: " << res;
 			}
 			mWebSocketCanSendData = false;
 		}
@@ -322,12 +322,12 @@ namespace l::network {
 	int32_t ConnectionBase::WSRead(char* buffer, size_t size) {
 		if (HasExpired()) {
 			mWebSocketCanReceiveData = false;
-			LOG(LogError) << "[Websocket] Failed read, connection expired";
+			LOG(LogWarning) << "[Websocket] Failed read, connection expired";
 			return -101;
 		}
 		if (mCurl == nullptr) {
 			mWebSocketCanReceiveData = false;
-			LOG(LogError) << "[Websocket] Failed read, no curl instance";
+			LOG(LogWarning) << "[Websocket] Failed read, no curl instance";
 			return -102;
 		}
 		int32_t maxTries = 3;
@@ -390,25 +390,25 @@ namespace l::network {
 		// In this path only if there's an error
 		if (res == CURLE_GOT_NOTHING) {
 			if (mWebSocketCanReceiveData) {
-				LOG(LogError) << "[Websocket] Failed read - 'curl got nothing' - connection closed, error: " << res;
+				LOG(LogWarning) << "[Websocket] Failed read - 'curl got nothing' - connection closed, error: " << res;
 			}
 			mWebSocketCanReceiveData = false;
 		}
 		if (res == CURLE_RECV_ERROR) {
 			if (mWebSocketCanReceiveData) {
-				LOG(LogError) << "[Websocket] Failed read - 'curl recieve error' - connection closed, error: " << res;
+				LOG(LogWarning) << "[Websocket] Failed read - 'curl recieve error' - connection closed, error: " << res;
 			}
 			mWebSocketCanReceiveData = false;
 		}
 		if (res == CURLE_BAD_FUNCTION_ARGUMENT) {
 			if (mWebSocketCanReceiveData) {
-				LOG(LogError) << "[Websocket] Failed read - 'curl bad function arg', error: " << res;
+				LOG(LogWarning) << "[Websocket] Failed read - 'curl bad function arg', error: " << res;
 			}
 			mWebSocketCanReceiveData = false;
 		}
 
 		if (mWebSocketCanReceiveData) {
-			LOG(LogError) << "[Websocket] Failed read, connection closed, error: " << res;
+			LOG(LogWarning) << "[Websocket] Failed read, connection closed, error: " << res;
 		}
 		mWebSocketCanReceiveData = false;
 		SetRunningTimeout(20);
@@ -418,11 +418,11 @@ namespace l::network {
 	void ConnectionBase::WSClose() {
 		if (HasExpired()) {
 			mWebSocketCanSendData = false;
-			LOG(LogError) << "[Websocket] Failed close, connection expired";
+			LOG(LogWarning) << "[Websocket] Failed close, connection expired";
 		}
 		if (mCurl == nullptr) {
 			mWebSocketCanSendData = false;
-			LOG(LogError) << "[Websocket] Failed close, no curl instance";
+			LOG(LogWarning) << "[Websocket] Failed close, no curl instance";
 		}
 
 		ASSERT(mOngoingRequest);
@@ -452,11 +452,11 @@ namespace l::network {
 	void ConnectionBase::NotifyAppendHeader(const char* contents, size_t size) {
 		if (HasExpired()) {
 			mWebSocketCanSendData = false;
-			LOG(LogError) << "[Request] Failed notify append header, connection expired";
+			LOG(LogWarning) << "[Request] Failed notify append header, connection expired";
 		}
 		if (mCurl == nullptr) {
 			mWebSocketCanSendData = false;
-			LOG(LogError) << "[Request] Failed notify append header, no curl instance";
+			LOG(LogWarning) << "[Request] Failed notify append header, no curl instance";
 		}
 
 		ASSERT(mOngoingRequest);
@@ -490,11 +490,11 @@ namespace l::network {
 	void ConnectionBase::NotifyAppendResponse(const char* contents, size_t size) {
 		if (HasExpired()) {
 			mWebSocketCanSendData = false;
-			LOG(LogError) << "[Request] Failed notify append response, connection expired";
+			LOG(LogWarning) << "[Request] Failed notify append response, connection expired";
 		}
 		if (mCurl == nullptr) {
 			mWebSocketCanSendData = false;
-			LOG(LogError) << "[Request] Failed notify append response, no curl instance";
+			LOG(LogWarning) << "[Request] Failed notify append response, no curl instance";
 		}
 
 		ASSERT(mOngoingRequest);
