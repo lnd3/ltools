@@ -3,7 +3,7 @@
 #include "logging/Log.h"
 #include "audio/AudioUtils.h"
 
-#include "math/MathFunc.h"
+#include <math/MathFunc.h>
 
 #include <math.h>
 
@@ -14,12 +14,12 @@ namespace l::nodegraph {
         if (mInputHasChanged) {
             auto symbolInput = inputs.at(1).GetText(16);
             auto baseInput = inputs.at(2).GetText(16);
-            auto intervalInput = static_cast<int32_t>(l::math::clamp(inputs.at(3).Get(1), 0.0f, 9.0f));
+            auto intervalInput = static_cast<int32_t>(l::math::clamp(inputs.at(3).Get(1), 0.0f, 9.9999f));
 
             outputs.at(0).SetText(symbolInput);
             outputs.at(1).SetText(baseInput);
             float* intervalOut = &outputs.at(2).Get(1);
-            *intervalOut = math::max2(1.0f, static_cast<float>(kIntervals[intervalInput]));
+            *intervalOut = l::math::max2(1.0f, static_cast<float>(kIntervals[intervalInput]));
         }
     }
 
@@ -127,6 +127,23 @@ namespace l::nodegraph {
                 *out11++ = in[offset + 6] - in[offset + 8]; // sell quantity
             }
         }
+    }
+
+    void TradingDataIOChartInfo::Process(int32_t, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        auto symbolInput = inputs.at(0).GetText(16);
+        auto baseInput = inputs.at(1).GetText(16);
+        auto indexInput = l::math::clamp(inputs.at(3).Get(1), 0.0f, 9.9999f);
+
+        outputs.at(0).SetText(symbolInput);
+        outputs.at(1).SetText(baseInput);
+        float* indexOut0 = &outputs.at(2).Get();
+        float* indexOut1 = &outputs.at(3).Get();
+        float* indexOut2 = &outputs.at(4).Get();
+        float* indexOut3 = &outputs.at(5).Get();
+        *indexOut0 = l::math::clamp(indexInput, 0.0f, 9.9999f);
+        *indexOut1 = l::math::clamp(indexInput, 0.0f, 9.9999f);
+        *indexOut2 = l::math::clamp(indexInput, 0.0f, 9.9999f);
+        *indexOut3 = l::math::clamp(indexInput, 0.0f, 9.9999f);
     }
 
 }

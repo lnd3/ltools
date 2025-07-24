@@ -72,16 +72,21 @@ namespace l::nodegraph {
         TradingDataIOChartInfo(NodeGraphBase* node) :
             NodeGraphOp(node, "Chart Info")
         {
+            AddInput2("Symbol", 16, InputFlags(false, true, false, true));
+            AddInput2("Base", 16, InputFlags(false, true, false, true));
+            AddInput("Index", 2.0f, 1, 0.0f, 10.0f);
+
             AddOutput2("Symbol", 16, OutputFlags(false, true));
             AddOutput2("Base", 16, OutputFlags(false, true));
-            AddOutput("Min#0", 1.0f);
-            AddOutput("Min#1", 2.0f);
-            AddOutput("Min#2", 3.0f);
+            AddOutput("Index#0", 0.0f);
+            AddOutput("Index#1", 1.0f);
+            AddOutput("Index#2", 2.0f);
+            AddOutput("Index#3", 3.0f);
         }
 
         virtual ~TradingDataIOChartInfo() = default;
+
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     };
-
-
 
 }
