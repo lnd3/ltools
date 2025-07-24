@@ -79,6 +79,14 @@ namespace l::nodegraph {
         mLastTickCount = tickCount;
     }
 
+    void NodeGraphBase::SetOutputText(int8_t outputChannel, std::string_view text) {
+        mOutputs.at(outputChannel).SetText(text);
+    }
+
+    void NodeGraphBase::SetOutput(int8_t outputChannel, float value) {
+        mOutputs.at(outputChannel).Get() = value;
+    }
+
     float& NodeGraphBase::GetInput(int8_t inputChannel, int32_t minSize, int32_t offset) {
         return mInputs.at(inputChannel).Get(minSize, offset);
     }

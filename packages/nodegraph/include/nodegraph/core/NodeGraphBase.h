@@ -86,6 +86,9 @@ namespace l::nodegraph {
         virtual int8_t GetNumInputs();
         virtual int8_t GetNumOutputs();
 
+        void SetOutputText(int8_t inputChannel, std::string_view text);
+        void SetOutput(int8_t inputChannel, float value);
+
         virtual float& GetInput(int8_t inputChannel, int32_t minSize = 1, int32_t offset = 0);
         virtual std::string_view GetInputText(int8_t inputChannel, int32_t minSize = 16);
 

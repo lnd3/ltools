@@ -69,6 +69,22 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
+    class GraphUIChart : public NodeGraphOp {
+    public:
+        GraphUIChart(NodeGraphBase* node) :
+            NodeGraphOp(node, "UI Chart")
+        {
+            AddOutput2("Symbol", 16, OutputFlags(false, true));
+            AddOutput2("Base", 16, OutputFlags(false, true));
+            AddOutput("Min#0", 1.0f);
+            AddOutput("Min#1", 2.0f);
+            AddOutput("Min#2", 3.0f);
+        }
+
+        virtual ~GraphUIChart() = default;
+    };
+
+    /*********************************************************************/
     class GraphUIText : public NodeGraphOp {
     public:
         GraphUIText(NodeGraphBase* node) :
