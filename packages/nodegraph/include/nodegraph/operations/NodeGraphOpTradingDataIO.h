@@ -67,6 +67,21 @@ namespace l::nodegraph {
 
     /*********************************************************************/
 
+    class TradingDataIOChartInfo : public NodeGraphOp {
+    public:
+        TradingDataIOChartInfo(NodeGraphBase* node) :
+            NodeGraphOp(node, "Chart Info")
+        {
+            AddOutput2("Symbol", 16, OutputFlags(false, true));
+            AddOutput2("Base", 16, OutputFlags(false, true));
+            AddOutput("Min#0", 1.0f);
+            AddOutput("Min#1", 2.0f);
+            AddOutput("Min#2", 3.0f);
+        }
+
+        virtual ~TradingDataIOChartInfo() = default;
+    };
+
 
 
 }

@@ -314,6 +314,9 @@ namespace l::nodegraph {
         case 201:
             node = mMainNodeGraph.NewNode<l::nodegraph::TradingDataIOOCHLVDataIn>(id, NodeType::ExternalInput, 1);
             break;
+        case 202:
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingDataIOChartInfo>(id, NodeType::ExternalInput);
+            break;
 
             // Trading detectors
         case 220:
@@ -611,6 +614,7 @@ namespace l::nodegraph {
         else if (typeGroup == "Trading.Data IO") {
             RegisterNodeType("Trading.Data IO", 200, "OCHLV Data In");
             RegisterNodeType("Trading.Data IO", 201, "Heikin-Ashi Data In");
+            RegisterNodeType("Trading.Data IO", 202, "Chart Info");
         }
         else if (typeGroup == "Trading.Detector") {
             RegisterNodeType("Trading.Detector", 220, "Trend");
