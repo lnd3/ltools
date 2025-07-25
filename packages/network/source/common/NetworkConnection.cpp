@@ -102,7 +102,7 @@ namespace l::network {
 
 		if (mIsWebSocket) {
 			curl_easy_setopt(mCurl, CURLOPT_CONNECT_ONLY, 2L);
-			auto res = curl_easy_setopt(mCurl, CURLOPT_WS_OPTIONS, 0L); // CURLWS_RAW_MODE, CURLWS_NOAUTOPONG
+			auto res = curl_easy_setopt(mCurl, CURLOPT_WS_OPTIONS, 0L); // 1L - CURLWS_RAW_MODE, 2L - CURLWS_NOAUTOPONG
 			ASSERT(res == CURLE_OK);
 		}
 		else {
