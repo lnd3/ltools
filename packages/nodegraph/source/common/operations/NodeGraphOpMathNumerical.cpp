@@ -113,7 +113,6 @@ namespace l::nodegraph {
             mReadSamples = 0;
             mInputPrev = 0.0f;
         }
-
     }
 
     void MathNumericalLevelTrigger::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
@@ -151,6 +150,45 @@ namespace l::nodegraph {
             mLevelPrev = level;
             *levelOutput++ = level;
             *pulseOutput++ = pulse;
+        }
+    }
+
+    void MathNumericalMinMaxChannel::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        auto inInput = &inputs.at(0).Get(numSamples);
+        auto upperInput = &inputs.at(1).Get();
+        auto lowerInput = &inputs.at(2).Get();
+
+        auto rangeOutput = &outputs.at(0).Get(numSamples);
+        auto rangeMaxOutput = &outputs.at(1).Get(numSamples);
+        auto rangeMinOutput = &outputs.at(2).Get(numSamples);
+        auto valueNormOutput = &outputs.at(3).Get(numSamples);
+
+        if (mReadSamples >= numCacheSamples) {
+            mReadSamples = 0;
+            mCurRangeMax = -100000000000000.0f;
+            mCurRangeMin = 100000000000000.0f;
+        }
+
+        for (int32_t i = 0; i < numSamples; i++) {
+            float in = *inInput++;
+            float upper = *upperInput++;
+            float lower = *lowerInput++;
+
+            lower = lower > in ? in - 0.0000001f : lower;
+            upper = upper < in ? in + 0.0000001f : lower;
+
+            auto range = upper - lower;
+            if (mCurRangeMax < range) {
+                mCurRangeMax = range;
+            }
+            if (mCurRangeMin > range) {
+                mCurRangeMin = range;
+            }
+
+            *rangeOutput++ = range;
+            *rangeMaxOutput++ = mCurRangeMax;
+            *rangeMinOutput++ = mCurRangeMin;
+            *valueNormOutput++ = (in - lower) / range;
         }
     }
 

@@ -124,4 +124,29 @@ namespace l::nodegraph {
     protected:
         float mLevelPrev = 0.0f;
     };
+
+    /*********************************************************************/
+    class MathNumericalMinMaxChannel : public NodeGraphOp {
+    public:
+        MathNumericalMinMaxChannel(NodeGraphBase* node) :
+            NodeGraphOp(node, "Minmax Channel")
+        {
+            AddInput("Upper Bound", 0.0f, 1);
+            AddInput("Lower Bound", 0.0f, 1);
+            AddInput("Bounded Value", 0.0f, 1);
+
+            AddOutput("Range", 0.0f, 1);
+            AddOutput("Range Max", 0.0f, 1);
+            AddOutput("Range Min", 0.0f, 1);
+            AddOutput("Value Norm", 0.0f, 1);
+        }
+
+        virtual ~MathNumericalMinMaxChannel() = default;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+    protected:
+        int32_t mReadSamples = 0;
+
+        float mCurRangeMax = 0.0f;
+        float mCurRangeMin = 0.0f;
+    };
 }
