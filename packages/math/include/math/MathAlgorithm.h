@@ -57,6 +57,26 @@ namespace l::math::algorithm {
 		return 0;
 	}
 
+	template<class T>
+	int32_t binary_search_leq(const std::vector<T>& elements, const T& data) {
+		int32_t left = 0;
+		int32_t right = static_cast<int32_t>(elements.size()) - 1;
+		int32_t result = -1; // Default if no element is <= value
+
+		while (left <= right) {
+			int32_t mid = left + (right - left) / 2;
+
+			if (elements.at(mid) <= data) {
+				result = mid;    // Valid candidate found
+				left = mid + 1;  // Look for a better candidate to the right
+			}
+			else {
+				right = mid - 1; // Look to the left
+			}
+		}
+		return result;
+	}
+
 	template <class T>
 	T bisect(T a, T b, T tolerance, int iterations, std::function<T(T)> eval) {
 		int n = 0;
