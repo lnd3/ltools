@@ -58,9 +58,9 @@ namespace l::math::algorithm {
 	}
 
 	template<class T>
-	int32_t binary_search_leq(const std::vector<T>& elements, const T& data) {
-		int32_t left = 0;
-		int32_t right = static_cast<int32_t>(elements.size()) - 1;
+	int32_t binary_search_leq(const std::vector<T>& elements, const T& data, int32_t minIndex = 0, int32_t maxIndex = INT32_MAX) {
+		int32_t left = static_cast<int32_t>(minIndex < 0 ? 0 : minIndex);
+		int32_t right = static_cast<int32_t>((maxIndex < elements.size() ? maxIndex : elements.size()) - 1);
 		int32_t result = -1; // Default if no element is <= value
 
 		while (left <= right) {
