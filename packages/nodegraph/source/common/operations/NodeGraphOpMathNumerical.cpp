@@ -163,8 +163,7 @@ namespace l::nodegraph {
         auto rangeMinOutput = &outputs.at(2).Get(numSamples);
         auto valueNormOutput = &outputs.at(3).Get(numSamples);
 
-        if (mReadSamples >= numCacheSamples) {
-            mReadSamples = 0;
+        if (mReadSamples == 0) {
             mCurRangeMax = -100000000000000.0f;
             mCurRangeMin = 100000000000000.0f;
         }
@@ -189,6 +188,12 @@ namespace l::nodegraph {
             *rangeMaxOutput++ = mCurRangeMax;
             *rangeMinOutput++ = mCurRangeMin;
             *valueNormOutput++ = (in - lower) / range;
+        }
+
+        mReadSamples += numSamples;
+
+        if (mReadSamples >= numCacheSamples) {
+            mReadSamples = 0;
         }
     }
 
