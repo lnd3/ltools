@@ -24,10 +24,10 @@ else()
 		filesystem
 		meta
 		memory
+		math
 		concurrency
 		serialization
 		crypto
-		math
 		audio
 		hid
 		nodegraph

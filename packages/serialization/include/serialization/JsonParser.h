@@ -1,6 +1,7 @@
 #pragma once
 
 #include <logging/LoggingAll.h>
+#include <math/MathFixedPoint.h>
 
 #define JSMN_HEADER
 #include <various/jsmn.h>
@@ -52,6 +53,7 @@ namespace l::serialization {
         bool as_bool() const;
         double as_double() const;
         float as_float() const;
+        l::math::fp::FixedPoint as_fixed_point() const;
         int8_t as_int8() const;
         int16_t as_int16() const;
         int32_t as_int32() const;
