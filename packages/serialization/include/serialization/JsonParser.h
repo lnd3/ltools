@@ -53,7 +53,7 @@ namespace l::serialization {
         bool as_bool() const;
         double as_double() const;
         float as_float() const;
-        l::math::fp::FixedPoint as_fixed_point() const;
+        l::math::fp::FixedPoint as_fixed_point(int32_t precision_digits = 8) const;
         int8_t as_int8() const;
         int16_t as_int16() const;
         int32_t as_int32() const;

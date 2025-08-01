@@ -19,7 +19,6 @@ namespace l::math::fp {
         static FixedPoint FromFloat(float f, int64_t scale = 100000000);
         static FixedPoint FromString(std::string_view number, int64_t scale = 100000000);
         static int64_t GetScaleFromString(std::string_view number, int32_t precision_digits = 1);
-        static int64_t GetScale(int32_t precision_digits = 1);
         static int64_t GetScaleFromFloat(float scaleFloat, int32_t precision_digits = 1);
         static int64_t GetScaleFromDouble(double scaleDouble, int32_t precision_digits = 1);
 
@@ -27,6 +26,17 @@ namespace l::math::fp {
         FixedPoint() : value_(0), scale_(100000000) {}
         FixedPoint(int64_t scaledValue, int64_t scale = 100000000)
             : value_(scaledValue), scale_(scale) {
+        }
+        FixedPoint(int32_t scaledValue, int64_t scale = 100000000)
+            : value_(static_cast<int64_t>(scaledValue)), scale_(scale) {
+        }
+        FixedPoint(float value, int64_t scale) {
+            scale_ = scale;
+            value_ = static_cast<int64_t>(l::math::round(value * scale_));
+        }
+        FixedPoint(double value, int64_t scale) {
+            scale_ = scale;
+            value_ = static_cast<int64_t>(l::math::round(value * scale_));
         }
         FixedPoint(float value, int32_t precision_digits = 1) {
             scale_ = GetScaleFromFloat(value, precision_digits);
