@@ -112,6 +112,15 @@ namespace l::math::fp {
             return FixedPoint(value_ - tmp.value_, scale_);
         }
 
+        FixedPoint operator*(const FixedPoint& other) const {
+            if (other.scale() != scale()) {
+                FixedPoint tmp(other);
+                tmp.rescale(scale_);
+                return FixedPoint(value_ * tmp.value_, scale_ * scale_);
+            }
+            return FixedPoint(value_ * other.value_, scale_ * scale_);
+        }
+
         FixedPoint operator*(int64_t multiplier) const {
             return FixedPoint(value_ * multiplier, scale_);
         }
