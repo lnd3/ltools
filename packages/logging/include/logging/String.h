@@ -225,6 +225,7 @@ namespace l::string {
 	std::wstring widen(const std::string& str);
 
 	int count_digits(int number);
+	std::tuple<int64_t, int32_t, int32_t> to_fixed_int(std::string_view s);
 
 	template<class T>
 	concept Number = requires(T a) { requires std::convertible_to<T, float> || std::convertible_to<T, uint32_t>; };

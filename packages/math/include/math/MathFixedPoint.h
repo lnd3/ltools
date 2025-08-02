@@ -15,60 +15,101 @@ namespace l::math::fp {
 
     class FixedPoint {
     public:
-        static FixedPoint FromDouble(double d, int64_t scale = 100000000);
-        static FixedPoint FromFloat(float f, int64_t scale = 100000000);
-        static FixedPoint FromString(std::string_view number, int64_t scale = 100000000);
-        static int64_t GetScaleFromString(std::string_view number, int32_t precision_digits = 1);
-        static int64_t GetScaleFromFloat(float scaleFloat, int32_t precision_digits = 1);
-        static int64_t GetScaleFromDouble(double scaleDouble, int32_t precision_digits = 1);
+        static FixedPoint FromDouble(double d, int64_t scale) {
+            return FixedPoint(static_cast<int64_t>(l::math::round(d * scale)), scale);
+        }
 
-        // Constructors
-        FixedPoint() : value_(0), scale_(100000000) {}
+        static FixedPoint FromFloat(float f, int64_t scale) {
+            return FixedPoint(static_cast<int64_t>(l::math::round(f * scale)), scale);
+        }
+
+        static FixedPoint FromString(std::string_view number, int64_t scale) {
+            return FromDouble(std::atof(number.data()), scale);
+        }
+
+        static int64_t GetMinScaleFromDouble(double scaleDouble) {
+            if (scaleDouble == 0.0) {
+                return 0;
+            }
+            int32_t numDecimals = 0;
+            while (scaleDouble < 1.0 && numDecimals < 18) {
+                scaleDouble *= 10.0;
+                ++numDecimals;
+            }
+            if (numDecimals > 18) return false; // avoid int64_t overflow
+            auto scale = static_cast<int64_t>(0.5f + l::math::pow(10.0f, static_cast<float>(numDecimals)));
+            return scale;
+        }
+
+        FixedPoint() : value_(0), scale_(1) {}
         FixedPoint(int64_t scaledValue, int64_t scale = 100000000)
             : value_(scaledValue), scale_(scale) {
+            normalise();
         }
-        FixedPoint(int32_t scaledValue, int64_t scale = 100000000)
-            : value_(static_cast<int64_t>(scaledValue)), scale_(scale) {
+        FixedPoint(double value, int8_t numdecimals) {
+            auto v = l::math::abs(value);
+            if (v < 1.0) {
+                scale_ = 1000000000000000000;
+                value_ = static_cast<int64_t>(l::math::round(value * scale_));
+            }
+            else if (v < 1000000000.0) {
+                scale_ = 1000000000;
+                value_ = static_cast<int64_t>(l::math::round(value * scale_));
+            }
+            else {
+                scale_ = 1;
+                value_ = static_cast<int64_t>(l::math::round(value * scale_));
+            }
+            round(numdecimals);
         }
-        FixedPoint(float value, int64_t scale) {
+        FixedPoint(double value) {
+            auto v = l::math::abs(value);
+            if (v < 1.0) {
+                scale_ = 1000000000000000000;
+                value_ = static_cast<int64_t>(l::math::round(value * scale_));
+                round(9);
+            }
+            else if (v < 1000000000.0) {
+                scale_ = 1000000000;
+                value_ = static_cast<int64_t>(l::math::round(value * scale_));
+                round(9);
+            }
+            else {
+                scale_ = 1;
+                value_ = static_cast<int64_t>(l::math::round(value * scale_));
+                round(0);
+            }
+        }
+        FixedPoint(float value, int8_t numdecimals) : FixedPoint(static_cast<double>(value), numdecimals) {}
+        FixedPoint(float value) : FixedPoint(static_cast<double>(value)) {}
+
+        FixedPoint(std::string_view number) {
+            auto [n, d, s] = l::string::to_fixed_int(number);
+            value_ = n;
+            auto scale = static_cast<int64_t>(0.5f + l::math::pow(10.0f, static_cast<float>(d)));
             scale_ = scale;
-            value_ = static_cast<int64_t>(l::math::round(value * scale_));
-        }
-        FixedPoint(double value, int64_t scale) {
-            scale_ = scale;
-            value_ = static_cast<int64_t>(l::math::round(value * scale_));
-        }
-        FixedPoint(float value, int32_t precision_digits = 1) {
-            scale_ = GetScaleFromFloat(value, precision_digits);
-            value_ = static_cast<int64_t>(l::math::round(value * scale_));
-            normalise(precision_digits);
-        }
-        FixedPoint(double value, int32_t precision_digits = 1) {
-            scale_ = GetScaleFromDouble(value, precision_digits);
-            value_ = static_cast<int64_t>(l::math::round(value * scale_));
-            normalise(precision_digits);
-        }
-        FixedPoint(std::string_view number, int32_t precision_digits = 1) {
-            scale_ = GetScaleFromString(number, precision_digits);
-            auto f = std::atof(number.data());
-            value_ = static_cast<int64_t>(l::math::round(f * scale_));
+            normalise();
         }
 
         int32_t numDigits() const;
         double toDouble() const;
         float toFloat() const;
         std::string toString() const;
-        void normalise(int32_t precision_digits = 1);
+        void normalise();
+        void rescale(int64_t scale);
+        void round(int32_t numDecimals);
 
         // Arithmetic
         FixedPoint operator+(const FixedPoint& other) const {
-            ASSERT(scale_ == other.scale_);  // Ensure matching scales
-            return FixedPoint(value_ + other.value_, scale_);
+            FixedPoint tmp(other);
+            tmp.rescale(scale_);
+            return FixedPoint(value_ + tmp.value_, scale_);
         }
 
         FixedPoint operator-(const FixedPoint& other) const {
-            ASSERT(scale_ == other.scale_);
-            return FixedPoint(value_ - other.value_, scale_);
+            FixedPoint tmp(other);
+            tmp.rescale(scale_);
+            return FixedPoint(value_ - tmp.value_, scale_);
         }
 
         FixedPoint operator*(int64_t multiplier) const {
@@ -76,7 +117,9 @@ namespace l::math::fp {
         }
 
         bool operator==(const FixedPoint& other) const {
-            return value_ == other.value_ && scale_ == other.scale_;
+            FixedPoint tmp(other);
+            tmp.rescale(scale_);
+            return value_ == tmp.value_ && scale_ == tmp.scale_;
         }
 
         bool operator!=(const FixedPoint& other) const {
@@ -84,8 +127,9 @@ namespace l::math::fp {
         }
 
         bool operator<(const FixedPoint& other) const {
-            ASSERT(scale_ == other.scale_);
-            return value_ < other.value_;
+            FixedPoint tmp(other);
+            tmp.rescale(scale_);
+            return value_ < tmp.value_;
         }
 
         bool operator>(const FixedPoint& other) const {
@@ -101,8 +145,9 @@ namespace l::math::fp {
         }
 
         FixedPoint operator%(const FixedPoint& other) const {
-            ASSERT(scale_ == other.scale_);
-            return FixedPoint(value_ % other.value_, scale_);
+            FixedPoint tmp(other);
+            tmp.rescale(scale_);
+            return FixedPoint(value_ % tmp.value_, scale_);
         }
 
         // Getters

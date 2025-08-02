@@ -36,8 +36,8 @@ namespace l::serialization {
         return static_cast<float>(std::stod(as_string().data()));
     }
 
-    l::math::fp::FixedPoint JsonValue::as_fixed_point(int32_t precision_digits) const {
-        return l::math::fp::FixedPoint(as_string(), precision_digits);
+    l::math::fp::FixedPoint JsonValue::as_fixed_point() const {
+        return l::math::fp::FixedPoint(as_string());
     }
 
     int8_t JsonValue::as_int8() const {

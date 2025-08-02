@@ -2,74 +2,39 @@
 #include "math/MathFixedPoint.h"
 
 namespace l::math::fp {
-    FixedPoint FixedPoint::FromDouble(double d, int64_t scale) {
-        return FixedPoint(static_cast<int64_t>(l::math::round(d * scale)), scale);
-    }
 
-    FixedPoint FixedPoint::FromFloat(float f, int64_t scale) {
-        return FixedPoint(static_cast<int64_t>(l::math::round(f * scale)), scale);
-    }
-
-    FixedPoint FixedPoint::FromString(std::string_view number, int64_t scale) {
-        return FromDouble(std::atof(number.data()), scale);
-    }
-
-    int64_t FixedPoint::GetScaleFromString(std::string_view number, int32_t precision_digits) {
-        if (number.empty() || precision_digits == 0) {
-            return 0;
-        }
-
-        auto it = std::find(number.begin(), number.end(), '.');
-        if (it == number.end()) {
-            return 0; // str contains an integer and doesnt need fixed point
-        }
-
-
-        // Find index of most significant digit
-        size_t decimal_start = 1 + it - number.begin();
-        size_t first_nonzero = decimal_start;
-        while (first_nonzero < number.size() && number[first_nonzero] == '0') {
-            ++first_nonzero;
-        }
-
-        if (first_nonzero == number.size()) return false; // no non-zero digit found
-        auto decimalZeroes = static_cast<int32_t>(first_nonzero - decimal_start);
-
-        int32_t total_digits = decimalZeroes + precision_digits;
-        if (total_digits > 18) return false; // avoid int64_t overflow
-
-        auto scale = static_cast<int64_t>(0.5f + l::math::pow(10.0f, static_cast<float>(total_digits)));
-        return scale;
-    }
-
-    int64_t FixedPoint::GetScaleFromFloat(float scaleFloat, int32_t precision_digits) {
-        return GetScaleFromDouble(static_cast<double>(scaleFloat), precision_digits);
-    }
-
-    int64_t FixedPoint::GetScaleFromDouble(double scaleDouble, int32_t precision_digits) {
-        if (scaleDouble == 0.0 || precision_digits == 0) {
-            return 0;
-        }
-
-        int32_t decimalZeroes = 0;
-        scaleDouble *= 10.0;
-        while (scaleDouble < 1.0 && decimalZeroes < 18) {
-            scaleDouble *= 10.0;
-            ++decimalZeroes;
-        }
-        int32_t total_digits = decimalZeroes + precision_digits;
-        if (total_digits > 18) return false; // avoid int64_t overflow
-
-        auto scale = static_cast<int64_t>(0.5f + l::math::pow(10.0f, static_cast<float>(total_digits)));
-        return scale;
-    }
-
-    void FixedPoint::normalise(int32_t precision_digits) {
-        auto precisionScale = static_cast<int32_t>(0.5 + l::math::pow(10.0, static_cast<double>(precision_digits)));
-        while (value_ >= precisionScale) {
-            value_ = value_ / precisionScale;
+    void FixedPoint::normalise() {
+        while (scale_ >= 10 && value_ >= 10 && (value_ % 10) == 0) {
+            value_ = value_ / 10;
             scale_ = scale_ / 10;
         }
+    }
+
+    void FixedPoint::rescale(int64_t newScale) {
+        if (newScale > scale_) { // scale up, no loss in precision
+            int64_t diff = newScale / scale_;
+            ASSERT(l::math::abs(value_ * diff) < 100000000000000000);
+            value_ *= diff;
+            scale_ *= diff;
+        }
+        else if (newScale < scale_) {
+            int64_t diff = scale_ / newScale;
+            ASSERT(diff >= 10);
+            scale_ /= diff;
+            diff /= 10;
+            value_ /= diff;
+            value_ += 5; // add 0.5 before floor
+            value_ /= 10; // round (floor(0.5 + x))
+        }
+    }
+
+    void FixedPoint::round(int32_t numDecimals) {
+        int64_t scale = 1;
+        while (numDecimals-- > 0) {
+            scale *= 10;
+        };
+        rescale(scale);
+        normalise();
     }
 
     int32_t FixedPoint::numDigits() const {
