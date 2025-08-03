@@ -49,6 +49,10 @@ namespace l::string {
 			cur() = 0;
 		}
 
+		bool empty() {
+			return size() == 0;
+		}
+
 		size_t left() {
 			return static_cast<size_t>(BUFSIZE - mPos);
 		}
