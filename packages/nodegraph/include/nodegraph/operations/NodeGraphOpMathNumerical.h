@@ -149,4 +149,33 @@ namespace l::nodegraph {
         float mCurRangeMax = 0.0f;
         float mCurRangeMin = 0.0f;
     };
+
+    /*********************************************************************/
+    class MathNumericalDerivate2 : public NodeGraphOp {
+    public:
+        MathNumericalDerivate2(NodeGraphBase* node) :
+            NodeGraphOp(node, "Derivate2")
+        {
+            AddInput("In", 0.0f, 1);
+            AddInput("Base", 0.0f, 1);
+            AddInput("Friction1", 1.0f, 1, 0.0f, 1.0f);
+            AddInput("Friction2", 1.0f, 1, 0.0f, 1.0f);
+            AddInput("Scale1", 1.0f, 1, 0.0f, 100.0f);
+            AddInput("Scale2", 1.0f, 1, 0.0f, 100.0f);
+
+            AddOutput("d1dt", 0.0f, 1);
+            AddOutput("d2dt", 0.0f, 1);
+            AddOutput("d1+base", 0.0f, 1);
+            AddOutput("d2+base", 0.0f, 1);
+        }
+
+        virtual ~MathNumericalDerivate2() = default;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+    protected:
+        int32_t mReadSamples = 0;
+        float mInputPrev1 = 0.0f;
+        float mOutput1 = 0.0f;
+        float mInputPrev2 = 0.0f;
+        float mOutput2 = 0.0f;
+    };
 }

@@ -309,6 +309,9 @@ namespace l::nodegraph {
         case 145:
             node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalMinMaxChannel>(id, NodeType::Default);
             break;
+        case 146:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalDerivate2>(id, NodeType::Default);
+            break;
 
             // Trading data io
         case 200:
@@ -614,6 +617,7 @@ namespace l::nodegraph {
             RegisterNodeType("Math.Numerical", 143, "Difference");
             RegisterNodeType("Math.Numerical", 144, "Level Trigger");
             RegisterNodeType("Math.Numerical", 145, "Minmax Channel");
+            RegisterNodeType("Math.Numerical", 146, "Derivate2");
         }
         else if (typeGroup == "Trading.Data IO") {
             RegisterNodeType("Trading.Data IO", 200, "OCHLV Data In");
