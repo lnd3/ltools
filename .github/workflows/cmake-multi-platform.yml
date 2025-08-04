@@ -17,7 +17,7 @@ jobs:
         - name: Checkout deps/ldeps
           uses: actions/checkout@v4
           with:
-            repository: git@github.com:lnd3/ldeps.git
+            repository: lnd3/ldeps
             path: deps/ldeps
         - name: Create Build Environment
           run: cmake -E make_directory ${{github.workspace}}/build
