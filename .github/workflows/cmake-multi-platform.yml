@@ -28,6 +28,11 @@ jobs:
           working-directory: ${{github.workspace}}/build
           shell: bash
           run: ctest --rerun-failed --output-on-failure -C $BUILD_TYPE
+        - name: Checkout deps/ldeps
+          uses: actions/checkout@v4
+          with:
+            repository: git@github.com:lnd3/ldeps.git
+            path: deps/ldeps
   linux:
     runs-on: ubuntu-latest
     steps:
