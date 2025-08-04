@@ -186,10 +186,10 @@ namespace l::nodegraph {
                 mPrevValue = marker;
                 continue;
             }
-            if (marker > 0.0f && mPrevValue < 0.0f) {
+            if (marker > 0.0f && mPrevValue <= 0.0f) {
                 mMarkers.push_back({ unixtime, y, marker });
             }
-            else if (marker < 0.0f && mPrevValue > 0.0f) {
+            else if (marker < 0.0f && mPrevValue >= 0.0f) {
                 mMarkers.push_back({ unixtime, y, marker });
             }
             mPrevValue = marker;

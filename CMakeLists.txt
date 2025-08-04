@@ -11,7 +11,7 @@ else()
 	enable_testing()
 
 	message("'ltools' expect 'ldeps' be present in 'deps/ldeps'")
-	add_subdirectory(deps/ldeps)
+	add_subdirectory(../deps/ldeps)
 
 	include(bs)
 	bs_init()
