@@ -29,10 +29,9 @@ namespace l::nodegraph {
         MathNumericalIntegral(NodeGraphBase* node) :
             NodeGraphOp(node, "Integral")
         {
-            AddInput("In", 0.0f, 1);
+            AddInput2("x");
             AddInput("Friction", 1.0f, 1, 0.0f, 1.0f);
-            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddOutput("Out", 0.0f, 1);
+            AddOutput2("Intgr(x)");
         }
 
         virtual ~MathNumericalIntegral() = default;
@@ -47,17 +46,16 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class MathNumericalDerivate : public NodeGraphOp {
+    class MathNumericalTemporalChange : public NodeGraphOp {
     public:
-        MathNumericalDerivate(NodeGraphBase* node) :
-            NodeGraphOp(node, "Derivate")
+        MathNumericalTemporalChange(NodeGraphBase* node) :
+            NodeGraphOp(node, "Temporal Change")
         {
-            AddInput("In", 0.0f, 1);
-            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddOutput("Out", 0.0f, 1);
+            AddInput2("in");
+            AddOutput2("out");
         }
 
-        virtual ~MathNumericalDerivate() = default;
+        virtual ~MathNumericalTemporalChange() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         int32_t mReadSamples = 0;
@@ -69,11 +67,10 @@ namespace l::nodegraph {
     class MathNumericalDiffNorm : public NodeGraphOp {
     public:
         MathNumericalDiffNorm(NodeGraphBase* node) :
-            NodeGraphOp(node, "Difference Normalized")
+            NodeGraphOp(node, "Temporal diff norm")
         {
-            AddInput("In", 0.0f, 1);
-            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddOutput("Out", 0.0f, 1);
+            AddInput2("x");
+            AddOutput2("Diff norm");
         }
 
         virtual ~MathNumericalDiffNorm() = default;
@@ -88,11 +85,10 @@ namespace l::nodegraph {
     class MathNumericalDiff : public NodeGraphOp {
     public:
         MathNumericalDiff(NodeGraphBase* node) :
-            NodeGraphOp(node, "Difference")
+            NodeGraphOp(node, "Temporal Difference")
         {
-            AddInput("In", 0.0f, 1);
-            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddOutput("Out", 0.0f, 1);
+            AddInput2("In");
+            AddOutput2("Diff");
         }
 
         virtual ~MathNumericalDiff() = default;
@@ -109,14 +105,14 @@ namespace l::nodegraph {
         MathNumericalLevelTrigger(NodeGraphBase* node) :
             NodeGraphOp(node, "Level Trigger")
         {
-            AddInput2("In", 1, InputFlags(false, false, false, false));
-            AddInput2("Max", 1, InputFlags(false, false, false, false));
-            AddInput2("Min", 1, InputFlags(false, false, false, false));
+            AddInput2("In");
+            AddInput2("Max");
+            AddInput2("Min");
             AddInput("Num levels", 1.0f, 1, 1.0f, 100.0f, true, true);
             AddInput("Max%", 1.0f, 1, 0.0f, 1.0f, true, true);
             AddInput("Min%", 0.0f, 1, 0.0f, 1.0f, true, true);
-            AddOutput("Level", 0.0f, 1);
-            AddOutput("Pulse", 0.0f, 1);
+            AddOutput2("Level");
+            AddOutput2("Pulse");
         }
 
         virtual ~MathNumericalLevelTrigger() = default;
@@ -131,14 +127,14 @@ namespace l::nodegraph {
         MathNumericalMinMaxChannel(NodeGraphBase* node) :
             NodeGraphOp(node, "Minmax Channel")
         {
-            AddInput("Upper Bound", 0.0f, 1);
-            AddInput("Lower Bound", 0.0f, 1);
-            AddInput("Bounded Value", 0.0f, 1);
+            AddInput2("Upper Bound");
+            AddInput2("Lower Bound");
+            AddInput2("Bounded Value");
 
-            AddOutput("Range", 0.0f, 1);
-            AddOutput("Range Max", 0.0f, 1);
-            AddOutput("Range Min", 0.0f, 1);
-            AddOutput("Value Norm", 0.0f, 1);
+            AddOutput2("Range");
+            AddOutput2("Range Max");
+            AddOutput2("Range Min");
+            AddOutput2("Value Norm");
         }
 
         virtual ~MathNumericalMinMaxChannel() = default;
@@ -154,28 +150,30 @@ namespace l::nodegraph {
     class MathNumericalDerivate2 : public NodeGraphOp {
     public:
         MathNumericalDerivate2(NodeGraphBase* node) :
-            NodeGraphOp(node, "Derivate2")
+            NodeGraphOp(node, "Reconstructor")
         {
-            AddInput("In", 0.0f, 1);
+            AddInput2("In");
             AddInput("Base", 0.0f, 1);
             AddInput("Friction1", 1.0f, 1, 0.0f, 1.0f);
             AddInput("Friction2", 1.0f, 1, 0.0f, 1.0f);
             AddInput("Scale1", 1.0f, 1, 0.0f, 100.0f);
             AddInput("Scale2", 1.0f, 1, 0.0f, 100.0f);
 
-            AddOutput("d1dt", 0.0f, 1);
-            AddOutput("d2dt", 0.0f, 1);
-            AddOutput("d1+base", 0.0f, 1);
-            AddOutput("d2+base", 0.0f, 1);
+            AddOutput2("Diff");
+            AddOutput2("Diff+base");
+            AddOutput2("Intgr1");
+            AddOutput2("Intgr+base");
+            AddOutput2("Intgr2");
+            AddOutput2("Intgr2+base");
         }
 
         virtual ~MathNumericalDerivate2() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         int32_t mReadSamples = 0;
-        float mInputPrev1 = 0.0f;
+        float mInputPrev = 0.0f;
+        float mDiffPrev = 0.0f;
         float mOutput1 = 0.0f;
-        float mInputPrev2 = 0.0f;
         float mOutput2 = 0.0f;
     };
 }

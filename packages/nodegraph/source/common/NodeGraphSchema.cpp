@@ -278,6 +278,9 @@ namespace l::nodegraph {
         case 109:
             node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicPow>(id, NodeType::Default);
             break;
+        case 110:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicSum3>(id, NodeType::Default);
+            break;
 
             // Math logical operators
         case 120:
@@ -295,7 +298,7 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalIntegral>(id, NodeType::Default);
             break;
         case 141:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalDerivate>(id, NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalTemporalChange>(id, NodeType::Default);
             break;
         case 142:
             node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalDiffNorm>(id, NodeType::Default);
@@ -495,6 +498,9 @@ namespace l::nodegraph {
         case 604:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphUIText>(id, NodeType::ExternalInput);
             break;
+        case 605:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphUIChartMarkers>(id, NodeType::ExternalInput);
+            break;
 
 
 
@@ -604,6 +610,7 @@ namespace l::nodegraph {
             RegisterNodeType("Math.Aritmethic", 107, "Madd");
             RegisterNodeType("Math.Aritmethic", 108, "Round");
             RegisterNodeType("Math.Aritmethic", 109, "Pow");
+            RegisterNodeType("Math.Aritmethic", 110, "Sum3");
         }
         else if (typeGroup == "Math.Logic") {
             RegisterNodeType("Math.Logic", 120, "And");
@@ -617,7 +624,7 @@ namespace l::nodegraph {
             RegisterNodeType("Math.Numerical", 143, "Difference");
             RegisterNodeType("Math.Numerical", 144, "Level Trigger");
             RegisterNodeType("Math.Numerical", 145, "Minmax Channel");
-            RegisterNodeType("Math.Numerical", 146, "Derivate2");
+            RegisterNodeType("Math.Numerical", 146, "Reconstructor");
         }
         else if (typeGroup == "Trading.Data IO") {
             RegisterNodeType("Trading.Data IO", 200, "OCHLV Data In");
@@ -693,6 +700,7 @@ namespace l::nodegraph {
             RegisterNodeType("UI", 602, "UI Chart Lines");
             RegisterNodeType("UI", 603, "UI Candle Sticks");
             RegisterNodeType("UI", 604, "UI Text");
+            RegisterNodeType("UI", 605, "UI Chart Markers");
             }
         else {
             LOG(LogWarning) << "Type group does not exist: " << typeGroup;

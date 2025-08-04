@@ -167,4 +167,34 @@ namespace l::nodegraph {
         }
     }
 
+    /*********************************************************************/
+    void GraphUIChartMarkers::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
+        auto timeInput = &inputs.at(0).Get(numSamples);
+        auto yInput = &inputs.at(1).Get(numSamples);
+        auto inInput = &inputs.at(3).Get(numSamples);
+
+        if (mReadSamples == 0) {
+            mMarkers.clear();
+        }
+
+        for (int32_t i = 0; i < numSamples; i++) {
+            auto time = *timeInput++;
+            auto unixtime = l::math::algorithm::convert<int32_t>(time);
+            auto y = *yInput++;
+            auto in = *inInput++;
+            if (in != mPrevValue && in > 0.0f) {
+                mMarkers.push_back({ unixtime, y, in });
+            }
+            else if (in != mPrevValue && in < 0.0f) {
+                mMarkers.push_back({ unixtime, y, in });
+            }
+            mPrevValue = in;
+        }
+
+        mReadSamples += numSamples;
+        if (mReadSamples >= numCacheSamples) {
+            mReadSamples = 0;
+            mPrevValue = 0.0f;
+        }
+    }
 }

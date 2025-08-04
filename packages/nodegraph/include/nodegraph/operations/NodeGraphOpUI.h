@@ -74,7 +74,7 @@ namespace l::nodegraph {
         GraphUIText(NodeGraphBase* node) :
             NodeGraphOp(node, "UI Text")
         {
-            AddInput2("In", 1, InputFlags(false, false, false, true));
+            AddInput2("In", 1, InputFlags(false, true, true, true));
         }
 
         virtual ~GraphUIText() = default;
@@ -97,9 +97,7 @@ namespace l::nodegraph {
             AddInput2("Name", 1, InputFlags(false, true, true, true));
             AddOutput("Data");
         }
-        virtual ~GraphUIChartLine() {
-
-        }
+        virtual ~GraphUIChartLine() = default;
         virtual void DefaultDataInit() override {
             mNode->SetInput(2, "Chart Line");
         }
@@ -130,6 +128,31 @@ namespace l::nodegraph {
         void ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         int32_t mLatestUnixtime = 0;
+    };
+
+    /*********************************************************************/
+    class GraphUIChartMarkers : public NodeGraphOp {
+    public:
+        GraphUIChartMarkers(NodeGraphBase* node) :
+            NodeGraphOp(node, "Chart Markers")
+        {
+            AddInput2("Time");
+            AddInput2("y");
+            AddInput2("Marker");
+            AddInput2("Name", 1, InputFlags(false, true, true, true));
+        }
+        virtual ~GraphUIChartMarkers() = default;
+        virtual void DefaultDataInit() override {
+            mNode->SetInput(2, "Chart Markers");
+        }
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        std::vector<std::tuple<int32_t, float, float>>& GetMarkers() {
+            return mMarkers;
+        }
+    protected:
+        int32_t mReadSamples = 0;
+        float mPrevValue = 0.0f;
+        std::vector<std::tuple<int32_t, float, float>> mMarkers;
     };
 }
 

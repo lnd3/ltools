@@ -10,12 +10,10 @@
 namespace l::nodegraph {
 
     void MathNumericalIntegral::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        auto input0 = inputs.at(0).GetIterator(numSamples);
+        auto input0 = &inputs.at(0).Get(numSamples);
         auto friction = inputs.at(1).Get();
         auto frictionFactor = l::math::clamp(l::math::pow(friction, 0.25f), 0.0f, 1.0f);
-        auto lodExp = inputs.at(2).Get();
-        auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
-        auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
+        auto output = &outputs.at(0).Get(numSamples);
 
         for (int32_t i = 0; i < numSamples; i++) {
             mOutput += *input0++;
@@ -35,11 +33,9 @@ namespace l::nodegraph {
         }
     }
 
-    void MathNumericalDerivate::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        auto input0 = inputs.at(0).GetIterator(numSamples);
-        auto lodExp = inputs.at(1).Get();
-        auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
-        auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
+    void MathNumericalTemporalChange::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        auto input0 = &inputs.at(0).Get(numSamples);
+        auto output = &outputs.at(0).Get(numSamples);
 
         for (int32_t i = 0; i < numSamples; i++) {
             float input = *input0++;
@@ -61,10 +57,8 @@ namespace l::nodegraph {
     }
 
     void MathNumericalDiffNorm::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        auto input0 = inputs.at(0).GetIterator(numSamples);
-        auto lodExp = inputs.at(1).Get();
-        auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
-        auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
+        auto input0 = &inputs.at(0).Get(numSamples);
+        auto output = &outputs.at(0).Get(numSamples);
 
         for (int32_t i = 0; i < numSamples; i++) {
             float input = *input0++;
@@ -95,10 +89,8 @@ namespace l::nodegraph {
     }
 
     void MathNumericalDiff::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        auto input0 = inputs.at(0).GetIterator(numSamples);
-        auto lodExp = inputs.at(1).Get();
-        auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
-        auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
+        auto input0 = &inputs.at(0).Get(numSamples);
+        auto output = &outputs.at(0).Get(numSamples);
 
         for (int32_t i = 0; i < numSamples; i++) {
             float input = *input0++;
@@ -213,39 +205,40 @@ namespace l::nodegraph {
         auto frictionFactor1 = l::math::clamp(l::math::pow(friction1, 0.25f), 0.0f, 1.0f);
         auto frictionFactor2 = l::math::clamp(l::math::pow(friction2, 0.25f), 0.0f, 1.0f);
 
-        auto output1 = &outputs.at(0).Get(numSamples);
-        auto output2 = &outputs.at(1).Get(numSamples);
-        auto outputBase1 = &outputs.at(2).Get(numSamples);
-        auto outputBase2 = &outputs.at(3).Get(numSamples);
+        auto outputDiff = &outputs.at(0).Get(numSamples);
+        auto outputDiffBase = &outputs.at(1).Get(numSamples);
+        auto outputIntegral1 = &outputs.at(2).Get(numSamples);
+        auto outputBase1 = &outputs.at(3).Get(numSamples);
+        auto outputIntegral2 = &outputs.at(4).Get(numSamples);
+        auto outputBase2 = &outputs.at(5).Get(numSamples);
 
         for (int32_t i = 0; i < numSamples; i++) {
             float in = *inInput++;
             auto base = *baseInput++;
 
-            // derivate 1
-            float diff1 = in - mInputPrev1;
-            mInputPrev1 = in;
+            // derivate
+            float diff = in - mInputPrev;
+            mInputPrev = in;
 
             // integral 1
-            mOutput1 += diff1;
+            mOutput1 += diff;
             mOutput1 *= frictionFactor1;
 
-            auto output1Scaled = mOutput1 * scale1;
-
-            // derivate 2
-            float diff2 = output1Scaled - mInputPrev2;
-            mInputPrev2 = output1Scaled;
-
             // integral 2
-            mOutput2 += diff2;
+            mOutput2 += (diff + mDiffPrev) * 0.5f;
             mOutput2 *= frictionFactor2;
 
-            auto output2Scaled = mOutput2 * scale2;
+            mDiffPrev = diff;
 
-            *output1++ = output1Scaled;
-            *output2++ = output2Scaled;
-            *outputBase1++ = output1Scaled + base;
-            *outputBase2++ = output2Scaled + base;
+            auto outputScaled1 = mOutput1 * scale1;
+            auto outputScaled2 = mOutput2 * scale2;
+
+            *outputDiff++ = diff;
+            *outputDiffBase++ = diff + base;
+            *outputIntegral1++ = mOutput1;
+            *outputBase1++ = outputScaled1 + base;
+            *outputIntegral2++ = mOutput2;
+            *outputBase2++ = outputScaled2 + base;
         }
 
         mReadSamples += numSamples;
@@ -253,18 +246,14 @@ namespace l::nodegraph {
         if (mReadSamples >= numCacheSamples) {
             mReadSamples = 0;
             mOutput1 = 0.0f;
-            mOutput2 = 0.0f;
-            mInputPrev1 = 0.0f;
-            mInputPrev2 = 0.0f;
+            mInputPrev = 0.0f;
+            mDiffPrev = 0.0f;
         }
 
         if (isnan(mOutput1)) {
             mOutput1 = 0.0f;
-            mInputPrev1 = 0.0f;
-        }
-        if (isnan(mOutput2)) {
-            mOutput2 = 0.0f;
-            mInputPrev2 = 0.0f;
+            mInputPrev = 0.0f;
+            mDiffPrev = 0.0f;
         }
     }
 
