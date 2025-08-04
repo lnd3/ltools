@@ -499,7 +499,7 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphUIText>(id, NodeType::ExternalInput);
             break;
         case 605:
-            node = mMainNodeGraph.NewNode<l::nodegraph::GraphUIChartMarkers>(id, NodeType::ExternalInput);
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphUIChartMarkers>(id, NodeType::ExternalOutput);
             break;
 
 

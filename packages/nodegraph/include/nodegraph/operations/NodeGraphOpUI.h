@@ -143,7 +143,7 @@ namespace l::nodegraph {
         }
         virtual ~GraphUIChartMarkers() = default;
         virtual void DefaultDataInit() override {
-            mNode->SetInput(2, "Chart Markers");
+            mNode->SetInput(3, "Chart Markers");
         }
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         std::vector<std::tuple<int32_t, float, float>>& GetMarkers() {
