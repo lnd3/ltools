@@ -182,10 +182,14 @@ namespace l::nodegraph {
             auto unixtime = l::math::algorithm::convert<int32_t>(time);
             auto y = *yInput++;
             auto marker = *markerInput++;
-            if (marker != mPrevValue && marker > 0.0f) {
+            if (unixtime == 0) {
+                mPrevValue = marker;
+                continue;
+            }
+            if (marker > 0.0f && mPrevValue < 0.0f) {
                 mMarkers.push_back({ unixtime, y, marker });
             }
-            else if (marker != mPrevValue && marker < 0.0f) {
+            else if (marker < 0.0f && mPrevValue > 0.0f) {
                 mMarkers.push_back({ unixtime, y, marker });
             }
             mPrevValue = marker;
