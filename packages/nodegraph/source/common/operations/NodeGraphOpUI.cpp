@@ -187,10 +187,13 @@ namespace l::nodegraph {
                 continue;
             }
             if (marker > 0.0f && mPrevValue <= 0.0f) {
-                mMarkers.push_back({ unixtime, y, marker });
+                mMarkers.push_back({ unixtime, y, marker, mYSum });
+                mPrevY = y;
             }
             else if (marker < 0.0f && mPrevValue >= 0.0f) {
-                mMarkers.push_back({ unixtime, y, marker });
+                auto diff = y - mPrevY;
+                mYSum += diff;
+                mMarkers.push_back({ unixtime, y, marker, mYSum });
             }
             mPrevValue = marker;
         }
@@ -199,6 +202,7 @@ namespace l::nodegraph {
         if (mReadSamples >= numCacheSamples) {
             mReadSamples = 0;
             mPrevValue = 0.0f;
+            mYSum = 0.0f;
         }
     }
 }
