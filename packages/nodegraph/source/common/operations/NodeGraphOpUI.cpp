@@ -177,6 +177,13 @@ namespace l::nodegraph {
             mMarkers.clear();
         }
 
+        auto beep = [&](int32_t unixtime, int32_t freq, int32_t duration) {
+            if (mLastBeep + 30 < unixtime) {
+                l::audio::PCBeep(freq, duration);
+                mLastBeep = unixtime;
+            }
+            };
+
         for (int32_t i = 0; i < numSamples; i++) {
             auto time = *timeInput++;
             auto unixtime = l::math::algorithm::convert<int32_t>(time);
@@ -189,12 +196,14 @@ namespace l::nodegraph {
             if (marker > 0.0f && mPrevValue <= 0.0f) {
                 mMarkers.push_back({ unixtime, y, marker, mYTotalChange });
                 mPrevY = y;
+                beep(unixtime, 1000, 50);
             }
             else if (marker < 0.0f && mPrevValue >= 0.0f) {
                 if (mPrevY > 0.0f && y > 0.0f) {
                     mYTotalChange *= y / mPrevY;
                 }
                 mMarkers.push_back({ unixtime, y, marker, mYTotalChange });
+                beep(unixtime, 1000, 50);
             }
             mPrevValue = marker;
         }

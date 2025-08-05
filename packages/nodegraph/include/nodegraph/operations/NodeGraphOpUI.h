@@ -154,6 +154,7 @@ namespace l::nodegraph {
         float mPrevValue = 0.0f;
         float mPrevY = 0.0f;
         float mYTotalChange = 1.0f;
+        int32_t mLastBeep = l::string::get_unix_epoch();
         std::vector<std::tuple<int32_t, float, float, float>> mMarkers;
     };
 }
