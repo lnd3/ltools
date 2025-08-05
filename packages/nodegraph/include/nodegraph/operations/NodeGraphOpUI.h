@@ -146,14 +146,14 @@ namespace l::nodegraph {
             mNode->SetInput(3, "Chart Markers");
         }
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
-        std::vector<std::tuple<int32_t, float, float, float>>& GetMarkers() {
+        const std::vector<std::tuple<int32_t, float, float, float>>& GetMarkers() {
             return mMarkers;
         }
     protected:
         int32_t mReadSamples = 0;
         float mPrevValue = 0.0f;
         float mPrevY = 0.0f;
-        float mYSum = 0.0f;
+        float mYTotalChange = 1.0f;
         std::vector<std::tuple<int32_t, float, float, float>> mMarkers;
     };
 }
