@@ -215,12 +215,10 @@ namespace l::nodegraph {
 
         virtual ~MathAritmethicMultiplyAndAdd() = default;
         void virtual Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input0 = inputs.at(0).GetIterator(numSamples);
-            auto input1 = inputs.at(1).GetIterator(numSamples);
-            auto input2 = inputs.at(2).GetIterator(numSamples);
-            auto lodExp = inputs.at(3).Get();
-            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
-            auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
+            auto input0 = &inputs.at(0).Get(numSamples);
+            auto input1 = &inputs.at(1).Get(numSamples);
+            auto input2 = &inputs.at(2).Get(numSamples);
+            auto output = &outputs.at(0).Get(numSamples);
 
             for (int32_t i = 0; i < numSamples; i++) {
                 *output++ = *input0++ * *input1++ + *input2++;
