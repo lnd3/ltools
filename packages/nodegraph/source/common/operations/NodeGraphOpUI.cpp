@@ -170,8 +170,9 @@ namespace l::nodegraph {
     /*********************************************************************/
     void GraphUIChartMarkers::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
         auto timeInput = &inputs.at(0).Get(numSamples);
-        auto yInput = &inputs.at(1).Get(numSamples);
-        auto markerInput = &inputs.at(2).Get(numSamples);
+        auto openInput = &inputs.at(1).Get(numSamples);
+        auto closeInput = &inputs.at(2).Get(numSamples);
+        auto eventInput = &inputs.at(3).Get(numSamples);
 
         if (mReadSamples == 0) {
             mMarkers.clear();
@@ -187,23 +188,68 @@ namespace l::nodegraph {
         for (int32_t i = 0; i < numSamples; i++) {
             auto time = *timeInput++;
             auto unixtime = l::math::algorithm::convert<int32_t>(time);
-            auto y = *yInput++;
-            auto marker = *markerInput++;
+            auto open = *openInput++;
+            auto close = *closeInput++;
+            auto marker = *eventInput++;
             if (unixtime == 0) {
                 mPrevValue = marker;
                 continue;
             }
-            if (marker > 0.0f && mPrevValue <= 0.0f) {
-                mMarkers.push_back({ unixtime, y, marker, mYTotalChange });
-                mPrevY = y;
+            auto price = (open + close) * 0.5f;
+            auto currentMarkerChange = 1.0f;
+            if (mPrevY > 0.0f) {
+                currentMarkerChange = price / mPrevY;
+            }
+            bool hitStopLoss = false;
+            if (mOrderPlaced) {
+                auto meanStop = 0.0f;
+                if (mProfitMean > 1.0f) {
+                    auto meanStopFactor = 1.0f;
+                    meanStop = 1.0f - meanStopFactor * (mProfitMean - 1.0f);
+                }
+                if (currentMarkerChange < meanStop) {
+                    //hitStopLoss = true;
+                }
+                auto emaStop = 0.0f;
+                if (mProfitEma > 1.0f) {
+                    auto emaStopFactor = 1.0f;
+                    emaStop = 1.0f - emaStopFactor * (mProfitEma - 1.0f);
+                }
+                if (currentMarkerChange < emaStop) {
+                    //hitStopLoss = true;
+                }
+            }
+
+            auto buy = !mOrderPlaced && !mStopLossActive && (marker > 0.0f && mPrevValue <= 0.0f);
+            auto sell = mOrderPlaced && !mStopLossActive && (hitStopLoss || marker < 0.0f && mPrevValue >= 0.0f);
+
+            if (buy) {
+                buySellCounter++;
+                mMarkers.push_back({ unixtime, price, marker, mYTotalChange });
+                mOrderPlaced = true;
+                mPrevY = price;
+                beep(unixtime, 4000, 50);
+            }
+            else if (sell) {
+                buySellCounter--;
+                if (mPrevY > 0.0f && price > 0.0f) {
+                    mYTotalChange *= currentMarkerChange;
+                    mProfitEma = mProfitEma + 0.5f * (currentMarkerChange - mProfitEma);
+                    if (mMarkers.size() > 1) {
+                        mProfitMean = 1.0f + (mYTotalChange - 1.0f) / static_cast<float>(mMarkers.size());
+                    }
+                }
+                mMarkers.push_back({ unixtime, price, marker, mYTotalChange });
+                mOrderPlaced = false;
+                if (!mStopLossActive && hitStopLoss) {
+                    // stop loss must not be active until this round and sell must not be 
+                    mStopLossActive = true;
+                }
                 beep(unixtime, 1000, 50);
             }
-            else if (marker < 0.0f && mPrevValue >= 0.0f) {
-                if (mPrevY > 0.0f && y > 0.0f) {
-                    mYTotalChange *= y / mPrevY;
-                }
-                mMarkers.push_back({ unixtime, y, marker, mYTotalChange });
-                beep(unixtime, 1000, 50);
+            else if (mStopLossActive && marker < 0.0f && mPrevValue >= 0.0f) {
+                // wait for actual sell signal so we can begin anew
+                mStopLossActive = false;
             }
             mPrevValue = marker;
         }

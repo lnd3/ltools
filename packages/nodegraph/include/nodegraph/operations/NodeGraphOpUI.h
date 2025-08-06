@@ -137,13 +137,14 @@ namespace l::nodegraph {
             NodeGraphOp(node, "Chart Markers")
         {
             AddInput2("Time");
-            AddInput2("y");
+            AddInput2("Open");
+            AddInput2("Close");
             AddInput2("Marker");
             AddInput2("Name", 1, InputFlags(false, true, true, true));
         }
         virtual ~GraphUIChartMarkers() = default;
         virtual void DefaultDataInit() override {
-            mNode->SetInput(3, "Chart Markers");
+            mNode->SetInput(4, "Chart Markers");
         }
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         const std::vector<std::tuple<int32_t, float, float, float>>& GetMarkers() {
@@ -155,6 +156,13 @@ namespace l::nodegraph {
         float mPrevY = 0.0f;
         float mYTotalChange = 1.0f;
         int32_t mLastBeep = l::string::get_unix_epoch();
+        float mProfitEma = 1.0f;
+        float mProfitMean = 1.0f;
+        float mStopEma = 1.0f;
+        float mStopMean = 1.0f;
+        bool mStopLossActive = false;
+        bool mOrderPlaced = false;
+        int32_t buySellCounter = 0;
         std::vector<std::tuple<int32_t, float, float, float>> mMarkers;
     };
 }
