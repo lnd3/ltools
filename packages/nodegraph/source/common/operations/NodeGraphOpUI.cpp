@@ -259,6 +259,7 @@ namespace l::nodegraph {
             mReadSamples = 0;
             mPrevValue = 0.0f;
             mYTotalChange = 1.0f;
+            mOrderPlaced = false;
         }
     }
 }
