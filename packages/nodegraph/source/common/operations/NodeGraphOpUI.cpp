@@ -220,8 +220,10 @@ namespace l::nodegraph {
                 }
             }
 
-            auto buy = !mOrderPlaced && !mStopLossActive && (marker > 0.0f && mPrevValue <= 0.0f);
-            auto sell = mOrderPlaced && !mStopLossActive && (hitStopLoss || marker < 0.0f && mPrevValue >= 0.0f);
+            auto buyCond = marker > 0.0f && mPrevValue <= 0.0f;
+            auto sellCond = marker < 0.0f && mPrevValue >= 0.0f;
+            auto buy = !mOrderPlaced && !mStopLossActive && buyCond;
+            auto sell = mOrderPlaced && !mStopLossActive && (hitStopLoss || sellCond);
 
             if (buy) {
                 buySellCounter++;
@@ -247,7 +249,7 @@ namespace l::nodegraph {
                 }
                 beep(unixtime, 1000, 50);
             }
-            else if (mStopLossActive && marker < 0.0f && mPrevValue >= 0.0f) {
+            else if (mStopLossActive && sellCond) {
                 // wait for actual sell signal so we can begin anew
                 mStopLossActive = false;
             }
