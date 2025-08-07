@@ -246,12 +246,7 @@ namespace l::nodegraph {
         if (mReadSamples >= numCacheSamples) {
             mReadSamples = 0;
             mOutput1 = 0.0f;
-            mInputPrev = 0.0f;
-            mDiffPrev = 0.0f;
-        }
-
-        if (isnan(mOutput1)) {
-            mOutput1 = 0.0f;
+            mOutput2 = 0.0f;
             mInputPrev = 0.0f;
             mDiffPrev = 0.0f;
         }
