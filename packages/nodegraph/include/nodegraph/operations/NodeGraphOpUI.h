@@ -99,6 +99,7 @@ namespace l::nodegraph {
         }
         virtual ~GraphUIChartLine() = default;
         virtual void DefaultDataInit() override {
+            NodeGraphOp::DefaultDataInit();
             mNode->SetInput(2, "Chart Line");
         }
         virtual void ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
@@ -123,6 +124,7 @@ namespace l::nodegraph {
         }
         virtual ~GraphUICandleSticks() = default;
         virtual void DefaultDataInit() override {
+            NodeGraphOp::DefaultDataInit();
             mNode->SetInput(6, "Candle Sticks");
         }
         void ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
@@ -139,12 +141,18 @@ namespace l::nodegraph {
             AddInput2("Time");
             AddInput2("Open");
             AddInput2("Close");
-            AddInput2("Marker");
+            AddInput2("Mark"); // positive or negative
+            AddInput("Risk", 0.5f, 1, 0.0f, 1.0f);
+            AddInput("Slip", 0.0002f, 1, 0.0f, 1.0f);
             AddInput2("Name", 1, InputFlags(false, true, true, true));
+            AddInput("Pin Length", 30.0f, 1, 1.0f, 200.0f);
+            AddInput("Pin Size", 5.0f, 1, 1.0f, 40.0f);
+            AddInput("Font Size", 10.8f, 1, 3.0f, 20.0f);
         }
         virtual ~GraphUIChartMarkers() = default;
         virtual void DefaultDataInit() override {
-            mNode->SetInput(4, "Chart Markers");
+            NodeGraphOp::DefaultDataInit();
+            mNode->SetInput(6, "Chart Markers");
         }
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         const std::vector<std::tuple<int32_t, float, float, float>>& GetMarkers() {

@@ -109,8 +109,8 @@ namespace l::nodegraph {
 
     void MathNumericalLevelTrigger::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto inInput = &inputs.at(0).Get(numSamples);
-        auto maxInput = &inputs.at(1).Get();
-        auto minInput = &inputs.at(2).Get();
+        auto maxInput = inputs.at(1).GetIterator(numSamples);
+        auto minInput = inputs.at(2).GetIterator(numSamples);
         auto numLevels = l::math::clamp(inputs.at(3).Get(), 1.0f, 10.0f);
         auto max = l::math::clamp(inputs.at(4).Get(), 0.0f, 1.0f);
         auto min = l::math::clamp(inputs.at(5).Get(), 0.0f, max);
@@ -150,13 +150,14 @@ namespace l::nodegraph {
 
     void MathNumericalMinMaxChannel::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto inInput = &inputs.at(0).Get(numSamples);
-        auto upperInput = &inputs.at(1).Get();
-        auto lowerInput = &inputs.at(2).Get();
+        auto upperInput = inputs.at(1).GetIterator(numSamples);
+        auto lowerInput = inputs.at(2).GetIterator(numSamples);
+        auto friction = inputs.at(3).Get();
 
         auto rangeOutput = &outputs.at(0).Get(numSamples);
         auto rangeMaxOutput = &outputs.at(1).Get(numSamples);
         auto rangeMinOutput = &outputs.at(2).Get(numSamples);
-        auto valueNormOutput = &outputs.at(3).Get(numSamples);
+        auto rangeNormOutput = &outputs.at(3).Get(numSamples);
 
         if (mReadSamples == 0) {
             mCurRangeMax = -100000000000000.0f;
@@ -169,7 +170,7 @@ namespace l::nodegraph {
             float lower = *lowerInput++;
 
             lower = lower > in ? in - 0.0000001f : lower;
-            upper = upper < in ? in + 0.0000001f : lower;
+            upper = upper < in ? in + 0.0000001f : upper;
 
             auto range = upper - lower;
             if (mCurRangeMax < range) {
@@ -179,10 +180,21 @@ namespace l::nodegraph {
                 mCurRangeMin = range;
             }
 
+            mCurRangeMax += friction * (range - mCurRangeMax);
+            mCurRangeMin += friction * (range - mCurRangeMin);
+
+
             *rangeOutput++ = range;
             *rangeMaxOutput++ = mCurRangeMax;
             *rangeMinOutput++ = mCurRangeMin;
-            *valueNormOutput++ = (in - lower) / range;
+
+            auto rangeDiff = mCurRangeMax - mCurRangeMin;
+            auto rangeNorm = 0.5f;
+            if (rangeDiff > 0.0f) {
+                rangeNorm = (range - mCurRangeMin) / rangeDiff;
+            }
+
+            *rangeNormOutput++ = rangeNorm;
         }
 
         mReadSamples += numSamples;
@@ -192,10 +204,10 @@ namespace l::nodegraph {
         }
     }
 
-    void MathNumericalDerivate2::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void MathNumericalReconstructor::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         
         auto inInput = &inputs.at(0).Get(numSamples);
-        auto baseInput = &inputs.at(1).Get(numSamples);
+        auto baseInput = inputs.at(1).GetIterator();
 
         auto friction1 = inputs.at(2).Get();
         auto friction2 = inputs.at(3).Get();

@@ -313,7 +313,7 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalMinMaxChannel>(id, NodeType::Default);
             break;
         case 146:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalDerivate2>(id, NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalReconstructor>(id, NodeType::Default);
             break;
 
             // Trading data io

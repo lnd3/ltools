@@ -130,11 +130,12 @@ namespace l::nodegraph {
             AddInput2("Upper Bound");
             AddInput2("Lower Bound");
             AddInput2("Bounded Value");
+            AddInput("Friction", 1.0f, 1, 0.0f, 1.0f);
 
             AddOutput2("Range");
             AddOutput2("Range Max");
             AddOutput2("Range Min");
-            AddOutput2("Value Norm");
+            AddOutput2("Range Norm");
         }
 
         virtual ~MathNumericalMinMaxChannel() = default;
@@ -147,9 +148,9 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class MathNumericalDerivate2 : public NodeGraphOp {
+    class MathNumericalReconstructor : public NodeGraphOp {
     public:
-        MathNumericalDerivate2(NodeGraphBase* node) :
+        MathNumericalReconstructor(NodeGraphBase* node) :
             NodeGraphOp(node, "Reconstructor")
         {
             AddInput2("In");
@@ -167,7 +168,7 @@ namespace l::nodegraph {
             AddOutput2("Intgr2+base");
         }
 
-        virtual ~MathNumericalDerivate2() = default;
+        virtual ~MathNumericalReconstructor() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         int32_t mReadSamples = 0;

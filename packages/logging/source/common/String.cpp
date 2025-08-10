@@ -49,8 +49,9 @@ namespace l::string {
 		init_timezone();
 #ifdef WIN32
 		long time;
-		auto res = _get_timezone(&time);
-		ASSERT(res == 0);
+		//auto res = 
+		_get_timezone(&time);
+		//ASSERT(res == 0);
 #else
 		auto time = timezone;
 #endif
@@ -61,8 +62,9 @@ namespace l::string {
 		init_timezone();
 #ifdef WIN32
 		int time;
-		auto res = _get_daylight(&time);
-		ASSERT(res == 0);
+		//auto res = 
+		_get_daylight(&time);
+		//ASSERT(res == 0);
 #else
 		auto time = daylight;
 #endif
@@ -99,8 +101,9 @@ namespace l::string {
 
 	void convert_to_tm(const time_t time, tm* timeinfo, bool adjustYearAndMonth) {
 #ifdef WIN32
-		auto res = _gmtime64_s(timeinfo, &time);
-		ASSERT(res == 0);
+		//auto res = 
+		_gmtime64_s(timeinfo, &time);
+		//ASSERT(res == 0);
 #else
 		tm* ti = gmtime(&time);
 		*timeinfo = *ti;

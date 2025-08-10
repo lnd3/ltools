@@ -35,8 +35,8 @@ namespace l::nodegraph {
         }
         virtual ~MathAritmethicAdd() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input0 = &inputs.at(0).Get(numSamples);
-            auto input1 = &inputs.at(1).Get(numSamples);
+            auto input0 = inputs.at(0).GetIterator(numSamples);
+            auto input1 = inputs.at(1).GetIterator(numSamples);
             auto output = &outputs.at(0).Get(numSamples);
 
             for (int32_t i = 0; i < numSamples; i++) {
@@ -58,8 +58,8 @@ namespace l::nodegraph {
 
         virtual ~MathAritmethicMultiply() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input0 = &inputs.at(0).Get(numSamples);
-            auto input1 = &inputs.at(1).Get(numSamples);
+            auto input0 = inputs.at(0).GetIterator(numSamples);
+            auto input1 = inputs.at(1).GetIterator(numSamples);
             auto output = &outputs.at(0).Get(numSamples);
 
             for (int32_t i = 0; i < numSamples; i++) {
@@ -81,8 +81,8 @@ namespace l::nodegraph {
         }
         virtual ~MathAritmethicSubtract() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input0 = &inputs.at(0).Get(numSamples);
-            auto input1 = &inputs.at(1).Get(numSamples);
+            auto input0 = inputs.at(0).GetIterator(numSamples);
+            auto input1 = inputs.at(1).GetIterator(numSamples);
             auto output1 = &outputs.at(0).Get(numSamples);
             auto output2 = &outputs.at(1).Get(numSamples);
 
@@ -106,7 +106,7 @@ namespace l::nodegraph {
 
         virtual ~MathAritmethicNegate() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input0 = &inputs.at(0).Get(numSamples);
+            auto input0 = inputs.at(0).GetIterator(numSamples);
             auto output = &outputs.at(0).Get(numSamples);
 
             for (int32_t i = 0; i < numSamples; i++) {
@@ -130,7 +130,7 @@ namespace l::nodegraph {
 
         virtual ~MathAritmethicAbs() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input0 = &inputs.at(0).Get(numSamples);
+            auto input0 = inputs.at(0).GetIterator(numSamples);
             auto output1 = &outputs.at(0).Get(numSamples);
             auto output2 = &outputs.at(1).Get(numSamples);
             auto output3 = &outputs.at(2).Get(numSamples);
@@ -158,7 +158,7 @@ namespace l::nodegraph {
 
         virtual ~MathAritmethicLog() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input0 = &inputs.at(0).Get(numSamples);
+            auto input0 = inputs.at(0).GetIterator(numSamples);
             auto base = inputs.at(1).Get();
             auto output1 = &outputs.at(0).Get(numSamples);
             auto output2 = &outputs.at(1).Get(numSamples);
@@ -190,9 +190,9 @@ namespace l::nodegraph {
 
         virtual ~MathAritmethicMultiply3() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input0 = &inputs.at(0).Get(numSamples);
-            auto input1 = &inputs.at(1).Get(numSamples);
-            auto input2 = &inputs.at(2).Get(numSamples);
+            auto input0 = inputs.at(0).GetIterator(numSamples);
+            auto input1 = inputs.at(1).GetIterator(numSamples);
+            auto input2 = inputs.at(2).GetIterator(numSamples);
             auto output = &outputs.at(0).Get(numSamples);
 
             for (int32_t i = 0; i < numSamples; i++) {
@@ -215,9 +215,9 @@ namespace l::nodegraph {
 
         virtual ~MathAritmethicMultiplyAndAdd() = default;
         void virtual Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input0 = &inputs.at(0).Get(numSamples);
-            auto input1 = &inputs.at(1).Get(numSamples);
-            auto input2 = &inputs.at(2).Get(numSamples);
+            auto input0 = inputs.at(0).GetIterator(numSamples);
+            auto input1 = inputs.at(1).GetIterator(numSamples);
+            auto input2 = inputs.at(2).GetIterator(numSamples);
             auto output = &outputs.at(0).Get(numSamples);
 
             for (int32_t i = 0; i < numSamples; i++) {
@@ -240,7 +240,7 @@ namespace l::nodegraph {
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             outputs.at(0).mOutput = l::math::round(inputs.at(0).Get());
 
-            auto input0 = &inputs.at(0).Get(numSamples);
+            auto input0 = inputs.at(0).GetIterator(numSamples);
             auto output = &outputs.at(0).Get(numSamples);
 
             for (int32_t i = 0; i < numSamples; i++) {
@@ -262,7 +262,7 @@ namespace l::nodegraph {
 
         virtual ~MathAritmethicPow() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input0 = &inputs.at(0).Get(numSamples);
+            auto input0 = inputs.at(0).GetIterator(numSamples);
             auto exponent = inputs.at(2).Get();
             auto output1 = &outputs.at(0).Get(numSamples);
 
@@ -287,9 +287,9 @@ namespace l::nodegraph {
         }
         virtual ~MathAritmethicSum3() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input0 = &inputs.at(0).Get(numSamples);
-            auto input1 = &inputs.at(1).Get(numSamples);
-            auto input2 = &inputs.at(2).Get(numSamples);
+            auto input0 = inputs.at(0).GetIterator(numSamples);
+            auto input1 = inputs.at(1).GetIterator(numSamples);
+            auto input2 = inputs.at(2).GetIterator(numSamples);
             auto output = &outputs.at(0).Get(numSamples);
 
             for (int32_t i = 0; i < numSamples; i++) {

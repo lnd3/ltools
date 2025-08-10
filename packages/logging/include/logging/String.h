@@ -177,7 +177,7 @@ namespace l::string {
 	template<size_t BUFSIZE>
 	void get_local_date_and_time(string_buffer<BUFSIZE>& buf, const int32_t unixtime, bool fullYear = false) {
 		struct std::tm tminfo = {};
-		convert_to_local_tm_from_utc_time(unixtime, &tminfo, false);
+		convert_to_local_tm_from_utc_time(unixtime, &tminfo, true);
 		if (fullYear) {
 			buf.printf("%4d-%2d-%2d %2d:%2d:%2d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday, tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
 		}
