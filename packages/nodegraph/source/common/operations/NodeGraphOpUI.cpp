@@ -173,11 +173,15 @@ namespace l::nodegraph {
         auto openInput = &inputs.at(1).Get(numSamples);
         auto closeInput = &inputs.at(2).Get(numSamples);
         auto markInput = &inputs.at(3).Get(numSamples);
-        auto meanRisk = inputs.at(4).Get();
+        //auto meanRisk = inputs.at(4).Get();
         auto slip = inputs.at(5).Get();
+        //auto buyConfirm = inputs.at(10).Get();
+        //auto sellConfirm = inputs.at(11).Get();
 
         if (mReadSamples == 0) {
+            buySellCounter = 0;
             mMarkers.clear();
+            //mMarkers.reserve(100);
         }
 
         auto beep = [&](int32_t unixtime, int32_t freq, int32_t duration) {
@@ -198,64 +202,39 @@ namespace l::nodegraph {
                 mPrevValue = mark;
                 continue;
             }
-            auto price = (open + close) * 0.5f;
-            auto currentMarkerChange = 1.0f;
-            if (mPrevY > 0.0f) {
-                currentMarkerChange = price / mPrevY;
-            }
-            bool hitStopLoss = false;
-            if (mOrderPlaced) {
-                auto meanStop = 0.0f;
-                if (mProfitMean > 1.0f) {
-                    auto meanStopFactor = meanRisk;
-                    meanStop = 1.0f - meanStopFactor * (mProfitMean - 1.0f);
-                }
-                if (currentMarkerChange < meanStop) {
-                    hitStopLoss = true;
-                }
-                auto emaStop = 0.0f;
-                if (mProfitEma > 1.0f) {
-                    auto emaStopFactor = meanRisk;
-                    emaStop = 1.0f - emaStopFactor * (mProfitEma - 1.0f);
-                }
-                if (currentMarkerChange < emaStop) {
-                    //hitStopLoss = true;
-                }
-            }
 
-            auto buyCond = mark > 0.0f && mPrevValue <= 0.0f;
-            auto sellCond = mark < 0.0f && mPrevValue >= 0.0f;
-            auto buy = !mOrderPlaced && !mStopLossActive && buyCond;
-            auto sell = mOrderPlaced && !mStopLossActive && (hitStopLoss || sellCond);
+            auto buyCond = mark > 0.0f && mPrevValue < 0.0f;
+            auto sellCond = mark < 0.0f && mPrevValue > 0.0f;
+            auto buy = !mOrderPlaced && buyCond;
+            auto sell = mOrderPlaced && sellCond;
+
+            // recalculate price based on progress at crossing zero
+            auto progress = 0.0f;
+            if (buy || sell) {
+                progress = -mPrevValue / (mark - mPrevValue);
+                ASSERT(progress >= 0.0f && progress <= 1.0f);
+            }
+            auto price2 = open + progress * (close - open);
 
             if (buy) {
                 buySellCounter++;
-                mMarkers.push_back({ unixtime, price, mark, mYTotalChange });
+                ASSERT(buySellCounter <= 1);
+                auto s = std::make_tuple(unixtime, price2, mark, mYTotalChange);
+                mMarkers.push_back(std::move(s));
                 mOrderPlaced = true;
-                mPrevY = price;
-                beep(unixtime, 4000, 50);
+                mPrevY = price2;
+                //beep(unixtime, 4000, 50);
             }
             else if (sell) {
                 buySellCounter--;
-                if (mPrevY > 0.0f && price > 0.0f) {
-                    auto profit = currentMarkerChange * (1.0f - slip);
-                    mYTotalChange *= profit;
-                    mProfitEma = mProfitEma + 0.5f * (profit - mProfitEma);
-                    if (mMarkers.size() > 1) {
-                        mProfitMean = 1.0f + (mYTotalChange - 1.0f) / static_cast<float>(mMarkers.size());
-                    }
-                }
-                mMarkers.push_back({ unixtime, price, mark, mYTotalChange });
+                ASSERT(buySellCounter >= 0);
+                auto change = price2 / mPrevY;
+                auto profit = change * (1.0f - slip);
+                mYTotalChange *= profit;
+                auto s = std::make_tuple(unixtime, price2, mark, mYTotalChange);
+                mMarkers.push_back(std::move(s));
                 mOrderPlaced = false;
-                if (!mStopLossActive && hitStopLoss) {
-                    // stop loss must not be active until this round and sell must not be 
-                    mStopLossActive = true;
-                }
-                beep(unixtime, 500, 50);
-            }
-            else if (mStopLossActive && sellCond) {
-                // wait for actual sell signal so we can begin anew
-                mStopLossActive = false;
+                //beep(unixtime, 500, 50);
             }
             mPrevValue = mark;
         }

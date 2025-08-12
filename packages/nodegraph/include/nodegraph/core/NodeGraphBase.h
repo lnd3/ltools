@@ -287,7 +287,7 @@ namespace l::nodegraph {
 
         void InputHasChanged() override {
             mInputHasChanged = true;
-            mWrittenSamples = 0;
+            //mWrittenSamples = 0;
         }
 
     protected:

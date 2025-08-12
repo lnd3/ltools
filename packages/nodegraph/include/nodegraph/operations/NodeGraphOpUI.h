@@ -19,6 +19,7 @@
 #include <math.h>
 #include <random>
 #include <unordered_set>
+#include <tuple>
 
 namespace l::nodegraph {
 
@@ -148,6 +149,8 @@ namespace l::nodegraph {
             AddInput("Pin Length", 30.0f, 1, 1.0f, 200.0f);
             AddInput("Pin Size", 5.0f, 1, 1.0f, 40.0f);
             AddInput("Font Size", 10.8f, 1, 3.0f, 20.0f);
+            AddInput("Buy confirm", 0.1f, 1, 0.0f, 1.0f);
+            AddInput("Sell confirm", 0.1f, 1, 0.0f, 1.0f);
         }
         virtual ~GraphUIChartMarkers() = default;
         virtual void DefaultDataInit() override {
@@ -171,6 +174,8 @@ namespace l::nodegraph {
         bool mStopLossActive = false;
         bool mOrderPlaced = false;
         int32_t buySellCounter = 0;
+        int32_t mBuyConfirmTime = 0;
+        int32_t mSellConfirmTime = 0;
         std::vector<std::tuple<int32_t, float, float, float>> mMarkers;
     };
 }
