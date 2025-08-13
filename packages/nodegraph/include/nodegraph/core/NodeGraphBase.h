@@ -244,8 +244,8 @@ namespace l::nodegraph {
         virtual int32_t AddInput(std::string_view name, float defaultValue = 0.0f, int32_t minSize = 1, float boundMin = -l::math::constants::FLTMAX, float boundMax = l::math::constants::FLTMAX, bool visible = true, bool editable = true);
         virtual int32_t AddOutput(std::string_view name, float defaultValue = 0.0f, int32_t minSize = 1, bool visible = true);
         virtual int32_t AddConstant(std::string_view name, float defaultValue = 0.0f, int32_t minSize = 1, float boundMin = -l::math::constants::FLTMAX, float boundMax = l::math::constants::FLTMAX, bool visible = true, bool editable = true);
-        virtual int32_t AddInput2(std::string_view name, int32_t minSize = 2, InputFlags flags = InputFlags(false, false, false, false));
-        virtual int32_t AddOutput2(std::string_view name, int32_t minSize = 2, OutputFlags flags = OutputFlags(false, false));
+        virtual int32_t AddInput2(std::string_view name, int32_t minSize = 1, InputFlags flags = InputFlags(false, false, false, false));
+        virtual int32_t AddOutput2(std::string_view name, int32_t minSize = 1, OutputFlags flags = OutputFlags(false, false));
 
         NodeGraphBase* mNode = nullptr;
         std::string mName;
