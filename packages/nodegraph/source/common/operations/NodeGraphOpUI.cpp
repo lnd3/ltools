@@ -184,12 +184,15 @@ namespace l::nodegraph {
             //mMarkers.reserve(100);
         }
 
+        /*
         auto beep = [&](int32_t unixtime, int32_t freq, int32_t duration) {
             if (mLastBeep + 5 < unixtime) {
                 l::audio::PCBeep(freq, duration);
                 mLastBeep = unixtime;
             }
             };
+
+            */
 
         for (int32_t i = 0; i < numSamples; i++) {
             auto time = *timeInput++;
