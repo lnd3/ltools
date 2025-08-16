@@ -172,82 +172,79 @@ namespace l::nodegraph {
         auto timeInput = &inputs.at(0).Get(numSamples);
         auto openInput = &inputs.at(1).Get(numSamples);
         auto closeInput = &inputs.at(2).Get(numSamples);
-        auto markInput = &inputs.at(3).Get(numSamples);
-        //auto meanRisk = inputs.at(4).Get();
+        auto entry1Input = &inputs.at(3).Get(numSamples);
+        auto entry2Input = &inputs.at(4).Get(numSamples);
         auto slip = inputs.at(5).Get();
-        //auto buyConfirm = inputs.at(10).Get();
-        //auto sellConfirm = inputs.at(11).Get();
+        //auto mainSize = inputs.at(10).Get();
+        auto entry3Input = &inputs.at(11).Get(numSamples);
+
+        auto entry1Active = inputs.at(3).HasInputNode();
+        auto entry2Active = inputs.at(4).HasInputNode();
+        auto entry3Active = inputs.at(11).HasInputNode();
+        auto entryShare = (entry1Active && entry2Active && entry3Active) ? 0.3333f : (entry1Active && entry2Active || entry1Active && entry3Active || entry2Active || entry3Active) ? 0.5f : 1.0f;
 
         if (mReadSamples == 0) {
-            buySellCounter = 0;
             mMarkers.clear();
-            //mMarkers.reserve(100);
+            mEntry1.Reset(entry1Active ? entryShare : 0.0f);
+            mEntry2.Reset(entry2Active ? entryShare : 0.0f);
+            mEntry3.Reset(entry3Active ? entryShare : 0.0f);
         }
-
-        /*
-        auto beep = [&](int32_t unixtime, int32_t freq, int32_t duration) {
-            if (mLastBeep + 5 < unixtime) {
-                l::audio::PCBeep(freq, duration);
-                mLastBeep = unixtime;
-            }
-            };
-
-            */
 
         for (int32_t i = 0; i < numSamples; i++) {
             auto time = *timeInput++;
             auto unixtime = l::math::algorithm::convert<int32_t>(time);
             auto open = *openInput++;
             auto close = *closeInput++;
-            auto mark = *markInput++;
+            auto entry1 = *entry1Input++;
+            auto entry2 = *entry2Input++;
+            auto entry3 = *entry3Input++;
 
             if (unixtime == 0) {
-                mPrevValue = mark;
                 continue;
             }
 
-            auto buyCond = mark > 0.0f && mPrevValue < 0.0f;
-            auto sellCond = mark < 0.0f && mPrevValue > 0.0f;
-            auto buy = !mOrderPlaced && buyCond;
-            auto sell = mOrderPlaced && sellCond;
+            auto estimatedPrice = (open + close) * 0.5f;
 
-            // recalculate price based on progress at crossing zero
-            auto progress = 0.0f;
-            if (buy || sell) {
-                progress = -mPrevValue / (mark - mPrevValue);
-                ASSERT(progress >= 0.0f && progress <= 1.0f);
-            }
-            auto price2 = open + progress * (close - open);
+            mEntry1.Update(entry1, estimatedPrice, unixtime);
+            mEntry2.Update(entry2, estimatedPrice, unixtime);
+            mEntry3.Update(entry3, estimatedPrice, unixtime);
 
-            if (buy) {
-                buySellCounter++;
-                ASSERT(buySellCounter <= 1);
-                auto s = std::make_tuple(unixtime, price2, mark, mYTotalChange);
+            if (mEntry1.TradeEntered(unixtime)) {
+                auto s = std::make_tuple(unixtime, estimatedPrice, 1.0f, mTotalProfit);
                 mMarkers.push_back(std::move(s));
-                mOrderPlaced = true;
-                mPrevY = price2;
-                //beep(unixtime, 4000, 50);
             }
-            else if (sell) {
-                buySellCounter--;
-                ASSERT(buySellCounter >= 0);
-                auto change = price2 / mPrevY;
-                auto profit = change * (1.0f - slip);
-                mYTotalChange *= profit;
-                auto s = std::make_tuple(unixtime, price2, mark, mYTotalChange);
+            if (mEntry2.TradeEntered(unixtime)) {
+                auto s = std::make_tuple(unixtime, estimatedPrice, 1.0f, mTotalProfit);
                 mMarkers.push_back(std::move(s));
-                mOrderPlaced = false;
-                //beep(unixtime, 500, 50);
             }
-            mPrevValue = mark;
+            if (mEntry3.TradeEntered(unixtime)) {
+                auto s = std::make_tuple(unixtime, estimatedPrice, 1.0f, mTotalProfit);
+                mMarkers.push_back(std::move(s));
+            }
+            if (mEntry1.TradeExited(unixtime)) {
+                mTotalProfit *= mEntry1.GetProfit(slip);
+                auto s = std::make_tuple(unixtime, estimatedPrice, -1.0f, mTotalProfit);
+                mMarkers.push_back(std::move(s));
+                mEntry1.Reset(entry1Active ? entryShare : 0.0f);
+            }
+            if (mEntry2.TradeExited(unixtime)) {
+                mTotalProfit *= mEntry2.GetProfit(slip);
+                auto s = std::make_tuple(unixtime, estimatedPrice, -1.0f, mTotalProfit);
+                mMarkers.push_back(std::move(s));
+                mEntry2.Reset(entry2Active ? entryShare : 0.0f);
+            }
+            if (mEntry3.TradeExited(unixtime)) {
+                mTotalProfit *= mEntry3.GetProfit(slip);
+                auto s = std::make_tuple(unixtime, estimatedPrice, -1.0f, mTotalProfit);
+                mMarkers.push_back(std::move(s));
+                mEntry3.Reset(entry3Active ? entryShare : 0.0f);
+            }
         }
 
         mReadSamples += numSamples;
         if (mReadSamples >= numCacheSamples) {
             mReadSamples = 0;
-            mPrevValue = 0.0f;
-            mYTotalChange = 1.0f;
-            mOrderPlaced = false;
+            mTotalProfit = 1.0f;
         }
     }
 }
