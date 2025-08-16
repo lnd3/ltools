@@ -181,7 +181,8 @@ namespace l::nodegraph {
         auto entry1Active = inputs.at(3).HasInputNode();
         auto entry2Active = inputs.at(4).HasInputNode();
         auto entry3Active = inputs.at(11).HasInputNode();
-        auto entryShare = (entry1Active && entry2Active && entry3Active) ? 0.3333f : (entry1Active && entry2Active || entry1Active && entry3Active || entry2Active || entry3Active) ? 0.5f : 1.0f;
+        auto entryShared3 = ((entry1Active && entry2Active) || (entry1Active && entry3Active) || (entry2Active && entry3Active)) ? 0.5f : 1.0f;
+        auto entryShare = (entry1Active && entry2Active && entry3Active) ? 0.3333f : entryShared3;
 
         if (mReadSamples == 0) {
             mMarkers.clear();
