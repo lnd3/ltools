@@ -133,6 +133,7 @@ namespace l::nodegraph {
         auto symbolInput = inputs.at(0).GetText(16);
         auto baseInput = inputs.at(1).GetText(16);
         auto indexInput = l::math::clamp(inputs.at(2).Get(), 0.0f, 9.9999f);
+        auto now = inputs.at(3).Get();
 
         outputs.at(0).SetText(symbolInput);
         outputs.at(1).SetText(baseInput);
@@ -140,10 +141,12 @@ namespace l::nodegraph {
         float* indexOut1 = &outputs.at(3).Get();
         float* indexOut2 = &outputs.at(4).Get();
         float* indexOut3 = &outputs.at(5).Get();
+        float* nowOutput = &outputs.at(6).Get();
         *indexOut0 = l::math::clamp(indexInput, 0.0f, 9.9999f);
         *indexOut1 = l::math::clamp(indexInput + 1.0f, 0.0f, 9.9999f);
         *indexOut2 = l::math::clamp(indexInput + 2.0f, 0.0f, 9.9999f);
         *indexOut3 = l::math::clamp(indexInput + 3.0f, 0.0f, 9.9999f);
+        *nowOutput = now;
     }
 
 }
