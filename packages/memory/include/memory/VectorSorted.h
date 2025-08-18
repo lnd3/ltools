@@ -270,6 +270,15 @@ namespace l::container {
 		inline void clear() noexcept {
 			return vec.clear();
 		}
+
+		const T& back() noexcept {
+			if (!m_bSorted)
+			{
+				sort();
+			}
+			return vec.back();
+		}
+
 	protected:
 		std::vector<T> vec;
 		bool m_bSorted;

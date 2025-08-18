@@ -160,10 +160,10 @@ namespace l::string {
 		struct std::tm tminfo = {};
 		convert_to_local_tm_from_utc_time(unixtime, &tminfo, false);
 		if (fullYear) {
-			buf.printf("%4d-%2d-%2d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday);
+			buf.printf("%04d-%02d-%02d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday);
 		}
 		else {
-			buf.printf("%4d-%2d-%2d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday);
+			buf.printf("%04d-%02d-%02d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday);
 		}
 	}
 
@@ -171,7 +171,7 @@ namespace l::string {
 	void get_local_time(string_buffer<BUFSIZE>& buf, const int32_t unixtime) {
 		struct std::tm tminfo = {};
 		convert_to_local_tm_from_utc_time(unixtime, &tminfo, false);
-		buf.printf("%2d:%2d:%2d", tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
+		buf.printf("%02d:%02d:%02d", tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
 	}
 
 	template<size_t BUFSIZE>
@@ -179,10 +179,10 @@ namespace l::string {
 		struct std::tm tminfo = {};
 		convert_to_local_tm_from_utc_time(unixtime, &tminfo, true);
 		if (fullYear) {
-			buf.printf("%4d-%2d-%2d %2d:%2d:%2d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday, tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
+			buf.printf("%04d-%02d-%02d %02d:%02d:%02d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday, tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
 		}
 		else {
-			buf.printf("%2d-%2d-%2d %2d:%2d:%2d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday, tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
+			buf.printf("%02d-%02d-%02d %02d:%02d:%02d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday, tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
 		}
 	}
 
