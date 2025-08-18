@@ -54,6 +54,14 @@ namespace l::container {
 			return it;
 		}
 
+		typename std::vector<T>::iterator upper_bound_it(const T& key) {
+			if (!m_bSorted)
+				sort();
+
+			typename std::vector<T>::iterator it = std::upper_bound(vec.begin(), vec.end(), key);
+			return it;
+		}
+
 		/*const*/ T* lower_bound_ptr(const T& key) {
 			typename std::vector<T>::iterator it = lower_bound_it(key);
 
@@ -101,6 +109,23 @@ namespace l::container {
 			return vec.end();
 		}
 
+		typename std::vector<T>::iterator find_upper_bound(const T& key) {
+			typename std::vector<T>::iterator it = upper_bound_it(key);
+
+			if (it == vec.begin()) // first element is greater than key
+				return vec.end();
+			if (!vec.empty()) // key is greater than all elements so get the last one
+				return it - 1;
+			return vec.end();
+		}
+		typename std::vector<T>::iterator find_lower_bound(const T& key) {
+			typename std::vector<T>::iterator it = lower_bound_it(key);
+
+			if (it != vec.end())
+				return it;
+
+			return vec.end();
+		}
 		//-------------------------------------------------------------------//
 		// find_ptr_or_fail()                                                 //
 		//-------------------------------------------------------------------//
@@ -242,6 +267,9 @@ namespace l::container {
 			return vec.empty();
 		}
 
+		inline void clear() noexcept {
+			return vec.clear();
+		}
 	protected:
 		std::vector<T> vec;
 		bool m_bSorted;

@@ -75,7 +75,7 @@ namespace l::nodegraph {
             AddInput2("Symbol", 16, InputFlags(false, true, false, true));
             AddInput2("Base", 16, InputFlags(false, true, false, true));
             AddInput("Index", 2.0f, 1, 0.0f, 10.0f);
-            AddInput2("Now", 1, InputFlags(false, true, false, false));
+            AddInput2("Now");
 
             AddOutput2("Symbol", 16, OutputFlags(false, true));
             AddOutput2("Base", 16, OutputFlags(false, true));
@@ -83,7 +83,7 @@ namespace l::nodegraph {
             AddOutput("Index#1", 1.0f);
             AddOutput("Index#2", 2.0f);
             AddOutput("Index#3", 3.0f);
-            AddOutput("Now", 0.0f);
+            AddOutput("Now");
         }
 
         virtual ~TradingDataIOChartInfo() = default;
