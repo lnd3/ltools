@@ -109,7 +109,7 @@ namespace l::container {
 			return vec.end();
 		}
 
-		typename std::vector<T>::iterator find_upper_bound(const T& key) {
+		typename std::vector<T>::iterator find_at_or_below(const T& key) {
 			typename std::vector<T>::iterator it = upper_bound_it(key);
 
 			if (it == vec.begin()) // first element is greater than key
@@ -118,7 +118,7 @@ namespace l::container {
 				return it - 1;
 			return vec.end();
 		}
-		typename std::vector<T>::iterator find_lower_bound(const T& key) {
+		typename std::vector<T>::iterator find_at_or_above(const T& key) {
 			typename std::vector<T>::iterator it = lower_bound_it(key);
 
 			if (it != vec.end())
@@ -271,7 +271,7 @@ namespace l::container {
 			return vec.clear();
 		}
 
-		const T& back() noexcept {
+		T& back() noexcept {
 			if (!m_bSorted)
 			{
 				sort();
@@ -279,9 +279,18 @@ namespace l::container {
 			return vec.back();
 		}
 
+		void pop_front(size_t count) {
+			if (count < vec.size()) {
+				vec.erase(vec.begin(), vec.begin() + count);
+			}
+			else {
+				clear();
+			}
+		}
+
 	protected:
 		std::vector<T> vec;
-		bool m_bSorted;
+		bool m_bSorted = true;
 	};
 
 }
