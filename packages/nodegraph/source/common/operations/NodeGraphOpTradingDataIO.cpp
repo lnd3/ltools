@@ -127,6 +127,86 @@ namespace l::nodegraph {
                 *out11++ = in[offset + 6] - in[offset + 8]; // sell quantity
             }
         }
+        auto multiplier = 2;
+        if (mMode == 2) {
+            multiplier = 2;
+        }
+        else if (mMode == 3) {
+            multiplier = 3;
+        }
+        else if (mMode == 4) {
+            multiplier = 5;
+        }
+        else if (mMode == 5) {
+            multiplier = 15;
+        }
+        else if (mMode == 6) {
+            multiplier = 30;
+        }
+        else if (mMode == 7) {
+            multiplier = 60;
+        }
+
+
+        if (mMode >= 2 && mMode <= 7) {
+            for (int32_t j = 0; j < numSamples; j++) {
+                auto offset = j * stride;
+
+                auto unixtimef = in[offset + 0];
+                auto unixtime = l::math::algorithm::convert<int32_t>(unixtimef);
+                if (mUnixtimePrev == 0) {
+                    mUnixtimePrev = unixtime;
+                }
+                else if (unixtime == mUnixtimePrev) {
+                    unixtime = 0;
+                    unixtimef = l::math::algorithm::convert<float>(unixtime);
+                }
+                else {
+                    mUnixtimePrev = unixtime;
+                }
+
+                *out1++ = unixtimef; // unixtime
+                auto o = in[offset + 1];
+                auto c = in[offset + 2];
+                auto h = in[offset + 3];
+                auto l = in[offset + 4];
+                auto v = in[offset + 5];
+                auto q = in[offset + 6]; // quantity
+
+                auto timemin = unixtime / 60;
+                if (timemin % multiplier == 0) {
+                    // time interval looping so reset moving averages
+                    mOpenMa = o; // simply first value
+                    mVolMa = v;
+                    mHighMa = h;
+                    mLowMa = l;
+                    mCloseMa = c;
+                    mQuantMa = q;
+                    mBuyVolMa = 0.0f;
+                    mSellVolMa = 0.0f;
+                    mBuyQuantMa = 0.0f;
+                    mSellQuantMa = 0.0f;
+                }
+                else {
+                    mCloseMa = c; // simply last value
+                    mHighMa = l::math::max2(mHighMa, h);
+                    mLowMa = l::math::min2(mLowMa, l);
+                    mVolMa += v; // just the sum
+                    mQuantMa += q;
+                }
+
+                *out2++ = mOpenMa;
+                *out3++ = mCloseMa;
+                *out4++ = mHighMa;
+                *out5++ = mLowMa;
+                *out6++ = mVolMa;
+                *out7++ = mQuantMa; // quantity
+                *out8++ = 0.0f; // buy volume
+                *out9++ = 0.0f; // sell volume
+                *out10++ = 0.0f; // buy quantity
+                *out11++ = 0.0f; // sell quantity
+            }
+        }
     }
 
     void TradingDataIOChartInfo::Process(int32_t, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {

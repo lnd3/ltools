@@ -326,6 +326,24 @@ namespace l::nodegraph {
         case 202:
             node = mMainNodeGraph.NewNode<l::nodegraph::TradingDataIOChartInfo>(id, NodeType::ExternalInput);
             break;
+        case 203:
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingDataIOOCHLVDataIn>(id, NodeType::ExternalInput, 2);
+            break;
+        case 204:
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingDataIOOCHLVDataIn>(id, NodeType::ExternalInput, 3);
+            break;
+        case 205:
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingDataIOOCHLVDataIn>(id, NodeType::ExternalInput, 4);
+            break;
+        case 206:
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingDataIOOCHLVDataIn>(id, NodeType::ExternalInput, 5);
+            break;
+        case 207:
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingDataIOOCHLVDataIn>(id, NodeType::ExternalInput, 6);
+            break;
+        case 208:
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingDataIOOCHLVDataIn>(id, NodeType::ExternalInput, 7);
+            break;
 
             // Trading detectors
         case 220:
@@ -630,6 +648,12 @@ namespace l::nodegraph {
             RegisterNodeType("Trading.Data IO", 200, "OCHLV Data In");
             RegisterNodeType("Trading.Data IO", 201, "Heikin-Ashi Data In");
             RegisterNodeType("Trading.Data IO", 202, "Chart Info");
+            RegisterNodeType("Trading.Data IO", 203, "OCHLV Data In 2xMA");
+            RegisterNodeType("Trading.Data IO", 204, "OCHLV Data In 3xMA");
+            RegisterNodeType("Trading.Data IO", 205, "OCHLV Data In 5xMA");
+            RegisterNodeType("Trading.Data IO", 206, "OCHLV Data In 15xMA");
+            RegisterNodeType("Trading.Data IO", 207, "OCHLV Data In 30xMA");
+            RegisterNodeType("Trading.Data IO", 208, "OCHLV Data In 60xMA");
         }
         else if (typeGroup == "Trading.Detector") {
             RegisterNodeType("Trading.Detector", 220, "Trend");
