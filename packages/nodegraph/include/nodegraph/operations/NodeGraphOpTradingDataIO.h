@@ -32,19 +32,19 @@ namespace l::nodegraph {
             else if (mMode == 2) {
                 mName = "OCHLV Data In 2xMA";
             }
-            else if (mMode == 2) {
+            else if (mMode == 3) {
                 mName = "OCHLV Data In 3xMA";
             }
-            else if (mMode == 3) {
+            else if (mMode == 4) {
                 mName = "OCHLV Data In 5xMA";
             }
-            else if (mMode == 3) {
+            else if (mMode == 5) {
                 mName = "OCHLV Data In 15xMA";
             }
-            else if (mMode == 3) {
+            else if (mMode == 6) {
                 mName = "OCHLV Data In 30xMA";
             }
-            else if (mMode == 3) {
+            else if (mMode == 7) {
                 mName = "OCHLV Data In 60xMA";
             }
 
