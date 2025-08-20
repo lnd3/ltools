@@ -29,29 +29,12 @@ namespace l::nodegraph {
             if (mMode == 1) {
                 mName = "OCHLV Heikin-Ashi In";
             }
-            else if (mMode == 2) {
-                mName = "OCHLV Data In 2xMA";
-            }
-            else if (mMode == 3) {
-                mName = "OCHLV Data In 3xMA";
-            }
-            else if (mMode == 4) {
-                mName = "OCHLV Data In 5xMA";
-            }
-            else if (mMode == 5) {
-                mName = "OCHLV Data In 15xMA";
-            }
-            else if (mMode == 6) {
-                mName = "OCHLV Data In 30xMA";
-            }
-            else if (mMode == 7) {
-                mName = "OCHLV Data In 60xMA";
-            }
 
             AddInput2("In", 16, InputFlags(false, false, false, false));
             AddInput2("Symbol", 16, InputFlags(false, true, false, true));
             AddInput2("Base", 16, InputFlags(false, true, false, true));
             AddInput("Index", 2.0f, 1, 0.0f, 10.0f);
+            AddInput("Timeframe", 1.0f, 1, 1.0f, 1440.0f);
 
 
             AddOutput2("Symbol", 16, OutputFlags(false, true));
@@ -91,9 +74,7 @@ namespace l::nodegraph {
         float mVolMa = 0.0f;
         float mQuantMa = 0.0f;
         float mBuyVolMa = 0.0f;
-        float mSellVolMa = 0.0f;
         float mBuyQuantMa = 0.0f;
-        float mSellQuantMa = 0.0f;
     };
 
     /*********************************************************************/
