@@ -14,10 +14,19 @@ namespace l::nodegraph {
     /*********************************************************************/
     void GraphSourceConstants::Process(int32_t, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto input0 = inputs.at(0).GetIterator(1);
+        auto input1 = inputs.at(1).GetIterator(1);
+        auto input2 = inputs.at(2).GetIterator(1);
+        auto input3 = inputs.at(3).GetIterator(1);
         auto output0 = outputs.at(0).GetIterator(1);
+        auto output1 = outputs.at(1).GetIterator(1);
+        auto output2 = outputs.at(2).GetIterator(1);
+        auto output3 = outputs.at(3).GetIterator(1);
 
         for (int8_t i = 0; i < mNumOutputs; i++) {
             *output0 = *input0;
+            *output1 = *input1;
+            *output2 = *input2;
+            *output3 = *input3;
         }
     }
 

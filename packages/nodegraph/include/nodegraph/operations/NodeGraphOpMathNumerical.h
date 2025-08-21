@@ -109,8 +109,8 @@ namespace l::nodegraph {
             AddInput2("Max");
             AddInput2("Min");
             AddInput("Num levels", 1.0f, 1, 1.0f, 100.0f, true, true);
-            AddInput("Max%", 1.0f, 1, 0.0f, 1.0f, true, true);
-            AddInput("Min%", 0.0f, 1, 0.0f, 1.0f, true, true);
+            AddInput("Max", 1.0f, 1, 0.0f, 3.0f, true, true);
+            AddInput("Min", 0.0f, 1, -3.0f, 1.0f, true, true);
             AddOutput2("Level");
             AddOutput2("Pulse");
         }

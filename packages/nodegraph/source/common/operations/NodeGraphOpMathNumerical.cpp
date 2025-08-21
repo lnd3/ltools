@@ -112,8 +112,8 @@ namespace l::nodegraph {
         auto maxInput = inputs.at(1).GetIterator(numSamples);
         auto minInput = inputs.at(2).GetIterator(numSamples);
         auto numLevels = l::math::clamp(inputs.at(3).Get(), 1.0f, 10.0f);
-        auto max = l::math::clamp(inputs.at(4).Get(), 0.0f, 1.0f);
-        auto min = l::math::clamp(inputs.at(5).Get(), 0.0f, max);
+        auto max = l::math::clamp(inputs.at(4).Get(), 0.0f, 3.0f);
+        auto min = l::math::clamp(inputs.at(5).Get(), -3.0f, max);
         auto levelOutput = &outputs.at(0).Get(numSamples);
         auto pulseOutput = &outputs.at(1).Get(numSamples);
 
@@ -121,28 +121,29 @@ namespace l::nodegraph {
             float in = *inInput++;
             float inMax = *maxInput++;
             float inMin = *minInput++;
-            float inLimited = l::math::clamp(in, inMin, inMax);
             float inRange = inMax - inMin;
             float inRangeFactor = 0.0f;
             if (inRange > 0.0f) {
-                inRangeFactor = (inLimited - inMin) / inRange;
+                inRangeFactor = (in - inMin) / inRange;
             }
-            float inRangeFactorClamped = l::math::clamp(inRangeFactor, min, max);
             float minmaxRange = max - min;
             float level = 0.0f;
             if (minmaxRange > 0.0f) {
-                float levelMinMax = (inRangeFactorClamped - min) / minmaxRange;
-                level = numLevels * levelMinMax;
+                float levelMinMax = (inRangeFactor - min) / minmaxRange;
+                level = levelMinMax;
             }
+            auto levelExpanded = numLevels * level;
+
             float pulse = 0.0f;
-            if (static_cast<int32_t>(level) > static_cast<int32_t>(mLevelPrev + level)) {
+            if (level >= 0.0f && level <= 1.0f && static_cast<int32_t>(levelExpanded) > static_cast<int32_t>(mLevelPrev)) {
                 pulse = 1.0f;
+                mLevelPrev = levelExpanded;
             }
-            else if (static_cast<int32_t>(level) < static_cast<int32_t>(mLevelPrev)) {
+            else if (level >= 0.0f && level <= 1.0f && static_cast<int32_t>(levelExpanded) < static_cast<int32_t>(mLevelPrev)) {
                 pulse = -1.0f;
+                mLevelPrev = levelExpanded;
             }
 
-            mLevelPrev = level;
             *levelOutput++ = level;
             *pulseOutput++ = pulse;
         }

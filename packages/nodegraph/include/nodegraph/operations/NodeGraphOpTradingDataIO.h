@@ -35,6 +35,7 @@ namespace l::nodegraph {
             AddInput2("Base", 16, InputFlags(false, true, false, true));
             AddInput("Index", 2.0f, 1, 0.0f, 10.0f);
             AddInput("Timeframe", 1.0f, 1, 1.0f, 1440.0f);
+            AddInput("Friction", 0.0f, 1, 0.0f, 1.0f);
 
 
             AddOutput2("Symbol", 16, OutputFlags(false, true));

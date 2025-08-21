@@ -34,6 +34,7 @@ namespace l::nodegraph {
         inputs.at(0).MinimizeBuffer(numCacheSamples * stride);
         auto in = &inputs.at(0).Get(numCacheSamples * stride, readSamples * stride);
         auto timeframeMultiplier = static_cast<int32_t>(inputs.at(4).Get());
+        auto friction = inputs.at(5).Get();
 
         float* out1 = &outputs.at(3).Get(numSamples); // unixtime
         float* out2 = &outputs.at(4).Get(numSamples); // open
@@ -91,6 +92,11 @@ namespace l::nodegraph {
                 else {
                     // last value
                     mCloseMa = c;
+
+                    // smooth
+                    mOpenMa += friction * (mCloseMa - mOpenMa);
+                    mHighMa += friction * (mCloseMa - mHighMa);
+                    mLowMa += friction * (mCloseMa - mLowMa);
 
                     // extremes
                     mHighMa = l::math::max2(mHighMa, h);
