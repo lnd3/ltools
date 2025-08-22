@@ -87,11 +87,11 @@ namespace l::ui {
                         ImGui::BeginTooltip();
                         ImGui::PushTextWrapPos(350);
                         ImGui::PushStyleColor(0, ImGui::ColorConvertU32ToFloat4(ImGui::Spectrum::GRAY900));
-                        ImGui::TextWrapped(menuName.data());
+                        ImGui::TextWrapped("%s", menuName.data());
                         ImGui::PopStyleColor();
                         ImGui::Separator();
                         ImGui::PushStyleColor(0, ImGui::ColorConvertU32ToFloat4(ImGui::Spectrum::GRAY700));
-                        ImGui::TextWrapped(description.data());
+                        ImGui::TextWrapped("%s", description.data());
                         ImGui::PopStyleColor();
                         ImGui::EndTooltip();
                     }
