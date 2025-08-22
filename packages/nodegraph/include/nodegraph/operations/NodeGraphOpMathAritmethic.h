@@ -29,18 +29,15 @@ namespace l::nodegraph {
         MathAritmethicAdd(NodeGraphBase* node) :
             NodeGraphOp(node, "Add")
         {
-            AddInput2("In1", 1, InputFlags(false, false, false, false));
-            AddInput2("In2", 1, InputFlags(false, false, false, false));
-            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddOutput("In1+In2");
+            AddInput("a");
+            AddInput("b");
+            AddOutput("a+b");
         }
         virtual ~MathAritmethicAdd() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto input1 = inputs.at(1).GetIterator(numSamples);
-            auto lodExp = inputs.at(2).Get();
-            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
-            auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
+            auto output = &outputs.at(0).Get(numSamples);
 
             for (int32_t i = 0; i < numSamples; i++) {
                 *output++ = *input0++ + *input1++;
@@ -54,19 +51,16 @@ namespace l::nodegraph {
         MathAritmethicMultiply(NodeGraphBase* node) :
             NodeGraphOp(node, "Multiply")
         {
-            AddInput2("In1", 1, InputFlags(false, false, false, false));
-            AddInput2("In2", 1, InputFlags(false, false, false, false));
-            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddOutput("In1*In2");
+            AddInput("a");
+            AddInput("b");
+            AddOutput("a*b");
         }
 
         virtual ~MathAritmethicMultiply() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto input1 = inputs.at(1).GetIterator(numSamples);
-            auto lodExp = inputs.at(2).Get();
-            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
-            auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
+            auto output = &outputs.at(0).Get(numSamples);
 
             for (int32_t i = 0; i < numSamples; i++) {
                 *output++ = *input0++ * *input1++;
@@ -80,20 +74,17 @@ namespace l::nodegraph {
         MathAritmethicSubtract(NodeGraphBase* node) :
             NodeGraphOp(node, "Subtract")
         {
-            AddInput2("In1", 1, InputFlags(false, false, false, false));
-            AddInput2("In2", 1, InputFlags(false, false, false, false));
-            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddOutput("In1-In2");
-            AddOutput("In2-In1");
+            AddInput("a");
+            AddInput("b");
+            AddOutput("a-b");
+            AddOutput("b-a");
         }
         virtual ~MathAritmethicSubtract() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto input1 = inputs.at(1).GetIterator(numSamples);
-            auto lodExp = inputs.at(2).Get();
-            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
-            auto output1 = outputs.at(0).GetIterator(numSamples, lodFactor);
-            auto output2 = outputs.at(1).GetIterator(numSamples, lodFactor);
+            auto output1 = &outputs.at(0).Get(numSamples);
+            auto output2 = &outputs.at(1).Get(numSamples);
 
             for (int32_t i = 0; i < numSamples; i++) {
                 auto diff = *input0++ - *input1++;
@@ -109,17 +100,14 @@ namespace l::nodegraph {
         MathAritmethicNegate(NodeGraphBase* node) :
             NodeGraphOp(node, "Negate")
         {
-            AddInput2("In", 1, InputFlags(false, false, false, false));
-            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddOutput("-In");
+            AddInput("x");
+            AddOutput("-x");
         }
 
         virtual ~MathAritmethicNegate() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
-            auto lodExp = inputs.at(1).Get();
-            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
-            auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
+            auto output = &outputs.at(0).Get(numSamples);
 
             for (int32_t i = 0; i < numSamples; i++) {
                 *output++ = -*input0++;
@@ -134,21 +122,18 @@ namespace l::nodegraph {
         MathAritmethicAbs(NodeGraphBase* node) :
             NodeGraphOp(node, "Abs")
         {
-            AddInput2("In", 1, InputFlags(false, false, false, false));
-            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddOutput("abs(In)");
-            AddOutput("max(In,0)");
-            AddOutput("min(In,0)");
+            AddInput("x");
+            AddOutput("abs(x)");
+            AddOutput("max(x,0)");
+            AddOutput("min(x,0)");
         }
 
         virtual ~MathAritmethicAbs() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
-            auto lodExp = inputs.at(1).Get();
-            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
-            auto output1 = outputs.at(0).GetIterator(numSamples, lodFactor);
-            auto output2 = outputs.at(1).GetIterator(numSamples, lodFactor);
-            auto output3 = outputs.at(2).GetIterator(numSamples, lodFactor);
+            auto output1 = &outputs.at(0).Get(numSamples);
+            auto output2 = &outputs.at(1).Get(numSamples);
+            auto output3 = &outputs.at(2).Get(numSamples);
 
             for (int32_t i = 0; i < numSamples; i++) {
                 auto in = *input0++;
@@ -165,21 +150,18 @@ namespace l::nodegraph {
         MathAritmethicLog(NodeGraphBase* node) :
             NodeGraphOp(node, "Log")
         {
-            AddInput2("In", 1, InputFlags(false, false, false, false));
-            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddInput("Base", 2.72f, 1, 1.0f, 10.0f);
-            AddOutput("ln(In)");
-            AddOutput("ln(In)/ln(Base)");
+            AddInput("x");
+            AddInput("b", 2.72f, 1, 1.0f, 10.0f);
+            AddOutput("Log");
+            AddOutput("Logb");
         }
 
         virtual ~MathAritmethicLog() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
-            auto lodExp = inputs.at(1).Get();
-            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
-            auto base = inputs.at(2).Get();
-            auto output1 = outputs.at(0).GetIterator(numSamples, lodFactor);
-            auto output2 = outputs.at(1).GetIterator(numSamples, lodFactor);
+            auto base = inputs.at(1).Get();
+            auto output1 = &outputs.at(0).Get(numSamples);
+            auto output2 = &outputs.at(1).Get(numSamples);
 
             // we want logb(in) = ln(in)/ln(b)
             // so precalc base factor 1/ln(b)
@@ -200,11 +182,10 @@ namespace l::nodegraph {
         MathAritmethicMultiply3(NodeGraphBase* node) :
             NodeGraphOp(node, "Multiply3")
         {
-            AddInput2("In1", 1, InputFlags(false, false, false, false));
-            AddInput2("In2", 1, InputFlags(false, false, false, false));
-            AddInput2("In3", 1, InputFlags(false, false, false, false));
-            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddOutput("In1*In2*In3");
+            AddInput("a");
+            AddInput("b");
+            AddInput("c");
+            AddOutput("abc");
         }
 
         virtual ~MathAritmethicMultiply3() = default;
@@ -212,9 +193,7 @@ namespace l::nodegraph {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto input1 = inputs.at(1).GetIterator(numSamples);
             auto input2 = inputs.at(2).GetIterator(numSamples);
-            auto lodExp = inputs.at(3).Get();
-            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
-            auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
+            auto output = &outputs.at(0).Get(numSamples);
 
             for (int32_t i = 0; i < numSamples; i++) {
                 *output++ = *input0++ * *input1++ * *input2++;
@@ -228,11 +207,10 @@ namespace l::nodegraph {
         MathAritmethicMultiplyAndAdd(NodeGraphBase* node) :
             NodeGraphOp(node, "Multiply & Add")
         {
-            AddInput2("In1", 1, InputFlags(false, false, false, false));
-            AddInput2("In2", 1, InputFlags(false, false, false, false));
-            AddInput2("In3", 1, InputFlags(false, false, false, false));
-            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddOutput("In1*In2+In3");
+            AddInput("a");
+            AddInput("b");
+            AddInput("c");
+            AddOutput("ab+c");
         }
 
         virtual ~MathAritmethicMultiplyAndAdd() = default;
@@ -240,9 +218,7 @@ namespace l::nodegraph {
             auto input0 = inputs.at(0).GetIterator(numSamples);
             auto input1 = inputs.at(1).GetIterator(numSamples);
             auto input2 = inputs.at(2).GetIterator(numSamples);
-            auto lodExp = inputs.at(3).Get();
-            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
-            auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
+            auto output = &outputs.at(0).Get(numSamples);
 
             for (int32_t i = 0; i < numSamples; i++) {
                 *output++ = *input0++ * *input1++ + *input2++;
@@ -256,9 +232,8 @@ namespace l::nodegraph {
         MathAritmethicRound(NodeGraphBase* node) :
             NodeGraphOp(node, "Round")
         {
-            AddInput2("In", 1, InputFlags(false, false, false, false));
-            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddOutput("int(In+0.5)");
+            AddInput("x");
+            AddOutput("Out");
         }
 
         virtual ~MathAritmethicRound() = default;
@@ -266,9 +241,7 @@ namespace l::nodegraph {
             outputs.at(0).mOutput = l::math::round(inputs.at(0).Get());
 
             auto input0 = inputs.at(0).GetIterator(numSamples);
-            auto lodExp = inputs.at(1).Get();
-            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
-            auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
+            auto output = &outputs.at(0).Get(numSamples);
 
             for (int32_t i = 0; i < numSamples; i++) {
                 *output++ = l::math::round(*input0++);
@@ -282,14 +255,14 @@ namespace l::nodegraph {
         MathAritmethicPow(NodeGraphBase* node) :
             NodeGraphOp(node, "Pow")
         {
-            AddInput2("In", 1, InputFlags(false, false, false, false));
-            AddInput("Exponent", 2.72f, 1, 1.0f, 10.0f);
-            AddOutput("exp(In)");
+            AddInput("x");
+            AddInput("y", 2.72f, 1, 1.0f, 10.0f);
+            AddOutput("x^y");
         }
 
         virtual ~MathAritmethicPow() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input0 = &inputs.at(0).Get(numSamples);
+            auto input0 = inputs.at(0).GetIterator(numSamples);
             auto exponent = inputs.at(2).Get();
             auto output1 = &outputs.at(0).Get(numSamples);
 
@@ -297,6 +270,30 @@ namespace l::nodegraph {
                 auto in = *input0++;
                 auto pow = l::math::pow(in, exponent);
                 *output1++ = pow;
+            }
+        }
+    };
+
+    /*********************************************************************/
+    class MathAritmethicSum3 : public NodeGraphOp {
+    public:
+        MathAritmethicSum3(NodeGraphBase* node) :
+            NodeGraphOp(node, "Sum3")
+        {
+            AddInput("a");
+            AddInput("b");
+            AddInput("c");
+            AddOutput("a+b+c");
+        }
+        virtual ~MathAritmethicSum3() = default;
+        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+            auto input0 = inputs.at(0).GetIterator(numSamples);
+            auto input1 = inputs.at(1).GetIterator(numSamples);
+            auto input2 = inputs.at(2).GetIterator(numSamples);
+            auto output = &outputs.at(0).Get(numSamples);
+
+            for (int32_t i = 0; i < numSamples; i++) {
+                *output++ = *input0++ + *input1++ + *input2++;
             }
         }
     };

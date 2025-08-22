@@ -33,6 +33,8 @@ namespace l::nodegraph {
 
         inputs.at(0).MinimizeBuffer(numCacheSamples * stride);
         auto in = &inputs.at(0).Get(numCacheSamples * stride, readSamples * stride);
+        auto timeframeMultiplier = static_cast<int32_t>(inputs.at(4).Get());
+        auto friction = inputs.at(5).Get();
 
         float* out1 = &outputs.at(3).Get(numSamples); // unixtime
         float* out2 = &outputs.at(4).Get(numSamples); // open
@@ -70,18 +72,54 @@ namespace l::nodegraph {
                 auto c = in[offset + 2];
                 auto h = in[offset + 3];
                 auto l = in[offset + 4];
-                auto v = in[offset + 5];
+                auto v = in[offset + 5]; // total volume
+                auto q = in[offset + 6]; // total quantity
+                auto bv = in[offset + 7]; // buy volume
+                auto bq = in[offset + 8]; // buy quantity
 
-                *out2++ = o;
-                *out3++ = c;
-                *out4++ = h;
-                *out5++ = l;
-                *out6++ = v;
-                *out7++ = in[offset + 6]; // quantity
-                *out8++ = in[offset + 7]; // buy volume
-                *out9++ = in[offset + 5] - in[offset + 7]; // sell volume
-                *out10++ = in[offset + 8]; // buy quantity
-                *out11++ = in[offset + 6] - in[offset + 8]; // sell quantity
+                auto timemin = unixtime / 60;
+                if (timemin % timeframeMultiplier == 0) {
+                    // time interval looping so reset moving averages
+                    mOpenMa = o; // simply first value
+                    mCloseMa = c;
+                    mHighMa = h;
+                    mLowMa = l;
+                    mVolMa = v;
+                    mQuantMa = q;
+                    mBuyVolMa = bv;
+                    mBuyQuantMa = bq;
+                }
+                else {
+                    // last value
+                    mCloseMa = c;
+
+                    // smooth
+                    mOpenMa += friction * (mCloseMa - mOpenMa);
+                    mHighMa += friction * (mCloseMa - mHighMa);
+                    mLowMa += friction * (mCloseMa - mLowMa);
+
+                    // extremes
+                    mHighMa = l::math::max2(mHighMa, h);
+                    mLowMa = l::math::min2(mLowMa, l);
+
+                    // just the sums
+                    mVolMa += v;
+                    mQuantMa += q;
+                    mBuyVolMa += bv;
+                    mBuyQuantMa += bq;
+                }
+
+                *out2++ = mOpenMa;
+                *out3++ = mCloseMa;
+                *out4++ = mHighMa;
+                *out5++ = mLowMa;
+                *out6++ = mVolMa;
+                *out7++ = mQuantMa; // quantity
+
+                *out8++ = mBuyVolMa; // buy volume
+                *out9++ = mVolMa - mBuyVolMa; // sell volume
+                *out10++ = mBuyQuantMa; // buy quantity
+                *out11++ = mQuantMa - mBuyQuantMa; // sell quantity
             }
         }
         else if (mMode == 1) {
@@ -133,6 +171,7 @@ namespace l::nodegraph {
         auto symbolInput = inputs.at(0).GetText(16);
         auto baseInput = inputs.at(1).GetText(16);
         auto indexInput = l::math::clamp(inputs.at(2).Get(), 0.0f, 9.9999f);
+        auto now = inputs.at(3).Get();
 
         outputs.at(0).SetText(symbolInput);
         outputs.at(1).SetText(baseInput);
@@ -140,10 +179,12 @@ namespace l::nodegraph {
         float* indexOut1 = &outputs.at(3).Get();
         float* indexOut2 = &outputs.at(4).Get();
         float* indexOut3 = &outputs.at(5).Get();
+        float* nowOutput = &outputs.at(6).Get();
         *indexOut0 = l::math::clamp(indexInput, 0.0f, 9.9999f);
         *indexOut1 = l::math::clamp(indexInput + 1.0f, 0.0f, 9.9999f);
         *indexOut2 = l::math::clamp(indexInput + 2.0f, 0.0f, 9.9999f);
         *indexOut3 = l::math::clamp(indexInput + 3.0f, 0.0f, 9.9999f);
+        *nowOutput = now;
     }
 
 }

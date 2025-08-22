@@ -1,15 +1,17 @@
 #include "rendering/ui/UINodeEditor.h"
 
+#include "rendering/ImguiSpectrum.h"
+
 #include <memory>
 
 namespace l::ui {
 
-    void depthFirstTraversal(const nodegraph::TreeMenuNode& node, std::vector<std::string>& path, std::function<void(std::string_view, int32_t)> cbMenuItem) {
+    void depthFirstTraversal(const nodegraph::TreeMenuNode& node, std::vector<std::string>& path, std::function<void(std::string_view, int32_t, std::string_view)> cbMenuItem) {
         if (node.GetPathPart().empty()) {
             for (const auto& child : node.mChildren) {
                 depthFirstTraversal(child, path, cbMenuItem);
             }
-            cbMenuItem(node.GetName(), node.GetId());
+            cbMenuItem(node.GetName(), node.GetId(), node.GetDescription());
         }
         else {
             path.emplace_back(node.GetPathPart());
@@ -48,6 +50,7 @@ namespace l::ui {
 
         SetPointerPopup([&]() {
             ImGui::Text("Node picker");
+            ImGui::InputText("find", mPickerSearch.data(), mPickerSearch.capacity(), ImGuiInputTextFlags_EnterReturnsTrue);
             ImGui::Separator();
 
             if (mNGSchema == nullptr) {
@@ -55,28 +58,42 @@ namespace l::ui {
             }
 
             std::vector<std::string> path;
-            depthFirstTraversal(mNGSchema->GetPickerRoot(), path, [&](std::string_view menuName, int32_t menuId) {
-                if (!menuName.empty() && ImGui::MenuItem(menuName.data())) {
-                    ImVec2 p = ImVec2(mUIInput.mCurPos.x - GetPosition().x, mUIInput.mCurPos.y - GetPosition().y);
-                    p.x -= mUIRoot->GetPosition().x;
-                    p.y -= mUIRoot->GetPosition().y;
-                    p.x /= mUIRoot->GetScale();
-                    p.y /= mUIRoot->GetScale();
-                    p.x -= 3.0f;
-                    p.y -= 3.0f;
-                    auto nodeId = mNGSchema->NewNode(menuId);
-                    auto node = mNGSchema->GetNode(nodeId);
-                    if (node != nullptr) {
-                        auto uiNode = l::ui::CreateUINode(mUIManager, *node, p);
-                        mUIRoot->Add(uiNode);
+            depthFirstTraversal(mNGSchema->GetPickerRoot(), path, [&](std::string_view menuName, int32_t menuId, std::string_view description) {
+                if (!menuName.empty()) {
+                    if (ImGui::MenuItem(menuName.data())) {
+                        ImVec2 p = ImVec2(mUIInput.mCurPos.x - GetPosition().x, mUIInput.mCurPos.y - GetPosition().y);
+                        p.x -= mUIRoot->GetPosition().x;
+                        p.y -= mUIRoot->GetPosition().y;
+                        p.x /= mUIRoot->GetScale();
+                        p.y /= mUIRoot->GetScale();
+                        p.x -= 3.0f;
+                        p.y -= 3.0f;
+                        auto nodeId = mNGSchema->NewNode(menuId);
+                        auto node = mNGSchema->GetNode(nodeId);
+                        if (node != nullptr) {
+                            auto uiNode = l::ui::CreateUINode(mUIManager, *node, p);
+                            mUIRoot->Add(uiNode);
 
-                        auto& uiData = node->GetUIData();
-                        auto position = uiNode->GetPosition();
-                        auto size = uiNode->GetSize();
-                        uiData.x = position.x;
-                        uiData.y = position.y;
-                        uiData.w = size.x;
-                        uiData.h = size.y;
+                            auto& uiData = node->GetUIData();
+                            auto position = uiNode->GetPosition();
+                            auto size = uiNode->GetSize();
+                            uiData.x = position.x;
+                            uiData.y = position.y;
+                            uiData.w = size.x;
+                            uiData.h = size.y;
+                        }
+                    }
+                    if (!description.empty() && ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip)) {
+                        ImGui::BeginTooltip();
+                        ImGui::PushTextWrapPos(350);
+                        ImGui::PushStyleColor(0, ImGui::ColorConvertU32ToFloat4(ImGui::Spectrum::GRAY900));
+                        ImGui::TextWrapped(menuName.data());
+                        ImGui::PopStyleColor();
+                        ImGui::Separator();
+                        ImGui::PushStyleColor(0, ImGui::ColorConvertU32ToFloat4(ImGui::Spectrum::GRAY700));
+                        ImGui::TextWrapped(description.data());
+                        ImGui::PopStyleColor();
+                        ImGui::EndTooltip();
                     }
                 }
 

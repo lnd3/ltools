@@ -49,8 +49,9 @@ namespace l::string {
 		init_timezone();
 #ifdef WIN32
 		long time;
-		auto res = _get_timezone(&time);
-		ASSERT(res == 0);
+		//auto res = 
+		_get_timezone(&time);
+		//ASSERT(res == 0);
 #else
 		auto time = timezone;
 #endif
@@ -61,8 +62,9 @@ namespace l::string {
 		init_timezone();
 #ifdef WIN32
 		int time;
-		auto res = _get_daylight(&time);
-		ASSERT(res == 0);
+		//auto res = 
+		_get_daylight(&time);
+		//ASSERT(res == 0);
 #else
 		auto time = daylight;
 #endif
@@ -99,8 +101,9 @@ namespace l::string {
 
 	void convert_to_tm(const time_t time, tm* timeinfo, bool adjustYearAndMonth) {
 #ifdef WIN32
-		auto res = _gmtime64_s(timeinfo, &time);
-		ASSERT(res == 0);
+		//auto res = 
+		_gmtime64_s(timeinfo, &time);
+		//ASSERT(res == 0);
 #else
 		tm* ti = gmtime(&time);
 		*timeinfo = *ti;
@@ -545,6 +548,29 @@ namespace l::string {
 			i++;
 		} while (number != 0);
 		return i;
+	}
+
+	std::tuple<int64_t, int32_t, int32_t> to_fixed_int(std::string_view s) {
+		int64_t n = 0;
+		int32_t numDecimals = -1;
+		int32_t numDigits = -1;
+		for (char c : s) {
+			int64_t digit = static_cast<int64_t>(c - '0');
+			if (digit < 0 || digit > 9) {
+				if (c == '.') {
+					numDecimals = 0;
+				}
+				continue;
+			}
+			if (digit > 0) {
+				numDigits = 0;
+			}
+			numDecimals = numDecimals < 0 ? numDecimals : numDecimals + 1;
+			numDigits = numDigits < 0 ? numDigits : numDigits + 1;
+			n *= 10;
+			n += digit;
+		}
+		return std::tuple<int64_t, int32_t, int32_t>(n, numDecimals, numDigits);
 	}
 
 	std::string_view cut(std::string_view s, const char ch) {

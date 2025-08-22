@@ -49,6 +49,10 @@ namespace l::string {
 			cur() = 0;
 		}
 
+		bool empty() {
+			return size() == 0;
+		}
+
 		size_t left() {
 			return static_cast<size_t>(BUFSIZE - mPos);
 		}
@@ -79,6 +83,13 @@ namespace l::string {
 			return std::string_view( &mBuf[0], size());
 		}
 
+		char* data() {
+			return &mBuf[0];
+		}
+
+		size_t capacity() {
+			return BUFSIZE - 1;
+		}
 	protected:
 		int32_t mPos = 0;
 		char mBuf[BUFSIZE];
@@ -156,10 +167,10 @@ namespace l::string {
 		struct std::tm tminfo = {};
 		convert_to_local_tm_from_utc_time(unixtime, &tminfo, false);
 		if (fullYear) {
-			buf.printf("%4d-%2d-%2d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday);
+			buf.printf("%04d-%02d-%02d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday);
 		}
 		else {
-			buf.printf("%4d-%2d-%2d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday);
+			buf.printf("%04d-%02d-%02d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday);
 		}
 	}
 
@@ -167,18 +178,18 @@ namespace l::string {
 	void get_local_time(string_buffer<BUFSIZE>& buf, const int32_t unixtime) {
 		struct std::tm tminfo = {};
 		convert_to_local_tm_from_utc_time(unixtime, &tminfo, false);
-		buf.printf("%2d:%2d:%2d", tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
+		buf.printf("%02d:%02d:%02d", tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
 	}
 
 	template<size_t BUFSIZE>
 	void get_local_date_and_time(string_buffer<BUFSIZE>& buf, const int32_t unixtime, bool fullYear = false) {
 		struct std::tm tminfo = {};
-		convert_to_local_tm_from_utc_time(unixtime, &tminfo, false);
+		convert_to_local_tm_from_utc_time(unixtime, &tminfo, true);
 		if (fullYear) {
-			buf.printf("%4d-%2d-%2d %2d:%2d:%2d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday, tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
+			buf.printf("%04d-%02d-%02d %02d:%02d:%02d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday, tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
 		}
 		else {
-			buf.printf("%2d-%2d-%2d %2d:%2d:%2d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday, tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
+			buf.printf("%02d-%02d-%02d %02d:%02d:%02d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday, tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
 		}
 	}
 
@@ -225,6 +236,7 @@ namespace l::string {
 	std::wstring widen(const std::string& str);
 
 	int count_digits(int number);
+	std::tuple<int64_t, int32_t, int32_t> to_fixed_int(std::string_view s);
 
 	template<class T>
 	concept Number = requires(T a) { requires std::convertible_to<T, float> || std::convertible_to<T, uint32_t>; };

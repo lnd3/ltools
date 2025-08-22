@@ -17,12 +17,12 @@ namespace l::nodegraph {
     }
 
     // Insert a path like "a.b.c"
-    void insertPath(TreeMenuNode& root, std::string_view path, std::string_view name, int32_t nodeId) {
+    void insertPath(TreeMenuNode& root, std::string_view path, std::string_view name, int32_t nodeId, std::string_view description) {
         TreeMenuNode* current = &root;
         for (auto part : l::string::split(path, ".")) {
             current = findOrCreateChild(*current, part);
         }
-        current->mChildren.emplace_back("", name, nodeId);
+        current->mChildren.emplace_back("", name, nodeId, description);
     }
 
     bool NodeGraphSchema::NodeGraphNewNode(int32_t typeId, int32_t nodeId) {
@@ -278,6 +278,9 @@ namespace l::nodegraph {
         case 109:
             node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicPow>(id, NodeType::Default);
             break;
+        case 110:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicSum3>(id, NodeType::Default);
+            break;
 
             // Math logical operators
         case 120:
@@ -295,7 +298,7 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalIntegral>(id, NodeType::Default);
             break;
         case 141:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalDerivate>(id, NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalTemporalChange>(id, NodeType::Default);
             break;
         case 142:
             node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalDiffNorm>(id, NodeType::Default);
@@ -308,6 +311,9 @@ namespace l::nodegraph {
             break;
         case 145:
             node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalMinMaxChannel>(id, NodeType::Default);
+            break;
+        case 146:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalReconstructor>(id, NodeType::Default);
             break;
 
             // Trading data io
@@ -492,6 +498,9 @@ namespace l::nodegraph {
         case 604:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphUIText>(id, NodeType::ExternalInput);
             break;
+        case 605:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphUIChartMarkers>(id, NodeType::ExternalOutput);
+            break;
 
 
 
@@ -554,9 +563,11 @@ namespace l::nodegraph {
         mMainNodeGraph.ForEachOutputNode(std::move(cb));
     }
 
-    void NodeGraphSchema::ForEachNodeType(std::function<void(std::string_view, const std::vector<UINodeDesc>&)> cb) const {
+    void NodeGraphSchema::ForEachNodeType(std::string_view search, std::function<void(std::string_view, const std::vector<UINodeDesc>&)> cb) const {
         for (auto& it : mRegisteredNodeTypes) {
-            cb(it.first, it.second);
+            if (search.empty() || l::string::equal_anywhere(it.first, search)) {
+                cb(it.first, it.second);
+            }
         }
     }
 
@@ -564,11 +575,15 @@ namespace l::nodegraph {
         return mPickerRootMenu;
     }
 
-    void NodeGraphSchema::RegisterNodeType(const std::string& typeGroup, int32_t uniqueTypeId, std::string_view typeName) {
+    void NodeGraphSchema::RegisterNodeType(const std::string& typeGroup, int32_t uniqueTypeId, std::string_view typeName, std::string_view description) {
         if (!HasNodeType(typeGroup, uniqueTypeId)) {
-            mRegisteredNodeTypes[typeGroup].push_back(UINodeDesc{ uniqueTypeId, std::string(typeName) });
+            UINodeDesc nodeInfo;
+            nodeInfo.mId = uniqueTypeId;
+            nodeInfo.mName = typeName;
+            nodeInfo.mDescription = description;
+            mRegisteredNodeTypes[typeGroup].push_back(nodeInfo);
         }
-        insertPath(mPickerRootMenu, typeGroup, typeName, uniqueTypeId);
+        insertPath(mPickerRootMenu, typeGroup, typeName, uniqueTypeId, description);
     }
 
     void NodeGraphSchema::RegisterAllOf(const std::string& typeGroup) {
@@ -601,6 +616,7 @@ namespace l::nodegraph {
             RegisterNodeType("Math.Aritmethic", 107, "Madd");
             RegisterNodeType("Math.Aritmethic", 108, "Round");
             RegisterNodeType("Math.Aritmethic", 109, "Pow");
+            RegisterNodeType("Math.Aritmethic", 110, "Sum3");
         }
         else if (typeGroup == "Math.Logic") {
             RegisterNodeType("Math.Logic", 120, "And");
@@ -612,8 +628,9 @@ namespace l::nodegraph {
             RegisterNodeType("Math.Numerical", 141, "Derivate");
             RegisterNodeType("Math.Numerical", 142, "Difference Normalized");
             RegisterNodeType("Math.Numerical", 143, "Difference");
-            RegisterNodeType("Math.Numerical", 144, "Level Trigger");
+            RegisterNodeType("Math.Numerical", 144, "Level Trigger", "Determines where some input is located between two extremes (min/max) in the format [0,1] ");
             RegisterNodeType("Math.Numerical", 145, "Minmax Channel");
+            RegisterNodeType("Math.Numerical", 146, "Reconstructor", "Deconstructs the input into derivatives (change per index) and outputs the sum of through a ewa with a cooefficient of 'friction' {x1 = x0 + friction * (target - x0)}. An second output is provided which is the average of the last two outputs of that function.");
         }
         else if (typeGroup == "Trading.Data IO") {
             RegisterNodeType("Trading.Data IO", 200, "OCHLV Data In");
@@ -689,6 +706,7 @@ namespace l::nodegraph {
             RegisterNodeType("UI", 602, "UI Chart Lines");
             RegisterNodeType("UI", 603, "UI Candle Sticks");
             RegisterNodeType("UI", 604, "UI Text");
+            RegisterNodeType("UI", 605, "UI Chart Markers");
             }
         else {
             LOG(LogWarning) << "Type group does not exist: " << typeGroup;

@@ -26,14 +26,16 @@ namespace l::nodegraph {
             NodeGraphOpCached(node, "OCHLV Data In"),
 			mMode(mode)
         {
-			if (mMode == 1) {
-				mName = "OCHLV Heikin-Ashi In";
-			}
+            if (mMode == 1) {
+                mName = "OCHLV Heikin-Ashi In";
+            }
 
             AddInput2("In", 16, InputFlags(false, false, false, false));
             AddInput2("Symbol", 16, InputFlags(false, true, false, true));
             AddInput2("Base", 16, InputFlags(false, true, false, true));
             AddInput("Index", 2.0f, 1, 0.0f, 10.0f);
+            AddInput("Timeframe", 1.0f, 1, 1.0f, 1440.0f);
+            AddInput("Friction", 0.0f, 1, 0.0f, 1.0f);
 
 
             AddOutput2("Symbol", 16, OutputFlags(false, true));
@@ -61,9 +63,20 @@ namespace l::nodegraph {
 
         int32_t mUnixtimePrev = 0;
 
+        // Heikin ashi vars
 		float mOpenPrev = 0.0f;
 		float mClosePrev = 0.0f;
-	};
+
+        // Time frame vars
+        float mOpenMa = 0.0f;
+        float mCloseMa = 0.0f;
+        float mHighMa = 0.0f;
+        float mLowMa = 0.0f;
+        float mVolMa = 0.0f;
+        float mQuantMa = 0.0f;
+        float mBuyVolMa = 0.0f;
+        float mBuyQuantMa = 0.0f;
+    };
 
     /*********************************************************************/
 
@@ -75,6 +88,7 @@ namespace l::nodegraph {
             AddInput2("Symbol", 16, InputFlags(false, true, false, true));
             AddInput2("Base", 16, InputFlags(false, true, false, true));
             AddInput("Index", 2.0f, 1, 0.0f, 10.0f);
+            AddInput2("Now");
 
             AddOutput2("Symbol", 16, OutputFlags(false, true));
             AddOutput2("Base", 16, OutputFlags(false, true));
@@ -82,6 +96,7 @@ namespace l::nodegraph {
             AddOutput("Index#1", 1.0f);
             AddOutput("Index#2", 2.0f);
             AddOutput("Index#3", 3.0f);
+            AddOutput("Now");
         }
 
         virtual ~TradingDataIOChartInfo() = default;

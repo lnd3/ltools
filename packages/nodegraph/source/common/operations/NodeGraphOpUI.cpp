@@ -167,4 +167,85 @@ namespace l::nodegraph {
         }
     }
 
+    /*********************************************************************/
+    void GraphUIChartMarkers::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
+        auto timeInput = &inputs.at(0).Get(numSamples);
+        auto openInput = &inputs.at(1).Get(numSamples);
+        auto closeInput = &inputs.at(2).Get(numSamples);
+        auto entry1Input = &inputs.at(3).Get(numSamples);
+        auto entry2Input = &inputs.at(4).Get(numSamples);
+        auto slip = inputs.at(5).Get();
+        //auto mainSize = inputs.at(10).Get();
+        auto entry3Input = &inputs.at(11).Get(numSamples);
+
+        auto entry1Active = inputs.at(3).HasInputNode();
+        auto entry2Active = inputs.at(4).HasInputNode();
+        auto entry3Active = inputs.at(11).HasInputNode();
+        auto entryShared3 = ((entry1Active && entry2Active) || (entry1Active && entry3Active) || (entry2Active && entry3Active)) ? 0.5f : 1.0f;
+        auto entryShare = (entry1Active && entry2Active && entry3Active) ? 0.3333f : entryShared3;
+
+        if (mReadSamples == 0) {
+            mMarkers.clear();
+            mEntry1.Reset(entry1Active ? entryShare : 0.0f);
+            mEntry2.Reset(entry2Active ? entryShare : 0.0f);
+            mEntry3.Reset(entry3Active ? entryShare : 0.0f);
+        }
+
+        for (int32_t i = 0; i < numSamples; i++) {
+            auto time = *timeInput++;
+            auto unixtime = l::math::algorithm::convert<int32_t>(time);
+            auto open = *openInput++;
+            auto close = *closeInput++;
+            auto entry1 = *entry1Input++;
+            auto entry2 = *entry2Input++;
+            auto entry3 = *entry3Input++;
+
+            if (unixtime == 0) {
+                continue;
+            }
+
+            auto estimatedPrice = (open + close) * 0.5f;
+
+            mEntry1.Update(entry1, estimatedPrice, unixtime);
+            mEntry2.Update(entry2, estimatedPrice, unixtime);
+            mEntry3.Update(entry3, estimatedPrice, unixtime);
+
+            if (mEntry1.TradeEntered(unixtime)) {
+                auto s = std::make_tuple(unixtime, estimatedPrice, 1.0f, mTotalProfit);
+                mMarkers.push_back(std::move(s));
+            }
+            if (mEntry2.TradeEntered(unixtime)) {
+                auto s = std::make_tuple(unixtime, estimatedPrice, 1.0f, mTotalProfit);
+                mMarkers.push_back(std::move(s));
+            }
+            if (mEntry3.TradeEntered(unixtime)) {
+                auto s = std::make_tuple(unixtime, estimatedPrice, 1.0f, mTotalProfit);
+                mMarkers.push_back(std::move(s));
+            }
+            if (mEntry1.TradeExited(unixtime)) {
+                mTotalProfit *= mEntry1.GetProfit(slip);
+                auto s = std::make_tuple(unixtime, estimatedPrice, -1.0f, mTotalProfit);
+                mMarkers.push_back(std::move(s));
+                mEntry1.Reset(entry1Active ? entryShare : 0.0f);
+            }
+            if (mEntry2.TradeExited(unixtime)) {
+                mTotalProfit *= mEntry2.GetProfit(slip);
+                auto s = std::make_tuple(unixtime, estimatedPrice, -1.0f, mTotalProfit);
+                mMarkers.push_back(std::move(s));
+                mEntry2.Reset(entry2Active ? entryShare : 0.0f);
+            }
+            if (mEntry3.TradeExited(unixtime)) {
+                mTotalProfit *= mEntry3.GetProfit(slip);
+                auto s = std::make_tuple(unixtime, estimatedPrice, -1.0f, mTotalProfit);
+                mMarkers.push_back(std::move(s));
+                mEntry3.Reset(entry3Active ? entryShare : 0.0f);
+            }
+        }
+
+        mReadSamples += numSamples;
+        if (mReadSamples >= numCacheSamples) {
+            mReadSamples = 0;
+            mTotalProfit = 1.0f;
+        }
+    }
 }

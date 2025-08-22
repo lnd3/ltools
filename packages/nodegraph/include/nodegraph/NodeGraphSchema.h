@@ -35,7 +35,7 @@ namespace l::nodegraph {
     class TreeMenuNode {
     public:
         TreeMenuNode() = default;
-        TreeMenuNode(std::string_view pathPart, std::string_view name, int32_t id) : mPathPart(pathPart), mName(name), mId(id) {}
+        TreeMenuNode(std::string_view pathPart, std::string_view name, int32_t id, std::string_view description = "") : mPathPart(pathPart), mName(name), mId(id), mDescription(description) {}
         ~TreeMenuNode() = default;
 
         std::string_view GetPathPart() const {
@@ -47,20 +47,27 @@ namespace l::nodegraph {
         int32_t GetId() const {
             return mId;
         }
+        std::string_view GetDescription() const {
+            return mDescription;
+        }
 
         std::vector<TreeMenuNode> mChildren;
         std::string mPathPart;
     protected:
         std::string mName;
         int32_t mId = 0;
+        std::string mDescription;
     };
 
     TreeMenuNode* findOrCreateChild(TreeMenuNode& node, std::string_view pathPart);
-    void insertPath(TreeMenuNode& root, std::string_view path, std::string_view name, int32_t nodeId);
+    void insertPath(TreeMenuNode& root, std::string_view path, std::string_view name, int32_t nodeId, std::string_view description);
 
     struct UINodeDesc {
         std::string_view GetName() const {
             return mName;
+        }
+        std::string_view GetDescription() const {
+            return mDescription;
         }
         int32_t GetId() const {
             return mId;
@@ -68,6 +75,7 @@ namespace l::nodegraph {
 
         int32_t mId;
         std::string mName;
+        std::string mDescription;
     };
 
     class NodeGraphSchema : public l::serialization::JsonSerializationBase, public NodeFactoryBase {
@@ -173,8 +181,8 @@ namespace l::nodegraph {
         void ForEachOutputNode(std::function<bool(NodeGraphBase*)> cb);
 
         bool HasNodeType(const std::string& typeGroup, int32_t typeId);
-        void ForEachNodeType(std::function<void(std::string_view, const std::vector<UINodeDesc>&)> cb) const;
-        void RegisterNodeType(const std::string& typeGroup, int32_t uniqueTypeId, std::string_view typeName);
+        void ForEachNodeType(std::string_view search, std::function<void(std::string_view, const std::vector<UINodeDesc>&)> cb) const;
+        void RegisterNodeType(const std::string& typeGroup, int32_t uniqueTypeId, std::string_view typeName, std::string_view description = "");
         void RegisterAllOf(const std::string& typeGroup);
         void ProcessSubGraph(int32_t numSamples, int32_t numCacheSamples = -1);
         void Tick(int32_t tickCount, float delta);

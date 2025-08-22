@@ -120,7 +120,7 @@ namespace l::nodegraph {
     }
 
     bool NodeGraphBase::ClearInput(int8_t inputChannel) {
-        ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
+        //ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
         if (!IsValidInOutNum(inputChannel, mInputs.size())) {
             return false;
         }
@@ -136,7 +136,7 @@ namespace l::nodegraph {
     }
 
     bool NodeGraphBase::SetInput(int8_t inputChannel, NodeGraphBase& source, int8_t sourceOutputChannel) {
-        ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
+        //ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
         if (!IsValidInOutNum(inputChannel, mInputs.size())) {
             return false;
         }
@@ -148,7 +148,7 @@ namespace l::nodegraph {
     }
 
     bool NodeGraphBase::SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceChannel) {
-        ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
+        //ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
         if (!IsValidInOutNum(inputChannel, mInputs.size())) {
             return false;
         }
@@ -167,7 +167,7 @@ namespace l::nodegraph {
     }
 
     bool NodeGraphBase::SetInput(int8_t inputChannel, float initialValue, int32_t minSize) {
-        ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
+        //ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
         if (!IsValidInOutNum(inputChannel, mInputs.size())) {
             return false;
         }
@@ -194,7 +194,7 @@ namespace l::nodegraph {
     }
 
     bool NodeGraphBase::SetInput(int8_t inputChannel, std::string_view text) {
-        ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
+        //ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
         if (!IsValidInOutNum(inputChannel, mInputs.size())) {
             return false;
         }
