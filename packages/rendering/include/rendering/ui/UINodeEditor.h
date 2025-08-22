@@ -17,7 +17,7 @@
 
 namespace l::ui {
 
-    void depthFirstTraversal(const nodegraph::TreeMenuNode& node, std::vector<std::string>& path, std::function<void(std::string_view, int32_t)> cbMenuItem);
+    void depthFirstTraversal(const nodegraph::TreeMenuNode& node, std::vector<std::string>& path, std::function<void(std::string_view, int32_t, std::string_view)> cbMenuItem);
 
     struct NodeEvent {
         l::nodegraph::NodeGraphSchema* mNodeSchema = nullptr;
@@ -61,5 +61,7 @@ namespace l::ui {
 
         std::vector<std::function<void(const NodeEvent&)>> mEventListeners;
         std::function<void(UINodeEditor&)> mOverlayContentWindow = nullptr;
+
+        l::string::string_buffer<20> mPickerSearch;
     };
 }

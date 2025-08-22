@@ -83,6 +83,13 @@ namespace l::string {
 			return std::string_view( &mBuf[0], size());
 		}
 
+		char* data() {
+			return &mBuf[0];
+		}
+
+		size_t capacity() {
+			return BUFSIZE - 1;
+		}
 	protected:
 		int32_t mPos = 0;
 		char mBuf[BUFSIZE];
