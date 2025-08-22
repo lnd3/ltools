@@ -26,9 +26,9 @@ namespace testing {
 #define TESTNAME(group, name) CONCATE(Test, CONCATE(group, name)) \
 
 #define TEST(testgroup, testname) \
-	int TESTNAME(testgroup, testname)(); \
+	static int TESTNAME(testgroup, testname)(); \
 	ADDTEST(STRINGIFY(testgroup), STRINGIFY(testname), TESTNAME(testgroup, testname)) \
-	int TESTNAME(testgroup, testname)() \
+	static int TESTNAME(testgroup, testname)() \
 
 
 
@@ -39,10 +39,10 @@ namespace testing {
 #define PERFNAMEWRAPPER(group, name) CONCATE(Perf, CONCATE(group, CONCATE(name, Wrapper))) \
 
 #define PERF_TEST(perfgroup, perfname) \
-	int PERFNAME(perfgroup, perfname)(); \
-	int PERFNAMEWRAPPER(perfgroup, perfname)() {l::testing::get_current_test_group()=#perfgroup;return PERFNAME(perfgroup, perfname)();} \
+	static int PERFNAME(perfgroup, perfname)(); \
+	static int PERFNAMEWRAPPER(perfgroup, perfname)() {l::testing::get_current_test_group()=#perfgroup;return PERFNAME(perfgroup, perfname)();} \
 	ADDPERF(STRINGIFY(perfgroup), STRINGIFY(perfname), PERFNAMEWRAPPER(perfgroup, perfname)) \
-	int PERFNAME(perfgroup, perfname)() \
+	static int PERFNAME(perfgroup, perfname)() \
 
 #ifndef _DEBUG
 #define TEST_TRUE(expr, msg) \
