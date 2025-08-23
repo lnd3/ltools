@@ -62,6 +62,6 @@ namespace l::ui {
         std::vector<std::function<void(const NodeEvent&)>> mEventListeners;
         std::function<void(UINodeEditor&)> mOverlayContentWindow = nullptr;
 
-        l::string::string_buffer<20> mPickerSearch;
+        //l::string::string_buffer<20> mPickerSearch;
     };
 }

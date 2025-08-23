@@ -624,12 +624,12 @@ namespace l::nodegraph {
             RegisterNodeType("Math.Logic", 122, "Xor");
         }
         else if (typeGroup == "Math.Numerical") {
-            RegisterNodeType("Math.Numerical", 140, "Integral");
-            RegisterNodeType("Math.Numerical", 141, "Derivate");
+            RegisterNodeType("Math.Numerical", 140, "Integral", "Basically a temporal summation node with a EWA on the output with a cooefficient 'friction'");
+            RegisterNodeType("Math.Numerical", 141, "Derivate", "");
             RegisterNodeType("Math.Numerical", 142, "Difference Normalized");
             RegisterNodeType("Math.Numerical", 143, "Difference");
             RegisterNodeType("Math.Numerical", 144, "Level Trigger", "Determines where some input is located between two extremes (min/max) in the format [0,1] ");
-            RegisterNodeType("Math.Numerical", 145, "Minmax Channel");
+            RegisterNodeType("Math.Numerical", 145, "Minmax Channel", "Computes the range between the EWA smootherd min/max inputs");
             RegisterNodeType("Math.Numerical", 146, "Reconstructor", "Deconstructs the input into derivatives (change per index) and outputs the sum of through a ewa with a cooefficient of 'friction' {x1 = x0 + friction * (target - x0)}. An second output is provided which is the average of the last two outputs of that function.");
         }
         else if (typeGroup == "Trading.Data IO") {

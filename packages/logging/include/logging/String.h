@@ -53,6 +53,15 @@ namespace l::string {
 			return size() == 0;
 		}
 
+		void flush() {
+			for (size_t i = 0; i < BUFSIZE; i++) {
+				if (mBuf[i] == 0) {
+					return;
+				}
+				mPos++;
+			}
+		}
+
 		size_t left() {
 			return static_cast<size_t>(BUFSIZE - mPos);
 		}

@@ -50,7 +50,8 @@ namespace l::ui {
 
         SetPointerPopup([&]() {
             ImGui::Text("Node picker");
-            ImGui::InputText("find", mPickerSearch.data(), mPickerSearch.capacity(), ImGuiInputTextFlags_EnterReturnsTrue);
+//            ImGui::SameLine();
+//            ImGui::InputText("##pickersearchbar", mPickerSearch.data(), 20);
             ImGui::Separator();
 
             if (mNGSchema == nullptr) {
@@ -59,6 +60,9 @@ namespace l::ui {
 
             std::vector<std::string> path;
             depthFirstTraversal(mNGSchema->GetPickerRoot(), path, [&](std::string_view menuName, int32_t menuId, std::string_view description) {
+                //if (mPickerSearch.data() != 0 && !l::string::equal_partial(mPickerSearch.data(), menuName.data(), 0, 0, 20)) {
+                //    return;
+                //}
                 if (!menuName.empty()) {
                     if (ImGui::MenuItem(menuName.data())) {
                         ImVec2 p = ImVec2(mUIInput.mCurPos.x - GetPosition().x, mUIInput.mCurPos.y - GetPosition().y);
