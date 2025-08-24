@@ -297,4 +297,33 @@ namespace l::nodegraph {
             }
         }
     };
+
+    /*********************************************************************/
+    class MathAritmethicSum5 : public NodeGraphOp {
+    public:
+        MathAritmethicSum5(NodeGraphBase* node) :
+            NodeGraphOp(node, "Sum5")
+        {
+            AddInput("a");
+            AddInput("b");
+            AddInput("c");
+            AddInput("d");
+            AddInput("e");
+            AddOutput("sum");
+        }
+        virtual ~MathAritmethicSum5() = default;
+        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+            auto input0 = inputs.at(0).GetIterator(numSamples);
+            auto input1 = inputs.at(1).GetIterator(numSamples);
+            auto input2 = inputs.at(2).GetIterator(numSamples);
+            auto input3 = inputs.at(3).GetIterator(numSamples);
+            auto input4 = inputs.at(4).GetIterator(numSamples);
+            auto output = &outputs.at(0).Get(numSamples);
+
+            for (int32_t i = 0; i < numSamples; i++) {
+                *output++ = *input0++ + *input1++ + *input2++ + *input3++ + *input4++;
+            }
+        }
+    };
+
 }

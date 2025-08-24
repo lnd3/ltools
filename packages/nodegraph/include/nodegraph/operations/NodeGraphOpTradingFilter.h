@@ -29,8 +29,8 @@ namespace l::nodegraph {
             NodeGraphOp(node, "Flip Gate")
         {
             AddInput("In", 0.0f);
-            AddInput("Pos Max Hold", 0.0f, 1, 0.0f, l::math::constants::FLTMAX);
-            AddInput("Neg Max Hold", 0.0f, 1, 0.0f, l::math::constants::FLTMAX);
+            AddInput("Sustain Pos", 0.0f, 1, 0.0f, l::math::constants::FLTMAX);
+            AddInput("Sustain Neg", 0.0f, 1, 0.0f, l::math::constants::FLTMAX);
             AddOutput("Gate Hold", 0.0f);
             AddOutput("Gate", 0.0f);
         }

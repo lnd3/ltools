@@ -127,9 +127,9 @@ namespace l::nodegraph {
         MathNumericalMinMaxChannel(NodeGraphBase* node) :
             NodeGraphOp(node, "Minmax Channel")
         {
-            AddInput2("Upper Bound");
-            AddInput2("Lower Bound");
-            AddInput2("Bounded Value");
+            AddInput("Max", 1.0f, 1);
+            AddInput("Min", 0.0f, 1);
+            AddInput2("In");
             AddInput("Friction", 1.0f, 1, 0.0f, 1.0f);
 
             AddOutput2("Range");

@@ -222,6 +222,9 @@ namespace l::nodegraph {
         case 5:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceText>(id, NodeType::Default);
             break;
+        case 6:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants2>(id, NodeType::Default);
+            break;
 
             // Internal output like NG chart or debug view
         case 20:
@@ -280,6 +283,9 @@ namespace l::nodegraph {
             break;
         case 110:
             node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicSum3>(id, NodeType::Default);
+            break;
+        case 111:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicSum5>(id, NodeType::Default);
             break;
 
             // Math logical operators
@@ -594,6 +600,7 @@ namespace l::nodegraph {
             RegisterNodeType("Node Graph.Source", 3, "Value [-inf,inf]");
             RegisterNodeType("Node Graph.Source", 4, "Time");
             RegisterNodeType("Node Graph.Source", 5, "Text");
+            RegisterNodeType("Node Graph.Source", 6, "Constants");
         }
         else if (typeGroup == "Node Graph.Output") {
             RegisterNodeType("Node Graph.Output", 20, "Debug");
@@ -617,6 +624,7 @@ namespace l::nodegraph {
             RegisterNodeType("Math.Aritmethic", 108, "Round");
             RegisterNodeType("Math.Aritmethic", 109, "Pow");
             RegisterNodeType("Math.Aritmethic", 110, "Sum3");
+            RegisterNodeType("Math.Aritmethic", 111, "Sum5");
         }
         else if (typeGroup == "Math.Logic") {
             RegisterNodeType("Math.Logic", 120, "And");

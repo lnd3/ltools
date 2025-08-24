@@ -112,5 +112,31 @@ namespace l::nodegraph {
         }
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     };
+
+    /*********************************************************************/
+    class GraphSourceConstants2 : public NodeGraphOp {
+    public:
+        GraphSourceConstants2(NodeGraphBase* node) :
+            NodeGraphOp(node, "Constants2")
+        {
+            AddConstant("1");
+            AddConstant("2");
+            AddConstant("3");
+            AddConstant("4");
+            AddConstant("Min");
+            AddConstant("Max");
+
+            AddOutput("Out 1");
+            AddOutput("Out 2");
+            AddOutput("Out 3");
+            AddOutput("Out 3");
+        }
+
+        virtual ~GraphSourceConstants2() {
+        }
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+    protected:
+    };
+
 }
 
