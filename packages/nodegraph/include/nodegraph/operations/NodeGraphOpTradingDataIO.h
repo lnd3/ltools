@@ -97,11 +97,15 @@ namespace l::nodegraph {
             AddOutput("Index#2", 2.0f);
             AddOutput("Index#3", 3.0f);
             AddOutput("Now");
+            AddOutput("Reset");
         }
 
         virtual ~TradingDataIOChartInfo() = default;
 
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+
+    protected:
+        int32_t mReadSamples = 0;
     };
 
 }

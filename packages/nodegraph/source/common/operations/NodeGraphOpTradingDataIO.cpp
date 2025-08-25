@@ -167,7 +167,7 @@ namespace l::nodegraph {
         }
     }
 
-    void TradingDataIOChartInfo::Process(int32_t, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void TradingDataIOChartInfo::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto symbolInput = inputs.at(0).GetText(16);
         auto baseInput = inputs.at(1).GetText(16);
         auto indexInput = l::math::clamp(inputs.at(2).Get(), 0.0f, 9.9999f);
@@ -180,11 +180,19 @@ namespace l::nodegraph {
         float* indexOut2 = &outputs.at(4).Get();
         float* indexOut3 = &outputs.at(5).Get();
         float* nowOutput = &outputs.at(6).Get();
+        float* resetOutput = &outputs.at(7).Get();
+
         *indexOut0 = l::math::clamp(indexInput, 0.0f, 9.9999f);
         *indexOut1 = l::math::clamp(indexInput + 1.0f, 0.0f, 9.9999f);
         *indexOut2 = l::math::clamp(indexInput + 2.0f, 0.0f, 9.9999f);
         *indexOut3 = l::math::clamp(indexInput + 3.0f, 0.0f, 9.9999f);
         *nowOutput = now;
+        *resetOutput = mReadSamples == 0;
+
+        mReadSamples += numSamples;
+        if (mReadSamples >= numCacheSamples) {
+            mReadSamples = 0;
+        }
     }
 
 }

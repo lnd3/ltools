@@ -120,24 +120,33 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void SignalGeneratorSine::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void SignalGeneratorSine::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         float* output0 = &outputs.at(0).Get(numSamples);
 
         float updateRate = 256.0f;
+
+        if (mReadSamples == 0) {
+            auto reset = inputs.at(5).Get();
+            if (reset > 0.0f) {
+                mVolume = 0.0f;
+                mVol = 0.0f;
+
+                mPhase = 0.0f;
+                mPhaseFmod = 0.0f;
+                mWave = 0.0f;
+                mSamplesUntilUpdate = 0.0f;
+            }
+        }
 
         mSamplesUntilUpdate = l::audio::BatchUpdate(updateRate, mSamplesUntilUpdate, 0, numSamples,
             [&]() {
                 mFreq = l::math::max2(static_cast<double>(inputs.at(0).Get()), 0.0);
                 mVolume = inputs.at(1).Get();
-                mReset = inputs.at(5).Get();
 
                 if (mFreq == 0.0f) {
                     mVolume = 0.0f;
                     outputs.at(0).mOutput = 0.0f;
                     return updateRate;
-                }
-                if (mReset > 0.5f) {
-                    mVolume = 0.0f;
                 }
                 mDeltaTime = 1.0 / 44100.0;
 
@@ -191,6 +200,11 @@ namespace l::nodegraph {
                 }
             }
         );
+
+        mReadSamples += numSamples;
+        if (mReadSamples >= numCacheSamples) {
+            mReadSamples = 0;
+        }
     }
 
     /*********************************************************************/
