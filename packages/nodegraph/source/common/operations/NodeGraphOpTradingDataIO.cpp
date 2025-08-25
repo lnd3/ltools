@@ -25,10 +25,6 @@ namespace l::nodegraph {
 
     void TradingDataIOOCHLVDataIn::ProcessReadCached(int32_t readSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
 
-        if (readSamples == 0) {
-            mUnixtimePrev = 0;
-        }
-
         int32_t stride = 9;
 
         inputs.at(0).MinimizeBuffer(numCacheSamples * stride);
@@ -50,6 +46,12 @@ namespace l::nodegraph {
 
         auto intervalMinutes = static_cast<int32_t>(outputs.at(2).Get(1) + 0.5f);
 
+        bool reset = false;
+        if (mReadSamples == 0) {
+            reset = true;
+            mUnixtimePrev = 0;
+        }
+
         if (mMode == 0) {
             for (int32_t j = 0; j < numSamples; j++) {
                 auto offset = j * stride;
@@ -67,7 +69,6 @@ namespace l::nodegraph {
                     mUnixtimePrev = unixtime;
                 }
 
-                *out1++ = unixtimef; // unixtime
                 auto o = in[offset + 1];
                 auto c = in[offset + 2];
                 auto h = in[offset + 3];
@@ -78,7 +79,8 @@ namespace l::nodegraph {
                 auto bq = in[offset + 8]; // buy quantity
 
                 auto timemin = unixtime / 60;
-                if (timemin % timeframeMultiplier == 0) {
+                if (reset || timemin % timeframeMultiplier == 0) {
+                    reset = false;
                     // time interval looping so reset moving averages
                     mOpenMa = o; // simply first value
                     mCloseMa = c;
@@ -109,6 +111,7 @@ namespace l::nodegraph {
                     mBuyQuantMa += bq;
                 }
 
+                *out1++ = unixtimef; // unixtime
                 *out2++ = mOpenMa;
                 *out3++ = mCloseMa;
                 *out4++ = mHighMa;
@@ -139,7 +142,6 @@ namespace l::nodegraph {
                     mUnixtimePrev = unixtime;
                 }
 
-                *out1++ = unixtimef; // unixtime
                 auto o = in[offset + 1];
                 auto c = in[offset + 2];
                 auto h = in[offset + 3];
@@ -153,6 +155,7 @@ namespace l::nodegraph {
                 mOpenPrev = open;
                 mClosePrev = close;
 
+                *out1++ = unixtimef; // unixtime
                 *out2++ = open;
                 *out3++ = close;
                 *out4++ = high;
