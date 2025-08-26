@@ -177,4 +177,37 @@ namespace l::nodegraph {
         float mOutput1 = 0.0f;
         float mOutput2 = 0.0f;
     };
+
+    /*********************************************************************/
+    class MathNumericalTrends : public NodeGraphOp {
+    public:
+        MathNumericalTrends(NodeGraphBase* node) :
+            NodeGraphOp(node, "Trends")
+        {
+            AddInput2("In1");
+            AddInput2("In2");
+            AddInput("Friction1", 1.0f, 1, 0.0f, 1.0f);
+            AddInput("Friction2", 1.0f, 1, 0.0f, 1.0f);
+
+            AddOutput2("Trend1");
+            AddOutput2("Trend2");
+            AddOutput2("Trend Both");
+        }
+
+        virtual ~MathNumericalTrends() = default;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+    protected:
+        int32_t mReadSamples = 0;
+
+        float mInPrev1 = 0.0f;
+        float mIn1Prev1 = 0.0f;
+        float mIn2Prev1 = 0.0f;
+
+        float mInAccum = 0.0f;
+        float mIn1Accum = 0.0f;
+        float mIn2Accum = 0.0f;
+        float mInAccumPrev1 = 0.0f;
+        float mIn1AccumPrev1 = 0.0f;
+        float mIn2AccumPrev1 = 0.0f;
+    };
 }

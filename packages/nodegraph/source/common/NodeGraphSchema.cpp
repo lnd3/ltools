@@ -321,7 +321,10 @@ namespace l::nodegraph {
         case 146:
             node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalReconstructor>(id, NodeType::Default);
             break;
-
+        case 147:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalTrends>(id, NodeType::Default);
+            break;
+            
             // Trading data io
         case 200:
             node = mMainNodeGraph.NewNode<l::nodegraph::TradingDataIOOCHLVDataIn>(id, NodeType::ExternalInput, 0);
@@ -639,6 +642,7 @@ namespace l::nodegraph {
             RegisterNodeType("Math.Numerical", 144, "Level Trigger", "Determines where some input is located between two extremes (min/max) in the format [0,1] ");
             RegisterNodeType("Math.Numerical", 145, "Minmax Channel", "Computes the range between the EWA smootherd min/max inputs");
             RegisterNodeType("Math.Numerical", 146, "Reconstructor", "Deconstructs the input into derivatives (change per index) and outputs the sum of through a ewa with a cooefficient of 'friction' {x1 = x0 + friction * (target - x0)}. An second output is provided which is the average of the last two outputs of that function.");
+            RegisterNodeType("Math.Numerical", 147, "");
         }
         else if (typeGroup == "Trading.Data IO") {
             RegisterNodeType("Trading.Data IO", 200, "OCHLV Data In");

@@ -9,6 +9,7 @@
 
 namespace l::nodegraph {
 
+    /*********************************************************************/
     void MathNumericalIntegral::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto input0 = &inputs.at(0).Get(numSamples);
         auto friction = inputs.at(1).Get();
@@ -33,6 +34,7 @@ namespace l::nodegraph {
         }
     }
 
+    /*********************************************************************/
     void MathNumericalTemporalChange::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto input0 = &inputs.at(0).Get(numSamples);
         auto output = &outputs.at(0).Get(numSamples);
@@ -56,6 +58,7 @@ namespace l::nodegraph {
         }
     }
 
+    /*********************************************************************/
     void MathNumericalDiffNorm::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto input0 = &inputs.at(0).Get(numSamples);
         auto output = &outputs.at(0).Get(numSamples);
@@ -88,6 +91,7 @@ namespace l::nodegraph {
         }
     }
 
+    /*********************************************************************/
     void MathNumericalDiff::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto input0 = &inputs.at(0).Get(numSamples);
         auto output = &outputs.at(0).Get(numSamples);
@@ -107,6 +111,7 @@ namespace l::nodegraph {
         }
     }
 
+    /*********************************************************************/
     void MathNumericalLevelTrigger::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto inInput = &inputs.at(0).Get(numSamples);
         auto maxInput = inputs.at(1).GetIterator(numSamples);
@@ -149,6 +154,7 @@ namespace l::nodegraph {
         }
     }
 
+    /*********************************************************************/
     void MathNumericalMinMaxChannel::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto inInput = &inputs.at(0).Get(numSamples);
         auto upperInput = inputs.at(1).GetIterator(numSamples);
@@ -205,8 +211,9 @@ namespace l::nodegraph {
         }
     }
 
+    /*********************************************************************/
     void MathNumericalReconstructor::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
-        
+
         auto inInput = &inputs.at(0).Get(numSamples);
         auto baseInput = inputs.at(1).GetIterator();
 
@@ -262,6 +269,71 @@ namespace l::nodegraph {
             mOutput2 = 0.0f;
             mInputPrev = 0.0f;
             mDiffPrev = 0.0f;
+        }
+    }
+
+    /*********************************************************************/
+    void MathNumericalTrends::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+
+        auto in1Input = &inputs.at(0).Get(numSamples);
+        auto in2Input = &inputs.at(1).Get(numSamples);
+        auto friction1 = inputs.at(2).Get();
+        auto friction2 = inputs.at(3).Get();
+        auto frictionFactor1 = l::math::clamp(l::math::pow(friction1, 0.25f), 0.0f, 1.0f);
+        auto frictionFactor2 = l::math::clamp(l::math::pow(friction2, 0.25f), 0.0f, 1.0f);
+
+        auto trend1Output = &outputs.at(0).Get(numSamples);
+        auto trend2Output = &outputs.at(1).Get(numSamples);
+        auto trendOutput = &outputs.at(2).Get(numSamples);
+
+        auto in1Enabled = inputs.at(0).HasInputNode();
+        auto in2Enabled = inputs.at(1).HasInputNode();
+
+        for (int32_t i = 0; i < numSamples; i++) {
+            float in1 = 0.0f;
+            float in2 = 0.0f;
+
+            if (in1Enabled) {
+                in1 = *in1Input++;
+            }
+            if (in2Enabled) {
+                in2 = *in2Input++;
+            }
+
+            auto in = (in1 + in2) * 0.5f;
+
+            auto in1Diff = in1 - mIn1Prev1;
+            auto in2Diff = in2 - mIn2Prev1;
+            auto inDiff = in - mInPrev1;
+
+            mIn1Accum += in1Diff;
+            mIn1Accum *= frictionFactor2;
+            mIn2Accum += in2Diff;
+            mIn2Accum *= frictionFactor2;
+            mInAccum += inDiff;
+            mInAccum *= frictionFactor1;
+
+            auto in1Accum = mIn1Accum - mIn1AccumPrev1;
+            auto in2Accum = mIn2Accum - mIn2AccumPrev1;
+            auto inAccum = mInAccum - mInAccumPrev1;
+
+            *trend1Output++ = in1Accum;
+            *trend2Output++ = in2Accum;
+            *trendOutput++ = inAccum;
+
+            mIn1Prev1 = in1;
+            mIn2Prev1 = in2;
+            mInPrev1 = in;
+
+            mIn1AccumPrev1 = mIn1Accum;
+            mIn2AccumPrev1 = mIn2Accum;
+            mInAccumPrev1 = mInAccum;
+        }
+
+        mReadSamples += numSamples;
+
+        if (mReadSamples >= numCacheSamples) {
+            mReadSamples = 0;
         }
     }
 
