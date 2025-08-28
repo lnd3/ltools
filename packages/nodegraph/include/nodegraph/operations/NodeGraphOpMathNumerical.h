@@ -212,23 +212,20 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class MathNumericalNormalizer : public nodegraph::NodeGraphOp {
+    class MathNumericalSigmoid : public nodegraph::NodeGraphOp {
     public:
-        MathNumericalNormalizer(nodegraph::NodeGraphBase* node) :
-            NodeGraphOp(node, "Normalizer")
+        MathNumericalSigmoid(nodegraph::NodeGraphBase* node) :
+            NodeGraphOp(node, "Sigmoid")
         {
             AddInput2("In");
-            AddInput("Friction", 0.5f, 1, 0.0f, 1.0f);
+            AddInput("Scale", 0.5f, 1, 0.0f, 100.0f);
 
             AddOutput2("Out");
         }
 
-        virtual ~MathNumericalNormalizer() = default;
+        virtual ~MathNumericalSigmoid() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<nodegraph::NodeGraphInput>& inputs, std::vector<nodegraph::NodeGraphOutput>& outputs) override;
     protected:
-        int32_t mReadSamples = 0;
-        float mInAbsPrev = 0.0f;
-        float mEmaMagnitude = 1.0f;
     };
 
 }

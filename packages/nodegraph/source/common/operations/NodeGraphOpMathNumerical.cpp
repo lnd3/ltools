@@ -338,38 +338,16 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void MathNumericalNormalizer::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void MathNumericalSigmoid::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto inInput = &inputs.at(0).Get(numSamples);
-        auto friction = inputs.at(1).Get();
+        auto k = inputs.at(1).Get();
 
         auto outOutput = &outputs.at(0).Get(numSamples);
 
-        if (mReadSamples == 0) {
-            mEmaMagnitude = 0.0f;
-            mInAbsPrev = l::math::abs(*inInput);
-        }
-
         for (int32_t i = 0; i < numSamples; i++) {
             float in = *inInput++;
-
-            auto inAbs = l::math::abs(in);
-            if (inAbs < mInAbsPrev) {
-                mEmaMagnitude += 0.5f * friction * (inAbs - mEmaMagnitude); // decreasing magnitude is half as strong
-            }
-            else {
-                mEmaMagnitude += friction * (inAbs - mEmaMagnitude);
-            }
-
-            auto out = in / mEmaMagnitude;
-
+            auto out = l::math::functions::sigmoid(in, k);
             *outOutput++ = out;
-
-            mInAbsPrev = inAbs;
-        }
-
-        mReadSamples += numSamples;
-        if (mReadSamples == numCacheSamples) {
-            mReadSamples = 0;
         }
     }
 }
