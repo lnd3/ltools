@@ -273,7 +273,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void MathNumericalTrends::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void MathNumericalReconstructor2::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
 
         auto in1Input = &inputs.at(0).Get(numSamples);
         auto in2Input = &inputs.at(1).Get(numSamples);
@@ -282,9 +282,9 @@ namespace l::nodegraph {
         auto frictionFactor1 = l::math::clamp(l::math::pow(friction1, 0.25f), 0.0f, 1.0f);
         auto frictionFactor2 = l::math::clamp(l::math::pow(friction2, 0.25f), 0.0f, 1.0f);
 
-        auto trend1Output = &outputs.at(0).Get(numSamples);
-        auto trend2Output = &outputs.at(1).Get(numSamples);
-        auto trendOutput = &outputs.at(2).Get(numSamples);
+        auto intgr1Output = &outputs.at(0).Get(numSamples);
+        auto intgr2Output = &outputs.at(1).Get(numSamples);
+        auto intgrBothOutput = &outputs.at(2).Get(numSamples);
 
         auto in1Enabled = inputs.at(0).HasInputNode();
         auto in2Enabled = inputs.at(1).HasInputNode();
@@ -317,9 +317,9 @@ namespace l::nodegraph {
             auto in2Accum = mIn2Accum - mIn2AccumPrev1;
             auto inAccum = mInAccum - mInAccumPrev1;
 
-            *trend1Output++ = in1Accum;
-            *trend2Output++ = in2Accum;
-            *trendOutput++ = inAccum;
+            *intgr1Output++ = in1Accum;
+            *intgr2Output++ = in2Accum;
+            *intgrBothOutput++ = inAccum;
 
             mIn1Prev1 = in1;
             mIn2Prev1 = in2;
@@ -337,4 +337,29 @@ namespace l::nodegraph {
         }
     }
 
+    /*********************************************************************/
+    void MathNumericalNormalizer::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        auto inInput = &inputs.at(0).Get(numSamples);
+        auto friction = inputs.at(1).Get();
+
+        auto outOutput = &outputs.at(0).Get(numSamples);
+
+        for (int32_t i = 0; i < numSamples; i++) {
+            float in = *inInput++;
+
+            auto inAbs = l::math::abs(in);
+            if (inAbs < mInAbsPrev) {
+                mTargetMagnitude += 0.5f * friction * (-mTargetMagnitude); // decreasing magnitude is half as strong
+            }
+            else {
+                mTargetMagnitude += friction * (-mTargetMagnitude);
+            }
+
+            auto out = in / mTargetMagnitude;
+
+            *outOutput++ = out;
+
+            mInAbsPrev = inAbs;
+        }
+    }
 }

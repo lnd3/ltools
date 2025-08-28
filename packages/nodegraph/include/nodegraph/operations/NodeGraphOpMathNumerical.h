@@ -179,22 +179,22 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class MathNumericalTrends : public NodeGraphOp {
+    class MathNumericalReconstructor2 : public NodeGraphOp {
     public:
-        MathNumericalTrends(NodeGraphBase* node) :
-            NodeGraphOp(node, "Trends")
+        MathNumericalReconstructor2(NodeGraphBase* node) :
+            NodeGraphOp(node, "Reconstructor 2")
         {
             AddInput2("In1");
             AddInput2("In2");
             AddInput("Friction1", 1.0f, 1, 0.0f, 1.0f);
             AddInput("Friction2", 1.0f, 1, 0.0f, 1.0f);
 
-            AddOutput2("Trend1");
-            AddOutput2("Trend2");
-            AddOutput2("Trend Both");
+            AddOutput2("Intgr1");
+            AddOutput2("Intgr1");
+            AddOutput2("Intgr Both");
         }
 
-        virtual ~MathNumericalTrends() = default;
+        virtual ~MathNumericalReconstructor2() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         int32_t mReadSamples = 0;
@@ -210,4 +210,24 @@ namespace l::nodegraph {
         float mIn1AccumPrev1 = 0.0f;
         float mIn2AccumPrev1 = 0.0f;
     };
+
+    /*********************************************************************/
+    class MathNumericalNormalizer : public nodegraph::NodeGraphOp {
+    public:
+        MathNumericalNormalizer(nodegraph::NodeGraphBase* node) :
+            NodeGraphOp(node, "Normalizer")
+        {
+            AddInput2("In");
+            AddInput("Friction", 0.5f, 1, 0.0f, 1.0f);
+
+            AddOutput2("Out");
+        }
+
+        virtual ~MathNumericalNormalizer() = default;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<nodegraph::NodeGraphInput>& inputs, std::vector<nodegraph::NodeGraphOutput>& outputs) override;
+    protected:
+        float mInAbsPrev = 0.0f;
+        float mTargetMagnitude = 1.0f;
+    };
+
 }

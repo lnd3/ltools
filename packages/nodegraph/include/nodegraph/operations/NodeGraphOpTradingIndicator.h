@@ -268,24 +268,45 @@ namespace l::nodegraph {
     class TradingIndicatorATR : public NodeGraphOp {
     public:
         TradingIndicatorATR(NodeGraphBase* node) :
-            NodeGraphOp(node, "ATR (average true range)")
+            NodeGraphOp(node, "Average True Range")
         {
-            AddInput("In", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
+            AddInput2("Close");
+            AddInput2("High");
+            AddInput2("Low");
+            AddInput("N", 14.0f, 1, 1.0f, 200.0f);
+
+            AddOutput("TR", 0.0f);
             AddOutput("ATR", 0.0f);
         }
 
         virtual ~TradingIndicatorATR() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input = inputs.at(0).GetIterator(numSamples);
-            auto output = outputs.at(0).GetIterator(numSamples);
+            auto closeInput = &inputs.at(0).Get(numSamples);
+            auto highInput = &inputs.at(1).Get(numSamples);
+            auto lowInput = &inputs.at(2).Get(numSamples);
+            auto periodN = static_cast<int32_t>(l::math::max2(1.0f, inputs.at(3).Get()));
+
+            auto trOutput = &outputs.at(0).Get(numSamples);
+            auto atrOutput = &outputs.at(1).Get(numSamples);
 
             for (int32_t i = 0; i < numSamples; i++) {
-                float in = *input++;
-                *output++ = in;
+                float close = *closeInput++;
+                float high = *highInput++;
+                float low = *lowInput++;
+
+                auto trueRange = l::math::max3(high - low, l::math::abs(high) - mClosePrev, l::math::abs(low) - mClosePrev);
+                auto atr = (mATRPrev * static_cast<float>(periodN - 1) + trueRange) / static_cast<float>(periodN);
+                *trOutput++ = trueRange;
+                *atrOutput++ = atr;
+
+                mClosePrev = close;
+                mATRPrev = atr;
             }
         }
 
     protected:
+        float mClosePrev = 0.0f;
+        float mATRPrev = 0.0f;
     };
 
     /*********************************************************************/
