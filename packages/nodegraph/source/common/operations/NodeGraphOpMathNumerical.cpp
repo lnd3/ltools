@@ -344,22 +344,32 @@ namespace l::nodegraph {
 
         auto outOutput = &outputs.at(0).Get(numSamples);
 
+        if (mReadSamples == 0) {
+            mEmaMagnitude = 0.0f;
+            mInAbsPrev = l::math::abs(*inInput);
+        }
+
         for (int32_t i = 0; i < numSamples; i++) {
             float in = *inInput++;
 
             auto inAbs = l::math::abs(in);
             if (inAbs < mInAbsPrev) {
-                mTargetMagnitude += 0.5f * friction * (-mTargetMagnitude); // decreasing magnitude is half as strong
+                mEmaMagnitude += 0.5f * friction * (inAbs - mEmaMagnitude); // decreasing magnitude is half as strong
             }
             else {
-                mTargetMagnitude += friction * (-mTargetMagnitude);
+                mEmaMagnitude += friction * (inAbs - mEmaMagnitude);
             }
 
-            auto out = in / mTargetMagnitude;
+            auto out = in / mEmaMagnitude;
 
             *outOutput++ = out;
 
             mInAbsPrev = inAbs;
+        }
+
+        mReadSamples += numSamples;
+        if (mReadSamples == numCacheSamples) {
+            mReadSamples = 0;
         }
     }
 }

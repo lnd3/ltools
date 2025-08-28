@@ -226,8 +226,9 @@ namespace l::nodegraph {
         virtual ~MathNumericalNormalizer() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<nodegraph::NodeGraphInput>& inputs, std::vector<nodegraph::NodeGraphOutput>& outputs) override;
     protected:
+        int32_t mReadSamples = 0;
         float mInAbsPrev = 0.0f;
-        float mTargetMagnitude = 1.0f;
+        float mEmaMagnitude = 1.0f;
     };
 
 }

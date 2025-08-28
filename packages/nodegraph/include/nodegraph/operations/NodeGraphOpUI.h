@@ -180,7 +180,7 @@ namespace l::nodegraph {
         float GetProfit(float slip) {
             if (mEntry > 0.0f && mExit > 0.0f) {
                 auto entry = mEntry * (1.0f + slip); // entry commission
-                auto change = mExit / mEntry;
+                auto change = mExit / entry;
                 change = change * (1.0f - slip); // exit commission
                 change = 1.0f + (change - 1.0f) * mLotShare;
                 return change;
