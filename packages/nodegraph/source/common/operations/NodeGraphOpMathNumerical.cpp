@@ -338,7 +338,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void MathNumericalSigmoid::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void MathNumericalUnitmap::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto inInput = &inputs.at(0).Get(numSamples);
         auto k = inputs.at(1).Get();
 
@@ -346,7 +346,7 @@ namespace l::nodegraph {
 
         for (int32_t i = 0; i < numSamples; i++) {
             float in = *inInput++;
-            auto out = l::math::functions::sigmoid(in, k);
+            auto out = l::math::functions::sigmoid(in, k) * 2.0f - 1.0f;
             *outOutput++ = out;
         }
     }

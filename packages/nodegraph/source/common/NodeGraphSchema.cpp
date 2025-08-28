@@ -325,7 +325,7 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalReconstructor2>(id, NodeType::Default);
             break;
         case 148:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalSigmoid>(id, NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalUnitmap>(id, NodeType::Default);
             break;
 
             // Trading data io
@@ -646,7 +646,7 @@ namespace l::nodegraph {
             RegisterNodeType("Math.Numerical", 145, "Minmax Channel", "Computes the range between the EWA smootherd min/max inputs");
             RegisterNodeType("Math.Numerical", 146, "Reconstructor", "Deconstructs the input into derivatives (change per index) and outputs the sum of through a ewa with a cooefficient of 'friction' {x1 = x0 + friction * (target - x0)}. An second output is provided which is the average of the last two outputs of that function.");
             RegisterNodeType("Math.Numerical", 147, "Reconstructor 2", "");
-            RegisterNodeType("Math.Numerical", 148, "Sigmoid", "Maps the input to [-1,1] via a sigmoid function. A scale factor can be provided that changes the mapping");
+            RegisterNodeType("Math.Numerical", 148, "Unitmap", "Maps the input to [-1,1] via a sigmoid function. A scale factor can be provided that changes the shape of the mapping");
         }
         else if (typeGroup == "Trading.Data IO") {
             RegisterNodeType("Trading.Data IO", 200, "OCHLV Data In");

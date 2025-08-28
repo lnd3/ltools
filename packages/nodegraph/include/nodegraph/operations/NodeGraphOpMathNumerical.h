@@ -212,10 +212,10 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class MathNumericalSigmoid : public nodegraph::NodeGraphOp {
+    class MathNumericalUnitmap : public nodegraph::NodeGraphOp {
     public:
-        MathNumericalSigmoid(nodegraph::NodeGraphBase* node) :
-            NodeGraphOp(node, "Sigmoid")
+        MathNumericalUnitmap(nodegraph::NodeGraphBase* node) :
+            NodeGraphOp(node, "Unitmap")
         {
             AddInput2("In");
             AddInput("Scale", 0.5f, 1, 0.0f, 100.0f);
@@ -223,7 +223,7 @@ namespace l::nodegraph {
             AddOutput2("Out");
         }
 
-        virtual ~MathNumericalSigmoid() = default;
+        virtual ~MathNumericalUnitmap() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<nodegraph::NodeGraphInput>& inputs, std::vector<nodegraph::NodeGraphOutput>& outputs) override;
     protected:
     };

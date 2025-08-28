@@ -403,6 +403,7 @@ namespace l::math::functions {
 		return k * math::pow(x, a) * math::pow(1.0 - x, b);
 	}
 
+	// Sigmoid function maps the input to the interval [0,1] for [0,inf] input ([1] maps to [0.5]).
 	template<class T>
 	auto sigmoid(T x, T k) {
 		return static_cast<T>(static_cast<T>(1.0) / (static_cast<T>(1.0) + math::exp(-x * k)));
