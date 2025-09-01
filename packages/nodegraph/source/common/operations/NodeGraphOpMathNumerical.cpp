@@ -232,6 +232,10 @@ namespace l::nodegraph {
         auto outputIntegral2 = &outputs.at(4).Get(numSamples);
         auto outputBase2 = &outputs.at(5).Get(numSamples);
 
+        if (mReadSamples == 0) {
+            mInputPrev = *inInput;
+
+        }
         for (int32_t i = 0; i < numSamples; i++) {
             float in = *inInput++;
             auto base = *baseInput++;
@@ -289,6 +293,18 @@ namespace l::nodegraph {
         auto in1Enabled = inputs.at(0).HasInputNode();
         auto in2Enabled = inputs.at(1).HasInputNode();
 
+        if (mReadSamples == 0) {
+            mIn1Prev1 = 0.0f;
+            mIn2Prev1 = 0.0f;
+
+            if (in1Enabled) {
+                mIn1Prev1 = *in1Input;
+            }
+            if (in2Enabled) {
+                mIn2Prev1 = *in2Input;
+            }
+            mInPrev1 = (mIn1Prev1 + mIn2Prev1) * 0.5f;
+        }
         for (int32_t i = 0; i < numSamples; i++) {
             float in1 = 0.0f;
             float in2 = 0.0f;
@@ -340,14 +356,46 @@ namespace l::nodegraph {
     /*********************************************************************/
     void MathNumericalUnitmap::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto inInput = &inputs.at(0).Get(numSamples);
-        auto k = inputs.at(1).Get();
+        auto k = l::math::pow(inputs.at(1).Get(), 2.0f);
+        auto offs = inputs.at(2).Get();
+        offs = offs * offs * offs;
 
         auto outOutput = &outputs.at(0).Get(numSamples);
 
         for (int32_t i = 0; i < numSamples; i++) {
             float in = *inInput++;
             auto out = l::math::functions::sigmoid(in, k) * 2.0f - 1.0f;
-            *outOutput++ = out;
+            *outOutput++ = offs + out;
+        }
+    }
+
+    /*********************************************************************/
+    void MathNumericalEMA::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        auto inInput = &inputs.at(0).Get(numSamples);
+        auto n = l::math::max2(inputs.at(1).Get(), 1.0f);
+        auto zero = inputs.at(2).Get();
+        zero *= zero * zero;
+
+        auto outOutput = &outputs.at(0).Get(numSamples);
+
+        if (mReadSamples == 0) {
+            mEmaAccum = *inInput;
+        }
+
+        for (int32_t i = 0; i < numSamples; i++) {
+            float in = *inInput++;
+            mEmaAccum = (mEmaAccum * (n - 1.0f) + in) / n;
+            if (l::math::abs(mEmaAccum) < zero) {
+                *outOutput++ = 0.0f;
+            }
+            else {
+                *outOutput++ = mEmaAccum;
+            }
+        }
+
+        mReadSamples += numSamples;
+        if (mReadSamples == numCacheSamples) {
+            mReadSamples = 0;
         }
     }
 }

@@ -218,7 +218,8 @@ namespace l::nodegraph {
             NodeGraphOp(node, "Unitmap")
         {
             AddInput2("In");
-            AddInput("Scale", 0.5f, 1, 0.0f, 100.0f);
+            AddInput("Scale", 0.5f, 1, 0.0f, 100000.0f);
+            AddInput("Offset", 0.0f, 1, -1.0f, 1.0f);
 
             AddOutput2("Out");
         }
@@ -226,6 +227,27 @@ namespace l::nodegraph {
         virtual ~MathNumericalUnitmap() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<nodegraph::NodeGraphInput>& inputs, std::vector<nodegraph::NodeGraphOutput>& outputs) override;
     protected:
+    };
+
+    /*********************************************************************/
+    class MathNumericalEMA : public nodegraph::NodeGraphOp {
+    public:
+        MathNumericalEMA(nodegraph::NodeGraphBase* node) :
+            NodeGraphOp(node, "EMA")
+        {
+            AddInput2("In");
+            AddInput("N", 14.0f, 1, 1.0f, 1000.0f);
+            AddInput("Zero", 0.0f, 1, 0.0f, 1.0f);
+
+            AddOutput2("Out");
+        }
+
+        virtual ~MathNumericalEMA() = default;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<nodegraph::NodeGraphInput>& inputs, std::vector<nodegraph::NodeGraphOutput>& outputs) override;
+    protected:
+        int32_t mReadSamples = 0;
+
+        float mEmaAccum = 0.0f;
     };
 
 }

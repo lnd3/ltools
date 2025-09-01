@@ -284,7 +284,7 @@ namespace l::nodegraph {
             auto closeInput = &inputs.at(0).Get(numSamples);
             auto highInput = &inputs.at(1).Get(numSamples);
             auto lowInput = &inputs.at(2).Get(numSamples);
-            auto periodN = static_cast<int32_t>(l::math::max2(1.0f, inputs.at(3).Get()));
+            auto periodN = l::math::max2(1.0f, inputs.at(3).Get());
 
             auto trOutput = &outputs.at(0).Get(numSamples);
             auto atrOutput = &outputs.at(1).Get(numSamples);
@@ -295,7 +295,7 @@ namespace l::nodegraph {
                 float low = *lowInput++;
 
                 auto trueRange = l::math::max3(high - low, l::math::abs(high) - mClosePrev, l::math::abs(low) - mClosePrev);
-                auto atr = (mATRPrev * static_cast<float>(periodN - 1) + trueRange) / static_cast<float>(periodN);
+                auto atr = (mATRPrev * (periodN - 1.0f) + trueRange) / periodN;
                 *trOutput++ = trueRange;
                 *atrOutput++ = atr;
 
