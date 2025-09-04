@@ -31,6 +31,7 @@ else()
 		audio
 		hid
 		nodegraph
+		nn
 
 		network
 		storage
@@ -59,6 +60,7 @@ else()
 	  set_target_properties(audio PROPERTIES UNITY_BUILD ON)
 	  set_target_properties(hid PROPERTIES UNITY_BUILD ON)
 	  set_target_properties(nodegraph PROPERTIES UNITY_BUILD ON)
+	  set_target_properties(nn PROPERTIES UNITY_BUILD ON)
 
 	  set_target_properties(network PROPERTIES UNITY_BUILD ON)
 	  set_target_properties(storage PROPERTIES UNITY_BUILD ON)
