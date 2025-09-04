@@ -232,6 +232,10 @@ namespace l::nodegraph {
         auto outputIntegral2 = &outputs.at(4).Get(numSamples);
         auto outputBase2 = &outputs.at(5).Get(numSamples);
 
+        if (mReadSamples == 0) {
+            mInputPrev = *inInput;
+
+        }
         for (int32_t i = 0; i < numSamples; i++) {
             float in = *inInput++;
             auto base = *baseInput++;
@@ -273,7 +277,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void MathNumericalTrends::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void MathNumericalReconstructor2::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
 
         auto in1Input = &inputs.at(0).Get(numSamples);
         auto in2Input = &inputs.at(1).Get(numSamples);
@@ -282,13 +286,25 @@ namespace l::nodegraph {
         auto frictionFactor1 = l::math::clamp(l::math::pow(friction1, 0.25f), 0.0f, 1.0f);
         auto frictionFactor2 = l::math::clamp(l::math::pow(friction2, 0.25f), 0.0f, 1.0f);
 
-        auto trend1Output = &outputs.at(0).Get(numSamples);
-        auto trend2Output = &outputs.at(1).Get(numSamples);
-        auto trendOutput = &outputs.at(2).Get(numSamples);
+        auto intgr1Output = &outputs.at(0).Get(numSamples);
+        auto intgr2Output = &outputs.at(1).Get(numSamples);
+        auto intgrBothOutput = &outputs.at(2).Get(numSamples);
 
         auto in1Enabled = inputs.at(0).HasInputNode();
         auto in2Enabled = inputs.at(1).HasInputNode();
 
+        if (mReadSamples == 0) {
+            mIn1Prev1 = 0.0f;
+            mIn2Prev1 = 0.0f;
+
+            if (in1Enabled) {
+                mIn1Prev1 = *in1Input;
+            }
+            if (in2Enabled) {
+                mIn2Prev1 = *in2Input;
+            }
+            mInPrev1 = (mIn1Prev1 + mIn2Prev1) * 0.5f;
+        }
         for (int32_t i = 0; i < numSamples; i++) {
             float in1 = 0.0f;
             float in2 = 0.0f;
@@ -317,9 +333,9 @@ namespace l::nodegraph {
             auto in2Accum = mIn2Accum - mIn2AccumPrev1;
             auto inAccum = mInAccum - mInAccumPrev1;
 
-            *trend1Output++ = in1Accum;
-            *trend2Output++ = in2Accum;
-            *trendOutput++ = inAccum;
+            *intgr1Output++ = in1Accum;
+            *intgr2Output++ = in2Accum;
+            *intgrBothOutput++ = inAccum;
 
             mIn1Prev1 = in1;
             mIn2Prev1 = in2;
@@ -337,4 +353,49 @@ namespace l::nodegraph {
         }
     }
 
+    /*********************************************************************/
+    void MathNumericalUnitmap::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        auto inInput = &inputs.at(0).Get(numSamples);
+        auto k = l::math::pow(inputs.at(1).Get(), 2.0f);
+        auto offs = inputs.at(2).Get();
+        offs = offs * offs * offs;
+
+        auto outOutput = &outputs.at(0).Get(numSamples);
+
+        for (int32_t i = 0; i < numSamples; i++) {
+            float in = *inInput++;
+            auto out = l::math::functions::sigmoid(in, k) * 2.0f - 1.0f;
+            *outOutput++ = offs + out;
+        }
+    }
+
+    /*********************************************************************/
+    void MathNumericalEMA::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        auto inInput = &inputs.at(0).Get(numSamples);
+        auto n = l::math::max2(inputs.at(1).Get(), 1.0f);
+        auto zero = inputs.at(2).Get();
+        zero *= zero * zero;
+
+        auto outOutput = &outputs.at(0).Get(numSamples);
+
+        if (mReadSamples == 0) {
+            mEmaAccum = *inInput;
+        }
+
+        for (int32_t i = 0; i < numSamples; i++) {
+            float in = *inInput++;
+            mEmaAccum = (mEmaAccum * (n - 1.0f) + in) / n;
+            if (l::math::abs(mEmaAccum) < zero) {
+                *outOutput++ = 0.0f;
+            }
+            else {
+                *outOutput++ = mEmaAccum;
+            }
+        }
+
+        mReadSamples += numSamples;
+        if (mReadSamples == numCacheSamples) {
+            mReadSamples = 0;
+        }
+    }
 }
