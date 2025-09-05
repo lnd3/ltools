@@ -1,9 +1,10 @@
 #include "testing/Test.h"
 #include "logging/Log.h"
 
-#include <nn/FannNNBase.h>
+#include <nn/fann/NNFannBase.h>
 #include <nn/SlidingWindowBuffer.h>
 
+using namespace l::nn;
 using namespace l::nn::fann;
 
 
@@ -19,7 +20,7 @@ TEST(Fann, SlidingWindow) {
     const unsigned input_size = 10 * 1 * features_per_sample;
     const unsigned output_size = 1;
 
-    FannNNBase node("example_node", input_size, output_size);
+     NNFannBase node("example_node", input_size, output_size);
 
     // Feed data into the sliding window over time
     for (UnixTime t = 1000; t < 1020; ++t) {
@@ -29,12 +30,11 @@ TEST(Fann, SlidingWindow) {
         // Once we have a full window, prepare training example
         auto window_input = sliding_window.getWindow();
         if (window_input) {
-            TrainingExample ex{
-                .time = sliding_window.currentTimeRange(),
-                .input = *window_input,
+            TrainingExample ex;
+            ex.time = sliding_window.currentTimeRange();
+            ex.input = *window_input;
                 // Dummy target for demo
-                .target = {0.5f}
-            };
+            ex.target = {0.5f};
 
             if (node.trainIfNeeded(ex)) {
                 std::cout << "Trained on time range [" << ex.time.start << ", " << ex.time.end << ")\n";

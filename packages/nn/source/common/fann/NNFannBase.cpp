@@ -1,15 +1,15 @@
-#include <nn/FannNNBase.h>
+#include <nn/fann/NNFannBase.h>
 
 namespace l::nn::fann {
 
-    std::optional<TargetVec> FannNNBase::infer(const InputVec& input) {
+    std::optional<TargetVec> NNFannBase::infer(const InputVec& input) {
         if (input.size() != input_size_) return std::nullopt;
 
         float* output = fann_run(net_, const_cast<float*>(input.data()));
         return TargetVec(output, output + output_size_);
     }
 
-    void FannNNBase::forceTrain(const TrainingExample& ex) {
+    void NNFannBase::forceTrain(const TrainingExample& ex) {
         if (ex.input.size() != input_size_ || ex.target.size() != output_size_) {
             std::cerr << "Input/target size mismatch in forceTrain\n";
             return;
@@ -18,7 +18,7 @@ namespace l::nn::fann {
         // markTrained called by trainIfNeeded
     }
 
-    void FannNNBase::loadModel(const std::string& path) {
+    void NNFannBase::loadModel(const std::string& path) {
         struct fann* loaded = fann_create_from_file(path.c_str());
         if (loaded) {
             fann_destroy(net_);
@@ -29,7 +29,7 @@ namespace l::nn::fann {
         }
     }
 
-    void FannNNBase::saveModel(const std::string& path) const {
+    void NNFannBase::saveModel(const std::string& path) const {
         fann_save(net_, path.c_str());
     }
 

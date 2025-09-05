@@ -6,7 +6,7 @@
 #include <optional>
 #include <assert.h>
 
-namespace l::nn::fann {
+namespace l::nn {
 
     /**
      * Collects timestamped inputs and allows querying a fixed-size window

@@ -3,8 +3,10 @@
 #include <nn/NNUtils.h>
 
 #include <vector>
+#include <string>
+#include <optional>
 
-namespace l::nn::fann {
+namespace l::nn {
 
     class NNBase {
     public:

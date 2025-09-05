@@ -16,10 +16,10 @@
 
 namespace l::nn::fann {
 
-    class FannNNBase : public NNBase {
+    class NNFannBase : public NNBase {
     public:
-        FannNNBase() = default;
-        FannNNBase(std::string name, unsigned inputSize, unsigned outputSize)
+        NNFannBase() = default;
+        NNFannBase(std::string name, unsigned inputSize, unsigned outputSize)
             : NNBase(std::move(name)), input_size_(inputSize), output_size_(outputSize)
         {
             
@@ -28,7 +28,7 @@ namespace l::nn::fann {
             fann_set_learning_rate(net_, 0.01f);
         }
 
-        ~FannNNBase() override = default;
+        ~NNFannBase() override = default;
 
         std::optional<TargetVec> infer(const InputVec& input) override;
         void forceTrain(const TrainingExample& ex) override;

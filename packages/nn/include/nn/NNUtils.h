@@ -2,7 +2,7 @@
 
 #include <vector>
 
-namespace l::nn::fann {
+namespace l::nn {
 
     using UnixTime = int32_t;  // Unix timestamp in seconds
 
