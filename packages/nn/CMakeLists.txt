@@ -16,7 +16,9 @@ set(deps_external
 )
 
 bs_generate_package(nn "tier1" "${deps}" "${deps_external}")
-target_compile_definitions(nn PUBLIC cxx_std_17)
+set_target_properties(nn PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
+set_target_properties(nn_test PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
+
 if(MSVC)
 	target_compile_options(nn PRIVATE /W2 /bigobj)
 else()
