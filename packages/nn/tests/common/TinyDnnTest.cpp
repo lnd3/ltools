@@ -9,7 +9,7 @@ using namespace l::nn::tinydnn;
 
 TEST(TinyDnn, Basic) {
 
-    return;
+    return 0 ;
 
     size_t seq_len = 30;
     size_t ts_features = 4;
