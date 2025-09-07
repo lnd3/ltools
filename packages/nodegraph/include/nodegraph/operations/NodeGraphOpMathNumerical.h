@@ -46,16 +46,16 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class MathNumericalTemporalChange : public NodeGraphOp {
+    class MathNumericalTemporalChange1 : public NodeGraphOp {
     public:
-        MathNumericalTemporalChange(NodeGraphBase* node) :
-            NodeGraphOp(node, "Change %")
+        MathNumericalTemporalChange1(NodeGraphBase* node) :
+            NodeGraphOp(node, "Change 1")
         {
             AddInput2("in");
             AddOutput2("out");
         }
 
-        virtual ~MathNumericalTemporalChange() = default;
+        virtual ~MathNumericalTemporalChange1() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         int32_t mReadSamples = 0;
@@ -64,16 +64,34 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class MathNumericalDiffNorm : public NodeGraphOp {
+    class MathNumericalTemporalChange2 : public NodeGraphOp {
     public:
-        MathNumericalDiffNorm(NodeGraphBase* node) :
+        MathNumericalTemporalChange2(NodeGraphBase* node) :
+            NodeGraphOp(node, "Change 2")
+        {
+            AddInput2("in");
+            AddOutput2("out");
+        }
+
+        virtual ~MathNumericalTemporalChange2() = default;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+    protected:
+        int32_t mReadSamples = 0;
+
+        float mInputPrev = 0.0f;
+    };
+
+    /*********************************************************************/
+    class MathNumericalDiff2 : public NodeGraphOp {
+    public:
+        MathNumericalDiff2(NodeGraphBase* node) :
             NodeGraphOp(node, "Difference 2")
         {
             AddInput2("In");
             AddOutput2("Diff 2");
         }
 
-        virtual ~MathNumericalDiffNorm() = default;
+        virtual ~MathNumericalDiff2() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         int32_t mReadSamples = 0;
@@ -82,16 +100,16 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class MathNumericalDiff : public NodeGraphOp {
+    class MathNumericalDiff1 : public NodeGraphOp {
     public:
-        MathNumericalDiff(NodeGraphBase* node) :
-            NodeGraphOp(node, "Difference")
+        MathNumericalDiff1(NodeGraphBase* node) :
+            NodeGraphOp(node, "Difference 1")
         {
             AddInput2("In");
             AddOutput2("Diff");
         }
 
-        virtual ~MathNumericalDiff() = default;
+        virtual ~MathNumericalDiff1() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         int32_t mReadSamples = 0;
@@ -148,9 +166,9 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class MathNumericalReconstructor : public NodeGraphOp {
+    class MathNumericalReconstructor1 : public NodeGraphOp {
     public:
-        MathNumericalReconstructor(NodeGraphBase* node) :
+        MathNumericalReconstructor1(NodeGraphBase* node) :
             NodeGraphOp(node, "Reconstructor")
         {
             AddInput2("In");
@@ -168,7 +186,7 @@ namespace l::nodegraph {
             AddOutput2("Intgr2+base");
         }
 
-        virtual ~MathNumericalReconstructor() = default;
+        virtual ~MathNumericalReconstructor1() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         int32_t mReadSamples = 0;

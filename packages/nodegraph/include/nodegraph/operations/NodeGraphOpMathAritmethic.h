@@ -326,4 +326,43 @@ namespace l::nodegraph {
         }
     };
 
+    /*********************************************************************/
+    class MathAritmethicMinMax : public NodeGraphOp {
+    public:
+        MathAritmethicMinMax(NodeGraphBase* node) :
+            NodeGraphOp(node, "Minmax")
+        {
+            AddInput("In");
+            AddInput("Min");
+            AddInput("Max");
+
+            AddOutput(">=<");
+            AddOutput(">=");
+            AddOutput("<=");
+        }
+        virtual ~MathAritmethicMinMax() = default;
+        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+            auto inInput = inputs.at(0).GetIterator(numSamples);
+            auto min = inputs.at(1).Get();
+            auto max = inputs.at(2).Get();
+            auto minmaxOutput = &outputs.at(0).Get(numSamples);
+            auto minOutput = &outputs.at(1).Get(numSamples);
+            auto maxOutput = &outputs.at(2).Get(numSamples);
+
+            for (int32_t i = 0; i < numSamples; i++) {
+                auto in = *inInput++;
+                if (min < max) {
+                    // min max contains legal values
+                    *minmaxOutput++ = in < min ? min : (in > max ? max : in);
+                }
+                else {
+                    // min max excludes legal values
+                    *minmaxOutput++ = in >= min ? in : (in >= max ? min : in);
+                }
+                *minOutput++ = in >= min ? in : min;
+                *maxOutput++ = in <= max ? in : max;
+            }
+        }
+    };
+
 }

@@ -35,7 +35,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void MathNumericalTemporalChange::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void MathNumericalTemporalChange1::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto input0 = &inputs.at(0).Get(numSamples);
         auto output = &outputs.at(0).Get(numSamples);
 
@@ -45,6 +45,9 @@ namespace l::nodegraph {
             float divisor = l::math::abs(input) + l::math::abs(mInputPrev);
             if (divisor > 0.0f) {
                 value = 2.0f * value / divisor;
+            }
+            else {
+                value = 0.0f;
             }
             mInputPrev = input;
             *output++ = value;
@@ -59,7 +62,34 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void MathNumericalDiffNorm::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void MathNumericalTemporalChange2::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        auto input0 = &inputs.at(0).Get(numSamples);
+        auto output = &outputs.at(0).Get(numSamples);
+
+        for (int32_t i = 0; i < numSamples; i++) {
+            float input = *input0++;
+            float value = input - mInputPrev;
+            float divisor = l::math::abs(input);
+            if (divisor > 0.0f) {
+                value = value / divisor;
+            }
+            else {
+                value = 0.0f;
+            }
+            mInputPrev = input;
+            *output++ = value;
+        }
+
+        mReadSamples += numSamples;
+
+        if (mReadSamples >= numCacheSamples) {
+            mReadSamples = 0;
+            mInputPrev = 0.0f;
+        }
+    }
+
+    /*********************************************************************/
+    void MathNumericalDiff2::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto input0 = &inputs.at(0).Get(numSamples);
         auto output = &outputs.at(0).Get(numSamples);
 
@@ -92,7 +122,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void MathNumericalDiff::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void MathNumericalDiff1::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto input0 = &inputs.at(0).Get(numSamples);
         auto output = &outputs.at(0).Get(numSamples);
 
@@ -212,7 +242,7 @@ namespace l::nodegraph {
     }
 
     /*********************************************************************/
-    void MathNumericalReconstructor::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+    void MathNumericalReconstructor1::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
 
         auto inInput = &inputs.at(0).Get(numSamples);
         auto baseInput = inputs.at(1).GetIterator();

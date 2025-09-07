@@ -287,6 +287,9 @@ namespace l::nodegraph {
         case 111:
             node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicSum5>(id, NodeType::Default);
             break;
+        case 112:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicMinMax>(id, NodeType::Default);
+            break;
 
             // Math logical operators
         case 120:
@@ -304,13 +307,13 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalIntegral>(id, NodeType::Default);
             break;
         case 141:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalTemporalChange>(id, NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalTemporalChange1>(id, NodeType::Default);
             break;
         case 142:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalDiffNorm>(id, NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalDiff2>(id, NodeType::Default);
             break;
         case 143:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalDiff>(id, NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalDiff1>(id, NodeType::Default);
             break;
         case 144:
             node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalLevelTrigger>(id, NodeType::Default);
@@ -319,7 +322,7 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalMinMaxChannel>(id, NodeType::Default);
             break;
         case 146:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalReconstructor>(id, NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalReconstructor1>(id, NodeType::Default);
             break;
         case 147:
             node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalReconstructor2>(id, NodeType::Default);
@@ -329,6 +332,9 @@ namespace l::nodegraph {
             break;
         case 149:
             node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalEMA>(id, NodeType::Default);
+            break;
+        case 150:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalTemporalChange2>(id, NodeType::Default);
             break;
 
             // Trading data io
@@ -634,6 +640,7 @@ namespace l::nodegraph {
             RegisterNodeType("Math.Aritmethic", 109, "Pow");
             RegisterNodeType("Math.Aritmethic", 110, "Sum3");
             RegisterNodeType("Math.Aritmethic", 111, "Sum5");
+            RegisterNodeType("Math.Aritmethic", 112, "Minmax");
         }
         else if (typeGroup == "Math.Logic") {
             RegisterNodeType("Math.Logic", 120, "And");
@@ -642,15 +649,16 @@ namespace l::nodegraph {
         }
         else if (typeGroup == "Math.Numerical") {
             RegisterNodeType("Math.Numerical", 140, "Integral", "Basically a temporal summation node with a EWA on the output with a cooefficient 'friction'");
-            RegisterNodeType("Math.Numerical", 141, "Change", "Temporal change. Computes the value of (v_now - v_prev / (abs(v_now) + abs(v_prev)).");
-            RegisterNodeType("Math.Numerical", 142, "Difference2", "Temporal difference 2. Computes the value of (v_now / v_prev - 1)");
-            RegisterNodeType("Math.Numerical", 143, "Difference", "Temporal difference. Computes the value of (v_now - v_prev).");
+            RegisterNodeType("Math.Numerical", 141, "Change 1", "Temporal change 1. Computes the value: (v_now - v_prev) / (abs(v_now) + abs(v_prev)).");
+            RegisterNodeType("Math.Numerical", 142, "Difference 2", "Temporal difference 2. Computes the value: (v_now / v_prev - 1)");
+            RegisterNodeType("Math.Numerical", 143, "Difference 1", "Temporal difference 1. Computes the value: (v_now - v_prev).");
             RegisterNodeType("Math.Numerical", 144, "Level Trigger", "Determines where some input is located between two extremes (min/max) in the format [0,1] ");
             RegisterNodeType("Math.Numerical", 145, "Minmax Channel", "Computes the range between the EWA smootherd min/max inputs");
             RegisterNodeType("Math.Numerical", 146, "Reconstructor", "Deconstructs the input into derivatives (change per index) and outputs the sum of through a ewa with a cooefficient of 'friction' {x1 = x0 + friction * (target - x0)}. An second output is provided which is the average of the last two outputs of that function.");
             RegisterNodeType("Math.Numerical", 147, "Reconstructor 2", "");
             RegisterNodeType("Math.Numerical", 148, "Unitmap", "Maps the input to [-1,1] via a sigmoid function. A scale factor can be provided that changes the shape of the mapping");
             RegisterNodeType("Math.Numerical", 149, "EMA", "Exponential moving average [ema1=(ema0*(n-1)+input)/n]");
+            RegisterNodeType("Math.Numerical", 150, "Change 2", "Temporal change 2. Computes the value: (v_now - v_prev) / abs(v_now).");
         }
         else if (typeGroup == "Trading.Data IO") {
             RegisterNodeType("Trading.Data IO", 200, "OCHLV Data In");
