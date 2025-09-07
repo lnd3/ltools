@@ -22,6 +22,5 @@ set_target_properties(nn_test PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED Y
 if(MSVC)
 	target_compile_options(nn PRIVATE /W2 /bigobj)
 else()
--Werror=ignored-qualifiers
 	target_compile_options(nn PRIVATE -Werror -Wno-unused-result -Wno-ignored-qualifiers -Wno-unused-parameter)
 endif()
