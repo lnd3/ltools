@@ -67,10 +67,10 @@ namespace l::nodegraph {
     class MathNumericalDiffNorm : public NodeGraphOp {
     public:
         MathNumericalDiffNorm(NodeGraphBase* node) :
-            NodeGraphOp(node, "Temporal diff norm")
+            NodeGraphOp(node, "Difference 2")
         {
-            AddInput2("x");
-            AddOutput2("Diff norm");
+            AddInput2("In");
+            AddOutput2("Diff 2");
         }
 
         virtual ~MathNumericalDiffNorm() = default;
