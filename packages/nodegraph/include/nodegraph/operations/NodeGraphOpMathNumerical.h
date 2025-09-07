@@ -49,7 +49,7 @@ namespace l::nodegraph {
     class MathNumericalTemporalChange : public NodeGraphOp {
     public:
         MathNumericalTemporalChange(NodeGraphBase* node) :
-            NodeGraphOp(node, "Temporal Change")
+            NodeGraphOp(node, "Change %")
         {
             AddInput2("in");
             AddOutput2("out");
@@ -85,7 +85,7 @@ namespace l::nodegraph {
     class MathNumericalDiff : public NodeGraphOp {
     public:
         MathNumericalDiff(NodeGraphBase* node) :
-            NodeGraphOp(node, "Temporal Difference")
+            NodeGraphOp(node, "Difference")
         {
             AddInput2("In");
             AddOutput2("Diff");
@@ -190,7 +190,7 @@ namespace l::nodegraph {
             AddInput("Friction2", 1.0f, 1, 0.0f, 1.0f);
 
             AddOutput2("Intgr1");
-            AddOutput2("Intgr1");
+            AddOutput2("Intgr2");
             AddOutput2("Intgr Both");
         }
 
