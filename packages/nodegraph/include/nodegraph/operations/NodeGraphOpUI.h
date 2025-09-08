@@ -90,7 +90,7 @@ namespace l::nodegraph {
     class GraphUIChartLine : public NodeGraphOpCached {
     public:
         GraphUIChartLine(NodeGraphBase* node) :
-            NodeGraphOpCached(node, "Chart Line")
+            NodeGraphOpCached(node, "Chart Line 1")
         {
 
             AddInput2("X", 1, InputFlags(false, false, false, false));
@@ -102,6 +102,51 @@ namespace l::nodegraph {
         virtual void DefaultDataInit() override {
             NodeGraphOp::DefaultDataInit();
             mNode->SetInput(2, "Chart Line");
+        }
+        virtual void ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+    protected:
+        int32_t mLatestUnixtime = 0;
+    };
+
+    /*********************************************************************/
+    class GraphUIChartLine2 : public NodeGraphOpCached {
+    public:
+        GraphUIChartLine2(NodeGraphBase* node) :
+            NodeGraphOpCached(node, "Chart Line 2")
+        {
+            AddInput2("X", 1, InputFlags(false, false, false, false));
+            AddInput2("Y1", 1, InputFlags(false, false, false, false));
+            AddInput2("Y2", 1, InputFlags(false, false, false, false));
+            AddInput2("Name", 1, InputFlags(false, true, true, true));
+            AddOutput("Data");
+        }
+        virtual ~GraphUIChartLine2() = default;
+        virtual void DefaultDataInit() override {
+            NodeGraphOp::DefaultDataInit();
+            mNode->SetInput(3, "Chart Line");
+        }
+        virtual void ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+    protected:
+        int32_t mLatestUnixtime = 0;
+    };
+
+    /*********************************************************************/
+    class GraphUIChartLine3 : public NodeGraphOpCached {
+    public:
+        GraphUIChartLine3(NodeGraphBase* node) :
+            NodeGraphOpCached(node, "Chart Line 3")
+        {
+            AddInput2("X", 1, InputFlags(false, false, false, false));
+            AddInput2("Y1", 1, InputFlags(false, false, false, false));
+            AddInput2("Y2", 1, InputFlags(false, false, false, false));
+            AddInput2("Y3", 1, InputFlags(false, false, false, false));
+            AddInput2("Name", 1, InputFlags(false, true, true, true));
+            AddOutput("Data");
+        }
+        virtual ~GraphUIChartLine3() = default;
+        virtual void DefaultDataInit() override {
+            NodeGraphOp::DefaultDataInit();
+            mNode->SetInput(4, "Chart Line");
         }
         virtual void ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:

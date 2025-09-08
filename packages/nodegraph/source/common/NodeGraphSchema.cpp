@@ -522,6 +522,12 @@ namespace l::nodegraph {
         case 605:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphUIChartMarkers>(id, NodeType::ExternalOutput);
             break;
+        case 606:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphUIChartLine2>(id, NodeType::ExternalOutput);
+            break;
+        case 607:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphUIChartLine3>(id, NodeType::ExternalOutput);
+            break;
 
 
 
@@ -731,10 +737,12 @@ namespace l::nodegraph {
         else if (typeGroup == "UI") {
             RegisterNodeType("UI", 600, "UI Checkbox");
             RegisterNodeType("UI", 601, "UI Slider");
-            RegisterNodeType("UI", 602, "UI Chart Lines");
+            RegisterNodeType("UI", 602, "UI Chart Lines 1");
             RegisterNodeType("UI", 603, "UI Candle Sticks");
             RegisterNodeType("UI", 604, "UI Text");
             RegisterNodeType("UI", 605, "UI Chart Markers");
+            RegisterNodeType("UI", 606, "UI Chart Lines 2");
+            RegisterNodeType("UI", 607, "UI Chart Lines 3");
             }
         else {
             LOG(LogWarning) << "Type group does not exist: " << typeGroup;

@@ -97,6 +97,7 @@ namespace l::nodegraph {
     std::string_view GraphUIText::GetOutputText() {
         return mOutputText.str();
     }
+
     /*********************************************************************/
     void GraphUIChartLine::ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         int32_t mChannels = 2;
@@ -111,15 +112,57 @@ namespace l::nodegraph {
         auto buf = out + writtenSamples * mChannels;
         int32_t j = 0;
         for (j = 0; j < numSamples; j++) {
-            auto unixtimef = *input[0];
-            auto unixtime = l::math::algorithm::convert<int32_t>(unixtimef);
-            if (unixtimef == 0.0f || mLatestUnixtime >= unixtime) {
-                //mLatestUnixtime = unixtime;
-                //break;
+            for (int32_t i = 0; i < mChannels; i++) {
+                *buf++ = *input[i]++;
             }
-            else {
-                mLatestUnixtime = unixtime;
+        }
+        for (; j < numSamples; j++) {
+            for (int32_t i = 0; i < mChannels; i++) {
+                *buf++ = 0.0f;
             }
+        }
+    }
+
+    /*********************************************************************/
+    void GraphUIChartLine2::ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        int32_t mChannels = 3;
+
+        outputs.at(0).MinimizeBuffer(numCacheSamples * mChannels);
+        float* out = &outputs.at(0).Get(numCacheSamples * mChannels);
+
+        float* input[3];
+        for (int32_t j = 0; j < mChannels; j++) {
+            input[j] = &inputs.at(j).Get(numSamples);
+        }
+        auto buf = out + writtenSamples * mChannels;
+        int32_t j = 0;
+        for (j = 0; j < numSamples; j++) {
+            for (int32_t i = 0; i < mChannels; i++) {
+                *buf++ = *input[i]++;
+            }
+        }
+        for (; j < numSamples; j++) {
+            for (int32_t i = 0; i < mChannels; i++) {
+                *buf++ = 0.0f;
+            }
+        }
+    }
+
+
+    /*********************************************************************/
+    void GraphUIChartLine3::ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        int32_t mChannels = 4;
+
+        outputs.at(0).MinimizeBuffer(numCacheSamples * mChannels);
+        float* out = &outputs.at(0).Get(numCacheSamples * mChannels);
+
+        float* input[4];
+        for (int32_t j = 0; j < mChannels; j++) {
+            input[j] = &inputs.at(j).Get(numSamples);
+        }
+        auto buf = out + writtenSamples * mChannels;
+        int32_t j = 0;
+        for (j = 0; j < numSamples; j++) {
             for (int32_t i = 0; i < mChannels; i++) {
                 *buf++ = *input[i]++;
             }
