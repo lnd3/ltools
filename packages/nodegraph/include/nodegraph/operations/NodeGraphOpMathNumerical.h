@@ -169,7 +169,7 @@ namespace l::nodegraph {
     class MathNumericalReconstructor1 : public NodeGraphOp {
     public:
         MathNumericalReconstructor1(NodeGraphBase* node) :
-            NodeGraphOp(node, "Reconstructor")
+            NodeGraphOp(node, "Reconstructor 1")
         {
             AddInput2("In");
             AddInput("Base", 0.0f, 1);

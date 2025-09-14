@@ -180,7 +180,7 @@ namespace l::nodegraph {
     class MathAritmethicMultiply3 : public NodeGraphOp {
     public:
         MathAritmethicMultiply3(NodeGraphBase* node) :
-            NodeGraphOp(node, "Multiply3")
+            NodeGraphOp(node, "Multiply 3")
         {
             AddInput("a");
             AddInput("b");
@@ -278,7 +278,7 @@ namespace l::nodegraph {
     class MathAritmethicSum3 : public NodeGraphOp {
     public:
         MathAritmethicSum3(NodeGraphBase* node) :
-            NodeGraphOp(node, "Sum3")
+            NodeGraphOp(node, "Sum 3")
         {
             AddInput("a");
             AddInput("b");
@@ -302,7 +302,7 @@ namespace l::nodegraph {
     class MathAritmethicSum5 : public NodeGraphOp {
     public:
         MathAritmethicSum5(NodeGraphBase* node) :
-            NodeGraphOp(node, "Sum5")
+            NodeGraphOp(node, "Sum 5")
         {
             AddInput("a");
             AddInput("b");
@@ -330,7 +330,7 @@ namespace l::nodegraph {
     class MathAritmethicMinMax : public NodeGraphOp {
     public:
         MathAritmethicMinMax(NodeGraphBase* node) :
-            NodeGraphOp(node, "Minmax")
+            NodeGraphOp(node, "Minmax 1")
         {
             AddInput("In");
             AddInput("Min");
@@ -361,6 +361,66 @@ namespace l::nodegraph {
                 }
                 *minOutput++ = in >= min ? in : min;
                 *maxOutput++ = in <= max ? in : max;
+            }
+        }
+    };
+
+    /*********************************************************************/
+    class MathAritmethicMinMax2 : public NodeGraphOp {
+    public:
+        MathAritmethicMinMax2(NodeGraphBase* node) :
+            NodeGraphOp(node, "Minmax 2")
+        {
+            AddInput("In1");
+            AddInput("In2");
+
+            AddOutput("Min");
+            AddOutput("Max");
+        }
+        virtual ~MathAritmethicMinMax2() = default;
+        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+            auto in1Input = inputs.at(0).GetIterator(numSamples);
+            auto in2Input = inputs.at(1).GetIterator(numSamples);
+            auto minOutput = &outputs.at(0).Get(numSamples);
+            auto maxOutput = &outputs.at(1).Get(numSamples);
+
+            for (int32_t i = 0; i < numSamples; i++) {
+                auto in1 = *in1Input++;
+                auto in2 = *in2Input++;
+
+                *minOutput++ = in1 < in2 ? in1 : in2;
+                *maxOutput++ = in2 < in1 ? in2 : in1;
+            }
+        }
+    };
+
+    /*********************************************************************/
+    class MathAritmethicDiv : public NodeGraphOp {
+    public:
+        MathAritmethicDiv(NodeGraphBase* node) :
+            NodeGraphOp(node, "Div")
+        {
+            AddInput("In1");
+            AddInput("In2");
+
+            AddOutput("Out");
+        }
+        virtual ~MathAritmethicDiv() = default;
+        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
+            auto in1Input = inputs.at(0).GetIterator(numSamples);
+            auto in2Input = inputs.at(1).GetIterator(numSamples);
+            auto outOutput = &outputs.at(0).Get(numSamples);
+
+            for (int32_t i = 0; i < numSamples; i++) {
+                auto in1 = *in1Input++;
+                auto in2 = *in2Input++;
+
+                auto out = 0.0f;
+                if (in2 != 0.0f) {
+                    out = in1 / in2;
+                }
+
+                *outOutput++ = out;
             }
         }
     };
