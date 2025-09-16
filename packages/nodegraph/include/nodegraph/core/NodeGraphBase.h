@@ -132,6 +132,7 @@ namespace l::nodegraph {
         virtual void NodeHasChanged();
         bool IsOutOfDate2();
         virtual NodeType GetOutputType();
+        virtual void RecieveEvent(int32_t id, int32_t cmd, void* userdata) = 0;
 
         template<class T>
 		bool IsOfOperation() {
@@ -221,6 +222,7 @@ namespace l::nodegraph {
         virtual void Process(int32_t, int32_t, std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
         virtual void Tick(int32_t /*tickCount*/, float /*delta*/) {}
         virtual void InputHasChanged();
+        virtual void RecieveEvent(int32_t, int32_t, void*) {}
 
         int8_t GetNumInputs();
         int8_t GetNumOutputs();
@@ -386,6 +388,13 @@ namespace l::nodegraph {
 
         virtual NodeGraphOp* GetOperation() override {
             return &mOperation;
+        }
+
+        virtual void RecieveEvent(int32_t id, int32_t cmd, void* userdata) override {
+            auto op = GetOperation();
+            if (op) {
+                op->RecieveEvent(id, cmd, userdata);
+            }
         }
 
     protected:
