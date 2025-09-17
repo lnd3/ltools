@@ -22,16 +22,16 @@ namespace l::hid::midi {
 			//auto id = midiPtr->getDeviceOutId(deviceOut);
 			switch (wMsg) {
 			case MOM_OPEN:
-				//LOG(LogInfo) << "MOM_OPEN";
+				//LLOG(LogInfo) << "MOM_OPEN";
 				break;
 			case MOM_CLOSE:
-				//LOG(LogInfo) << "MOM_CLOSE";
+				//LLOG(LogInfo) << "MOM_CLOSE";
 				break;
 			case MOM_DONE:
-				//LOG(LogInfo) << "MOM_DONE";
+				//LLOG(LogInfo) << "MOM_DONE";
 				break;
 			default:
-				//LOG(LogInfo) << "Something else..";
+				//LLOG(LogInfo) << "Something else..";
 				break;
 			}
 
@@ -47,14 +47,14 @@ namespace l::hid::midi {
 			MMRESULT rv;
 			rv = midiOutClose(device.second);
 			if (rv != MMSYSERR_NOERROR) {
-				LOG(LogError) << "Failed to close midi out device" << deviceId;
+				LLOG(LogError) << "Failed to close midi out device" << deviceId;
 			}
 			rv = midiInStop(device.first);
 			if (rv == MMSYSERR_NOERROR) {
 				rv = midiInClose(device.first);
 			}
 			if (rv != MMSYSERR_NOERROR) {
-				LOG(LogError) << "Failed to close midi in device" << deviceId;
+				LLOG(LogError) << "Failed to close midi in device" << deviceId;
 			}
 			deviceId++;
 		}
@@ -76,8 +76,8 @@ namespace l::hid::midi {
 
 		UINT nMidiOutDeviceNum = midiOutGetNumDevs();
 
-		LOG(LogInfo) << "Number of midi in devices: " << nMidiInDeviceInNum;
-		LOG(LogInfo) << "Number of midi out devices: " << nMidiOutDeviceNum;
+		LLOG(LogInfo) << "Number of midi in devices: " << nMidiInDeviceInNum;
+		LLOG(LogInfo) << "Number of midi out devices: " << nMidiOutDeviceNum;
 
 		for (uint32_t deviceId = 0; deviceId < nMidiInDeviceInNum || deviceId < nMidiOutDeviceNum; deviceId++) {
 			MMRESULT rv;
@@ -89,22 +89,22 @@ namespace l::hid::midi {
 			if (deviceId < nMidiInDeviceInNum) {
 				rv = midiInGetDevCaps(deviceId, &capsIn, sizeof(MIDIINCAPS));
 				if (rv != MMSYSERR_NOERROR) {
-					LOG(LogError) << "Failed to get midi in caps on device " << deviceId;
+					LLOG(LogError) << "Failed to get midi in caps on device " << deviceId;
 				}
-				LOG(LogInfo) << "Midi in device id " << deviceId << " : " << capsIn.szPname << ", support : " << capsIn.dwSupport << ", pid : " << capsIn.wPid;
+				LLOG(LogInfo) << "Midi in device id " << deviceId << " : " << capsIn.szPname << ", support : " << capsIn.dwSupport << ", pid : " << capsIn.wPid;
 
 				rv = midiInOpen(&hMidiDeviceIn, static_cast<UINT>(deviceId), reinterpret_cast<DWORD_PTR>(&details::MidiInProc), (DWORD_PTR)(this), CALLBACK_FUNCTION | MIDI_IO_STATUS);
 				if (rv == MMSYSERR_ALLOCATED) {
 					return;
 				}
 				if (rv != MMSYSERR_NOERROR) {
-					LOG(LogError) << "Failed to open midi in device " << deviceId;
+					LLOG(LogError) << "Failed to open midi in device " << deviceId;
 					continue;
 				}
 
 				rv = midiInStart(hMidiDeviceIn);
 				if (rv != MMSYSERR_NOERROR) {
-					LOG(LogError) << "Failed to start midi in device" << deviceId;
+					LLOG(LogError) << "Failed to start midi in device" << deviceId;
 					continue;
 				}
 			}
@@ -112,16 +112,16 @@ namespace l::hid::midi {
 			if (deviceId < nMidiOutDeviceNum) {
 				rv = midiOutGetDevCaps(deviceId, &capsOut, sizeof(MIDIOUTCAPS));
 				if (rv != MMSYSERR_NOERROR) {
-					LOG(LogError) << "Failed to get midi out caps on device " << deviceId;
+					LLOG(LogError) << "Failed to get midi out caps on device " << deviceId;
 				}
-				LOG(LogInfo) << "Midi out device id " << deviceId << " : " << capsOut.szPname << ", support : " << capsOut.dwSupport << ", pid : " << capsOut.wPid;
+				LLOG(LogInfo) << "Midi out device id " << deviceId << " : " << capsOut.szPname << ", support : " << capsOut.dwSupport << ", pid : " << capsOut.wPid;
 
 				rv = midiOutOpen(&hMidiDeviceOut, static_cast<UINT>(deviceId), reinterpret_cast<DWORD_PTR>(&details::MidiOutProc), (DWORD_PTR)(this), CALLBACK_FUNCTION);
 				if (rv == MMSYSERR_ALLOCATED) {
 					return;
 				}
 				if (rv != MMSYSERR_NOERROR) {
-					LOG(LogError) << "Failed to open midi out device " << deviceId;
+					LLOG(LogError) << "Failed to open midi out device " << deviceId;
 				}
 			}
 
@@ -247,17 +247,17 @@ namespace l::hid::midi {
 
 		MMRESULT rv = midiOutPrepareHeader(deviceOut, &mHeader, sizeof(MIDIHDR));
 		if (rv != MMSYSERR_NOERROR) {
-			LOG(LogError) << "Failed to prepare midi out buffer " << deviceId << ", error " << rv;
+			LLOG(LogError) << "Failed to prepare midi out buffer " << deviceId << ", error " << rv;
 		}
 
 		rv = midiOutLongMsg(deviceOut, &mHeader, sizeof(MIDIHDR));
 		if (rv != MMSYSERR_NOERROR) {
-			LOG(LogError) << "Failed to send buffer to midi out device " << deviceId << ", error " << rv;
+			LLOG(LogError) << "Failed to send buffer to midi out device " << deviceId << ", error " << rv;
 		}
 
 		rv = midiOutUnprepareHeader(deviceOut, &mHeader, sizeof(MIDIHDR));
 		if (rv != MMSYSERR_NOERROR) {
-			LOG(LogError) << "Failed to unprepare midi out buffer " << deviceId << ", error " << rv;
+			LLOG(LogError) << "Failed to unprepare midi out buffer " << deviceId << ", error " << rv;
 		}
 	}
 
@@ -271,7 +271,7 @@ namespace l::hid::midi {
 
 		MMRESULT rv = midiOutShortMsg(device, param1);
 		if (rv != MMSYSERR_NOERROR) {
-			LOG(LogError) << "Failed to send to midi out device " << deviceId << ", error " << rv << ", data " << param1;
+			LLOG(LogError) << "Failed to send to midi out device " << deviceId << ", error " << rv << ", data " << param1;
 		}
 	}
 
@@ -303,7 +303,7 @@ namespace l::hid::midi {
 		mMidiDevice.initDevices();
 
 		RegisterCallback([](const MidiData&) {
-			//LOG(LogInfo) << "midi cb: device in:" << data.deviceIn << " device out:" << data.deviceOut << " stat:" << data.status << " ch:" << data.channel << " d1:" << data.data1 << " d2:" << data.data2;
+			//LLOG(LogInfo) << "midi cb: device in:" << data.deviceIn << " device out:" << data.deviceOut << " stat:" << data.status << " ch:" << data.channel << " d1:" << data.data1 << " d2:" << data.data2;
 			});
 	}
 

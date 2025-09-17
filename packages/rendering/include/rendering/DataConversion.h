@@ -106,7 +106,7 @@ namespace rendering {
             dstSize = index1 > dstSize ? index1 + 1 : dstSize;
             SourceInnerType* innerTypePtr = reinterpret_cast<SourceInnerType*>(src2 + index0);
             if (index1 * innerCount >= result.size()) {
-                LOG(LogError) << "Index too large?";
+                LLOG(LogError) << "Index too large?";
                 result.resize((index1 + index1 / 4) * innerCount);
             }
             for (size_t j = 0; j < innerCount; j++) {

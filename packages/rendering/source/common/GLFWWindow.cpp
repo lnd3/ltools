@@ -22,7 +22,7 @@
 namespace {
 
     void glfw_error_callback(int error, const char* description) {
-        LOG(LogError) << "GLFW Error " << error << ":" << description << "\n";
+        LLOG(LogError) << "GLFW Error " << error << ":" << description << "\n";
     }
 
     struct Callbacks {
@@ -120,7 +120,7 @@ namespace l {
                 // Safe to call even if glfw is already initialized
                 glfwSetErrorCallback(glfw_error_callback);
                 if (!glfwInit()) {
-                    LOG(LogError) << "Failed to initialize GLFW";
+                    LLOG(LogError) << "Failed to initialize GLFW";
                     return nullptr;
                 }
 
@@ -160,20 +160,20 @@ namespace l {
                 }
 
                 if (window == nullptr) {
-                    LOG(LogError) << "Failed to create GLFW window";
+                    LLOG(LogError) << "Failed to create GLFW window";
                     return nullptr;
                 }
 
                 glfwMakeContextCurrent(window);
 
-                LOG(LogInfo) << "GLFW version:" << glfwGetVersionString();
+                LLOG(LogInfo) << "GLFW version:" << glfwGetVersionString();
 
                 if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-                    LOG(LogInfo) << "Failed to load OpenGL procedures";
+                    LLOG(LogInfo) << "Failed to load OpenGL procedures";
                     return nullptr;
                 }
 
-                LOG(LogInfo) << "OpenGL version:" << glGetString(GL_VERSION);
+                LLOG(LogInfo) << "OpenGL version:" << glGetString(GL_VERSION);
 
                 glfwSetKeyCallback(window, invoke_key);
                 glfwSetMouseButtonCallback(window, invoke_mouse);

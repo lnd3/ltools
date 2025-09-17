@@ -24,7 +24,7 @@ namespace l::filecache {
 		}
 		f.write(data);
 		f.close();
-		//LOG(LogInfo) << "Saved " << path;
+		//LLOG(LogInfo) << "Saved " << path;
 
 		return true;
 	}

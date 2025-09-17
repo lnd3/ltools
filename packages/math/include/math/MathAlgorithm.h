@@ -85,7 +85,7 @@ namespace l::math::algorithm {
 			c = (a + b) / 2.0;
 
 			T cEval = eval(c);
-			LOG(LogDebug) << "bisect iteration " << n << "(" << iterations << ") val: " << c << "(convergence: " << cEval << ")";
+			LLOG(LogDebug) << "bisect iteration " << n << "(" << iterations << ") val: " << c << "(convergence: " << cEval << ")";
 			if (cEval == 0.0 || abs(cEval) < tolerance) {
 				return c;
 			}

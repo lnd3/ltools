@@ -238,7 +238,7 @@ namespace filesystem {
 
 	size_t File::read(char* dst, size_t count) {
 		if (!mFileStream) {
-			LOG(LogWarning) << "File not open:" << mFilePath;
+			LLOG(LogWarning) << "File not open:" << mFilePath;
 			ASSERT(mFileStream.has_value()) << "File not open:" << mFilePath;
 			return 0;
 		}
@@ -250,7 +250,7 @@ namespace filesystem {
 
 	size_t File::write(const char* src, size_t count) {
 		if (!mFileStream) {
-			LOG(LogWarning) << "File not open:" << mFilePath;
+			LLOG(LogWarning) << "File not open:" << mFilePath;
 			ASSERT(mFileStream.has_value()) << "File not open:" << mFilePath;
 			return 0;
 		}
@@ -260,7 +260,7 @@ namespace filesystem {
 
 	size_t File::read(std::vector<char>& dst) {
 		if (!mFileStream) {
-			LOG(LogWarning) << "File not open:" << mFilePath;
+			LLOG(LogWarning) << "File not open:" << mFilePath;
 			ASSERT(mFileStream.has_value()) << "File not open:" << mFilePath;
 			return 0;
 		}
@@ -274,7 +274,7 @@ namespace filesystem {
 
 	size_t File::write(const std::vector<char>& src) {
 		if (!mFileStream) {
-			LOG(LogWarning) << "File not open:" << mFilePath;
+			LLOG(LogWarning) << "File not open:" << mFilePath;
 			ASSERT(mFileStream.has_value()) << "File not open:" << mFilePath;
 			return 0;
 		}
@@ -284,7 +284,7 @@ namespace filesystem {
 
 	size_t File::read(unsigned char* dst, size_t count) {
 		if (!mFileStream) {
-			LOG(LogWarning) << "File not open:" << mFilePath;
+			LLOG(LogWarning) << "File not open:" << mFilePath;
 			ASSERT(mFileStream.has_value()) << "File not open:" << mFilePath;
 			return 0;
 		}
@@ -296,7 +296,7 @@ namespace filesystem {
 
 	size_t File::write(const unsigned char* src, size_t count) {
 		if (!mFileStream) {
-			LOG(LogWarning) << "File not open:" << mFilePath;
+			LLOG(LogWarning) << "File not open:" << mFilePath;
 			ASSERT(mFileStream.has_value()) << "File not open:" << mFilePath;
 			return 0;
 		}
@@ -306,7 +306,7 @@ namespace filesystem {
 
 	size_t File::read(std::vector<unsigned char>& dst) {
 		if (!mFileStream) {
-			LOG(LogWarning) << "File not open:" << mFilePath;
+			LLOG(LogWarning) << "File not open:" << mFilePath;
 			ASSERT(mFileStream.has_value()) << "File not open:" << mFilePath;
 			return 0;
 		}
@@ -320,7 +320,7 @@ namespace filesystem {
 
 	size_t File::write(const std::vector<unsigned char>& src) {
 		if (!mFileStream) {
-			LOG(LogWarning) << "File not open:" << mFilePath;
+			LLOG(LogWarning) << "File not open:" << mFilePath;
 			ASSERT(mFileStream.has_value()) << "File not open:" << mFilePath;
 			return 0;
 		}
@@ -330,7 +330,7 @@ namespace filesystem {
 
 	size_t File::read(std::stringstream& dst, size_t count) {
 		if (!mFileStream) {
-			LOG(LogWarning) << "File not open:" << mFilePath;
+			LLOG(LogWarning) << "File not open:" << mFilePath;
 			ASSERT(mFileStream.has_value()) << "File not open:" << mFilePath;
 			return 0;
 		}
@@ -352,7 +352,7 @@ namespace filesystem {
 
 	size_t File::write(std::stringstream& src, size_t count) {
 		if (!mFileStream) {
-			LOG(LogWarning) << "File not open:" << mFilePath;
+			LLOG(LogWarning) << "File not open:" << mFilePath;
 			ASSERT(mFileStream.has_value()) << "File not open:" << mFilePath;
 			return 0;
 		}

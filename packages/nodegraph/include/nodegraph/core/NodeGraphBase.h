@@ -46,7 +46,7 @@ namespace l::nodegraph {
             mInputs.clear();
             mOutputs.clear();
 
-            //LOG(LogInfo) << "Node graph base destroyed";
+            //LLOG(LogInfo) << "Node graph base destroyed";
         }
 
         NodeGraphBase& operator=(NodeGraphBase&& other) noexcept {
@@ -190,7 +190,7 @@ namespace l::nodegraph {
             mName(name)
         {}
         virtual ~NodeGraphOp() {
-            //LOG(LogInfo) << "Node operation destroyed";
+            //LLOG(LogInfo) << "Node operation destroyed";
         }
 
         NodeGraphOp& operator=(NodeGraphOp&& other) noexcept {
@@ -270,7 +270,7 @@ namespace l::nodegraph {
         {
         }
         virtual ~NodeGraphOpCached() {
-            //LOG(LogInfo) << "Buffered operation destroyed";
+            //LLOG(LogInfo) << "Buffered operation destroyed";
         }
 
         NodeGraphOpCached& operator=(NodeGraphOpCached&& other) noexcept {
@@ -313,7 +313,7 @@ namespace l::nodegraph {
             DefaultDataInit();
         }
         virtual ~NodeGraph() {
-            //LOG(LogInfo) << "Node destroyed";
+            //LLOG(LogInfo) << "Node destroyed";
         }
 
         NodeGraph& operator=(NodeGraph&& other) noexcept {

@@ -48,18 +48,18 @@ namespace l::network {
 								ASSERT(foundHandle);
 							}
 							else if (m) {
-								LOG(LogWarning) << "Not done";
+								LLOG(LogWarning) << "Not done";
 							}
 						} while (m != nullptr && messagesInQueue > 0);
 
 						int numfds;
 						mc = curl_multi_poll(mMultiHandle, NULL, 0, 1000, &numfds);
 						if (mc != CURLM_OK) {
-							LOG(LogError) << "curl_multi_poll failed, code " << mc;
+							LLOG(LogError) << "curl_multi_poll failed, code " << mc;
 						}
 					}
 					else {
-						LOG(LogError) << "curl_multi_perform failed, code " << mc;
+						LLOG(LogError) << "curl_multi_perform failed, code " << mc;
 					}
 				} while (runningHandles > 0 || mJobManager.get() != nullptr || !mConnections.empty());
 				});
@@ -212,7 +212,7 @@ namespace l::network {
 			});
 
 		if (it == mConnections.end()) {
-			LOG(LogError) << "Failed to find connection: " << queryName;
+			LLOG(LogError) << "Failed to find connection: " << queryName;
 			return -201;
 		}
 		auto request = it->get();
@@ -231,7 +231,7 @@ namespace l::network {
 			});
 
 		if (it == mConnections.end()) {
-			LOG(LogError) << "Failed to find connection: " << queryName;
+			LLOG(LogError) << "Failed to find connection: " << queryName;
 			return -201;
 		}
 		auto request = it->get();
@@ -250,7 +250,7 @@ namespace l::network {
 			});
 
 		if (it == mConnections.end()) {
-			LOG(LogError) << "Failed to find connection: " << queryName;
+			LLOG(LogError) << "Failed to find connection: " << queryName;
 			return -201;
 		}
 		auto request = it->get();

@@ -148,16 +148,16 @@ namespace l::serialization {
                 mTokenCount = 0;
                 switch (ret) {
                 case JSMN_ERROR_INVAL:
-                    LOG(LogError) << "Failure to parse json value";
+                    LLOG(LogError) << "Failure to parse json value";
                     return { false, ret };
                 case JSMN_ERROR_NOMEM:
-                    LOG(LogError) << "Token buffer is to small";
+                    LLOG(LogError) << "Token buffer is to small";
                     return { false, ret };
                 case JSMN_ERROR_PART:
-                    //LOG(LogInfo) << "Json data is not completed";
+                    //LLOG(LogInfo) << "Json data is not completed";
                     return { false, ret };
                 default:
-                    LOG(LogError) << "Unknown error";
+                    LLOG(LogError) << "Unknown error";
                     return { false, -4 };
                 }
             }

@@ -374,7 +374,7 @@ namespace l::ui {
         void SetParent(UIContainer* parent) {mParent = parent;}
         void SetCoParent(UIContainer* coParent) {mCoParent = coParent;}
 
-        void DebugLog() { LOG(LogDebug) << "UIContainer: " << mDisplayName << ", [" << mDisplayArea.mScale << "][" << mDisplayArea.mPosition.x << ", " << mDisplayArea.mPosition.y << "][" << mDisplayArea.mSize.x << ", " << mDisplayArea.mSize.y << "]"; }
+        void DebugLog() { LLOG(LogDebug) << "UIContainer: " << mDisplayName << ", [" << mDisplayArea.mScale << "][" << mDisplayArea.mPosition.x << ", " << mDisplayArea.mPosition.y << "][" << mDisplayArea.mSize.x << ", " << mDisplayArea.mSize.y << "]"; }
     protected:
         int32_t mId = 0;
         int32_t mNodeId = -1;

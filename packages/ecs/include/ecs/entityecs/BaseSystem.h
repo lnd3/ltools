@@ -36,11 +36,11 @@ public:
 	}
 
 	virtual void receive(class World*, const Events::OnEntityCreated& event) {
-		LOG(LogTest) << "An entity was created! " << event.entity->getEntityId();
+		LLOG(LogTest) << "An entity was created! " << event.entity->getEntityId();
 	}
 
 	virtual void receive(class World*, const Events::OnEntityDestroyed& event) {
-		LOG(LogTest) << "An entity was destroyed! " << event.entity->getEntityId();
+		LLOG(LogTest) << "An entity was destroyed! " << event.entity->getEntityId();
 	}
 
 	auto& getComponents() {

@@ -129,7 +129,7 @@ namespace l::nodegraph {
     }
 
     void GraphInputMidiKeyboard::MidiEvent(const l::hid::midi::MidiData& data) {
-        //LOG(LogInfo) << "listener 1: dev" << data.device << " stat " << data.status << " ch " << data.channel << " d1 " << data.data1 << " d2 " << data.data2;
+        //LLOG(LogInfo) << "listener 1: dev" << data.device << " stat " << data.status << " ch " << data.channel << " d1 " << data.data1 << " d2 " << data.data2;
         if (mMidiChannelKeys < 0 || data.channel != static_cast<uint32_t>(mMidiChannelKeys)) {
             return;
         }

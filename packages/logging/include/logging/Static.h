@@ -17,7 +17,7 @@ STATIC {
 	.. statement
 };
 */
-#define STATIC static l::Static_ UNIQUE(block) = [&]() -> void
+#define STATIC_BLOCK static l::Static_ UNIQUE(block) = [&]() -> void
 
 /* Usage:
 STATIC_CALL([]() {

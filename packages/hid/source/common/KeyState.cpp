@@ -30,7 +30,7 @@ namespace l::hid {
 		releasedPrev = released;
 
 		//if (pressedNow || releasedNow || pressed) {
-		//	LOG(LogInfo) << "pressed now: " << pressedNow << ", released now: " << releasedNow << ", pressed: " << pressed;
+		//	LLOG(LogInfo) << "pressed now: " << pressedNow << ", released now: " << releasedNow << ", pressed: " << pressed;
 		//}
 	}
 

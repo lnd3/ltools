@@ -34,7 +34,7 @@ public:
             *out0++ = value0;
             *out1++ = value1;
 
-            LOG(LogInfo) << "Node input(" << i << "): " << value0 << ", " << value1;
+            LLOG(LogInfo) << "Node input(" << i << "): " << value0 << ", " << value1;
         }
     }
 protected:
@@ -57,7 +57,7 @@ public:
         for (int i = 0; i < numSamples; i++) {
             auto in1 = *in++;
             *out++ = in1;
-            LOG(LogInfo) << "Node input(" << i << "): " << in1;
+            LLOG(LogInfo) << "Node input(" << i << "): " << in1;
         }
     }
 protected:
@@ -114,7 +114,7 @@ public:
             *out0++ = value0;
             *out1++ = value1;
 
-            LOG(LogInfo) << "Node input(" << i << "): " << value0 << ", " << value1;
+            LLOG(LogInfo) << "Node input(" << i << "): " << value0 << ", " << value1;
         }
     }
 protected:
@@ -165,7 +165,7 @@ TEST(NodeGraphData, CandleStickData) {
 
         auto out = &node1.GetOutput(0, 5);
         for (int i = 0; i < 5; i++) {
-            LOG(LogInfo) << "node1(0):" << *out++;
+            LLOG(LogInfo) << "node1(0):" << *out++;
         }
     }
 

@@ -39,7 +39,7 @@ TEST(BoxSweep, Init) {
 	sweeper.update();
 
 	sweeper.overlapAction([](uint32_t id0, uint32_t id1) {
-		LOG(LogInfo) << "id0:" << id0 << ", id1:" << id1;
+		LLOG(LogInfo) << "id0:" << id0 << ", id1:" << id1;
 		});
 	return 0;
 }

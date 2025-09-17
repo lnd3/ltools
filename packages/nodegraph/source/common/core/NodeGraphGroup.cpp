@@ -50,7 +50,7 @@ namespace l::nodegraph {
                         auto it = nodes.as_array();
                         for (; it.has_next();) {
                             auto e = it.next();
-                            //LOG(LogInfo) << e.as_dbg_string();
+                            //LLOG(LogInfo) << e.as_dbg_string();
                             if (e.has_key("TypeId") && e.has_key("NodeId")) {
                                 auto typeId = e.get("TypeId").as_int32();
                                 auto nodeId = e.get("NodeId").as_int32();
@@ -82,11 +82,11 @@ namespace l::nodegraph {
                         auto it = nodeData.as_array();
                         for (; it.has_next();) {
                             auto e = it.next();
-                            //LOG(LogInfo) << e.as_dbg_string();
+                            //LLOG(LogInfo) << e.as_dbg_string();
                             if (e.has_key("NodeId")) {
                                 auto nodeId = e.get("NodeId").as_int32();
                                 auto inputInfo = e.get("InputInfo");
-                                //LOG(LogInfo) << inputInfo.as_dbg_string();
+                                //LLOG(LogInfo) << inputInfo.as_dbg_string();
 
                                 auto node = GetNode(nodeId);
                                 ASSERT(node);
@@ -100,13 +100,13 @@ namespace l::nodegraph {
                                                 if (data.has_key("Value")) {
                                                     auto value = data.get("Value").as_float();
                                                     if (!node->SetInput(channel, value)) {
-                                                        LOG(LogError) << "Failed to set channel constant data";
+                                                        LLOG(LogError) << "Failed to set channel constant data";
                                                     }
                                                 }
                                                 else if (data.has_key("Text")) {
                                                     auto text= data.get("Text").as_string();
                                                     if (!node->SetInput(channel, text)) {
-                                                        LOG(LogError) << "Failed to set channel text data";
+                                                        LLOG(LogError) << "Failed to set channel text data";
                                                     }
                                                 }
                                                 else if (data.has_key("SrcNodeId") && data.has_key("SrcChannel")) {

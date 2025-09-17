@@ -102,7 +102,7 @@ namespace l::network {
 							queue.pop_front();
 						}
 						else {
-							LOG(LogWarning) << "Failed to write to: " << interfaceName << " : error: " << written;
+							LLOG(LogWarning) << "Failed to write to: " << interfaceName << " : error: " << written;
 						}
 						maxQueued--;
 					}
@@ -141,7 +141,7 @@ namespace l::network {
 					auto queryName = interfaceName; // With websocket, we have one query only per interface and it has the same name
 					written = networkManager->WSKeepalive(queryName) >= 0;
 					if (written < 0) {
-						LOG(LogWarning) << "Failed to send keepalive: " << interfaceName << " : error: " << written;
+						LLOG(LogWarning) << "Failed to send keepalive: " << interfaceName << " : error: " << written;
 					}
 				}
 			}
@@ -159,7 +159,7 @@ namespace l::network {
 					auto queryName = interfaceName; // With websocket, we have one query only per interface and it has the same name
 					written = networkManager->WSWrite(queryName, buffer, size) >= 0;
 					if (written < 0) {
-						LOG(LogWarning) << "Failed to write to: " << interfaceName << " : error: " << written;
+						LLOG(LogWarning) << "Failed to write to: " << interfaceName << " : error: " << written;
 					}
 				}
 			}

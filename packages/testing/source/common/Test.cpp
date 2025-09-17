@@ -56,7 +56,7 @@ namespace testing {
 	}
 
 	bool run_tests(const char* app) {
-		LOG(LogTitle) << "Unit tests " << app;
+		LLOG(LogTitle) << "Unit tests " << app;
 
 		bool test_success = true;
 		{
@@ -67,9 +67,9 @@ namespace testing {
 			auto& groups = get_test_groups();
 			for (auto& groupIt : groups) {
 				size_t total = groupIt.second->size();
-				LOG(LogTitle) << "# " << groupIt.first;
+				LLOG(LogTitle) << "# " << groupIt.first;
 				for (auto& f : *groupIt.second) {
-					LOG(LogTitle) << "## " << groupIt.first + "::" + f.first;
+					LLOG(LogTitle) << "## " << groupIt.first + "::" + f.first;
 					if (f.second()) {
 						failed_tests++;
 						test_success = false;
@@ -77,17 +77,17 @@ namespace testing {
 				}
 				std::ostringstream msg;
 				msg << "## Test result for '" + groupIt.first + "': successful tests(" << (total - failed_tests) << " / " << (total) << ")";
-				LOG(LogTitle) << msg.str();
+				LLOG(LogTitle) << msg.str();
 				summary.push_back(msg.str());
 			}
 
-			LOG(LogTitle) << "## Test summary ";
+			LLOG(LogTitle) << "## Test summary ";
 			for (auto& str : summary) {
-				LOG(LogTitle) << str;
+				LLOG(LogTitle) << str;
 			}
 
 			if (!test_success) {
-				LOG(LogTitle) << "All tests did not go through successfully..";
+				LLOG(LogTitle) << "All tests did not go through successfully..";
 			}
 		}
 
@@ -95,7 +95,7 @@ namespace testing {
 	}
 
 	bool run_perfs(const char* app) {
-		LOG(LogTitle) << "Performance tests " << app;
+		LLOG(LogTitle) << "Performance tests " << app;
 
 		bool perf_success = true;
 		{
@@ -106,9 +106,9 @@ namespace testing {
 			auto& groups = get_perf_groups();
 			for (auto& groupIt : groups) {
 				size_t total = groupIt.second->size();
-				LOG(LogTitle) << "## " << groupIt.first;
+				LLOG(LogTitle) << "## " << groupIt.first;
 				for (auto& f : *groupIt.second) {
-					LOG(LogTitle) << groupIt.first + "::" + f.first;
+					LLOG(LogTitle) << groupIt.first + "::" + f.first;
 					if (f.second()) {
 						failed_perfs++;
 						perf_success = false;
@@ -117,23 +117,23 @@ namespace testing {
 					auto& measures = get_time_measures(groupIt.first);
 
 					for (auto& result : measures) {
-						LOG(LogInfo) << groupIt.first << "::" << result.first << ": " << result.second.mSeconds << " sec.";
+						LLOG(LogInfo) << groupIt.first << "::" << result.first << ": " << result.second.mSeconds << " sec.";
 					}
 				}
 
 				std::ostringstream msg;
 				msg << "Performance result for '" + groupIt.first + "': successful perfs(" << (total - failed_perfs) << " / " << (total) << ")";
-				LOG(LogTitle) << msg.str();
+				LLOG(LogTitle) << msg.str();
 				summary.push_back(msg.str());
 			}
 
-			LOG(LogTitle) << "----";
+			LLOG(LogTitle) << "----";
 			for (auto& str : summary) {
-				LOG(LogTitle) << str;
+				LLOG(LogTitle) << str;
 			}
 
 			if (!perf_success) {
-				LOG(LogTitle) << "All perfs did not go through successfully..";
+				LLOG(LogTitle) << "All perfs did not go through successfully..";
 			}
 		}
 

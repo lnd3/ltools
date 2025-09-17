@@ -28,7 +28,7 @@ namespace l::nodegraph {
     bool NodeGraphSchema::NodeGraphNewNode(int32_t typeId, int32_t nodeId) {
         auto id = NewNode(typeId, nodeId);
         if (id != nodeId) {
-            LOG(LogError) << "Failed to create node";
+            LLOG(LogError) << "Failed to create node";
             return false;
         }
         return true;
@@ -38,7 +38,7 @@ namespace l::nodegraph {
         auto srcNode = GetNode(srcId);
         auto dstNode = GetNode(dstId);
         if (srcNode && dstNode && !dstNode->SetInput(dstChannel, *srcNode, srcChannel)) {
-            LOG(LogError) << "Failed to wire nodes";
+            LLOG(LogError) << "Failed to wire nodes";
             return false;
         }
         return true;
@@ -59,7 +59,7 @@ namespace l::nodegraph {
 
     bool NodeGraphSchema::Load(std::filesystem::path file) {
         if (!file.has_filename() || !std::filesystem::exists(file)) {
-            LOG(LogError) << "Failed to load schema: the file does not exist";
+            LLOG(LogError) << "Failed to load schema: the file does not exist";
             return false;
         }
 
@@ -87,12 +87,12 @@ namespace l::nodegraph {
 
     bool NodeGraphSchema::Save(std::filesystem::path file, bool cloneOnly) {
         if (file.empty()) {
-            LOG(LogError) << "Failed to save schema: there is no file name or path";
+            LLOG(LogError) << "Failed to save schema: there is no file name or path";
             return false;
         }
 
         if (!file.has_filename()) {
-            LOG(LogError) << "Failed to save schema: there is no file name";
+            LLOG(LogError) << "Failed to save schema: there is no file name";
             return false;
         }
 
@@ -109,7 +109,7 @@ namespace l::nodegraph {
         l::filesystem::File dataFile(file);
         dataFile.modeBinary().modeWriteTrunc();
         if (dataFile.open() && dataFile.write(builder.GetStream()) > 0) {
-            LOG(LogInfo) << "Created " << file;
+            LLOG(LogInfo) << "Created " << file;
             return true;
         }
         return false;
@@ -130,11 +130,11 @@ namespace l::nodegraph {
                 }
 
                 if (mVersionMajor < kVersionMajor) {
-                    LOG(LogWarning) << "Schema major version mismatch. Performing automatic upgrade but schema should be saved.";
+                    LLOG(LogWarning) << "Schema major version mismatch. Performing automatic upgrade but schema should be saved.";
                     // Perform upgrade
                 }
                 else if (mVersionMinor < kVersionMinor) {
-                    LOG(LogWarning) << "Schema minor version is of old version. Schema should still work but should be resaved when suitable.";
+                    LLOG(LogWarning) << "Schema minor version is of old version. Schema should still work but should be resaved when suitable.";
                 }
 
                 if (nodeGraphSchema.has_key("Name")) {
@@ -753,7 +753,7 @@ namespace l::nodegraph {
             RegisterNodeType("UI", 607, "UI Chart Lines 3");
             }
         else {
-            LOG(LogWarning) << "Type group does not exist: " << typeGroup;
+            LLOG(LogWarning) << "Type group does not exist: " << typeGroup;
         }
     }
 

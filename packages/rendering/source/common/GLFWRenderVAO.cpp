@@ -132,10 +132,10 @@ namespace l {
                         uint32_t index = mesh.vertex_indices.data[i];
                         const ufbx_vec2& value = mesh.vertex_uv[i];
                         if (uvs[index*2] != static_cast<float>(value.x)) {
-                            LOG(LogError) << "";
+                            LLOG(LogError) << "";
                         }
                         if (uvs[index * 2+1] < static_cast<float>(value.y)) {
-                            LOG(LogError) << "";
+                            LLOG(LogError) << "";
                         }
                         uvs[index * 2 + 0] = static_cast<float>(value.x);
                         uvs[index * 2 + 1] = static_cast<float>(value.y);

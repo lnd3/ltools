@@ -292,7 +292,7 @@ namespace l::ui {
             if (mNGSchema == nullptr) {
                 return;
             }
-            //LOG(LogInfo) << "Container " << containerId << " moved to " << x << ", " << y;
+            //LLOG(LogInfo) << "Container " << containerId << " moved to " << x << ", " << y;
             auto node = mNGSchema->GetNode(nodeId);
             if (node != nullptr) {
                 auto& uiData = node->GetUIData();
@@ -305,7 +305,7 @@ namespace l::ui {
             if (mNGSchema == nullptr) {
                 return;
             }
-            //LOG(LogInfo) << "Container " << containerId << " resized to " << w << ", " << h;
+            //LLOG(LogInfo) << "Container " << containerId << " resized to " << w << ", " << h;
             auto node = mNGSchema->GetNode(nodeId);
             if (node != nullptr) {
                 auto& uiData = node->GetUIData();
@@ -374,7 +374,7 @@ namespace l::ui {
                 auto s = ImVec2(uiData.w, uiData.h);
                 auto uiNode = l::ui::CreateUINode(mUIManager, *node, p, s);
 
-                //LOG(LogInfo) << "Replicated node type " << node->GetTypeId() << " as a ui node";
+                //LLOG(LogInfo) << "Replicated node type " << node->GetTypeId() << " as a ui node";
                 mUIRoot->Add(uiNode);
             }
 
