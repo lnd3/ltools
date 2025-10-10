@@ -134,6 +134,8 @@ namespace l::nodegraph {
         void ClearProcessFlags();
         void ProcessSubGraph(int32_t numSamples, int32_t numCacheSamples = -1);
         void Tick(int32_t tickCount, float elapsed);
+
+        void SendEvent(int32_t id, int32_t cmd = 0, void* userdata = nullptr);
     protected:
         NodeFactoryBase* mNodeFactory = nullptr;
 

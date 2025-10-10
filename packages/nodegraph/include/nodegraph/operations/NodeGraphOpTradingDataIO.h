@@ -89,6 +89,8 @@ namespace l::nodegraph {
             AddInput2("Base", 16, InputFlags(false, true, false, true));
             AddInput("Index", 2.0f, 1, 0.0f, 10.0f);
             AddInput2("Now");
+            AddInput2("PTick");
+            AddInput2("QStep");
 
             AddOutput2("Symbol", 16, OutputFlags(false, true));
             AddOutput2("Base", 16, OutputFlags(false, true));
@@ -98,6 +100,8 @@ namespace l::nodegraph {
             AddOutput("Index#3", 3.0f);
             AddOutput("Now");
             AddOutput("Reset");
+            AddOutput("PTick");
+            AddOutput("QStep");
         }
 
         virtual ~TradingDataIOChartInfo() = default;

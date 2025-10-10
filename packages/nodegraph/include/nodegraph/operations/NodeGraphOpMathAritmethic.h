@@ -263,7 +263,7 @@ namespace l::nodegraph {
         virtual ~MathAritmethicPow() = default;
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input0 = inputs.at(0).GetIterator(numSamples);
-            auto exponent = inputs.at(2).Get();
+            auto exponent = inputs.at(1).Get();
             auto output1 = &outputs.at(0).Get(numSamples);
 
             for (int32_t i = 0; i < numSamples; i++) {

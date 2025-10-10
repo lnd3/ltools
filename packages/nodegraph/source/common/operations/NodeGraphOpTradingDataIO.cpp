@@ -175,6 +175,8 @@ namespace l::nodegraph {
         auto baseInput = inputs.at(1).GetText(16);
         auto indexInput = l::math::clamp(inputs.at(2).Get(), 0.0f, 9.9999f);
         auto now = inputs.at(3).Get();
+        auto ptick = inputs.at(4).Get();
+        auto qstep = inputs.at(5).Get();
 
         outputs.at(0).SetText(symbolInput);
         outputs.at(1).SetText(baseInput);
@@ -184,6 +186,8 @@ namespace l::nodegraph {
         float* indexOut3 = &outputs.at(5).Get();
         float* nowOutput = &outputs.at(6).Get();
         float* resetOutput = &outputs.at(7).Get();
+        float* ptickOutput = &outputs.at(8).Get();
+        float* qstepOutput = &outputs.at(9).Get();
 
         *indexOut0 = l::math::clamp(indexInput, 0.0f, 9.9999f);
         *indexOut1 = l::math::clamp(indexInput + 1.0f, 0.0f, 9.9999f);
@@ -191,6 +195,8 @@ namespace l::nodegraph {
         *indexOut3 = l::math::clamp(indexInput + 3.0f, 0.0f, 9.9999f);
         *nowOutput = now;
         *resetOutput = mReadSamples == 0;
+        *ptickOutput = ptick;
+        *qstepOutput = qstep;
 
         mReadSamples += numSamples;
         if (mReadSamples >= numCacheSamples) {

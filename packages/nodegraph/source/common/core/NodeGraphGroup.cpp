@@ -361,4 +361,10 @@ namespace l::nodegraph {
         }
         mLastTickCount = tickCount;
     }
+
+    void NodeGraphGroup::SendEvent(int32_t id, int32_t cmd, void* userdata) {
+        for (auto& node : mNodes) {
+            node->RecieveEvent(id, cmd, userdata);
+        }
+    }
 }
