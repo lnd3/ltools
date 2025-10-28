@@ -437,7 +437,7 @@ namespace l::nodegraph {
     /*********************************************************************/
     void MathNumericalMeanExpRegression::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto inInput = &inputs.at(0).Get(numSamples);
-        auto n = l::math::max2(inputs.at(1).Get(), 1.0f);
+        auto n = static_cast<int32_t>(l::math::max2(inputs.at(1).Get(), 1.0f) + 0.00001f);
         auto exp = inputs.at(2).Get();
         auto distribution = inputs.at(3).Get();
 
@@ -447,7 +447,7 @@ namespace l::nodegraph {
             mValues.clear();
         }
 
-        auto nFactor = 1.0f / n;
+        auto nFactor = 1.0f / static_cast<float>(n);
 
         for (int32_t i = 0; i < numSamples; i++) {
             float in = *inInput++;
@@ -456,40 +456,42 @@ namespace l::nodegraph {
                 mValues.erase(mValues.begin());
             }
             else {
-                auto numToAdd = n - mValues.size() - 1;
-                for (int32_t i = 0; i < numToAdd; i++) {
+                auto numToAdd = static_cast<int32_t>(n - mValues.size() - 1);
+                for (int32_t j = 0; j < numToAdd; j++) {
                     mValues.push_back(in);
                 }
             }
             mValues.push_back(in);
 
             auto mean = 0.0f;
-            auto meanSumFactor = 0.0f;
             { // calculate the mean value with the distribution in mind
                 auto count = 0;
+                auto sumFactor = 0.0f;
                 for (auto& value : mValues) {
                     auto distributionFactor = l::math::pow(count / static_cast<float>(n), distribution);
                     mean += value * distributionFactor;
-                    meanSumFactor += distributionFactor;
+                    sumFactor += distributionFactor;
                     count++;
                 }
                 mean *= nFactor;
-                if (meanSumFactor > 0.0f) {
-                    mean /= meanSumFactor;
+                if (sumFactor > 0.0f) {
+                    mean /= sumFactor;
                 }
             }
 
             auto meanSquareSum = 0.0f;
             { // calculate the mean regression with the sum of the exponential distance to the mean, with distribution in mind
                 auto count = 0;
+                auto sumFactor = 0.0f;
                 for (auto& value : mValues) {
                     auto distributionFactor = l::math::pow(count / static_cast<float>(n), distribution);
-                    meanSquareSum += l::math::pow(value - mean, exp);
+                    meanSquareSum += l::math::pow(value - mean, exp) * distributionFactor;
+                    sumFactor += distributionFactor;
                     count++;
                 }
                 meanSquareSum *= nFactor;
-                if (meanSumFactor > 0.0f) {
-                    meanSquareSum /= meanSumFactor;
+                if (sumFactor > 0.0f) {
+                    meanSquareSum /= sumFactor;
                 }
             }
 
