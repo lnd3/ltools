@@ -342,7 +342,10 @@ namespace l::nodegraph {
         case 150:
             node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalTemporalChange2>(id, NodeType::Default);
             break;
-
+        case 151:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalMeanExpRegression>(id, NodeType::Default);
+            break;
+            
             // Trading data io
         case 200:
             node = mMainNodeGraph.NewNode<l::nodegraph::TradingDataIOOCHLVDataIn>(id, NodeType::ExternalInput, 0);
@@ -673,6 +676,7 @@ namespace l::nodegraph {
             RegisterNodeType("Math.Numerical", 148, "Unitmap", "Maps the input to [-1,1] via a sigmoid function. A scale factor can be provided that changes the shape of the mapping");
             RegisterNodeType("Math.Numerical", 149, "EMA", "Exponential moving average [ema1=(ema0*(n-1)+input)/n]");
             RegisterNodeType("Math.Numerical", 150, "Change 2", "Temporal change 2. Computes the value: (v_now - v_prev) / abs(v_now).");
+            RegisterNodeType("Math.Numerical", 151, "Mean Regression", "Computes the convolution of the exponential distances and can be used as a square root of the variance for computing the mean regression or the trend/direction of the input values.");
         }
         else if (typeGroup == "Trading.Data IO") {
             RegisterNodeType("Trading.Data IO", 200, "OCHLV Data In");

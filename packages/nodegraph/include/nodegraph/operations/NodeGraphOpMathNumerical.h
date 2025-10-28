@@ -268,4 +268,25 @@ namespace l::nodegraph {
         float mEmaAccum = 0.0f;
     };
 
+    /*********************************************************************/
+    class MathNumericalMeanExpRegression : public nodegraph::NodeGraphOp {
+    public:
+        MathNumericalMeanExpRegression(nodegraph::NodeGraphBase* node) :
+            NodeGraphOp(node, "Mean Regression")
+        {
+            AddInput2("In");
+            AddInput("N", 14.0f, 1, 1.0f, 1000.0f);
+            AddInput("Exp", 2.0f, 1, 0.0f, 10.0f);
+            AddInput("Distribution", 2.0f, 1, 0.0f, 10.0f);
+
+            AddOutput2("Out");
+        }
+
+        virtual ~MathNumericalMeanExpRegression() = default;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<nodegraph::NodeGraphInput>& inputs, std::vector<nodegraph::NodeGraphOutput>& outputs) override;
+    protected:
+        int32_t mReadSamples = 0;
+
+        std::vector<float> mValues;
+    };
 }

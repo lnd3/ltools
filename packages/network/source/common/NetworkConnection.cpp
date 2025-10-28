@@ -333,9 +333,11 @@ namespace l::network {
 		int32_t maxTries = 3;
 		size_t readTotal = 0;
 		CURLcode res = CURLE_OK;
+
+		const struct curl_ws_frame* meta = nullptr;
+
 		while (!res) {
 			size_t recv = 0;
-			const struct curl_ws_frame* meta = nullptr;
 			auto recvMax = size - readTotal;
 			res = curl_ws_recv(mCurl, buffer + readTotal, recvMax, &recv, &meta);
 			readTotal += recv;
