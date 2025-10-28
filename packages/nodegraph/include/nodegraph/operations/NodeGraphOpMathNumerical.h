@@ -279,7 +279,8 @@ namespace l::nodegraph {
             AddInput("Exp", 2.0f, 1, 0.0f, 10.0f);
             AddInput("Distribution", 2.0f, 1, 0.0f, 10.0f);
 
-            AddOutput2("Out");
+            AddOutput2("Mean");
+            AddOutput2("Mean Exp");
         }
 
         virtual ~MathNumericalMeanExpRegression() = default;

@@ -441,13 +441,12 @@ namespace l::nodegraph {
         auto exp = inputs.at(2).Get();
         auto distribution = inputs.at(3).Get();
 
-        auto outOutput = &outputs.at(0).Get(numSamples);
+        auto meanOutput = &outputs.at(0).Get(numSamples);
+        auto meanExpOutput = &outputs.at(1).Get(numSamples);
 
         if (mReadSamples == 0) {
             mValues.clear();
         }
-
-        auto nFactor = 1.0f / static_cast<float>(n);
 
         for (int32_t i = 0; i < numSamples; i++) {
             float in = *inInput++;
@@ -473,7 +472,6 @@ namespace l::nodegraph {
                     sumFactor += distributionFactor;
                     count++;
                 }
-                mean *= nFactor;
                 if (sumFactor > 0.0f) {
                     mean /= sumFactor;
                 }
@@ -485,17 +483,17 @@ namespace l::nodegraph {
                 auto sumFactor = 0.0f;
                 for (auto& value : mValues) {
                     auto distributionFactor = l::math::pow(count / static_cast<float>(n), distribution);
-                    meanSquareSum += l::math::pow(value - mean, exp) * distributionFactor;
+                    meanSquareSum += l::math::pow(l::math::abs(value - mean), exp) * distributionFactor;
                     sumFactor += distributionFactor;
                     count++;
                 }
-                meanSquareSum *= nFactor;
                 if (sumFactor > 0.0f) {
                     meanSquareSum /= sumFactor;
                 }
             }
 
-            *outOutput++ = meanSquareSum;
+            *meanOutput++ = mean;
+            *meanExpOutput++ = meanSquareSum;
         }
 
         mReadSamples += numSamples;
