@@ -1,5 +1,4 @@
 #include "rendering/ui/UIVisitors.h"
-#include "hid/KeyboardPiano.h"
 
 
 namespace l::ui {
@@ -525,11 +524,11 @@ namespace l::ui {
         // * input container co-parent -> link container
         // But a link container is still owned by only one container, the output container
 
-        {
+        if (container.HasConfigFlag(UIContainer_OutputFlag)) { // output node checks
             auto& outputContainer = container;
 
             // Create a link connection and attach it at a source node
-            if (outputContainer.HasConfigFlag(UIContainer_OutputFlag) && !mDragging && input.mStarted && mLinkContainer.Get() == nullptr) {
+            if (!mDragging && input.mStarted && mLinkContainer.Get() == nullptr) {
                 ImVec2 pCenter = outputContainer.GetPosition();
                 ImVec2 size = outputContainer.GetSize();
                 auto& layoutArea = outputContainer.GetLayoutArea();
@@ -544,12 +543,11 @@ namespace l::ui {
                 }
             }
         }
-
-        {
+        else if (container.HasConfigFlag(UIContainer_LinkFlag)) {
             auto& linkContainer = container;
 
             // Detach a link connection from a destination node with an existing link connection
-            if (linkContainer.HasConfigFlag(UIContainer_LinkFlag) && !mDragging && input.mStarted && mLinkContainer.Get() == nullptr && linkContainer.GetCoParent() != nullptr) {
+            if (!mDragging && input.mStarted && mLinkContainer.Get() == nullptr && linkContainer.GetCoParent() != nullptr) {
                 ImVec2 pCenter = linkContainer.GetCoParent()->GetPosition();
                 ImVec2 size = linkContainer.GetCoParent()->GetSize();
                 ImVec2 pT = linkContainer.GetCoParent()->GetLayoutArea().Transform(pCenter);
@@ -565,7 +563,7 @@ namespace l::ui {
             }
 
             // Drag the link end
-            if (mDragging && mLinkContainer.Get() != nullptr && linkContainer.HasConfigFlag(UIContainer_LinkFlag) && mLinkContainer.Get() == &linkContainer) {
+            if (mDragging && mLinkContainer.Get() != nullptr && mLinkContainer.Get() == &linkContainer) {
                 // On the newly created link container, drag the end point along the mouse movement
                 auto& layoutArea = mLinkContainer->GetLayoutArea();
 
@@ -573,35 +571,37 @@ namespace l::ui {
                 mLinkContainer->Move(move);
             }
         }
-
-        {
+        else if (container.HasConfigFlag(UIContainer_InputFlag)) {
             auto& inputContainer = container;
 
             // Check containers with input flags, i.e. a node input channel area
-            if (mDragging && mLinkContainer.Get() != nullptr && inputContainer.HasConfigFlag(UIContainer_InputFlag)) {
+            if (mDragging && mLinkContainer.Get() != nullptr) {
                 ImVec2 pCenter = inputContainer.GetPosition();
                 ImVec2 size = inputContainer.GetSize();
                 auto& layoutArea = inputContainer.GetLayoutArea();
 
                 ImVec2 pT = layoutArea.Transform(pCenter);
 
-                // if there is overlap we connect it
+                // we're dragging, so if there is overlap we connect it
                 if (OverlapCircle(input.mCurPos, pT, 2.0f * size.x * layoutArea.mScale)) {
-                    if (mLinkHandler(inputContainer.GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), inputContainer.GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), true)) {
+                    if (mLinkContainer->GetCoParent() == nullptr && mLinkHandler(inputContainer.GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), inputContainer.GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), true)) {
                         mLinkContainer->SetNotification(UIContainer_LinkFlag);
                         mLinkContainer->SetCoParent(&inputContainer);
                         inputContainer.SetCoParent(mLinkContainer.Get());
+                        //LLOG(LogInfo) << "Connected to " << inputContainer.GetChannelId();
                     }
                     else {
+                        //LLOG(LogInfo) << "Already connected";
                         // This link is already connected (or there is another link connected already)
                     }
                 }
-                // If this link if connected to this input node channel area, we detach it because the overlap failed (we moved it away)
+                // We're dragging, so if the overlap fail and this link is connected, we detach it (we moved it away)
                 else if (mLinkContainer->GetCoParent() == &inputContainer) {
                     mLinkHandler(inputContainer.GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), inputContainer.GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), false);
                     mLinkContainer->ClearNotification(UIContainer_LinkFlag);
                     mLinkContainer->SetCoParent(nullptr);
                     inputContainer.SetCoParent(nullptr);
+                    //LLOG(LogInfo) << "Disconnected from " << inputContainer.GetChannelId();
                 }
 
                 if (input.mStopped) {
