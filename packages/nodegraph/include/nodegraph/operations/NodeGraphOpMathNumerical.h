@@ -124,8 +124,8 @@ namespace l::nodegraph {
             NodeGraphOp(node, "Level Trigger")
         {
             AddInput2("In");
-            AddInput2("Max");
-            AddInput2("Min");
+            AddInput("Max", 1.0f);
+            AddInput("Min", -1.0f);
             AddInput("Num levels", 1.0f, 1, 1.0f, 100.0f, true, true);
             AddInput("Max", 1.0f, 1, 0.0f, 3.0f, true, true);
             AddInput("Min", 0.0f, 1, -3.0f, 1.0f, true, true);
