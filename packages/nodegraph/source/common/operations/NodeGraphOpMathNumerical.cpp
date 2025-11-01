@@ -437,7 +437,7 @@ namespace l::nodegraph {
     /*********************************************************************/
     void MathNumericalMeanExpRegression::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto inInput = &inputs.at(0).Get(numSamples);
-        auto n = static_cast<int32_t>(l::math::max2(inputs.at(1).Get(), 1.0f) + 0.00001f);
+        auto n = static_cast<size_t>(l::math::max2(inputs.at(1).Get(), 1.0f) + 0.00001f);
         auto exp = inputs.at(2).Get();
         auto distribution = inputs.at(3).Get();
 
