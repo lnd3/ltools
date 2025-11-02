@@ -38,7 +38,9 @@ namespace l::nodegraph {
         auto srcNode = GetNode(srcId);
         auto dstNode = GetNode(dstId);
         if (srcNode && dstNode && !dstNode->SetInput(dstChannel, *srcNode, srcChannel)) {
-            LLOG(LogError) << "Failed to wire " << srcId << ":" << srcChannel << " to " << dstId << ":" << dstChannel << " in schema " << mFullPath;
+            auto srctype = srcNode->GetTypeId();
+            auto dsttype = dstNode->GetTypeId();
+            LLOG(LogError) << "Failed to wire [type,id,channel] [" << srctype << ":" << srcId << ":" << static_cast<int32_t>(srcChannel) << "] to [" << dsttype << ":" << dstId << ":" << static_cast<int32_t>(dstChannel) << "] in schema " << mFullPath;
             return false;
         }
         return true;
