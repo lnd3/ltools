@@ -62,15 +62,15 @@ namespace l::nodegraph {
 
                                 //auto name = e.get("Name").as_string();
                                 //auto typeName = e.get("TypeName").as_string();
-                                mNodeFactory->NodeGraphNewNode(typeId, nodeId);
-
-                                if (e.has_key("x") && e.has_key("y")) {
-                                    GetNode(nodeId)->GetUIData().x = e.get("x").as_float();
-                                    GetNode(nodeId)->GetUIData().y = e.get("y").as_float();
-                                }
-                                if (e.has_key("w") && e.has_key("w")) {
-                                    GetNode(nodeId)->GetUIData().w = e.get("w").as_float();
-                                    GetNode(nodeId)->GetUIData().h = e.get("h").as_float();
+                                if (mNodeFactory->NodeGraphNewNode(typeId, nodeId)) {
+                                    if (e.has_key("x") && e.has_key("y")) {
+                                        GetNode(nodeId)->GetUIData().x = e.get("x").as_float();
+                                        GetNode(nodeId)->GetUIData().y = e.get("y").as_float();
+                                    }
+                                    if (e.has_key("w") && e.has_key("w")) {
+                                        GetNode(nodeId)->GetUIData().w = e.get("w").as_float();
+                                        GetNode(nodeId)->GetUIData().h = e.get("h").as_float();
+                                    }
                                 }
                             }
                         }

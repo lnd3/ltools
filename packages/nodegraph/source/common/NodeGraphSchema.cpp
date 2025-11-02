@@ -28,7 +28,7 @@ namespace l::nodegraph {
     bool NodeGraphSchema::NodeGraphNewNode(int32_t typeId, int32_t nodeId) {
         auto id = NewNode(typeId, nodeId);
         if (id != nodeId) {
-            LLOG(LogError) << "Failed to create node";
+            LLOG(LogError) << "Failed to create node " << nodeId << " with type " << typeId << " in schema " << mFullPath;
             return false;
         }
         return true;
@@ -38,7 +38,7 @@ namespace l::nodegraph {
         auto srcNode = GetNode(srcId);
         auto dstNode = GetNode(dstId);
         if (srcNode && dstNode && !dstNode->SetInput(dstChannel, *srcNode, srcChannel)) {
-            LLOG(LogError) << "Failed to wire nodes";
+            LLOG(LogError) << "Failed to wire " << srcId << ":" << srcChannel << " to " << dstId << ":" << dstChannel << " in schema " << mFullPath;
             return false;
         }
         return true;
@@ -87,12 +87,12 @@ namespace l::nodegraph {
 
     bool NodeGraphSchema::Save(std::filesystem::path file, bool cloneOnly) {
         if (file.empty()) {
-            LLOG(LogError) << "Failed to save schema: there is no file name or path";
+            LLOG(LogError) << "Failed to save schema: there is no file name or path. In schema " << mFullPath;
             return false;
         }
 
         if (!file.has_filename()) {
-            LLOG(LogError) << "Failed to save schema: there is no file name";
+            LLOG(LogError) << "Failed to save schema: there is no file name. In schema " << mFullPath;
             return false;
         }
 
@@ -130,11 +130,11 @@ namespace l::nodegraph {
                 }
 
                 if (mVersionMajor < kVersionMajor) {
-                    LLOG(LogWarning) << "Schema major version mismatch. Performing automatic upgrade but schema should be saved.";
+                    LLOG(LogWarning) << "Schema major version mismatch. Performing automatic upgrade but schema should be saved. In schema " << mFullPath;
                     // Perform upgrade
                 }
                 else if (mVersionMinor < kVersionMinor) {
-                    LLOG(LogWarning) << "Schema minor version is of old version. Schema should still work but should be resaved when suitable.";
+                    LLOG(LogWarning) << "Schema minor version is of old version. Schema should still work but should be resaved when suitable. In schema " << mFullPath;
                 }
 
                 if (nodeGraphSchema.has_key("Name")) {
