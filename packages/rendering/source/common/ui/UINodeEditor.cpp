@@ -218,7 +218,7 @@ namespace l::ui {
                     nodeValue = &node->GetOutput(channelId, 1);
                 }
                 if (nodeValue != nullptr) {
-                    if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftShift)) {
+                    if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftAlt)) {
                         if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftCtrl)) {
                             *nodeValue -= dy / 100.0f;
                         }
