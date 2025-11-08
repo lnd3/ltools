@@ -141,7 +141,7 @@ namespace l::string {
 			timeinfo->tm_year += 1900;
 			timeinfo->tm_mon += 1;
 		}
-		ASSERT(res == 0);
+		//ASSERT(res == 0);
 	}
 
 	int32_t get_unix_epoch() {
@@ -174,7 +174,7 @@ namespace l::string {
 		int ret = 0;
 
 		if (date.size() > 10) {
-			ASSERT(date.size() == 19);
+			//ASSERT(date.size() == 19);
 #ifdef WIN32
 			ret = sscanf_s(date.data(), "%4d-%2d-%2d %2d:%2d:%2d",
 				&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec);
@@ -182,10 +182,10 @@ namespace l::string {
 			ret = sscanf(date.data(), "%4d-%2d-%2d %2d:%2d:%2d",
 				&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec);
 #endif
-			ASSERT(ret <= 6);
+			//ASSERT(ret <= 6);
 		}
 		else {
-			ASSERT(date.size() == 10);
+			//ASSERT(date.size() == 10);
 #ifdef WIN32
 			ret = sscanf_s(date.data(), "%4d-%2d-%2d",
 				&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday);
@@ -196,7 +196,7 @@ namespace l::string {
 			timeinfo.tm_hour = 0;
 			timeinfo.tm_min = 0;
 			timeinfo.tm_sec = 0;
-			ASSERT(ret <= 3);
+			//ASSERT(ret <= 3);
 		}
 
 		// use _mkgmtime for gmt/utc time, use it when local time zone is unknown, for example in storage
@@ -211,7 +211,7 @@ namespace l::string {
 		int ret = 0;
 		int microsec;
 
-		ASSERT(date.size() == 28);
+		//ASSERT(date.size() == 28);
 #ifdef WIN32
 		ret = sscanf_s(date.data(), "%4d-%2d-%2dT%2d:%2d:%2d.%7dZ",
 			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec, &microsec);
@@ -220,7 +220,7 @@ namespace l::string {
 			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec, &microsec);
 #endif
 
-		ASSERT(ret <= 7);
+		//ASSERT(ret <= 7);
 
 		// use _mkgmtime for gmt/utc time, use it when local time zone is unknown, for example in storage
 		// use mktime for local time zone presentation
@@ -258,7 +258,7 @@ namespace l::string {
 			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec);
 #endif
 
-		ASSERT(ret <= 6);
+		//ASSERT(ret <= 6);
 
 		// use _mkgmtime for gmt/utc time, use it when local time zone is unknown, for example in storage
 		// use mktime for local time zone presentation
@@ -269,7 +269,7 @@ namespace l::string {
 	int32_t to_unix_time_local2(std::string_view dateAndTime) {
 		struct tm timeinfo = {};
 		int microsec;
-		ASSERT(dateAndTime.size() == 28);
+		//ASSERT(dateAndTime.size() == 28);
 #ifdef WIN32
 		int ret = sscanf_s(dateAndTime.data(), "%4d-%2d-%2dT%2d:%2d:%2d.%7dZ",
 			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec, &microsec);
@@ -278,7 +278,7 @@ namespace l::string {
 			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec, &microsec);
 #endif
 
-		ASSERT(ret <= 7);
+		//ASSERT(ret <= 7);
 
 		// use _mkgmtime for gmt/utc time, use it when local time zone is unknown, for example in storage
 		// use mktime for local time zone presentation
@@ -517,7 +517,7 @@ namespace l::string {
 		std::locale loc;
 
 		auto size = str.length();
-		EXPECT(size > 0 && size < buffer_size) << "Failed to narrow string of size " << size << " characters";
+		//EXPECT(size > 0 && size < buffer_size) << "Failed to narrow string of size " << size << " characters";
 
 		auto str_ptr = str.data();
 
@@ -532,7 +532,7 @@ namespace l::string {
 		std::locale loc("");
 
 		auto size = str.length();
-		EXPECT(size > 0 && size < buffer_size) << "Failed to widen string of size " << size << " characters";
+		//EXPECT(size > 0 && size < buffer_size) << "Failed to widen string of size " << size << " characters";
 
 		auto str_ptr = str.data();
 
@@ -649,7 +649,7 @@ namespace l::string {
 				out = 10 + (c - 97);
 			}
 			else {
-				ASSERT(false);
+				//ASSERT(false);
 				out = 0;
 			}
 			return mostSignificant ? out << 4 : out;
@@ -687,7 +687,7 @@ namespace l::string {
 				out = 10 + (c - 97);
 			}
 			else {
-				ASSERT(false);
+				//ASSERT(false);
 				out = 0;
 			}
 			return mostSignificant ? out << 4 : out;

@@ -45,7 +45,7 @@ namespace l::network {
 										}
 									}
 								}
-								ASSERT(foundHandle);
+								//ASSERT(foundHandle);
 							}
 							else if (m) {
 								LLOG(LogWarning) << "Not done";

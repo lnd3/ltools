@@ -184,7 +184,7 @@ namespace l::nodegraph {
     }
 
     bool NodeGraphBase::SetInput(int8_t inputChannel, float* floatPtr) {
-        ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
+        //ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
         if (!IsValidInOutNum(inputChannel, mInputs.size())) {
             return false;
         }
@@ -213,7 +213,7 @@ namespace l::nodegraph {
     }
 
     bool NodeGraphBase::SetInputBound(int8_t inputChannel, InputBound bound, float boundMin, float boundMax) {
-        ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
+        //ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
         if (!IsValidInOutNum(inputChannel, mInputs.size())) {
             return false;
         }

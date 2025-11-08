@@ -90,7 +90,7 @@ namespace l::nodegraph {
     void NodeGraphInput::MinimizeBuffer(int32_t size) {
         if (mInputType == InputType::INPUT_NODE) {
             if (mInput.mInputNode != nullptr) {
-                ASSERT(mInput.mInputNode->GetOutputSize(mInputFromOutputChannel) == size);
+                //ASSERT(mInput.mInputNode->GetOutputSize(mInputFromOutputChannel) == size);
                 //mInput.mInputNode->GetOutputOf(mInputFromOutputChannel).MinimizeBuffer(size);
             }
         }

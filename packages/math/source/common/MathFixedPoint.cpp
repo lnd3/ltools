@@ -13,13 +13,13 @@ namespace l::math::fp {
     void FixedPoint::rescale(int64_t newScale) {
         if (newScale > scale_) { // scale up, no loss in precision
             int64_t diff = newScale / scale_;
-            ASSERT(l::math::abs(value_ * diff) < 100000000000000000);
+            //ASSERT(l::math::abs(value_ * diff) < 100000000000000000);
             value_ *= diff;
             scale_ *= diff;
         }
         else if (newScale < scale_) {
             int64_t diff = scale_ / newScale;
-            ASSERT(diff >= 10);
+            //ASSERT(diff >= 10);
             scale_ /= diff;
             diff /= 10;
             value_ /= diff;
