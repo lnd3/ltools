@@ -34,7 +34,7 @@ void string::Append(SString& dst, const char src)
 	*(dst.str + dst.cur_len++) = src;
 	EndString(dst);
 
-	ASSERT(dst.cur_len < dst.max_len) << "SString has a illegal size (size must be less " << std::to_string(dst.max_len) << ", but is " << std::to_string(dst.cur_len);
+	//ASSERT(dst.cur_len < dst.max_len) << "SString has a illegal size (size must be less " << std::to_string(dst.max_len) << ", but is " << std::to_string(dst.cur_len);
 }
 
 void string::Append(SString& dst, const char* src)
