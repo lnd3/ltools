@@ -418,4 +418,10 @@ namespace l::math::functions {
 			return static_cast<T>(x > static_cast<T>(0.0) ? static_cast<T>(1.0) : static_cast<T>(-1.0));
 		}
 	}
+
+	template<class T>
+	float infUnit(T x, T cutoff) {
+		return 1.0 / (1.0 + math::pow(2.71828, - x * 5.0 / cutoff));
+	}
+
 }
