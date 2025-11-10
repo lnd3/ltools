@@ -3,8 +3,8 @@
 #include <vector>
 #include <iostream>
 
-#ifdef LDEPS_USE_LIBTORCH
-#include <torch/torch.h>
+#ifdef HAS_LIBTORCH
+#include <torch/all.h>
 #endif
 
 namespace l::nn::libtorch {
