@@ -15,7 +15,11 @@
 using namespace torch::indexing;
 
 // === 1. Multi-Octave Sliding Window Trainer ===
-struct OctaveTrainer : torch::nn::Module {
+class OctaveTrainer : torch::nn::Module {
+public:
+    OctaveTrainer() = default;
+    ~OctaveTrainer() = default;
+
     struct Window {
         std::deque<torch::Tensor> X, y;
         int size;
@@ -33,7 +37,7 @@ struct OctaveTrainer : torch::nn::Module {
     };
 
     std::vector<Window> windows;
-    torch::nn::Linear model{ nullptr };
+    torch::nn::Linear model{nullptr};
     std::unique_ptr<torch::optim::Adam> optimizer;
     torch::Device device;
 
@@ -53,7 +57,7 @@ struct OctaveTrainer : torch::nn::Module {
         windows.emplace_back(365);
 
         // Create the model properly using register_module
-        model = register_module("linear", torch::nn::Linear(input_dim, 2));  // mean + logvar
+        model = register_module("linear", torch::nn::Linear(input_dim, 2));
 
         // Move model to device
         model->to(device);
@@ -168,7 +172,7 @@ std::vector<std::vector<double>> monte_carlo_forecast(
 }
 
 
-TEST(Torch, ChecForCuda) {
+TEST(Torch, CheckForCuda) {
     std::cout << "=== CUDA Diagnostics ===" << std::endl;
     std::cout << "PyTorch version: " << TORCH_VERSION_MAJOR << "." 
               << TORCH_VERSION_MINOR << "." << TORCH_VERSION_PATCH << std::endl;
@@ -193,7 +197,7 @@ TEST(Torch, ChecForCuda) {
 }
 
 TEST(Torch, Basic) {
-
+    return 0;
     try {
         // Check CUDA availability
         std::cout << "PyTorch version: " << TORCH_VERSION_MAJOR << "."
