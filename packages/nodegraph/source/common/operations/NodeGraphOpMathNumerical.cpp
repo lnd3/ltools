@@ -525,10 +525,10 @@ namespace l::nodegraph {
             auto in = *inInput++;
 
             // Deviation from EMA (for population std dev of the error)
-            float ema_current = alpha * in + (1.0f - alpha) * ema_prev;
+            auto ema_current = alpha * in + (1.0f - alpha) * ema_prev;
             ema_prev = ema_current;
 
-            double deviation = in - ema_current;
+            auto deviation = in - ema_current;
             auto deviationSquared = deviation * deviation;
 
             // Use exponentially weighted moving variance (more responsive)
