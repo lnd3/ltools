@@ -238,17 +238,8 @@ namespace l::string {
 	bool equal_partial(std::string_view a, std::string_view b, size_t a_offset = 0, size_t b_offset = 0);
 	int32_t equal_anywhere(std::string_view a, std::string_view b);
 
-	bool is_numeric(char c) {
-		return c >= '0' && c <= '9';
-	}
-	bool is_letter(char c, bool lowercase = true) {
-		if (lowercase) {
-			return c >= 'a' && c <= 'z';
-		}
-		else {
-			return c >= 'A' && c <= 'Z';
-		}
-	}
+	bool is_numeric(char c);
+	bool is_letter(char c, bool lowercase = true);
 
 	std::vector<std::wstring_view> split(std::wstring_view text, std::wstring_view delim = L" \t\n", char escapeChar = '\"');
 	std::vector<std::string_view> split(std::string_view text, std::string_view delim = " \t\n", char escapeChar = '\"');

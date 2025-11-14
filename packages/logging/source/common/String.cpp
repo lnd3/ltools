@@ -444,6 +444,18 @@ namespace l::string {
 		return -1;
 	}
 
+	bool is_numeric(char c) {
+		return c >= '0' && c <= '9';
+	}
+	bool is_letter(char c, bool lowercase = true) {
+		if (lowercase) {
+			return c >= 'a' && c <= 'z';
+		}
+		else {
+			return c >= 'A' && c <= 'Z';
+		}
+	}
+
 	std::vector<std::wstring_view> split(std::wstring_view text, std::wstring_view delim, char escapeChar) {
 		std::vector<std::wstring_view> out;
 
