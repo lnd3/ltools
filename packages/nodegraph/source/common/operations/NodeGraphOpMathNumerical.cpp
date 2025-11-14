@@ -502,4 +502,55 @@ namespace l::nodegraph {
         }
     }
 
+    /********************************************************************/
+
+    void MathNumericalStdDev::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        auto inInput = &inputs.at(0).Get(numSamples);
+        auto period = static_cast<size_t>(l::math::max2(inputs.at(1).Get(), 1.0f) + 0.00001f);
+        auto sigmaBand = inputs.at(2).Get(1);
+
+        auto ewmaOutput = &outputs.at(0).Get(numSamples);
+        auto stddevOutput = &outputs.at(1).Get(numSamples);
+        auto upperOutput = &outputs.at(2).Get(numSamples);
+        auto lowerOutput = &outputs.at(3).Get(numSamples);
+        auto zscoreOutput = &outputs.at(4).Get(numSamples);
+
+        if (mReadSamples == 0) {
+            alpha = 1.0f / period;
+            ema_prev = 0.0f;
+            variance_ewma = 0.0f;
+        }
+
+        for (int32_t i = 0; i < numSamples; i++) {
+            auto in = *inInput++;
+
+            // Deviation from EMA (for population std dev of the error)
+            float ema_current = alpha * in + (1.0f - alpha) * ema_prev;
+            ema_prev = ema_current;
+
+            double deviation = in - ema_current;
+            auto deviationSquared = deviation * deviation;
+
+            // Use exponentially weighted moving variance (more responsive)
+            // We maintain an EWMA of squared deviations
+            variance_ewma = alpha * deviationSquared + (1.0f - alpha) * variance_ewma;
+            auto stddev = l::math::sqrt(variance_ewma);
+
+            auto upper_band = ema_current + sigmaBand * stddev;  // e.g., 2-sigma band
+            auto lower_band = ema_current - sigmaBand * stddev;
+            auto z_score = (stddev > 0.0f) ? deviation / stddev : 0.0f;
+
+            *ewmaOutput++ = ema_current;
+            *stddevOutput++ = stddev;
+            *upperOutput++ = upper_band;
+            *lowerOutput++ = lower_band;
+            *zscoreOutput++ = z_score;
+        }
+
+        mReadSamples += numSamples;
+        if (mReadSamples == numCacheSamples) {
+            mReadSamples = 0;
+        }
+    }
+
 }

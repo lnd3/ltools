@@ -290,4 +290,31 @@ namespace l::nodegraph {
 
         std::vector<float> mValues;
     };
+
+    /*********************************************************************/
+    class MathNumericalStdDev : public nodegraph::NodeGraphOp {
+    public:
+        MathNumericalStdDev(nodegraph::NodeGraphBase* node) :
+            NodeGraphOp(node, "Standard Deviation")
+        {
+            AddInput2("In");
+            AddInput2("N");
+            AddInput("Band", 2.0f, 1, 0.0f, 10.0f);
+
+            AddOutput2("Ewma");
+            AddOutput2("Stddev");
+            AddOutput2("Upper");
+            AddOutput2("Lower");
+            AddOutput2("Z-score");
+        }
+
+        virtual ~MathNumericalStdDev() = default;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<nodegraph::NodeGraphInput>& inputs, std::vector<nodegraph::NodeGraphOutput>& outputs) override;
+    protected:
+        int32_t mReadSamples = 0;
+
+        float alpha = 0.0f;
+        float ema_prev = 0.0f;
+        float variance_ewma = 0.0;
+    };
 }
