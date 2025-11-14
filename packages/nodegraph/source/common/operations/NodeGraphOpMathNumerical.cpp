@@ -506,7 +506,7 @@ namespace l::nodegraph {
 
     void MathNumericalStdDev::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto inInput = &inputs.at(0).Get(numSamples);
-        auto period = static_cast<size_t>(l::math::max2(inputs.at(1).Get(), 1.0f) + 0.00001f);
+        auto period = l::math::max2(inputs.at(1).Get(), 1.0f);
         auto sigmaBand = inputs.at(2).Get(1);
 
         auto ewmaOutput = &outputs.at(0).Get(numSamples);

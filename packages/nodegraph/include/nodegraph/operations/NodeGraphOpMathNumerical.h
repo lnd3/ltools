@@ -298,7 +298,7 @@ namespace l::nodegraph {
             NodeGraphOp(node, "Standard Deviation")
         {
             AddInput2("In");
-            AddInput("N", 0.0f, 1, 0.0f, 1000.0f);
+            AddInput("N", 1.0f, 1, 1.0f, 1000.0f);
             AddInput("Band", 2.0f, 1, 0.0f, 10.0f);
 
             AddOutput2("Ewma");
