@@ -447,7 +447,7 @@ namespace l::string {
 	bool is_numeric(char c) {
 		return c >= '0' && c <= '9';
 	}
-	bool is_letter(char c, bool lowercase = true) {
+	bool is_letter(char c, bool lowercase) {
 		if (lowercase) {
 			return c >= 'a' && c <= 'z';
 		}
