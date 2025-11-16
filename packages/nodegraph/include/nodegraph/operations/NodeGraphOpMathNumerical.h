@@ -255,7 +255,6 @@ namespace l::nodegraph {
         {
             AddInput2("In");
             AddInput("N", 14.0f, 1, 1.0f, 1000.0f);
-            AddInput("Zero", 0.0f, 1, 0.0f, 1.0f);
 
             AddOutput2("Out");
         }
@@ -268,6 +267,26 @@ namespace l::nodegraph {
         float mEmaAccum = 0.0f;
     };
 
+    /*********************************************************************/
+    class MathNumericalSMA : public nodegraph::NodeGraphOp {
+    public:
+        MathNumericalSMA(nodegraph::NodeGraphBase* node) :
+            NodeGraphOp(node, "SMA")
+        {
+            AddInput2("In");
+            AddInput("N", 14.0f, 1, 1.0f, 1000.0f);
+
+            AddOutput2("Out");
+        }
+
+        virtual ~MathNumericalSMA() = default;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<nodegraph::NodeGraphInput>& inputs, std::vector<nodegraph::NodeGraphOutput>& outputs) override;
+    protected:
+        int32_t mReadSamples = 0;
+
+        float mSum = 0.0f;
+        float std::vector<float> mValues;
+    };
     /*********************************************************************/
     class MathNumericalMeanExpRegression : public nodegraph::NodeGraphOp {
     public:

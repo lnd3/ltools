@@ -350,6 +350,9 @@ namespace l::nodegraph {
         case 152:
             node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalStdDev>(id, NodeType::Default);
             break;
+        case 153:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalSMA>(id, NodeType::Default);
+            break;
 
             // Trading data io
         case 200:
@@ -683,6 +686,7 @@ namespace l::nodegraph {
             RegisterNodeType("Math.Numerical", 150, "Change 2", "Temporal change 2. Computes the value: (v_now - v_prev) / abs(v_now).");
             RegisterNodeType("Math.Numerical", 151, "Mean Regression", "Computes the convolution of the exponential distances and can be used as a square root of the variance for computing the mean regression or the trend/direction of the input values.");
             RegisterNodeType("Math.Numerical", 152, "Standard Deviation", "Computes the standard deviation and variance.");
+            RegisterNodeType("Math.Numerical", 153, "SMA", "Simple moving average");
         }
         else if (typeGroup == "Trading.Data IO") {
             RegisterNodeType("Trading.Data IO", 200, "OCHLV Data In");

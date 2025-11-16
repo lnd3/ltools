@@ -407,8 +407,6 @@ namespace l::nodegraph {
     void MathNumericalEMA::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto inInput = &inputs.at(0).Get(numSamples);
         auto n = l::math::max2(inputs.at(1).Get(), 1.0f);
-        auto zero = inputs.at(2).Get();
-        zero *= zero * zero;
 
         auto outOutput = &outputs.at(0).Get(numSamples);
 
@@ -419,12 +417,7 @@ namespace l::nodegraph {
         for (int32_t i = 0; i < numSamples; i++) {
             float in = *inInput++;
             mEmaAccum = (mEmaAccum * (n - 1.0f) + in) / n;
-            if (l::math::abs(mEmaAccum) < zero) {
-                *outOutput++ = 0.0f;
-            }
-            else {
-                *outOutput++ = mEmaAccum;
-            }
+            *outOutput++ = mEmaAccum;
         }
 
         mReadSamples += numSamples;
@@ -433,7 +426,38 @@ namespace l::nodegraph {
         }
     }
 
+    /*********************************************************************/
+    void MathNumericalSMA::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        auto inInput = &inputs.at(0).Get(numSamples);
+        auto n = l::math::max2(inputs.at(1).Get(), 1.0f);
 
+        auto outOutput = &outputs.at(0).Get(numSamples);
+
+        if (mReadSamples == 0) {
+            mValues.resize(n + 1);
+            for (auto& v : mValues) {
+                v = *inInput;
+            }
+            mSum = *inInput * mValues.size();;
+        }
+
+        auto factor = 1.0f / mValues.size();
+
+        for (int32_t i = 0; i < numSamples; i++) {
+            float in = *inInput++;
+
+            mValues.push_back(in);
+            auto last = mValues.erase(mValues.begin());
+            mSum += in - last;
+            auto mean = mSum * factor;
+            *outOutput++ = mean;
+        }
+
+        mReadSamples += numSamples;
+        if (mReadSamples == numCacheSamples) {
+            mReadSamples = 0;
+        }
+    }
     /*********************************************************************/
     void MathNumericalMeanExpRegression::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto inInput = &inputs.at(0).Get(numSamples);
