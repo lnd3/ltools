@@ -447,8 +447,9 @@ namespace l::nodegraph {
             float in = *inInput++;
 
             mValues.push_back(in);
-            auto last = mValues.erase(mValues.begin());
-            mSum += in - last;
+            auto oldestValue = mValues.front();
+            mValues.pop_front();
+            mSum += in - oldestValue;
             auto mean = mSum * factor;
             *outOutput++ = mean;
         }

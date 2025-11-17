@@ -14,6 +14,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <queue>
 #include <typeinfo>
 #include <type_traits>
 #include <math.h>
@@ -285,7 +286,7 @@ namespace l::nodegraph {
         int32_t mReadSamples = 0;
 
         float mSum = 0.0f;
-        float std::vector<float> mValues;
+        std::deque<float> mValues;
     };
     /*********************************************************************/
     class MathNumericalMeanExpRegression : public nodegraph::NodeGraphOp {
