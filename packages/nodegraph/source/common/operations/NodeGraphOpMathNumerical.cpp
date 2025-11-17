@@ -434,11 +434,15 @@ namespace l::nodegraph {
         auto outOutput = &outputs.at(0).Get(numSamples);
 
         if (mReadSamples == 0) {
-            mValues.resize(n + 1);
-            for (auto& v : mValues) {
-                v = *inInput;
+            auto len = static_cast<int32_t>(n);
+            if (mValues.size() != len) {
+                mValues.resize(len);
             }
-            mSum = *inInput * mValues.size();;
+            float in = *inInput;
+            for (auto& v : mValues) {
+                v = in;
+            }
+            mSum = in * mValues.size();;
         }
 
         auto factor = 1.0f / mValues.size();
