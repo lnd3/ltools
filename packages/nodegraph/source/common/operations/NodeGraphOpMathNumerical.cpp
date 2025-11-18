@@ -442,7 +442,7 @@ namespace l::nodegraph {
             for (auto& v : mValues) {
                 v = in;
             }
-            mSum = in * mValues.size();;
+            mSum = in * mValues.size();
         }
 
         auto factor = 1.0f / mValues.size();
