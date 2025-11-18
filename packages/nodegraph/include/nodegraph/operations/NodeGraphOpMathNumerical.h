@@ -275,7 +275,7 @@ namespace l::nodegraph {
             NodeGraphOp(node, "SMA")
         {
             AddInput2("In");
-            AddInput("N", 14.0f, 1, 1.0f, 1000.0f);
+            AddInput("N", 14.0f, 1, 1.0f, 2000.0f);
 
             AddOutput2("Out");
         }
