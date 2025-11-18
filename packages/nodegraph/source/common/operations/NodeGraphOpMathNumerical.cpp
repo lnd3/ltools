@@ -434,7 +434,7 @@ namespace l::nodegraph {
         auto outOutput = &outputs.at(0).Get(numSamples);
 
         if (mReadSamples == 0) {
-            auto len = static_cast<int32_t>(n);
+            auto len = static_cast<size_t>(n);
             if (mValues.size() != len) {
                 mValues.resize(len);
             }
