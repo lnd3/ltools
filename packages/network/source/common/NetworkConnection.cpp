@@ -499,7 +499,7 @@ namespace l::network {
 			LLOG(LogWarning) << "[Request] Failed notify append response, no curl instance";
 		}
 
-		ASSERT(mOngoingRequest);
+		//ASSERT(mOngoingRequest);
 
 		if (mCompletedRequest) {
 			// request probably timed out so discard data

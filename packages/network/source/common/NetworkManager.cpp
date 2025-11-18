@@ -36,10 +36,10 @@ namespace l::network {
 								if (m->data.result != CURLE_OK) {
 									success = false;
 								}
-								bool foundHandle = false;
+								//bool foundHandle = false;
 								for (auto& it : mConnections) {
 									if (it->IsHandle(e)) {
-										foundHandle = true;
+										//foundHandle = true;
 										if (!it->IsWebSocket()) {
 											it->NotifyCompleteRequest(success);
 										}
