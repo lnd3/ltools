@@ -10,6 +10,6 @@ namespace l::ui {
         virtual ~UIModule() = default;
 
         virtual void UIModuleRenderControls(bool widget) = 0;
-        virtual void UIModuleRenderChart(std::string_view plotKey, float candleWidth) = 0;
+        virtual void UIModuleRenderChart(std::string_view plotKey) = 0;
     };
 }
