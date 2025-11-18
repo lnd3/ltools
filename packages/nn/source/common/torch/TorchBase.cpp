@@ -2,7 +2,7 @@
 
 namespace l::nn::libtorch {
 
-#ifdef LDEPS_USE_LIBTORCH
+#ifdef HAS_LIBTORCH
     struct TransformerNetImpl : public torch::nn::Module {
         TransformerNetImpl(int window_size, int output_size) {
             auto copt = torch::nn::Conv1dOptions(1, 16, 5).stride(1).padding(2);
@@ -27,7 +27,7 @@ namespace l::nn::libtorch {
 #endif
 
     void Transformer::process(const std::vector<float>& window) {
-#ifdef LDEPS_USE_LIBTORCH
+#ifdef HAS_LIBTORCH
         TransformerNet model(window.size(), 10); // Predict 10 samples
         model->eval();
         torch::NoGradGuard no_grad;

@@ -1,6 +1,7 @@
 #include "testing/Test.h"
 #include "logging/Log.h"
 
+#ifdef HAS_LIBTORCH
 #include <nn/torch/TorchBase.h>
 
 TEST(Torch2, TorchTensorBasic) {
@@ -114,3 +115,4 @@ TEST(Torch2, TorchAdvancedExample) {
     }
     return 0;
 }
+#endif

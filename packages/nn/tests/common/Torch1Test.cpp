@@ -1,6 +1,7 @@
 #include "testing/Test.h"
 #include "logging/Log.h"
 
+#ifdef HAS_LIBTORCH
 #include <nn/torch/TorchBase.h>
 
 #include <random>
@@ -27,5 +28,5 @@ TEST(Torch1, Basic) {
 
     return 0;
 }
-
+#endif
 
