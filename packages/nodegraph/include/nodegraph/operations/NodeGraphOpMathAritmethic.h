@@ -389,7 +389,7 @@ namespace l::nodegraph {
                 auto in2 = *in2Input++;
 
                 *minOutput++ = in1 < in2 ? in1 : in2;
-                *maxOutput++ = in2 < in1 ? in2 : in1;
+                *maxOutput++ = in1 > in2 ? in1 : in2;
             }
         }
     };
