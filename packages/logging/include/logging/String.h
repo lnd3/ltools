@@ -341,5 +341,20 @@ namespace l::string {
 
 	std::string hex_encode(std::string_view str);
 	std::string hex_decode(std::string_view str);
+
+	template <class I, class = std::enable_if_t<std::is_integral_v<I>>>
+	void clear_flags(I& allflags, const I flags) {
+		allflags &= ~flags;
+	}
+
+	template <class I, class = std::enable_if_t<std::is_integral_v<I>>>
+	void set_flags(I& allflags, const I flags) {
+		allflags |= flags;
+	}
+
+	template <class I, class = std::enable_if_t<std::is_integral_v<I>>>
+	bool has_flags(const I allflags, const I flags) {
+		return (allflags & (~flags)) == flags;
+	}
 }
 

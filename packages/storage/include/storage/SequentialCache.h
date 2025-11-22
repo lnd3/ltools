@@ -165,6 +165,18 @@ namespace l::filecache {
 			return l::concurrency::ObjectLock<T>(mDataMutex, mData.get());
 		}
 
+		void ClearFlags(uint32_t flags) {
+			l::string::clear_flags(mFlags, flags);
+		}
+
+		void SetFlags(uint32_t flags) {
+			l::string::set_flags(mFlags, flags);
+		}
+
+		bool HasFlags(uint32_t flags) {
+			return l::string::has_flags(mFlags, flags);
+		}
+
 	protected:
 		std::mutex mDataMutex;
 		std::unique_ptr<T> mData;
@@ -174,6 +186,7 @@ namespace l::filecache {
 		ICacheProvider* mCacheProvider;
 
 		bool mPersistOnDestruction;
+		uint32_t mFlags = 0;
 	};
 
 	template<class T>
