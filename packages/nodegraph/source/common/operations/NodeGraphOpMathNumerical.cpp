@@ -546,7 +546,7 @@ namespace l::nodegraph {
 
         if (mReadSamples == 0) {
             alpha = 1.0f / period;
-            ema_prev = 0.0f;
+            ema_prev = *inInput;
             variance_ewma = 0.0f;
         }
 
