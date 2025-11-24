@@ -66,6 +66,10 @@ namespace l::filecache {
 			mPersistOnDestruction = true;
 		}
 
+		bool WillPersistOnDestruction() {
+			return mPersistOnDestruction;
+		}
+
 		void NoPersistOnDestruction() {
 			mPersistOnDestruction = false;
 		}
@@ -174,15 +178,15 @@ namespace l::filecache {
 		}
 
 		void ClearFlags(uint32_t flags) {
-			l::string::clear_flags(mFlags, flags);
+			mFlags &= ~flags;
 		}
 
 		void SetFlags(uint32_t flags) {
-			l::string::set_flags(mFlags, flags);
+			mFlags |= flags;
 		}
 
 		bool HasFlags(uint32_t flags) {
-			return l::string::has_flags(mFlags, flags);
+			return (mFlags.load() & (~flags)) == flags;
 		}
 
 	protected:
@@ -193,8 +197,8 @@ namespace l::filecache {
 		std::mutex mPathMutex;
 		ICacheProvider* mCacheProvider;
 
-		bool mPersistOnDestruction;
-		uint32_t mFlags = 0;
+		std::atomic_bool mPersistOnDestruction;
+		std::atomic_uint32_t mFlags = 0;
 	};
 
 	template<class T>
