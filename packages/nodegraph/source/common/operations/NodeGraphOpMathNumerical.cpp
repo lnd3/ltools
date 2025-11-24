@@ -17,7 +17,7 @@ namespace l::nodegraph {
         auto output = &outputs.at(0).Get(numSamples);
 
         if (mReadSamples == 0) {
-            mOutput = *input0;
+            mOutput = 0.0f;
         }
 
         for (int32_t i = 0; i < numSamples; i++) {
