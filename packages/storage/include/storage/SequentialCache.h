@@ -62,6 +62,14 @@ namespace l::filecache {
 			archive(*self.mData.get());
 		}
 
+		void PersistOnDestruction() {
+			mPersistOnDestruction = true;
+		}
+
+		void NoPersistOnDestruction() {
+			mPersistOnDestruction = false;
+		}
+
 		bool UnpersistData() {
 			if (!mCacheProvider) {
 				return false;
@@ -76,7 +84,7 @@ namespace l::filecache {
 			if (!mCacheProvider) {
 				return false;
 			}
-
+			
 			std::vector<unsigned char> data;
 			GetArchiveData(data);
 
