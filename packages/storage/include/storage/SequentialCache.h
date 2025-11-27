@@ -339,7 +339,8 @@ namespace l::filecache {
 			int32_t beginPosition,
 			int32_t endPosition,
 			int32_t blockWidth,
-			std::function<bool(int32_t start, int32_t size, CacheBlock<T>*)> callback) {
+			std::function<bool(int32_t start, int32_t size, CacheBlock<T>*)> callback,
+			bool forceLoad = true) {
 
 			std::unique_lock<std::mutex> lock(mMutexSequentialCacheMap);
 			auto it = mSequentialCacheMap.find(cacheKey.data());
@@ -361,7 +362,10 @@ namespace l::filecache {
 			beginPosition = GetClampedPosition(beginPosition, cacheBlockWidth);
 			if (beginPosition < endPosition) {
 				do {
-					cacheBlock = sequentialCacheMap->Get(beginPosition);
+					cacheBlock = nullptr;
+					if (forceLoad || sequentialCacheMap->Has(beginPosition)) {
+						cacheBlock = sequentialCacheMap->Get(beginPosition);
+					}
 					if (cacheBlock != nullptr) {
 						if (!callback(beginPosition, cacheBlockWidth, cacheBlock)) {
 							break;
@@ -375,7 +379,10 @@ namespace l::filecache {
 			}
 			else {
 				do {
-					cacheBlock = sequentialCacheMap->Get(beginPosition);
+					cacheBlock = nullptr;
+					if (forceLoad || sequentialCacheMap->Has(beginPosition)) {
+						cacheBlock = sequentialCacheMap->Get(beginPosition);
+					}
 					if (cacheBlock != nullptr) {
 						if (!callback(beginPosition, cacheBlockWidth, cacheBlock)) {
 							break;
