@@ -206,6 +206,7 @@ namespace l::nodegraph {
         {
             AddInput("In", 0.0f, 1, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, false, false);
             AddInput("Mean size", 6.0f, 1, 1.0f, 50.0f);
+            AddInput("Scale", 1.0f, 1, 0.0f, 1.0f);
 
             AddOutput("Trend Basic", 0.0f);
             AddOutput("Trend Mean", 0.0f);
@@ -217,6 +218,7 @@ namespace l::nodegraph {
         virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
             auto input1 = inputs.at(0).GetIterator(numSamples);
             auto numTrendSamples = static_cast<int32_t>(l::math::max2(inputs.at(1).Get(), 1.0f));
+            auto reversalScale = l::math::clamp(inputs.at(2).Get(), 0.0f, 1.0f);
 
             auto outputTrendBasic = outputs.at(0).GetIterator(numSamples);
             auto outputTrendMean = outputs.at(1).GetIterator(numSamples);
@@ -225,10 +227,10 @@ namespace l::nodegraph {
 
             for (int32_t i = 0; i < numSamples; i++) {
                 float in = (*input1++);
-
+                auto scale = l::math::abs(in) * reversalScale + (1.0f - reversalScale);
                 auto trendBasic = mTrendBasic.process(in);
                 auto trendMean = mTrendMean.process(in, numTrendSamples);
-                auto reversal = mReversal.process(in);
+                auto reversal = mReversal.process(in) * scale;
                 auto acceleration = mAcceleration.process(in);
 
                 *outputTrendBasic++ = trendBasic;
