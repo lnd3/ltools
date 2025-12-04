@@ -186,7 +186,7 @@ namespace l::filecache {
 		}
 
 		bool HasFlags(uint32_t flags) {
-			return (mFlags.load() & (~flags)) == flags;
+			return (mFlags.load() & flags) == flags;
 		}
 
 	protected:
