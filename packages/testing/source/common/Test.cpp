@@ -139,5 +139,35 @@ namespace testing {
 
 		return perf_success;
 	}
+
+	void show_perfs(const char* app) {
+		LLOG(LogTitle) << "Performance tests " << app;
+
+		std::vector<std::string> summary;
+
+		auto& groups = get_perf_groups();
+		for (auto& groupIt : groups) {
+			LLOG(LogTitle) << "## " << groupIt.first;
+			for (auto& f : *groupIt.second) {
+				LLOG(LogTitle) << groupIt.first + "::" + f.first;
+				auto& measures = get_time_measures(groupIt.first);
+
+				for (auto& result : measures) {
+					LLOG(LogInfo) << groupIt.first << "::" << result.first << ": " << result.second.mSeconds << " sec.";
+				}
+			}
+
+			std::ostringstream msg;
+			msg << "Performance result for '" + groupIt.first + "'";
+			LLOG(LogTitle) << msg.str();
+			summary.push_back(msg.str());
+		}
+
+		LLOG(LogTitle) << "----";
+		for (auto& str : summary) {
+			LLOG(LogTitle) << str;
+		}
+	}
+
 }
 }

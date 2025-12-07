@@ -124,6 +124,21 @@ namespace l::nodegraph {
         return mInput.mInputFloatConstant;
     }
 
+    std::optional<const std::vector<float>> NodeGraphInput::GetBuffer() {
+        switch (mInputType) {
+        case InputType::INPUT_NODE:
+            if (mInput.mInputNode != nullptr) {
+                return mInput.mInputNode->GetOutputBuffer(mInputFromOutputChannel);
+            }
+            break;
+        case InputType::INPUT_ARRAY:
+            if (mInput.mInputFloatBuf != nullptr && !mInput.mInputFloatBuf->empty()) {
+                return *mInput.mInputFloatBuf;
+            }
+        }
+        return std::nullopt;
+    }
+
     float& NodeGraphInput::GetArray(int32_t minSize, int32_t offset) {
         if (mInputType == InputType::INPUT_ARRAY) {
             if (!mInput.mInputFloatBuf) {

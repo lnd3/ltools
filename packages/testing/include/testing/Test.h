@@ -18,6 +18,7 @@ namespace testing {
 
     bool run_tests(const char* app);
     bool run_perfs(const char* app);
+    void show_perfs(const char* app);
 }
 }
 

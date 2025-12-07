@@ -77,6 +77,26 @@ namespace l::math::algorithm {
 		return result;
 	}
 
+	template<class T>
+	int32_t binary_search_fn(const std::vector<T>& elements, std::function<bool(const T& a)> fn, int32_t minIndex = 0, int32_t maxIndex = INT32_MAX) {
+		int32_t left = static_cast<int32_t>(minIndex < 0 ? 0 : minIndex);
+		int32_t right = static_cast<int32_t>((maxIndex < elements.size() ? maxIndex : elements.size()) - 1);
+		int32_t result = -1; // Default if no element is <= value
+
+		while (left <= right) {
+			int32_t mid = left + (right - left) / 2;
+
+			if (fn(elements.at(mid))) {
+				result = mid;    // Valid candidate found
+				left = mid + 1;  // Look for a better candidate to the right
+			}
+			else {
+				right = mid - 1; // Look to the left
+			}
+		}
+		return result;
+	}
+
 	template <class T>
 	T bisect(T a, T b, T tolerance, int iterations, std::function<T(T)> eval) {
 		int n = 0;

@@ -91,12 +91,20 @@ namespace l::nodegraph {
         return mInputs.at(inputChannel).Get(minSize, offset);
     }
 
+    std::optional<const std::vector<float>> NodeGraphBase::GetInputBuffer(int8_t inputChannel) {
+        return mInputs.at(inputChannel).GetBuffer();
+    }
+
     std::string_view NodeGraphBase::GetInputText(int8_t inputChannel, int32_t minSize) {
         return mInputs.at(inputChannel).GetText(minSize);
     }
 
     float& NodeGraphBase::GetOutput(int8_t outputChannel, int32_t minSize, int32_t offset) {
         return mOutputs.at(outputChannel).Get(minSize, offset);
+    }
+
+    std::optional<const std::vector<float>> NodeGraphBase::GetOutputBuffer(int8_t outputChannel) {
+        return mOutputs.at(outputChannel).GetBuffer();
     }
 
     std::string_view NodeGraphBase::GetOutputText(int8_t outputChannel, int32_t minSize) {
