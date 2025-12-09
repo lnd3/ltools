@@ -135,8 +135,10 @@ namespace l::nodegraph {
             if (mInput.mInputFloatBuf != nullptr && !mInput.mInputFloatBuf->empty()) {
                 return *mInput.mInputFloatBuf;
             }
+            break;
+        default:
+            return std::nullopt;
         }
-        return std::nullopt;
     }
 
     float& NodeGraphInput::GetArray(int32_t minSize, int32_t offset) {
