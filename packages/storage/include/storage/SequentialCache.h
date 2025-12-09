@@ -25,10 +25,21 @@ namespace l::filecache {
 	int32_t GetClampedPositionOffset(int32_t position, int32_t blockWidth);
 	int32_t GetClampedPositionOffsetFromIndex(int32_t index, int32_t blockWidth, int32_t numBlockEntries);
 
-	std::string GetCacheBlockName(
-		std::string_view prefix, 
-		int32_t blockWidth, 
-		int32_t clampedPos);
+	template<size_t SIZE = 30>
+	l::string::string_buffer<SIZE> CreateCacheBlockName(
+		std::string_view prefix,
+		int32_t blockWidth,
+		int32_t clampedPos) {
+
+		l::string::string_buffer<SIZE> key;
+		key.append(prefix);
+		key.append("_");
+		key.printf("%i", blockWidth);
+		key.append("_");
+		key.printf("%i", clampedPos);
+		return key;
+	}
+
 
 	template<class T>
 	class CacheBlock {
@@ -269,8 +280,8 @@ namespace l::filecache {
 			std::lock_guard<std::mutex> lock(mMutexCacheBlockMap);
 			auto it = mCacheBlockMap.find(clampedPos);
 			if (it == mCacheBlockMap.end()) {
-				auto filename = GetCacheBlockName(mCacheKey, mCacheBlockWidth, clampedPos);
-				mCacheBlockMap.emplace(clampedPos, std::make_unique<CacheBlock<T>>(filename, mCacheProvider, noProvisioning));
+				auto filename = CreateCacheBlockName(mCacheKey, mCacheBlockWidth, clampedPos);
+				mCacheBlockMap.emplace(clampedPos, std::make_unique<CacheBlock<T>>(filename.str(), mCacheProvider, noProvisioning));
 				it = mCacheBlockMap.find(clampedPos);
 			}
 
