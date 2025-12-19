@@ -25,12 +25,11 @@ namespace l::filecache {
 	int32_t GetClampedPositionOffset(int32_t position, int32_t blockWidth);
 	int32_t GetClampedPositionOffsetFromIndex(int32_t index, int32_t blockWidth, int32_t numBlockEntries);
 
-	template<size_t SIZE = 30>
+	template<size_t SIZE = 60>
 	l::string::string_buffer<SIZE> CreateCacheBlockName(
 		std::string_view prefix,
 		int32_t blockWidth,
 		int32_t clampedPos) {
-
 		l::string::string_buffer<SIZE> key;
 		key.append(prefix);
 		key.append("_");
