@@ -47,12 +47,12 @@ namespace l::math {
 
 	template<class T>
 	auto min3(T val1, T val2, T val3) {
-		return val1 < val2 ? (val3 < val1 ? val3 : val1) : val2;
+		return val1 < val2 ? (val3 < val1 ? val3 : val1) : (val3 < val2 ? val3 : val2);
 	}
 
 	template<class T>
 	auto max3(T val1, T val2, T val3) {
-		return val1 > val2 ? (val1 > val3 ? val1 : val3) : val2;
+		return val1 > val2 ? (val1 > val3 ? val1 : val3) : (val1 > val2 ? val1 : val2);
 	}
 
 	template<class T>
