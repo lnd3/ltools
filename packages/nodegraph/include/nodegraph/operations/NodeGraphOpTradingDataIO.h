@@ -78,6 +78,7 @@ namespace l::nodegraph {
         float mBuyQuantMa = 0.0f;
     };
 
+
     /*********************************************************************/
 
     class TradingDataIOChartInfo : public NodeGraphOp {

@@ -180,6 +180,19 @@ namespace l::nodegraph {
         void ForEachInputNode(std::function<bool(NodeGraphBase*)> cb);
         void ForEachOutputNode(std::function<bool(NodeGraphBase*)> cb);
 
+        template<class T>
+        void ForEachNodeOftype(std::function<bool(NodeGraphBase*)> cb) {
+            mMainNodeGraph.ForEachNodeOftype<T>(std::move(cb));
+        }
+        template<class T>
+        void ForEachInputNodeOftype(std::function<bool(NodeGraphBase*)> cb) {
+            mMainNodeGraph.ForEachInputNodeOftype<T>(std::move(cb));
+        }
+        template<class T>
+        void ForEachOutputNodeOftype(std::function<bool(NodeGraphBase*)> cb) {
+            mMainNodeGraph.ForEachOutputNodeOftype<T>(std::move(cb));
+        }
+
         bool HasNodeType(const std::string& typeGroup, int32_t typeId);
         void ForEachNodeType(std::string_view search, std::function<void(std::string_view, const std::vector<UINodeDesc>&)> cb) const;
         void RegisterNodeType(const std::string& typeGroup, int32_t uniqueTypeId, std::string_view typeName, std::string_view description = "");

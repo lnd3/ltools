@@ -170,6 +170,9 @@ namespace l::nodegraph {
         }
     }
 
+
+    /*********************************************************************/
+
     void TradingDataIOChartInfo::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto symbolInput = inputs.at(0).GetText(16);
         auto baseInput = inputs.at(1).GetText(16);

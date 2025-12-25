@@ -131,6 +131,38 @@ namespace l::nodegraph {
         void ForEachInputNode(std::function<bool(NodeGraphBase*)> cb);
         void ForEachOutputNode(std::function<bool(NodeGraphBase*)> cb);
 
+        template<class T>
+        void ForEachNodeOftype(std::function<bool(NodeGraphBase*)> cb) {
+            for (auto& it : mNodes) {
+                if (it->IsOfOperation<T>()) {
+                    if (!cb(it)) {
+                        break;
+                    }
+                }
+            }
+        }
+        template<class T>
+        void ForEachInputNodeOftype(std::function<bool(NodeGraphBase*)> cb) {
+            for (auto& it : mInputNodes) {
+                if (it->IsOfOperation<T>()) {
+                    if (!cb(it)) {
+                        break;
+                    }
+                }
+            }
+        }
+        template<class T>
+        void ForEachOutputNodeOftype(std::function<bool(NodeGraphBase*)> cb) {
+            for (auto& it : mOutputNodes) {
+                if (it->IsOfOperation<T>()) {
+                    if (!cb(it)) {
+                        break;
+                    }
+                }
+            }
+        }
+
+
         void ClearProcessFlags();
         void ProcessSubGraph(int32_t numSamples, int32_t numCacheSamples = -1);
         void Tick(int32_t tickCount, float elapsed);

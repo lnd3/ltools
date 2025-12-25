@@ -78,7 +78,7 @@ namespace l::math::algorithm {
 	}
 
 	template<class T>
-	int32_t binary_search_fn(const std::vector<T>& elements, std::function<bool(const T& a)> fn, int32_t minIndex = 0, int32_t maxIndex = INT32_MAX) {
+	int32_t binary_search_fn(const std::vector<T>& elements, std::function<int32_t(const T& a)> fn, bool defaultDirectionRight = true, int32_t minIndex = 0, int32_t maxIndex = INT32_MAX) {
 		int32_t left = static_cast<int32_t>(minIndex < 0 ? 0 : minIndex);
 		int32_t right = static_cast<int32_t>((maxIndex < elements.size() ? maxIndex : elements.size()) - 1);
 		int32_t result = -1; // Default if no element is <= value
@@ -86,12 +86,26 @@ namespace l::math::algorithm {
 		while (left <= right) {
 			int32_t mid = left + (right - left) / 2;
 
-			if (fn(elements.at(mid))) {
-				result = mid;    // Valid candidate found
-				left = mid + 1;  // Look for a better candidate to the right
+			auto direction = fn(elements.at(mid));
+			if (direction > 0) {
+				left = mid + 1;  // Look to the right
+			}
+			else if (direction < 0){
+				right = mid - 1; // Look to the left
 			}
 			else {
-				right = mid - 1; // Look to the left
+				result = mid;    // Valid candidate found
+				if (defaultDirectionRight) {
+					left = mid + 1;  // Look for a better candidate to the right
+				}
+				else {
+					right = mid - 1;  // Look for a better candidate to the left
+				}
+			}
+		}
+		if (result < 0) {
+			if (left >= elements.size()) {
+				return elements.size();
 			}
 		}
 		return result;
