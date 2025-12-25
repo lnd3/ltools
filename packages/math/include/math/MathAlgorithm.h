@@ -1,7 +1,10 @@
 #pragma once
 
 #include <stdint.h>
+#include <concepts>
 #include <vector>
+#include <deque>
+#include <list>
 #include <functional>
 #include <optional>
 #include <string>
@@ -36,13 +39,13 @@ namespace l::math::algorithm {
 		d.sub(v);
 	};
 
-	template<class T>
-	uint32_t binary_search(const std::vector<T>& elements, const T& data, int32_t minIndex = 1, int32_t maxIndex = INT32_MAX) {
+	template<class T, class S, typename = std::enable_if_t<std::is_same<S, std::vector<T>>::value || std::is_same<S, std::deque<T>>::value || std::is_same<S, std::list<T>>::value>>
+	uint32_t binary_search(const S& elements, const T& data, int32_t minIndex = 1, int32_t maxIndex = INT32_MAX) {
 		uint32_t L = static_cast<uint32_t>(minIndex < 0 ? 0 : minIndex);
 		uint32_t R = static_cast<uint32_t>((maxIndex < elements.size() ? maxIndex : elements.size()) - 1);
 
 		while (L <= R) {
-			uint32_t m = static_cast<uint32_t>(floor((L + R) / 2.0));
+			uint32_t m = static_cast<uint32_t>(math::floor((L + R) / 2.0));
 			auto& e = elements.at(static_cast<size_t>(m));
 			if (e < data) {
 				L = m + 1;
@@ -57,8 +60,8 @@ namespace l::math::algorithm {
 		return 0;
 	}
 
-	template<class T>
-	int32_t binary_search_leq(const std::vector<T>& elements, const T& data, int32_t minIndex = 0, int32_t maxIndex = INT32_MAX) {
+	template<class T, class S, typename = std::enable_if_t<std::is_same<S, std::vector<T>>::value || std::is_same<S, std::deque<T>>::value || std::is_same<S, std::list<T>>::value>>
+	int32_t binary_search_leq(const S& elements, const T& data, int32_t minIndex = 0, int32_t maxIndex = INT32_MAX) {
 		int32_t left = static_cast<int32_t>(minIndex < 0 ? 0 : minIndex);
 		int32_t right = static_cast<int32_t>((maxIndex < elements.size() ? maxIndex : elements.size()) - 1);
 		int32_t result = -1; // Default if no element is <= value
@@ -77,8 +80,8 @@ namespace l::math::algorithm {
 		return result;
 	}
 
-	template<class T>
-	int32_t binary_search_fn(const std::vector<T>& elements, std::function<int32_t(const T& a)> fn, bool defaultDirectionRight = true, int32_t minIndex = 0, int32_t maxIndex = INT32_MAX) {
+	template<class T, class S, typename = std::enable_if_t<std::is_same<S, std::vector<T>>::value || std::is_same<S, std::deque<T>>::value || std::is_same<S, std::list<T>>::value>>
+	int32_t binary_search_fn(const S& elements, std::function<int32_t(const T& a)> fn, bool defaultDirectionRight = true, int32_t minIndex = 0, int32_t maxIndex = INT32_MAX) {
 		int32_t left = static_cast<int32_t>(minIndex < 0 ? 0 : minIndex);
 		int32_t right = static_cast<int32_t>((maxIndex < elements.size() ? maxIndex : elements.size()) - 1);
 		int32_t result = -1; // Default if no element is <= value
