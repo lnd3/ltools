@@ -354,7 +354,7 @@ namespace l::string {
 
 	template <class I, class = std::enable_if_t<std::is_integral_v<I>>>
 	bool has_flags(const I allflags, const I flags) {
-		return (allflags & (~flags)) == flags;
+		return (allflags & flags) == flags;
 	}
 }
 
