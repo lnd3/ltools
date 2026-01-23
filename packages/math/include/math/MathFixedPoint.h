@@ -50,15 +50,15 @@ namespace l::math::fp {
             auto v = l::math::abs(value);
             if (v < 1.0) {
                 scale_ = 1000000000000000000;
-                value_ = static_cast<int64_t>(l::math::round(value * scale_));
+                value_ = static_cast<int64_t>(value * scale_);
             }
             else if (v < 1000000000.0) {
                 scale_ = 1000000000;
-                value_ = static_cast<int64_t>(l::math::round(value * scale_));
+                value_ = static_cast<int64_t>(value * scale_);
             }
             else {
                 scale_ = 1;
-                value_ = static_cast<int64_t>(l::math::round(value * scale_));
+                value_ = static_cast<int64_t>(value * scale_);
             }
             round(numdecimals);
         }
@@ -66,17 +66,17 @@ namespace l::math::fp {
             auto v = l::math::abs(value);
             if (v < 1.0) {
                 scale_ = 1000000000000000000;
-                value_ = static_cast<int64_t>(l::math::round(value * scale_));
+                value_ = static_cast<int64_t>(value * scale_);
                 round(9);
             }
             else if (v < 1000000000.0) {
                 scale_ = 1000000000;
-                value_ = static_cast<int64_t>(l::math::round(value * scale_));
+                value_ = static_cast<int64_t>(value * scale_);
                 round(9);
             }
             else {
                 scale_ = 1;
-                value_ = static_cast<int64_t>(l::math::round(value * scale_));
+                value_ = static_cast<int64_t>(value * scale_);
                 round(0);
             }
         }

@@ -21,10 +21,10 @@ namespace l::math::fp {
             int64_t diff = scale_ / newScale;
             //ASSERT(diff >= 10);
             scale_ /= diff;
-            diff /= 10;
+            //diff /= 10;
             value_ /= diff;
-            value_ += 5; // add 0.5 before floor
-            value_ /= 10; // round (floor(0.5 + x))
+            //value_ += 5; // add 0.5 before floor
+            //value_ /= 10; // round (floor(0.5 + x))
         }
     }
 
