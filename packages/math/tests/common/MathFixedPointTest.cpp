@@ -89,3 +89,41 @@ TEST(MathFixedPoint, Basic) {
 	return 0;
 }
 
+
+TEST(MathFixedPoint, ToString) {
+
+	{
+		l::string::string_buffer<20> buf;
+		FixedPoint fp("124.005154");
+		fp.getString(buf);
+		TEST_TRUE(fp.toString() == buf.str(), "");
+		LLOG(LogTest) << buf.str();
+	}
+	{
+		l::string::string_buffer<20> buf;
+		FixedPoint fp("0.000000005154");
+		fp.getString(buf);
+		TEST_TRUE(fp.toString() == buf.str(), "");
+
+		LLOG(LogTest) << buf.str();
+	}
+	{
+		l::string::string_buffer<20> buf;
+		FixedPoint fp("0.000000005154", true);
+		fp.getString(buf);
+		TEST_TRUE(fp.toString() == buf.str(), "");
+
+		LLOG(LogTest) << buf.str();
+	}
+	{
+		l::string::string_buffer<20> buf;
+		FixedPoint fp("1256.33204");
+		fp.getString(buf);
+		TEST_TRUE(fp.toString() == buf.str(), "");
+
+		LLOG(LogTest) << buf.str();
+	}
+	return 0;
+}
+
+

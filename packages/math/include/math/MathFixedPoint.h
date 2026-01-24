@@ -41,63 +41,36 @@ namespace l::math::fp {
             return scale;
         }
 
-        FixedPoint() : value_(0), scale_(1) {}
-        FixedPoint(int64_t scaledValue, int64_t scale = 100000000)
-            : value_(scaledValue), scale_(scale) {
-            normalise();
-        }
-        FixedPoint(double value, int8_t numdecimals) {
-            auto v = l::math::abs(value);
-            if (v < 1.0) {
-                scale_ = 1000000000000000000;
-                value_ = static_cast<int64_t>(value * scale_);
-            }
-            else if (v < 1000000000.0) {
-                scale_ = 1000000000;
-                value_ = static_cast<int64_t>(value * scale_);
-            }
-            else {
-                scale_ = 1;
-                value_ = static_cast<int64_t>(value * scale_);
-            }
-            round(numdecimals);
-        }
-        FixedPoint(double value) {
-            auto v = l::math::abs(value);
-            if (v < 1.0) {
-                scale_ = 1000000000000000000;
-                value_ = static_cast<int64_t>(value * scale_);
-                round(9);
-            }
-            else if (v < 1000000000.0) {
-                scale_ = 1000000000;
-                value_ = static_cast<int64_t>(value * scale_);
-                round(9);
-            }
-            else {
-                scale_ = 1;
-                value_ = static_cast<int64_t>(value * scale_);
-                round(0);
-            }
-        }
-        FixedPoint(float value, int8_t numdecimals) : FixedPoint(static_cast<double>(value), numdecimals) {}
-        FixedPoint(float value) : FixedPoint(static_cast<double>(value)) {}
-
-        FixedPoint(std::string_view number) {
-            auto [n, d, s] = l::string::to_fixed_int(number);
-            value_ = n;
-            auto scale = static_cast<int64_t>(0.5f + l::math::pow(10.0f, static_cast<float>(d)));
-            scale_ = scale;
-            normalise();
-        }
+        FixedPoint();
+        explicit FixedPoint(int64_t scaledValue, int64_t scale);
+        explicit FixedPoint(double value, int32_t numdecimals, bool floorValue = false);
+        explicit FixedPoint(double value, bool floorValue = false);
+        explicit FixedPoint(float value, int32_t numdecimals, bool floorValue = false);
+        explicit FixedPoint(float value, bool floorValue = false);
+        FixedPoint(std::string_view number, bool floorValue = false);
 
         int32_t numDigits() const;
         double toDouble() const;
         float toFloat() const;
         std::string toString() const;
+
+        template<size_t SIZE>
+        void getString(l::string::string_buffer<SIZE>& buf) const {
+            int64_t int_part = value_ / scale_;
+            int64_t frac_part = l::math::abs(value_ % scale_);
+
+            buf.printf("%lld", int_part);
+
+            if (scale_ > 1) {
+                int decimal_digits = static_cast<int>(l::math::logx(10.0f, static_cast<float>(scale_)));
+                buf.printf(".%0*d", decimal_digits, frac_part);
+            }
+        }
+
         void normalise();
-        void rescale(int64_t scale);
+        void rescale(int64_t scale, bool truncate = false);
         void round(int32_t numDecimals);
+        void floor(int32_t numDecimals);
 
         // Arithmetic
         FixedPoint operator+(const FixedPoint& other) const {
