@@ -356,5 +356,63 @@ namespace l::string {
 	bool has_flags(const I allflags, const I flags) {
 		return (allflags & flags) == flags;
 	}
+
+	template<size_t SIZE = 16>
+	void format_float(l::string::string_buffer<SIZE>& out, float value) {
+		auto onlypositive = l::math::abs(value);
+
+		char format[7] = "%7.7f";
+
+		auto numdecimals = 0;
+
+		if (onlypositive > 100000.0) {
+			numdecimals = 0;
+		}
+		else if (onlypositive > 10000.0) {
+			numdecimals = 1;
+		}
+		else if (onlypositive > 1000.0) {
+			numdecimals = 2;
+		}
+		else if (onlypositive > 100.0) {
+			numdecimals = 3;
+		}
+		else if (onlypositive > 10.0) {
+			numdecimals = 4;
+		}
+		else if (onlypositive > 1.0) {
+			numdecimals = 5;
+		}
+		else if (onlypositive > 0.1) {
+			numdecimals = 5;
+		}
+		else if (onlypositive > 0.01) {
+			numdecimals = 6;
+		}
+		else if (onlypositive > 0.001) {
+			numdecimals = 7;
+		}
+		else if (onlypositive > 0.0001) {
+			numdecimals = 8;
+		}
+		else if (onlypositive > 0.00001) {
+			numdecimals = 8;
+		}
+		else if (onlypositive > 0.000001) {
+			numdecimals = 8;
+		}
+		else if (onlypositive > 0.0) {
+			numdecimals = l::math::min2(numdecimals, 8);
+		}
+		else {
+			numdecimals = l::math::min2(numdecimals, 4);
+		}
+
+		auto numnumbers = 9 - numdecimals;
+		format[1] = '0' + static_cast<char>(numnumbers);
+		format[3] = '0' + static_cast<char>(numdecimals);
+
+		out.printf(format, value);
+	}
 }
 
