@@ -359,7 +359,7 @@ namespace l::string {
 
 	template<size_t SIZE = 16>
 	void format_float(l::string::string_buffer<SIZE>& out, float value) {
-		auto onlypositive = l::math::abs(value);
+		auto onlypositive = value < 0.0f ? -value : value;
 
 		char format[7] = "%7.7f";
 
@@ -402,10 +402,10 @@ namespace l::string {
 			numdecimals = 8;
 		}
 		else if (onlypositive > 0.0) {
-			numdecimals = l::math::min2(numdecimals, 8);
+			numdecimals = numdecimals < 8 ? numdecimals : 8;
 		}
 		else {
-			numdecimals = l::math::min2(numdecimals, 4);
+			numdecimals = numdecimals < 4 ? numdecimals : 4;
 		}
 
 		auto numnumbers = 9 - numdecimals;
