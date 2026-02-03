@@ -29,7 +29,7 @@ namespace l::nodegraph {
 
         inputs.at(0).MinimizeBuffer(numCacheSamples * stride);
         auto in = &inputs.at(0).Get(numCacheSamples * stride, readSamples * stride);
-        auto timeframeMultiplier = static_cast<int32_t>(inputs.at(4).Get());
+        auto timeframeMultiplier = l::math::max2(static_cast<int32_t>(inputs.at(4).Get()), 1);
         auto friction = inputs.at(5).Get();
 
         float* out1 = &outputs.at(3).Get(numSamples); // unixtime

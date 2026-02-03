@@ -231,6 +231,29 @@ namespace l::math {
 	}
 
 	template<class T>
+	auto trunc(T val) {
+		if constexpr (std::is_floating_point_v<T>) {
+			if constexpr (sizeof(T) == 4) {
+				return truncf(val);
+			}
+			else if constexpr (sizeof(T) == 8) {
+				return truncl(val);
+			}
+		}
+	}
+
+	template<class V, class T>
+	V trunc(T val) {
+		if constexpr (std::is_floating_point_v<T>) {
+			if constexpr (sizeof(T) == 4) {
+				return static_cast<V>(truncf(val));
+			}
+			else if constexpr (sizeof(T) == 8) {
+				return static_cast<V>(truncl(val));
+			}
+		}
+	}
+	template<class T>
 	auto log(T val) {
 		if constexpr (std::is_floating_point_v<T>) {
 			if constexpr (sizeof(T) == 4) {
