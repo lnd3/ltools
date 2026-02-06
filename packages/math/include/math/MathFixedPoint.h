@@ -54,7 +54,7 @@ namespace l::math::fp {
         float toFloat() const;
         std::string toString() const;
 
-        template<size_t SIZE>
+        template<int32_t SIZE>
         void getString(l::string::string_buffer<SIZE>& buf) const {
             int64_t int_part = value_ / scale_;
             int64_t frac_part = l::math::abs(value_ % scale_);

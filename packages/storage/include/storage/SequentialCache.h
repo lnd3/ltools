@@ -9,6 +9,7 @@
 #include <mutex>
 #include <memory>
 #include <optional>
+#include <atomic>
 
 #include "logging/LoggingAll.h"
 #include "math/MathConstants.h"
@@ -25,7 +26,7 @@ namespace l::filecache {
 	int32_t GetClampedPositionOffset(int32_t position, int32_t blockWidth);
 	int32_t GetClampedPositionOffsetFromIndex(int32_t index, int32_t blockWidth, int32_t numBlockEntries);
 
-	template<size_t SIZE = 60>
+	template<int32_t SIZE = 60>
 	l::string::string_buffer<SIZE> CreateCacheBlockName(
 		std::string_view prefix,
 		int32_t blockWidth,
