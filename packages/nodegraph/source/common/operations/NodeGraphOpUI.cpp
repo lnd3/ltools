@@ -102,6 +102,9 @@ namespace l::nodegraph {
     void GraphUIChartLine::ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         int32_t mChannels = 2;
 
+        // Read Chart ID from input 3
+        mChartId = static_cast<int32_t>(inputs.at(3).Get());
+
         outputs.at(0).MinimizeBuffer(numCacheSamples * mChannels);
         float* out = &outputs.at(0).Get(numCacheSamples * mChannels);
 
@@ -126,6 +129,9 @@ namespace l::nodegraph {
     /*********************************************************************/
     void GraphUIChartLine2::ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         int32_t mChannels = 3;
+
+        // Read Chart ID from input 4
+        mChartId = static_cast<int32_t>(inputs.at(4).Get());
 
         outputs.at(0).MinimizeBuffer(numCacheSamples * mChannels);
         float* out = &outputs.at(0).Get(numCacheSamples * mChannels);
@@ -153,6 +159,9 @@ namespace l::nodegraph {
     void GraphUIChartLine3::ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         int32_t mChannels = 4;
 
+        // Read Chart ID from input 5
+        mChartId = static_cast<int32_t>(inputs.at(5).Get());
+
         outputs.at(0).MinimizeBuffer(numCacheSamples * mChannels);
         float* out = &outputs.at(0).Get(numCacheSamples * mChannels);
 
@@ -177,6 +186,9 @@ namespace l::nodegraph {
     /*********************************************************************/
     void GraphUICandleSticks::ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         const int32_t stride = 6;
+
+        // Read Chart ID from input 7
+        mChartId = static_cast<int32_t>(inputs.at(7).Get());
 
         if (writtenSamples == 0) {
             outputs.at(0).MinimizeBuffer(numCacheSamples * stride);
