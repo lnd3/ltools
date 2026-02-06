@@ -96,6 +96,8 @@ namespace l::nodegraph {
             AddInput2("X", 1, InputFlags(false, false, false, false));
             AddInput2("Y", 1, InputFlags(false, false, false, false));
             AddInput2("Name", 1, InputFlags(false, true, true, true));
+            AddInput("Chart ID", 0.0f, 1, 0.0f, 5.0f);  // 0=main, 1=volume, 2=flow hist, 3=flow graph, 4=node chart 1, 5=node chart 2
+
             AddOutput("Data");
         }
         virtual ~GraphUIChartLine() = default;
@@ -104,7 +106,9 @@ namespace l::nodegraph {
             mNode->SetInput(2, "Chart Line");
         }
         virtual void ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        int32_t GetChartId() const { return mChartId; }
     protected:
+        int32_t mChartId = 0;
         int32_t mLatestUnixtime = 0;
     };
 
@@ -118,6 +122,8 @@ namespace l::nodegraph {
             AddInput2("Y1", 1, InputFlags(false, false, false, false));
             AddInput2("Y2", 1, InputFlags(false, false, false, false));
             AddInput2("Name", 1, InputFlags(false, true, true, true));
+            AddInput("Chart ID", 0.0f, 1, 0.0f, 5.0f);  // 0=main, 1=volume, 2=flow hist, 3=flow graph, 4=node chart 1, 5=node chart 2
+
             AddOutput("Data");
         }
         virtual ~GraphUIChartLine2() = default;
@@ -126,7 +132,9 @@ namespace l::nodegraph {
             mNode->SetInput(3, "Chart Line");
         }
         virtual void ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        int32_t GetChartId() const { return mChartId; }
     protected:
+        int32_t mChartId = 0;
         int32_t mLatestUnixtime = 0;
     };
 
@@ -141,6 +149,8 @@ namespace l::nodegraph {
             AddInput2("Y2", 1, InputFlags(false, false, false, false));
             AddInput2("Y3", 1, InputFlags(false, false, false, false));
             AddInput2("Name", 1, InputFlags(false, true, true, true));
+            AddInput("Chart ID", 0.0f, 1, 0.0f, 5.0f);  // 0=main, 1=volume, 2=flow hist, 3=flow graph, 4=node chart 1, 5=node chart 2
+
             AddOutput("Data");
         }
         virtual ~GraphUIChartLine3() = default;
@@ -149,7 +159,9 @@ namespace l::nodegraph {
             mNode->SetInput(4, "Chart Line");
         }
         virtual void ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        int32_t GetChartId() const { return mChartId; }
     protected:
+        int32_t mChartId = 0;
         int32_t mLatestUnixtime = 0;
     };
 
@@ -166,6 +178,8 @@ namespace l::nodegraph {
             AddInput2("Low", 1, InputFlags(false, false, false, false));
             AddInput2("Volume", 1, InputFlags(false, false, false, false));
             AddInput2("Name", 1, InputFlags(false, true, true, true));
+            AddInput("Chart ID", 0.0f, 1, 0.0f, 5.0f);  // 0=main, 1=volume, 2=flow hist, 3=flow graph, 4=node chart 1, 5=node chart 2
+
             AddOutput("Data");
         }
         virtual ~GraphUICandleSticks() = default;
@@ -174,7 +188,9 @@ namespace l::nodegraph {
             mNode->SetInput(6, "Candle Sticks");
         }
         void ProcessWriteCached(int32_t writtenSamples, int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        int32_t GetChartId() const { return mChartId; }
     protected:
+        int32_t mChartId = 0;
         int32_t mLatestUnixtime = 0;
     };
 
