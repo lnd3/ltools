@@ -117,6 +117,12 @@ namespace l::ui {
         std::function<void(int32_t nodeId, int8_t channelId, std::string& text, bool noedit)> mEditHandler = nullptr;
     };
 
+    enum class UIDrawMode {
+        All,        // Draw everything
+        LinksOnly,  // Only draw link containers (for rendering behind nodes)
+        NoLinks     // Draw everything except links (for rendering in front)
+    };
+
     class UIDraw : public UIVisitor {
     public:
         UIDraw(ImDrawList* drawList = nullptr) : mDrawList(drawList) {}
@@ -126,6 +132,10 @@ namespace l::ui {
 
         void SetDrawList(ImDrawList* drawList) {
             mDrawList = drawList;
+        }
+
+        void SetDrawMode(UIDrawMode mode) {
+            mDrawMode = mode;
         }
 
         void SetDrawChannelTextHandler(std::function<void(int32_t, int8_t, ImVec2, float, ImU32, ImDrawList*)> handler) {
@@ -140,6 +150,7 @@ namespace l::ui {
         }
     protected:
         ImDrawList* mDrawList;
+        UIDrawMode mDrawMode = UIDrawMode::All;
         std::function<void(int32_t, int8_t, ImVec2, float, ImU32, ImDrawList*)> mDrawChannelTextHandler = nullptr;
         std::function<void(int32_t, int8_t, ImVec2, ImVec2, float, ImU32, ImDrawList*)> mDrawLineHandler = nullptr;
         ImColor mSelectColor = ImColor(pastellYellow);

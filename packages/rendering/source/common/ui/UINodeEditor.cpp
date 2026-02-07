@@ -38,6 +38,10 @@ namespace l::ui {
             mUIRoot->SetLayoutSize(GetSize());
             mUIRoot->SetLayoutPosition(GetPosition());
             mUIRoot->Accept(updateVisitor, mUIInput, l::ui::UITraversalMode::BFS);
+            // Two-pass rendering: draw links first (behind), then nodes (in front)
+            mDrawVisitor.SetDrawMode(UIDrawMode::LinksOnly);
+            mUIRoot->Accept(mDrawVisitor, mUIInput, l::ui::UITraversalMode::BFS);
+            mDrawVisitor.SetDrawMode(UIDrawMode::NoLinks);
             mUIRoot->Accept(mDrawVisitor, mUIInput, l::ui::UITraversalMode::BFS);
 
             ImGui::PopItemWidth();

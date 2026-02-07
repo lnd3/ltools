@@ -332,6 +332,15 @@ namespace l::ui {
             return false;
         }
 
+        // Filter based on draw mode
+        bool isLink = container.HasConfigFlag(UIContainer_LinkFlag);
+        if (mDrawMode == UIDrawMode::LinksOnly && !isLink) {
+            return false;
+        }
+        if (mDrawMode == UIDrawMode::NoLinks && isLink) {
+            return false;
+        }
+
         auto& layoutArea = container.GetLayoutArea();
 
         float splineThickness = 2.0f;
