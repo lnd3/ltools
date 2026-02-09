@@ -450,3 +450,5 @@ namespace l::nodegraph {
     }
 
 }
+
+#endif // HEADLESS_BUILD

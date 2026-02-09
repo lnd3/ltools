@@ -188,6 +188,7 @@ namespace l::nodegraph {
         mCustomNodeCreatorListeners.emplace_back(std::move(customCreator));
     }
 
+#ifndef HEADLESS_BUILD
     void NodeGraphSchema::SetKeyState(l::hid::KeyState* keyState) {
         mKeyState = keyState;
     }
@@ -199,6 +200,7 @@ namespace l::nodegraph {
     void NodeGraphSchema::SetMidiManager(l::hid::midi::MidiManager* midiManager) {
         mMidiManager = midiManager;
     }
+#endif
 
     int32_t NodeGraphSchema::NewNode(int32_t typeId, int32_t id) {
         l::nodegraph::NodeGraphBase* node = nullptr;
@@ -474,6 +476,7 @@ namespace l::nodegraph {
             break;
 
 
+#ifndef HEADLESS_BUILD
             // DeviceIO (midi, keyboard piano)
         case 400:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputKeyboardPiano>(id, NodeType::Default, mKeyState);
@@ -511,6 +514,7 @@ namespace l::nodegraph {
         case 421:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputSpeaker>(id, NodeType::ExternalOutput, mAudioOutput);
             break;
+#endif // HEADLESS_BUILD
 
             // DataIO input
         case 500:
