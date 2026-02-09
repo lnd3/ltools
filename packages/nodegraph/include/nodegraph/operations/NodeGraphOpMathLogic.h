@@ -3,9 +3,6 @@
 
 #include "logging/LoggingAll.h"
 
-#include "hid/KeyboardPiano.h"
-#include "hid/Midi.h"
-
 #include "math/MathFunc.h"
 
 #include <string>
