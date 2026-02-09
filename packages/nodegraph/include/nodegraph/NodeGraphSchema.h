@@ -110,9 +110,11 @@ namespace l::nodegraph {
             mMainNodeGraph.SetNodeFactory(this); // must set anew since schema (this) was moved as well
             mRegisteredNodeTypes = std::move(other.mRegisteredNodeTypes);
             mCustomNodeCreatorListeners = std::move(other.mCustomNodeCreatorListeners);
+#ifndef HEADLESS_BUILD
             mKeyState = other.mKeyState;
             mAudioOutput = other.mAudioOutput;
             mMidiManager = other.mMidiManager;
+#endif
             mRegisteredNodeTypes = std::move(other.mRegisteredNodeTypes);
             mPickerRootMenu = mPickerRootMenu;
             return *this;
@@ -169,9 +171,11 @@ namespace l::nodegraph {
         virtual void GetArchiveData(l::serialization::JsonBuilder& jsonBuilder) override;
 
         void AddCustomNodeCreator(CustomCreateFunctionType customCreator);
+#ifndef HEADLESS_BUILD
         void SetKeyState(l::hid::KeyState* keyState);
         void SetAudioOutput(l::audio::AudioStream* audioStream);
         void SetMidiManager(l::hid::midi::MidiManager* midiManager);
+#endif
 
         int32_t NewNode(int32_t typeId, int32_t id = -1);
         bool RemoveNode(int32_t id);
@@ -213,9 +217,11 @@ namespace l::nodegraph {
         NodeGraphGroup mMainNodeGraph;
 
         std::vector<CustomCreateFunctionType> mCustomNodeCreatorListeners;
+#ifndef HEADLESS_BUILD
         l::hid::KeyState* mKeyState = nullptr;
         l::audio::AudioStream* mAudioOutput = nullptr;
         l::hid::midi::MidiManager* mMidiManager = nullptr;
+#endif
 
         std::map<std::string, std::vector<UINodeDesc>> mRegisteredNodeTypes;
         TreeMenuNode mPickerRootMenu;

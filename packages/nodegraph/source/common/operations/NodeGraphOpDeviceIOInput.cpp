@@ -1,5 +1,7 @@
 #include "nodegraph/operations/NodeGraphOpDeviceIOInput.h"
 
+#ifndef HEADLESS_BUILD
+
 #include "logging/Log.h"
 #include "audio/AudioUtils.h"
 #include "hid/Midi.h"
