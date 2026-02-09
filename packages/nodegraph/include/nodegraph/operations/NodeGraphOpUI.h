@@ -3,14 +3,6 @@
 
 #include "logging/LoggingAll.h"
 
-#ifndef HEADLESS_BUILD
-#include "hid/KeyboardPiano.h"
-#include "hid/Midi.h"
-
-#include "audio/PortAudio.h"
-#include "audio/AudioUtils.h"
-#endif
-
 #include "math/MathFunc.h"
 
 #include <string>
