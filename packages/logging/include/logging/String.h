@@ -183,14 +183,14 @@ namespace l::string {
 		}
 	}
 
-	template<size_t BUFSIZE>
+	template<int32_t BUFSIZE>
 	void get_local_time(string_buffer<BUFSIZE>& buf, const int32_t unixtime) {
 		struct std::tm tminfo = {};
 		convert_to_local_tm_from_utc_time(unixtime, &tminfo, false);
 		buf.printf("%02d:%02d:%02d", tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
 	}
 
-	template<size_t BUFSIZE>
+	template<int32_t BUFSIZE>
 	void get_local_date_and_time(string_buffer<BUFSIZE>& buf, const int32_t unixtime, bool fullYear = false) {
 		struct std::tm tminfo = {};
 		convert_to_local_tm_from_utc_time(unixtime, &tminfo, true);
