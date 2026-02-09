@@ -6,15 +6,15 @@
 #include <functional>
 #include <vector>
 
-#include "curl/curl.h"
+#include <curl/curl.h>
 
 #ifndef CURLPIPE_MULTIPLEX
 #define CURLPIPE_MULTIPLEX 0
 #endif
 
-#include "logging/LoggingAll.h"
-#include "concurrency/ExecutorService.h"
-#include "network/NetworkConnection.h"
+#include <logging/LoggingAll.h>
+#include <concurrency/ExecutorService.h>
+#include <network/NetworkConnection.h>
 
 namespace l::network {
 
