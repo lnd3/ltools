@@ -30,7 +30,7 @@ namespace l::nodegraph {
         auto in = &inputs.at(0).Get(numCacheSamples * stride, readSamples * stride);
         auto timeframeMultiplier = l::math::max2(static_cast<int32_t>(inputs.at(4).Get()), 1);
         auto friction = inputs.at(5).Get();
-        auto offset = inputs.at(6).Get();
+        auto timeframeOffset = inputs.at(6).Get();
 
         float* out1 = &outputs.at(3).Get(numSamples); // unixtime
         float* out2 = &outputs.at(4).Get(numSamples); // open
@@ -78,7 +78,7 @@ namespace l::nodegraph {
                 auto bv = in[offset + 7]; // buy volume
                 auto bq = in[offset + 8]; // buy quantity
 
-                auto timemin = static_cast<int32_t>(timeframeMultiplier * offset) + unixtime / 60;
+                auto timemin = static_cast<int32_t>(timeframeMultiplier * timeframeOffset) + unixtime / 60;
                 if (reset || timemin % timeframeMultiplier == 0) {
                     reset = false;
                     // time interval looping so reset moving averages
