@@ -36,6 +36,7 @@ namespace l::nodegraph {
             AddInput("Index", 2.0f, 1, 0.0f, 10.0f);
             AddInput("Timeframe", 1.0f, 1, 1.0f, 1440.0f);
             AddInput("Friction", 0.0f, 1, 0.0f, 1.0f);
+            AddInput("Offset", 0.0f, 1, 0.0f, 1.0f); // in current interval
 
 
             AddOutput2("Symbol", 16, OutputFlags(false, true));
