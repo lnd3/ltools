@@ -89,7 +89,6 @@ namespace l::nodegraph {
                                 //LLOG(LogInfo) << inputInfo.as_dbg_string();
 
                                 auto node = GetNode(nodeId);
-                                ASSERT(node);
                                 if (node) {
                                     if (inputInfo.has(JSMN_ARRAY)) {
                                         auto it2 = inputInfo.as_array();
