@@ -135,7 +135,7 @@ namespace l::math::fp {
     }
 
     float FixedPoint::toFloat() const {
-        return static_cast<float>(toDouble());
+        return static_cast<float>(value_) / static_cast<float>(scale_);
     }
 
     std::string FixedPoint::toString() const {

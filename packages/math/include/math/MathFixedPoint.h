@@ -79,6 +79,14 @@ namespace l::math::fp {
             return FixedPoint(value_ + tmp.value_, scale_);
         }
 
+        operator float() const {
+            return toFloat();
+        }
+
+        operator double() const {
+            return toDouble();
+        }
+
         FixedPoint operator-(const FixedPoint& other) const {
             FixedPoint tmp(other);
             tmp.rescale(scale_);
@@ -123,6 +131,54 @@ namespace l::math::fp {
         }
 
         bool operator>=(const FixedPoint& other) const {
+            return !(*this < other);
+        }
+
+        bool operator==(float other) const {
+            return toFloat() == other;
+        }
+
+        bool operator!=(float other) const {
+            return !(*this == other);
+        }
+
+        bool operator<(float other) const {
+            return toFloat() < other;
+        }
+
+        bool operator>(float other) const {
+            return toFloat() > other;
+        }
+
+        bool operator<=(float other) const {
+            return !(*this > other);
+        }
+
+        bool operator>=(float other) const {
+            return !(*this < other);
+        }
+
+        bool operator==(double other) const {
+            return toFloat() == other;
+        }
+
+        bool operator!=(double other) const {
+            return !(*this == other);
+        }
+
+        bool operator<(double other) const {
+            return toFloat() < other;
+        }
+
+        bool operator>(double other) const {
+            return toFloat() > other;
+        }
+
+        bool operator<=(double other) const {
+            return !(*this > other);
+        }
+
+        bool operator>=(double other) const {
             return !(*this < other);
         }
 
