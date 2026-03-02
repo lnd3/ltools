@@ -440,6 +440,38 @@ namespace l::nodegraph {
         return static_cast<int32_t>(mDefaultOutData.size() - 1);
     }
 
+    int32_t NodeGraphOp::AddInputInterleaved(std::string_view name, int32_t stride, int32_t minSize) {
+        InputFlags flags(false, false, false, false);
+        flags.mStride = stride;
+        mNumInputs++;
+        mDefaultInStrings.push_back(std::string(name));
+        mDefaultInData.push_back({ 0.0f, minSize, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, flags });
+        return static_cast<int32_t>(mDefaultInData.size() - 1);
+    }
+
+    int32_t NodeGraphOp::AddOutputInterleaved(std::string_view name, int32_t stride, float defaultValue) {
+        OutputFlags flags(true, false);
+        flags.mStride = stride;
+        mNumOutputs++;
+        mDefaultOutStrings.push_back(std::string(name));
+        mDefaultOutData.push_back({ defaultValue, 1, flags });
+        return static_cast<int32_t>(mDefaultOutData.size() - 1);
+    }
+
+    int32_t NodeGraphOp::GetInputStride(int8_t channel) {
+        if (static_cast<size_t>(channel) < mDefaultInData.size()) {
+            return std::get<4>(mDefaultInData.at(channel)).mStride;
+        }
+        return 1;
+    }
+
+    int32_t NodeGraphOp::GetOutputStride(int8_t channel) {
+        if (static_cast<size_t>(channel) < mDefaultOutData.size()) {
+            return std::get<2>(mDefaultOutData.at(channel)).mStride;
+        }
+        return 1;
+    }
+
     void NodeGraphOp::ProcessOperation(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         mNode->IsOutOfDate2();
         

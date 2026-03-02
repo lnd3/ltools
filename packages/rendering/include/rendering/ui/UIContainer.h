@@ -15,6 +15,7 @@ namespace l::ui {
     constexpr ImVec4 darkBlue = ImVec4(17.0f / 255.0f, 26.0f / 255.0f, 37.0f / 255.0f, 1.0f); // unselected tabs
     constexpr ImVec4 mediumBlue = ImVec4(27.0f / 255.0f, 47.0f / 255.0f, 73.0f / 255.0f, 1.0f); // selected tabs and ui element background
     constexpr ImVec4 lightBlue = ImVec4(61.0f / 255.0f, 133.0f / 255.0f, 224.0f / 255.0f, 1.0f); // interactive ui elements
+    constexpr ImVec4 warmOrange = ImVec4(224.0f / 255.0f, 133.0f / 255.0f, 61.0f / 255.0f, 1.0f); // interleaved pins
     constexpr ImVec4 brightYellow = ImVec4(147.0f / 255.0f, 232.0f / 255.0f, 102.0f / 255.0f, 1.0f); // selection?
     constexpr ImVec4 pastellYellow = ImVec4(204.0f / 255.0f, 185.0f / 255.0f, 116.0f / 255.0f, 0.25f); // links?
     constexpr ImVec4 brightWhite = ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // text

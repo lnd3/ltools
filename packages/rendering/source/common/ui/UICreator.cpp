@@ -3,6 +3,7 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 
+#include <algorithm>
 #include <memory>
 
 namespace l::ui {
@@ -47,8 +48,14 @@ namespace l::ui {
 
                     float estimatedWidth = 0.0f;
                     if (showsInput && !node.IsInputDataConstant(i)) {
-                        auto in = CreateContainer(uiManager, l::ui::UIContainer_InputFlag | l::ui::UIContainer_DrawFlag, l::ui::UIRenderType::CircleFilled, l::ui::UIAlignH::Left);
-                        in->SetColor(lightBlue);
+                        int32_t inStride = node.GetInputStride(i);
+                        auto inRType = inStride > 1 ? l::ui::UIRenderType::PolygonFilled : l::ui::UIRenderType::CircleFilled;
+                        auto in = CreateContainer(uiManager, l::ui::UIContainer_InputFlag | l::ui::UIContainer_DrawFlag, inRType, l::ui::UIAlignH::Left);
+                        in->SetColor(inStride > 1 ? warmOrange : lightBlue);
+                        if (inStride > 1) {
+                            int32_t sides = std::max(3, std::min(inStride, 12));
+                            in->GetContainerArea().mRender.mData0.x = static_cast<float>(sides);
+                        }
                         in->SetPosition(ImVec2(-ioSize, ioSize * ioOffsetV));
                         in->SetSize(ImVec2(ioSize, ioSize));
                         in->GetContainerArea().mMargin = 0.0f;
@@ -86,8 +93,14 @@ namespace l::ui {
                     }
 
                     if (showsOutput) {
-                        auto out = CreateContainer(uiManager, l::ui::UIContainer_OutputFlag | l::ui::UIContainer_DrawFlag, l::ui::UIRenderType::CircleFilled, l::ui::UIAlignH::Right);
-                        out->SetColor(lightBlue);
+                        int32_t outStride = node.GetOutputStride(i);
+                        auto outRType = outStride > 1 ? l::ui::UIRenderType::PolygonFilled : l::ui::UIRenderType::CircleFilled;
+                        auto out = CreateContainer(uiManager, l::ui::UIContainer_OutputFlag | l::ui::UIContainer_DrawFlag, outRType, l::ui::UIAlignH::Right);
+                        out->SetColor(outStride > 1 ? warmOrange : lightBlue);
+                        if (outStride > 1) {
+                            int32_t sides = std::max(3, std::min(outStride, 12));
+                            out->GetContainerArea().mRender.mData0.x = static_cast<float>(sides);
+                        }
                         out->SetPosition(ImVec2(ioSize * 2.0f, ioSize * ioOffsetV));
                         out->SetSize(ImVec2(ioSize, ioSize));
                         out->GetContainerArea().mMargin = 0.0f;

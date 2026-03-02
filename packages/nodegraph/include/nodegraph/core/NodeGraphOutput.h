@@ -23,6 +23,7 @@ namespace l::nodegraph {
 
         bool mVisible = true;
         bool mText = false;
+        int32_t mStride = 1;
     };
 
     class NodeGraphOutput {

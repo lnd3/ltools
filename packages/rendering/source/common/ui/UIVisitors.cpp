@@ -395,10 +395,18 @@ namespace l::ui {
         case l::ui::UIRenderType::CircleFilled:
             mDrawList->AddCircleFilled(p1, pSize.x, color, 15);
             break;
-        case l::ui::UIRenderType::Polygon:
+        case l::ui::UIRenderType::Polygon: {
+            int32_t sides = static_cast<int32_t>(container.GetRenderData().mData0.x);
+            if (sides < 3) sides = 6;
+            mDrawList->AddNgon(p1, pSize.x, color, sides, 2.0f * container.GetScale() * layoutArea.mScale);
             break;
-        case l::ui::UIRenderType::PolygonFilled:
+        }
+        case l::ui::UIRenderType::PolygonFilled: {
+            int32_t sides = static_cast<int32_t>(container.GetRenderData().mData0.x);
+            if (sides < 3) sides = 6;
+            mDrawList->AddNgonFilled(p1, pSize.x, color, sides);
             break;
+        }
         case l::ui::UIRenderType::LinkH:
             if (container.HasConfigFlag(UIContainer_LinkFlag)) {
                 splineThickness = container.HasNotification(UIContainer_LinkFlag) ? 2.0f * splineThickness : splineThickness;

@@ -130,6 +130,8 @@ namespace l::nodegraph {
         virtual bool IsInputDataText(int8_t) { return false; }
         virtual bool IsInputDataArray(int8_t) { return false; }
         virtual bool IsOutputDataVisible(int8_t) { return false; }
+        virtual int32_t GetInputStride(int8_t) { return 1; }
+        virtual int32_t GetOutputStride(int8_t) { return 1; }
         virtual bool IsOutputPolled(int8_t outputChannel);
         virtual void NodeHasChanged();
         bool IsOutOfDate2();
@@ -236,6 +238,8 @@ namespace l::nodegraph {
         virtual bool IsInputDataText(int8_t channel);
         virtual bool IsInputDataArray(int8_t channel);
         virtual bool IsOutputDataVisible(int8_t channel);
+        virtual int32_t GetInputStride(int8_t channel);
+        virtual int32_t GetOutputStride(int8_t channel);
 
         virtual std::string_view GetInputName(int8_t inputChannel);
         virtual std::string_view GetOutputName(int8_t outputChannel);
@@ -250,6 +254,8 @@ namespace l::nodegraph {
         virtual int32_t AddConstant(std::string_view name, float defaultValue = 0.0f, int32_t minSize = 1, float boundMin = -l::math::constants::FLTMAX, float boundMax = l::math::constants::FLTMAX, bool visible = true, bool editable = true);
         virtual int32_t AddInput2(std::string_view name, int32_t minSize = 1, InputFlags flags = InputFlags(false, false, false, false));
         virtual int32_t AddOutput2(std::string_view name, int32_t minSize = 1, OutputFlags flags = OutputFlags(false, false));
+        virtual int32_t AddInputInterleaved(std::string_view name, int32_t stride, int32_t minSize = 1);
+        virtual int32_t AddOutputInterleaved(std::string_view name, int32_t stride, float defaultValue = 0.0f);
 
         NodeGraphBase* mNode = nullptr;
         std::string mName;
@@ -351,6 +357,14 @@ namespace l::nodegraph {
 
         virtual bool IsOutputDataVisible(int8_t num) override {
             return mOperation.IsOutputDataVisible(num);
+        }
+
+        virtual int32_t GetInputStride(int8_t ch) override {
+            return mOperation.GetInputStride(ch);
+        }
+
+        virtual int32_t GetOutputStride(int8_t ch) override {
+            return mOperation.GetOutputStride(ch);
         }
 
         virtual void DefaultDataInit() override {
