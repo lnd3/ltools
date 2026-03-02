@@ -30,6 +30,13 @@
 #include <memory>
 #include <filesystem>
 
+// Forward declarations so NodeGraphSchema members always have consistent layout
+// regardless of HEADLESS_BUILD. Including the full headers is guarded, but
+// pointer-to-incomplete-type is sufficient for member declarations.
+namespace l::hid { class KeyState; }
+namespace l::audio { class AudioStream; }
+namespace l::hid::midi { class MidiManager; }
+
 namespace l::nodegraph {
 
     class TreeMenuNode {
@@ -217,11 +224,10 @@ namespace l::nodegraph {
         NodeGraphGroup mMainNodeGraph;
 
         std::vector<CustomCreateFunctionType> mCustomNodeCreatorListeners;
-#ifndef HEADLESS_BUILD
+        // Always present for consistent struct layout across HEADLESS_BUILD configurations
         l::hid::KeyState* mKeyState = nullptr;
         l::audio::AudioStream* mAudioOutput = nullptr;
         l::hid::midi::MidiManager* mMidiManager = nullptr;
-#endif
 
         std::map<std::string, std::vector<UINodeDesc>> mRegisteredNodeTypes;
         TreeMenuNode mPickerRootMenu;
