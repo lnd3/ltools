@@ -101,8 +101,9 @@ namespace filesystem {
 	}
 
 	std::time_t getTime(std::filesystem::file_time_type tp) {
-		auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(tp - std::filesystem::file_time_type::clock::now()
-			+ std::chrono::system_clock::now());
+		//auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(tp - std::filesystem::file_time_type::clock::now()
+		//	+ std::chrono::system_clock::now()); // can cause +-1 second off
+		auto sctp = std::chrono::clock_cast<std::chrono::system_clock>(tp);
 		return std::chrono::system_clock::to_time_t(sctp);
 	}
 
