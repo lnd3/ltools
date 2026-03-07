@@ -191,14 +191,18 @@ namespace l::string {
 	}
 
 	template<int32_t BUFSIZE>
-	void get_local_date_and_time(string_buffer<BUFSIZE>& buf, const int32_t unixtime, bool fullYear = false) {
+	void get_local_date_and_time(string_buffer<BUFSIZE>& buf, const int32_t unixtime, bool fullYear = false, bool isFileName = false) {
 		struct std::tm tminfo = {};
 		convert_to_local_tm_from_utc_time(unixtime, &tminfo, true);
+		auto format = "%04d-%02d-%02d %02d:%02d:%02d";
+		if (isFileName) {
+			format = "%04d-%02d-%02d_%02d%02d%02d";
+		}
 		if (fullYear) {
-			buf.printf("%04d-%02d-%02d %02d:%02d:%02d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday, tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
+			buf.printf(format, tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday, tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
 		}
 		else {
-			buf.printf("%02d-%02d-%02d %02d:%02d:%02d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday, tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
+			buf.printf(format, tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday, tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
 		}
 	}
 
