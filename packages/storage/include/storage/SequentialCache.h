@@ -103,6 +103,8 @@ namespace l::filecache {
 			std::vector<unsigned char> data;
 			GetArchiveData(data);
 
+			mPersistOnDestruction = false;
+
 			std::lock_guard lock(mPathMutex);
 			return mCacheProvider->PersistData(mPath, data);
 		}
