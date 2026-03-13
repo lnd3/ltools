@@ -13,23 +13,30 @@ namespace l::nodegraph {
         auto input0 = &inputs.at(0).Get(numSamples);
         auto friction = inputs.at(1).Get();
         auto frictionFactor = l::math::clamp(l::math::pow(friction, 0.25f), 0.0f, 1.0f);
+        auto resetInput = &inputs.at(2).Get(numSamples);
         auto output = &outputs.at(0).Get(numSamples);
 
         if (mReadSamples == 0) {
             mOutput = 0.0f;
+            mResetPrev = 0.0f;
         }
 
         for (int32_t i = 0; i < numSamples; i++) {
+            auto reset = *resetInput++;
+            if (reset < 0.0f && mResetPrev > 0.0f || reset > 0.0f && mResetPrev < 0.0f) {
+                mOutput = 0.0f;
+            }
             mOutput += *input0++;
             mOutput *= frictionFactor;
             *output++ = mOutput;
+
+            mResetPrev = reset;
         }
 
         mReadSamples += numSamples;
 
         if (mReadSamples >= numCacheSamples) {
             mReadSamples = 0;
-            mOutput = 0.0f;
         }
 
         if (isnan(mOutput)) {

@@ -26,6 +26,7 @@ namespace l::nodegraph {
         {
             AddInput2("x");
             AddInput("Friction", 1.0f, 1, 0.0f, 1.0f);
+            AddInput2("Reset Toggle");
             AddOutput2("Intgr(x)");
         }
 
@@ -38,6 +39,7 @@ namespace l::nodegraph {
         int32_t mReadSamples = 0;
 
         float mOutput = 0.0f;
+        float mResetPrev = 0.0f;
     };
 
     /*********************************************************************/
