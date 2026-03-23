@@ -355,6 +355,9 @@ namespace l::nodegraph {
         case 153:
             node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalSMA>(id, NodeType::Default);
             break;
+        case 154:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalIntegral2>(id, NodeType::Default);
+            break;
 
             // Trading data io
         case 200:
@@ -658,18 +661,18 @@ namespace l::nodegraph {
             RegisterNodeType("Math.Aritmethic", 100, "Add");
             RegisterNodeType("Math.Aritmethic", 101, "Sub");
             RegisterNodeType("Math.Aritmethic", 102, "Mul");
+            RegisterNodeType("Math.Aritmethic", 106, "Mul 3");
+            RegisterNodeType("Math.Aritmethic", 114, "Div", "Divides input 1 with input 2");
             RegisterNodeType("Math.Aritmethic", 103, "Neg");
             RegisterNodeType("Math.Aritmethic", 104, "Abs");
             RegisterNodeType("Math.Aritmethic", 105, "Log");
-            RegisterNodeType("Math.Aritmethic", 106, "Mul 3");
+            RegisterNodeType("Math.Aritmethic", 109, "Pow");
             RegisterNodeType("Math.Aritmethic", 107, "Madd");
             RegisterNodeType("Math.Aritmethic", 108, "Round");
-            RegisterNodeType("Math.Aritmethic", 109, "Pow");
             RegisterNodeType("Math.Aritmethic", 110, "Sum 3");
             RegisterNodeType("Math.Aritmethic", 111, "Sum 5");
             RegisterNodeType("Math.Aritmethic", 112, "Minmax 1", "Compares input with a min and a max value. Outputs values in the 1) min/max range, 2) larger or equal to min and 3) less or equal to max, respectively.");
             RegisterNodeType("Math.Aritmethic", 113, "Minmax 2", "Compares the inputs. Outputs the 1) smaller and the 2) larger values respectively.");
-            RegisterNodeType("Math.Aritmethic", 114, "Div", "Divides input 1 with input 2");
         }
         else if (typeGroup == "Math.Logic") {
             RegisterNodeType("Math.Logic", 120, "And");
@@ -677,20 +680,21 @@ namespace l::nodegraph {
             RegisterNodeType("Math.Logic", 122, "Xor");
         }
         else if (typeGroup == "Math.Numerical") {
-            RegisterNodeType("Math.Numerical", 140, "Integral", "Basically a temporal summation node with a EWA on the output with a cooefficient 'friction'");
+            RegisterNodeType("Math.Numerical", 140, "Integral 1", "Basically a temporal summation node with a EWA on the output with a cooefficient 'friction'");
+            RegisterNodeType("Math.Numerical", 154, "Integral 2", "Like Integral 1 but with reset toggle input with dead zone");
             RegisterNodeType("Math.Numerical", 141, "Change 1", "Temporal change 1. Computes the value: (v_now - v_prev) / (abs(v_now) + abs(v_prev)).");
-            RegisterNodeType("Math.Numerical", 142, "Difference 2", "Temporal difference 2. Computes the value: (v_now / v_prev - 1)");
+            RegisterNodeType("Math.Numerical", 150, "Change 2", "Temporal change 2. Computes the value: (v_now - v_prev) / abs(v_now).");
             RegisterNodeType("Math.Numerical", 143, "Difference 1", "Temporal difference 1. Computes the value: (v_now - v_prev).");
+            RegisterNodeType("Math.Numerical", 142, "Difference 2", "Temporal difference 2. Computes the value: (v_now / v_prev - 1)");
             RegisterNodeType("Math.Numerical", 144, "Level Trigger", "Determines where some input is located between two extremes (min/max) in the format [0,1] ");
             RegisterNodeType("Math.Numerical", 145, "Minmax Channel", "Computes the range between the EWA smootherd min/max inputs");
             RegisterNodeType("Math.Numerical", 146, "Reconstructor 1", "Deconstructs the input into derivatives (change per index) and outputs the sum of through a ewa with a cooefficient of 'friction' {x1 = x0 + friction * (target - x0)}. An second output is provided which is the average of the last two outputs of that function.");
             RegisterNodeType("Math.Numerical", 147, "Reconstructor 2", "");
             RegisterNodeType("Math.Numerical", 148, "Unitmap", "Maps the input to [-1,1] via a sigmoid function. A scale factor can be provided that changes the shape of the mapping");
             RegisterNodeType("Math.Numerical", 149, "EMA", "Exponential moving average [ema1=(ema0*(n-1)+input)/n]");
-            RegisterNodeType("Math.Numerical", 150, "Change 2", "Temporal change 2. Computes the value: (v_now - v_prev) / abs(v_now).");
+            RegisterNodeType("Math.Numerical", 153, "SMA", "Simple moving average");
             RegisterNodeType("Math.Numerical", 151, "Mean Regression", "Computes the convolution of the exponential distances and can be used as a square root of the variance for computing the mean regression or the trend/direction of the input values.");
             RegisterNodeType("Math.Numerical", 152, "Standard Deviation", "Computes the standard deviation and variance.");
-            RegisterNodeType("Math.Numerical", 153, "SMA", "Simple moving average");
         }
         else if (typeGroup == "Trading.Data IO") {
             RegisterNodeType("Trading.Data IO", 200, "OCHLV Data In");
@@ -764,11 +768,11 @@ namespace l::nodegraph {
             RegisterNodeType("UI", 600, "UI Checkbox");
             RegisterNodeType("UI", 601, "UI Slider");
             RegisterNodeType("UI", 602, "UI Chart Lines 1");
+            RegisterNodeType("UI", 606, "UI Chart Lines 2");
+            RegisterNodeType("UI", 607, "UI Chart Lines 3");
             RegisterNodeType("UI", 603, "UI Candle Sticks");
             RegisterNodeType("UI", 604, "UI Text");
             RegisterNodeType("UI", 605, "UI Chart Markers");
-            RegisterNodeType("UI", 606, "UI Chart Lines 2");
-            RegisterNodeType("UI", 607, "UI Chart Lines 3");
             }
         else {
             LLOG(LogWarning) << "Type group does not exist: " << typeGroup;

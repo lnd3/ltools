@@ -13,7 +13,37 @@ namespace l::nodegraph {
         auto input0 = &inputs.at(0).Get(numSamples);
         auto friction = inputs.at(1).Get();
         auto frictionFactor = l::math::clamp(l::math::pow(friction, 0.25f), 0.0f, 1.0f);
+        auto output = &outputs.at(0).Get(numSamples);
+
+        if (mReadSamples == 0) {
+            mOutput = 0.0f;
+        }
+
+        for (int32_t i = 0; i < numSamples; i++) {
+            mOutput += *input0++;
+            mOutput *= frictionFactor;
+            *output++ = mOutput;
+        }
+
+        mReadSamples += numSamples;
+
+        if (mReadSamples >= numCacheSamples) {
+            mReadSamples = 0;
+        }
+
+        if (isnan(mOutput)) {
+            mOutput = 0.0f;
+        }
+    }
+
+
+    /*********************************************************************/
+    void MathNumericalIntegral2::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
+        auto input0 = &inputs.at(0).Get(numSamples);
+        auto friction = inputs.at(1).Get();
+        auto frictionFactor = l::math::clamp(l::math::pow(friction, 0.25f), 0.0f, 1.0f);
         auto resetInput = &inputs.at(2).Get(numSamples);
+        auto deadZone = inputs.at(3).Get();
         auto output = &outputs.at(0).Get(numSamples);
 
         if (mReadSamples == 0) {
@@ -23,7 +53,7 @@ namespace l::nodegraph {
 
         for (int32_t i = 0; i < numSamples; i++) {
             auto reset = *resetInput++;
-            if (reset < 0.0f && mResetPrev > 0.0f || reset > 0.0f && mResetPrev < 0.0f) {
+            if (reset < -deadZone && mResetPrev > 0.0f || reset > deadZone && mResetPrev < 0.0f) {
                 mOutput = 0.0f;
             }
             mOutput += *input0++;
@@ -43,7 +73,6 @@ namespace l::nodegraph {
             mOutput = 0.0f;
         }
     }
-
     /*********************************************************************/
     void MathNumericalTemporalChange1::Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
         auto input0 = &inputs.at(0).Get(numSamples);
