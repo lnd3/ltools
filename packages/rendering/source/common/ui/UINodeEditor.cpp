@@ -2,6 +2,8 @@
 
 #include "rendering/ImguiSpectrum.h"
 
+#include <algorithm>
+#include <cfloat>
 #include <memory>
 
 namespace l::ui {
@@ -38,6 +40,48 @@ namespace l::ui {
             mUIRoot->SetLayoutSize(GetSize());
             mUIRoot->SetLayoutPosition(GetPosition());
             mUIRoot->Accept(updateVisitor, mUIInput, l::ui::UITraversalMode::BFS);
+
+            // Render logical group rects before links and nodes (furthest back)
+            auto& logicalGroups = mNGSchema->GetLogicalGroups();
+            if (!logicalGroups.empty()) {
+                ImDrawList* dl = ImGui::GetWindowDrawList();
+                float rootScale = mUIRoot->GetScale();
+                ImVec2 rootPos = mUIRoot->GetPosition();
+                ImVec2 winPos = GetPosition();
+
+                for (auto& group : logicalGroups) {
+                    if (group.mNodeIds.empty()) continue;
+                    float minX = FLT_MAX, minY = FLT_MAX, maxX = -FLT_MAX, maxY = -FLT_MAX;
+                    bool anyValid = false;
+                    for (int32_t nid : group.mNodeIds) {
+                        auto* node = mNGSchema->GetNode(nid);
+                        if (!node) continue;
+                        auto& ui = node->GetUIData();
+                        constexpr float pad = 12.0f;
+                        minX = std::min(minX, ui.x - pad);
+                        minY = std::min(minY, ui.y - pad);
+                        maxX = std::max(maxX, ui.x + ui.w + pad);
+                        maxY = std::max(maxY, ui.y + ui.h + pad);
+                        anyValid = true;
+                    }
+                    if (!anyValid) continue;
+                    auto& c = group.mColor;
+                    auto toScreen = [&](float cx, float cy) -> ImVec2 {
+                        return { winPos.x + rootPos.x + cx * rootScale,
+                                 winPos.y + rootPos.y + cy * rootScale };
+                    };
+                    ImU32 fillCol = IM_COL32(int(c[0]*255), int(c[1]*255), int(c[2]*255), 20);
+                    ImU32 lineCol = IM_COL32(int(c[0]*255), int(c[1]*255), int(c[2]*255), 180);
+                    ImVec2 pMin = toScreen(minX, minY);
+                    ImVec2 pMax = toScreen(maxX, maxY);
+                    dl->AddRectFilled(pMin, pMax, fillCol, 6.0f);
+                    dl->AddRect(pMin, pMax, lineCol, 6.0f, 0, 2.0f);
+                    float labelX = (group.mLabelX != 0.0f || group.mLabelY != 0.0f) ? group.mLabelX : minX + 4.0f;
+                    float labelY = (group.mLabelX != 0.0f || group.mLabelY != 0.0f) ? group.mLabelY : minY - 14.0f;
+                    dl->AddText(toScreen(labelX, labelY), lineCol, group.mName.c_str());
+                }
+            }
+
             // Two-pass rendering: draw links first (behind), then nodes (in front)
             mDrawVisitor.SetDrawMode(UIDrawMode::LinksOnly);
             mUIRoot->Accept(mDrawVisitor, mUIInput, l::ui::UITraversalMode::BFS);
@@ -61,6 +105,60 @@ namespace l::ui {
             if (mNGSchema == nullptr) {
                 return;
             }
+
+            // Group management
+            {
+                std::vector<int32_t> selectedIds;
+                mSelectVisitor.GetSelectedNodeIds(selectedIds);
+
+                if (!selectedIds.empty()) {
+                    if (ImGui::BeginMenu("Group Selection...")) {
+                        static char groupNameBuf[64] = "";
+                        ImGui::InputText("Name##grpnew", groupNameBuf, sizeof(groupNameBuf));
+                        if (ImGui::Button("Create") && groupNameBuf[0] != '\0') {
+                            auto& g = mNGSchema->AddLogicalGroup(groupNameBuf);
+                            g.mNodeIds = selectedIds;
+                            groupNameBuf[0] = '\0';
+                            ImGui::CloseCurrentPopup();
+                        }
+                        ImGui::EndMenu();
+                    }
+                }
+
+                auto& groups = mNGSchema->GetLogicalGroups();
+                if (!groups.empty()) {
+                    if (ImGui::BeginMenu("Groups")) {
+                        int32_t groupToDelete = -1;
+                        for (auto& g : groups) {
+                            if (ImGui::BeginMenu(g.mName.c_str())) {
+                                static char renameBuf[64] = "";
+                                ImGui::InputText("Rename##grprename", renameBuf, sizeof(renameBuf));
+                                if (ImGui::Button("Apply##grpapply") && renameBuf[0] != '\0') {
+                                    g.mName = renameBuf;
+                                    renameBuf[0] = '\0';
+                                    ImGui::CloseCurrentPopup();
+                                }
+                                if (!selectedIds.empty()) {
+                                    ImGui::Separator();
+                                    if (ImGui::MenuItem("Set selection as members")) {
+                                        g.mNodeIds = selectedIds;
+                                    }
+                                }
+                                ImGui::Separator();
+                                if (ImGui::MenuItem("Delete Group")) {
+                                    groupToDelete = g.mId;
+                                }
+                                ImGui::EndMenu();
+                            }
+                        }
+                        if (groupToDelete >= 0) {
+                            mNGSchema->RemoveLogicalGroup(groupToDelete);
+                        }
+                        ImGui::EndMenu();
+                    }
+                }
+            }
+            ImGui::Separator();
 
             std::vector<std::string> path;
             depthFirstTraversal(mNGSchema->GetPickerRoot(), path, [&](std::string_view menuName, int32_t menuId, std::string_view description) {

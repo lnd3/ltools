@@ -53,7 +53,7 @@ namespace l::nodegraph {
 
         for (int32_t i = 0; i < numSamples; i++) {
             auto reset = *resetInput++;
-            if (reset < -deadZone && mResetPrev > 0.0f || reset > deadZone && mResetPrev < 0.0f) {
+            if ((reset < -deadZone && mResetPrev > 0.0f) || (reset > deadZone && mResetPrev < 0.0f)) {
                 mOutput = 0.0f;
             }
             mOutput += *input0++;

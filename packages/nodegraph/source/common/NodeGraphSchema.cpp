@@ -3,6 +3,7 @@
 #include <logging/Log.h>
 #include <filesystem/File.h>
 
+#include <algorithm>
 #include <set>
 
 namespace l::nodegraph {
@@ -57,6 +58,9 @@ namespace l::nodegraph {
         mFileName.clear();
         mFullPath.clear();
         mStringId = 0;
+
+        mLogicalGroups.clear();
+        mNextGroupId = 1;
     }
 
     bool NodeGraphSchema::Load(std::filesystem::path file) {
@@ -155,6 +159,42 @@ namespace l::nodegraph {
                         mStringId = nodeGraphSchema.get("StringId").as_uint32();
                     }
                 }
+                if (nodeGraphSchema.has_key("LogicalGroups")) {
+                    auto groups = nodeGraphSchema.get("LogicalGroups");
+                    if (groups.has(JSMN_ARRAY)) {
+                        auto it = groups.as_array();
+                        for (; it.has_next();) {
+                            auto e = it.next();
+                            if (!e.has(JSMN_OBJECT)) continue;
+                            NodeLogicalGroup group;
+                            if (e.has_key("GroupId")) group.mId = e.get("GroupId").as_int32();
+                            if (e.has_key("Name"))    group.mName = e.get("Name").as_string();
+                            if (e.has_key("LabelX"))  group.mLabelX = e.get("LabelX").as_float();
+                            if (e.has_key("LabelY"))  group.mLabelY = e.get("LabelY").as_float();
+                            if (e.has_key("Color")) {
+                                auto colorArr = e.get("Color");
+                                if (colorArr.has(JSMN_ARRAY)) {
+                                    auto cit = colorArr.as_array();
+                                    for (int i = 0; i < 4 && cit.has_next(); i++) {
+                                        group.mColor[i] = cit.next().as_float();
+                                    }
+                                }
+                            }
+                            if (e.has_key("Nodes")) {
+                                auto nodesArr = e.get("Nodes");
+                                if (nodesArr.has(JSMN_ARRAY)) {
+                                    auto nit = nodesArr.as_array();
+                                    for (; nit.has_next();) {
+                                        group.mNodeIds.push_back(nit.next().as_int32());
+                                    }
+                                }
+                            }
+                            if (group.mId >= mNextGroupId) mNextGroupId = group.mId + 1;
+                            mLogicalGroups.push_back(std::move(group));
+                        }
+                    }
+                }
+
                 auto nodeGraphGroup = nodeGraphSchema.get("NodeGraphGroup");
 
                 return mMainNodeGraph.LoadArchiveData(nodeGraphGroup);
@@ -174,6 +214,30 @@ namespace l::nodegraph {
             jsonBuilder.AddString("FileName", mFileName);
             jsonBuilder.AddString("FullPath", mFullPath);
             jsonBuilder.AddNumber("StringId", GetStringId());
+            if (!mLogicalGroups.empty()) {
+                jsonBuilder.Begin("LogicalGroups", true);
+                for (auto& g : mLogicalGroups) {
+                    jsonBuilder.Begin("");
+                    {
+                        jsonBuilder.AddNumber("GroupId", g.mId);
+                        jsonBuilder.AddString("Name", g.mName);
+                        jsonBuilder.AddNumber("LabelX", g.mLabelX);
+                        jsonBuilder.AddNumber("LabelY", g.mLabelY);
+                        jsonBuilder.Begin("Color", true);
+                        for (float c : g.mColor) {
+                            jsonBuilder.AddNumber("", c);
+                        }
+                        jsonBuilder.End(true);
+                        jsonBuilder.Begin("Nodes", true);
+                        for (int32_t nodeId : g.mNodeIds) {
+                            jsonBuilder.AddNumber("", nodeId);
+                        }
+                        jsonBuilder.End(true);
+                    }
+                    jsonBuilder.End();
+                }
+                jsonBuilder.End(true);
+            }
             jsonBuilder.BeginExternalObject("NodeGraphGroup");
             {
                 mMainNodeGraph.GetArchiveData(jsonBuilder);
@@ -182,6 +246,32 @@ namespace l::nodegraph {
         }
         jsonBuilder.End();
         jsonBuilder.End();
+    }
+
+    NodeLogicalGroup& NodeGraphSchema::AddLogicalGroup(std::string name) {
+        NodeLogicalGroup group;
+        group.mId   = mNextGroupId++;
+        group.mName = std::move(name);
+        mLogicalGroups.push_back(std::move(group));
+        return mLogicalGroups.back();
+    }
+
+    void NodeGraphSchema::RemoveLogicalGroup(int32_t id) {
+        mLogicalGroups.erase(
+            std::remove_if(mLogicalGroups.begin(), mLogicalGroups.end(),
+                [id](const NodeLogicalGroup& g) { return g.mId == id; }),
+            mLogicalGroups.end());
+    }
+
+    NodeLogicalGroup* NodeGraphSchema::GetLogicalGroup(int32_t id) {
+        for (auto& g : mLogicalGroups) {
+            if (g.mId == id) return &g;
+        }
+        return nullptr;
+    }
+
+    std::vector<NodeLogicalGroup>& NodeGraphSchema::GetLogicalGroups() {
+        return mLogicalGroups;
     }
 
     void NodeGraphSchema::AddCustomNodeCreator(CustomCreateFunctionType customCreator) {
