@@ -42,6 +42,12 @@ namespace l::ui {
         void SetEventListener(std::function<void(const NodeEvent& event)> cb);
 
         l::nodegraph::NodeGraphSchema* GetNGSchema();
+
+        // Add a single schema node + its links to the editor UI (for incremental import)
+        void AddSchemaNodeToUI(int32_t nodeId);
+        void AddSchemaLinksToUI(int32_t nodeId);
+        // Expose current selection node IDs
+        void GetSelectedNodeIds(std::vector<int32_t>& out);
     protected:
         UIManager mUIManager;
         UIHandle mUIRoot;

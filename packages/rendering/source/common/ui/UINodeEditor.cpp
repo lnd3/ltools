@@ -562,4 +562,42 @@ namespace l::ui {
             }
         }
     }
+
+    void UINodeEditor::AddSchemaNodeToUI(int32_t nodeId) {
+        if (!mNGSchema || !mUIRoot.IsValid()) return;
+        auto* node = mNGSchema->GetNode(nodeId);
+        if (!node) return;
+        auto& uiData = node->GetUIData();
+        auto p = ImVec2(uiData.x, uiData.y);
+        auto s = ImVec2(uiData.w, uiData.h);
+        auto uiNode = CreateUINode(mUIManager, *node, p, s);
+        mUIRoot->Add(uiNode);
+    }
+
+    void UINodeEditor::AddSchemaLinksToUI(int32_t nodeId) {
+        if (!mNGSchema || !mUIRoot.IsValid()) return;
+        auto* node = mNGSchema->GetNode(nodeId);
+        if (!node) return;
+        int inputChannel = 0;
+        node->ForEachInput([&](l::nodegraph::NodeGraphInput& input) {
+            if (input.HasInputNode()) {
+                auto* outputNode = input.GetInputNode();
+                auto outputChannel = input.GetInputSrcChannel();
+                auto linkContainer = CreateContainer(mUIManager, UIContainer_LinkFlag | UIContainer_DrawFlag, UIRenderType::LinkH);
+                linkContainer->SetColor(l::ui::pastellYellow);
+                auto* outputContainer = mUIManager.FindNodeId(UIContainer_OutputFlag, outputNode->GetId(), outputChannel);
+                auto* inputContainer = mUIManager.FindNodeId(UIContainer_InputFlag, nodeId, inputChannel);
+                if (outputContainer && inputContainer) {
+                    outputContainer->Add(linkContainer);
+                    linkContainer->SetCoParent(inputContainer);
+                    inputContainer->SetCoParent(linkContainer.Get());
+                }
+            }
+            inputChannel++;
+        });
+    }
+
+    void UINodeEditor::GetSelectedNodeIds(std::vector<int32_t>& out) {
+        mSelectVisitor.GetSelectedNodeIds(out);
+    }
 }
