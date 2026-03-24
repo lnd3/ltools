@@ -68,6 +68,10 @@ namespace l::ui {
         std::vector<std::function<void(const NodeEvent&)>> mEventListeners;
         std::function<void(UINodeEditor&)> mOverlayContentWindow = nullptr;
 
+        int32_t mDraggingGroupId = -1;
+
+        bool UpdateGroupDrag();
+
         //l::string::string_buffer<20> mPickerSearch;
     };
 }

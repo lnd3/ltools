@@ -550,6 +550,8 @@ namespace l::ui {
                 }
                 else if (mUIRoot->Accept(mMoveVisitor, mUIInput, l::ui::UITraversalMode::DFS)) {
                 }
+                else if (UpdateGroupDrag()) {
+                }
                 else if (mUIRoot->Accept(mZoomVisitor, mUIInput, l::ui::UITraversalMode::DFS)) {
                 }
                 else if (mUIRoot->Accept(mDragVisitor, mUIInput, l::ui::UITraversalMode::DFS)) {
@@ -559,8 +561,86 @@ namespace l::ui {
                 mResizeVisitor.Reset();
                 mMoveVisitor.Reset();
                 mDragVisitor.Reset();
+                mDraggingGroupId = -1;
             }
         }
+    }
+
+    bool UINodeEditor::UpdateGroupDrag() {
+        if (!mNGSchema || !mUIRoot.IsValid()) return false;
+        auto& groups = mNGSchema->GetLogicalGroups();
+        if (groups.empty()) return false;
+
+        float rootScale = mUIRoot->GetScale();
+        ImVec2 rootPos  = mUIRoot->GetPosition();
+        ImVec2 winPos   = GetPosition();
+
+        // Convert screen position to canvas position
+        auto toCanvas = [&](ImVec2 sp) -> ImVec2 {
+            return { (sp.x - winPos.x - rootPos.x) / rootScale,
+                     (sp.y - winPos.y - rootPos.y) / rootScale };
+        };
+
+        // Ongoing drag: apply movement each frame, persist on release
+        if (mDraggingGroupId >= 0) {
+            ImVec2 move = DragMovement(mUIInput.mPrevPos, mUIInput.mCurPos, rootScale);
+            for (auto& group : groups) {
+                if (group.mId != mDraggingGroupId) continue;
+                for (int32_t nid : group.mNodeIds) {
+                    auto* c = mUIManager.FindNodeId(UIContainer_MoveFlag, nid);
+                    if (c) c->Move(move);
+                }
+                if (group.mLabelX != 0.0f || group.mLabelY != 0.0f) {
+                    group.mLabelX += move.x;
+                    group.mLabelY += move.y;
+                }
+                break;
+            }
+            if (mUIInput.mStopped) {
+                // Persist final positions into UIData for serialization
+                for (auto& group : groups) {
+                    if (group.mId != mDraggingGroupId) continue;
+                    for (int32_t nid : group.mNodeIds) {
+                        auto* c = mUIManager.FindNodeId(UIContainer_MoveFlag, nid);
+                        auto* node = mNGSchema->GetNode(nid);
+                        if (c && node) {
+                            auto p = c->GetPosition();
+                            node->GetUIData().x = p.x;
+                            node->GetUIData().y = p.y;
+                        }
+                    }
+                    break;
+                }
+                mDraggingGroupId = -1;
+            }
+            return true;
+        }
+
+        // New press: check if it lands inside a group rect (but not on a node — mMoveVisitor already consumed node hits)
+        if (!mUIInput.mStarted) return false;
+
+        ImVec2 curCanvas = toCanvas(mUIInput.mCurPos);
+
+        for (auto& group : groups) {
+            if (group.mNodeIds.empty()) continue;
+            float minX = FLT_MAX, minY = FLT_MAX, maxX = -FLT_MAX, maxY = -FLT_MAX;
+            for (int32_t nid : group.mNodeIds) {
+                auto* node = mNGSchema->GetNode(nid);
+                if (!node) continue;
+                auto& ui = node->GetUIData();
+                constexpr float pad = 12.0f;
+                minX = std::min(minX, ui.x - pad);
+                minY = std::min(minY, ui.y - pad);
+                maxX = std::max(maxX, ui.x + ui.w + pad);
+                maxY = std::max(maxY, ui.y + ui.h + pad);
+            }
+            if (curCanvas.x >= minX && curCanvas.x <= maxX &&
+                curCanvas.y >= minY && curCanvas.y <= maxY) {
+                mDraggingGroupId = group.mId;
+                return true;
+            }
+        }
+        return false;
     }
 
     void UINodeEditor::AddSchemaNodeToUI(int32_t nodeId) {
