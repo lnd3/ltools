@@ -69,6 +69,7 @@ namespace l::ui {
         std::function<void(UINodeEditor&)> mOverlayContentWindow = nullptr;
 
         int32_t mDraggingGroupId = -1;
+        std::vector<int32_t> mPopupSelectedIds;
 
         bool UpdateGroupDrag();
 

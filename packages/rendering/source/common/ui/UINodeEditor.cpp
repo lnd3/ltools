@@ -17,11 +17,11 @@ namespace l::ui {
         }
         else {
             path.emplace_back(node.GetPathPart());
-            if (ImGui::TreeNode(node.GetPathPart().data())) {
+            if (ImGui::BeginMenu(node.GetPathPart().data())) {
                 for (const auto& child : node.mChildren) {
                     depthFirstTraversal(child, path, cbMenuItem);
                 }
-                ImGui::TreePop();
+                ImGui::EndMenu();
             }
             path.pop_back();
         }
@@ -108,17 +108,22 @@ namespace l::ui {
 
             // Group management
             {
-                std::vector<int32_t> selectedIds;
-                mSelectVisitor.GetSelectedNodeIds(selectedIds);
+                // Capture selection once when the popup first opens; Update() can clear
+                // mSelectVisitor's state before Show() renders the popup on subsequent frames
+                // (IsHovered=AllowWhenBlockedByPopup means UISelect still fires on left-clicks).
+                if (ImGui::IsWindowAppearing()) {
+                    mSelectVisitor.GetSelectedNodeIds(mPopupSelectedIds);
+                }
 
-                if (!selectedIds.empty()) {
+                if (!mPopupSelectedIds.empty()) {
                     if (ImGui::BeginMenu("Group Selection...")) {
                         static char groupNameBuf[64] = "";
                         ImGui::InputText("Name##grpnew", groupNameBuf, sizeof(groupNameBuf));
                         if (ImGui::Button("Create") && groupNameBuf[0] != '\0') {
                             auto& g = mNGSchema->AddLogicalGroup(groupNameBuf);
-                            g.mNodeIds = selectedIds;
+                            g.mNodeIds = mPopupSelectedIds;
                             groupNameBuf[0] = '\0';
+                            mPopupSelectedIds.clear();
                             ImGui::CloseCurrentPopup();
                         }
                         ImGui::EndMenu();
@@ -588,7 +593,16 @@ namespace l::ui {
                 if (group.mId != mDraggingGroupId) continue;
                 for (int32_t nid : group.mNodeIds) {
                     auto* c = mUIManager.FindNodeId(UIContainer_MoveFlag, nid);
-                    if (c) c->Move(move);
+                    auto* node = mNGSchema->GetNode(nid);
+                    if (c) {
+                        c->Move(move);
+                        // Update UIData every frame so the group rect (which reads UIData) follows immediately
+                        if (node) {
+                            auto p = c->GetPosition();
+                            node->GetUIData().x = p.x;
+                            node->GetUIData().y = p.y;
+                        }
+                    }
                 }
                 if (group.mLabelX != 0.0f || group.mLabelY != 0.0f) {
                     group.mLabelX += move.x;
@@ -597,20 +611,6 @@ namespace l::ui {
                 break;
             }
             if (mUIInput.mStopped) {
-                // Persist final positions into UIData for serialization
-                for (auto& group : groups) {
-                    if (group.mId != mDraggingGroupId) continue;
-                    for (int32_t nid : group.mNodeIds) {
-                        auto* c = mUIManager.FindNodeId(UIContainer_MoveFlag, nid);
-                        auto* node = mNGSchema->GetNode(nid);
-                        if (c && node) {
-                            auto p = c->GetPosition();
-                            node->GetUIData().x = p.x;
-                            node->GetUIData().y = p.y;
-                        }
-                    }
-                    break;
-                }
                 mDraggingGroupId = -1;
             }
             return true;
