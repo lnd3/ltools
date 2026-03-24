@@ -97,73 +97,108 @@ namespace l::ui {
             });
 
         SetPointerPopup([&]() {
-            ImGui::Text("Node picker");
-//            ImGui::SameLine();
-//            ImGui::InputText("##pickersearchbar", mPickerSearch.data(), 20);
-            ImGui::Separator();
-
             if (mNGSchema == nullptr) {
                 return;
             }
 
-            // Group management
-            {
-                // Capture selection once when the popup first opens; Update() can clear
-                // mSelectVisitor's state before Show() renders the popup on subsequent frames
-                // (IsHovered=AllowWhenBlockedByPopup means UISelect still fires on left-clicks).
-                if (ImGui::IsWindowAppearing()) {
-                    mSelectVisitor.GetSelectedNodeIds(mPopupSelectedIds);
-                }
+            // On popup open: capture selection and detect which group (if any) was right-clicked.
+            if (ImGui::IsWindowAppearing()) {
+                mSelectVisitor.GetSelectedNodeIds(mPopupSelectedIds);
 
+                mPopupHoveredGroupId = -1;
+                float scale  = mUIRoot->GetScale();
+                ImVec2 rPos  = mUIRoot->GetPosition();
+                ImVec2 wPos  = GetPosition();
+                float cx = (mUIInput.mCurPos.x - wPos.x - rPos.x) / scale;
+                float cy = (mUIInput.mCurPos.y - wPos.y - rPos.y) / scale;
+                for (auto& group : mNGSchema->GetLogicalGroups()) {
+                    if (group.mNodeIds.empty()) continue;
+                    float minX = FLT_MAX, minY = FLT_MAX, maxX = -FLT_MAX, maxY = -FLT_MAX;
+                    for (int32_t nid : group.mNodeIds) {
+                        auto* node = mNGSchema->GetNode(nid);
+                        if (!node) continue;
+                        auto& ui = node->GetUIData();
+                        constexpr float pad = 12.0f;
+                        minX = std::min(minX, ui.x - pad);
+                        minY = std::min(minY, ui.y - pad);
+                        maxX = std::max(maxX, ui.x + ui.w + pad);
+                        maxY = std::max(maxY, ui.y + ui.h + pad);
+                    }
+                    if (cx >= minX && cx <= maxX && cy >= minY && cy <= maxY) {
+                        mPopupHoveredGroupId = group.mId;
+                        break;
+                    }
+                }
+            }
+
+            // ── Group context menu (right-click on a group rect) ──────────────────
+            if (mPopupHoveredGroupId >= 0) {
+                auto* g = mNGSchema->GetLogicalGroup(mPopupHoveredGroupId);
+                if (!g) { mPopupHoveredGroupId = -1; return; }
+
+                ImGui::Text("%s", g->mName.c_str());
+                ImGui::Separator();
+
+                if (ImGui::BeginMenu("Rename")) {
+                    static char renameBuf[64] = "";
+                    ImGui::InputText("##grpctxname", renameBuf, sizeof(renameBuf));
+                    if (ImGui::Button("Apply") && renameBuf[0] != '\0') {
+                        g->mName = renameBuf;
+                        renameBuf[0] = '\0';
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::EndMenu();
+                }
                 if (!mPopupSelectedIds.empty()) {
-                    if (ImGui::BeginMenu("Group Selection...")) {
-                        static char groupNameBuf[64] = "";
-                        ImGui::InputText("Name##grpnew", groupNameBuf, sizeof(groupNameBuf));
-                        if (ImGui::Button("Create") && groupNameBuf[0] != '\0') {
-                            auto& g = mNGSchema->AddLogicalGroup(groupNameBuf);
-                            g.mNodeIds = mPopupSelectedIds;
-                            groupNameBuf[0] = '\0';
-                            mPopupSelectedIds.clear();
+                    if (ImGui::MenuItem("Set Selection as Members")) {
+                        g->mNodeIds = mPopupSelectedIds;
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
+                if (mSaveGroupAsModuleCallback) {
+                    if (ImGui::BeginMenu("Save as Module...")) {
+                        static char modNameBuf[64] = "";
+                        if (ImGui::IsWindowAppearing() && modNameBuf[0] == '\0') {
+                            std::strncpy(modNameBuf, g->mName.c_str(), sizeof(modNameBuf) - 1);
+                            modNameBuf[sizeof(modNameBuf) - 1] = '\0';
+                        }
+                        ImGui::InputText("Name##grpmodname", modNameBuf, sizeof(modNameBuf));
+                        if (ImGui::Button("Save##grpmodsave") && modNameBuf[0] != '\0') {
+                            mSaveGroupAsModuleCallback(mPopupHoveredGroupId, modNameBuf);
+                            modNameBuf[0] = '\0';
                             ImGui::CloseCurrentPopup();
                         }
                         ImGui::EndMenu();
                     }
                 }
-
-                auto& groups = mNGSchema->GetLogicalGroups();
-                if (!groups.empty()) {
-                    if (ImGui::BeginMenu("Groups")) {
-                        int32_t groupToDelete = -1;
-                        for (auto& g : groups) {
-                            if (ImGui::BeginMenu(g.mName.c_str())) {
-                                static char renameBuf[64] = "";
-                                ImGui::InputText("Rename##grprename", renameBuf, sizeof(renameBuf));
-                                if (ImGui::Button("Apply##grpapply") && renameBuf[0] != '\0') {
-                                    g.mName = renameBuf;
-                                    renameBuf[0] = '\0';
-                                    ImGui::CloseCurrentPopup();
-                                }
-                                if (!mPopupSelectedIds.empty()) {
-                                    ImGui::Separator();
-                                    if (ImGui::MenuItem("Set selection as members")) {
-                                        g.mNodeIds = mPopupSelectedIds;
-                                    }
-                                }
-                                ImGui::Separator();
-                                if (ImGui::MenuItem("Delete Group")) {
-                                    groupToDelete = g.mId;
-                                }
-                                ImGui::EndMenu();
-                            }
-                        }
-                        if (groupToDelete >= 0) {
-                            mNGSchema->RemoveLogicalGroup(groupToDelete);
-                        }
-                        ImGui::EndMenu();
-                    }
+                ImGui::Separator();
+                if (ImGui::MenuItem("Delete Group")) {
+                    mNGSchema->RemoveLogicalGroup(mPopupHoveredGroupId);
+                    ImGui::CloseCurrentPopup();
                 }
+                return;
             }
+
+            // ── Node picker (right-click on empty canvas) ─────────────────────────
+            ImGui::Text("Node picker");
             ImGui::Separator();
+
+            // Create group from current selection
+            if (!mPopupSelectedIds.empty()) {
+                if (ImGui::BeginMenu("Group Selection...")) {
+                    static char groupNameBuf[64] = "";
+                    ImGui::InputText("Name##grpnew", groupNameBuf, sizeof(groupNameBuf));
+                    if (ImGui::Button("Create") && groupNameBuf[0] != '\0') {
+                        auto& grp = mNGSchema->AddLogicalGroup(groupNameBuf);
+                        grp.mNodeIds = mPopupSelectedIds;
+                        groupNameBuf[0] = '\0';
+                        mPopupSelectedIds.clear();
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::EndMenu();
+                }
+                ImGui::Separator();
+            }
 
             std::vector<std::string> path;
             depthFirstTraversal(mNGSchema->GetPickerRoot(), path, [&](std::string_view menuName, int32_t menuId, std::string_view description) {
