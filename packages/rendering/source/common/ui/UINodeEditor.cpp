@@ -143,10 +143,10 @@ namespace l::ui {
                                     renameBuf[0] = '\0';
                                     ImGui::CloseCurrentPopup();
                                 }
-                                if (!selectedIds.empty()) {
+                                if (!mPopupSelectedIds.empty()) {
                                     ImGui::Separator();
                                     if (ImGui::MenuItem("Set selection as members")) {
-                                        g.mNodeIds = selectedIds;
+                                        g.mNodeIds = mPopupSelectedIds;
                                     }
                                 }
                                 ImGui::Separator();
