@@ -33,6 +33,7 @@ namespace l::nodegraph {
         int32_t now          = 0;     // sub-candle timestamp (tick/bar/replay time)
         int32_t intervalSecs = 0;     // current TF bar duration in seconds
         bool    isBacktest   = false; // true when running inside ToolBackTester
+        int32_t subBarK      = 0;     // >0: signal nodes replay K sub-steps per bar via input interpolation
     };
 
     /**********************************************************************************/
