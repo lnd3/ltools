@@ -25,6 +25,17 @@ namespace l::nodegraph {
     class NodeGraphOp;
 
     /**********************************************************************************/
+
+    // Per-evaluation context injected by the host (SchemaRunner, ProcessNGSchemas, replay)
+    // before each ProcessSubGraph pass. Nodes call HasContext()/GetContext() to read it.
+    // The host owns the lifetime; the pointer is only valid during the evaluation pass.
+    struct NodeGraphContext {
+        int32_t now          = 0;     // sub-candle timestamp (tick/bar/replay time)
+        int32_t intervalSecs = 0;     // current TF bar duration in seconds
+        bool    isBacktest   = false; // true when running inside ToolBackTester
+    };
+
+    /**********************************************************************************/
     class NodeGraphBase {
     public:
         NodeGraphBase(int32_t id = -1, NodeType outputType = NodeType::Default) :
@@ -151,6 +162,12 @@ namespace l::nodegraph {
             return nullptr;
         }
 
+        // Context forwarding — callers use node->SetContext(ctx) without touching GetOperation().
+        // Defined out-of-class (after NodeGraphOp is fully declared).
+        void              SetContext(NodeGraphContext* ctx);
+        bool              HasContext() const;
+        NodeGraphContext* GetContext() const;
+
         void ForEachInput(std::function<void(NodeGraphInput& input)> cb) {
             for (auto& in : mInputs) {
                 cb(in);
@@ -247,6 +264,9 @@ namespace l::nodegraph {
         virtual std::string_view GetTypeName();
         virtual float GetDefaultData(int8_t inputChannel);
 
+        void              SetContext(NodeGraphContext* ctx) { mContext = ctx; }
+        bool              HasContext() const                { return mContext != nullptr; }
+        NodeGraphContext* GetContext() const                { return mContext; }
 
     protected:
         virtual int32_t AddInput(std::string_view name, float defaultValue = 0.0f, int32_t minSize = 1, float boundMin = -l::math::constants::FLTMAX, float boundMax = l::math::constants::FLTMAX, bool visible = true, bool editable = true);
@@ -269,7 +289,13 @@ namespace l::nodegraph {
         int8_t mNumInputs = 0;
         int8_t mNumOutputs = 0;
         bool mInputHasChanged = false;
+        NodeGraphContext* mContext = nullptr;
     };
+
+    // NodeGraphBase context forwarding — defined here so NodeGraphOp is fully declared.
+    inline void              NodeGraphBase::SetContext(NodeGraphContext* ctx) { GetOperation()->SetContext(ctx); }
+    inline bool              NodeGraphBase::HasContext() const                { return const_cast<NodeGraphBase*>(this)->GetOperation()->HasContext(); }
+    inline NodeGraphContext* NodeGraphBase::GetContext() const                { return const_cast<NodeGraphBase*>(this)->GetOperation()->GetContext(); }
 
     class NodeGraphOpCached : public NodeGraphOp {
     public:
