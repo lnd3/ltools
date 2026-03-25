@@ -159,8 +159,8 @@ namespace l::ui {
                     if (ImGui::BeginMenu("Save as Module...")) {
                         static char modNameBuf[64] = "";
                         if (ImGui::IsWindowAppearing() && modNameBuf[0] == '\0') {
-                            std::strncpy(modNameBuf, g->mName.c_str(), sizeof(modNameBuf) - 1);
-                            modNameBuf[sizeof(modNameBuf) - 1] = '\0';
+                            std::memcpy(modNameBuf, g->mName.c_str(), g->mName.size());
+                            modNameBuf[g->mName.size()] = '\0';
                         }
                         ImGui::InputText("Name##grpmodname", modNameBuf, sizeof(modNameBuf));
                         if (ImGui::Button("Save##grpmodsave") && modNameBuf[0] != '\0') {
