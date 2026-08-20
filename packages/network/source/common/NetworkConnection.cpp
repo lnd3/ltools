@@ -79,9 +79,11 @@ namespace l::network {
 
 		if (!mCurl) {
 			mCurl = curl_easy_init();
-		}
-		if (!mCurl) {
-			return l::concurrency::RunnableResult::FAILURE;
+			if (!mCurl) {
+				LLOG(LogError) << "[Request] Failed to initialize curl handle";
+				mOngoingRequest = false;
+				return l::concurrency::RunnableResult::FAILURE;
+			}
 		}
 
 		Progress progress{};
@@ -203,7 +205,7 @@ namespace l::network {
 
 	void ConnectionBase::NotifyCompleteRequest(bool success) {
 		bool completed = false;
-		if (mOngoingRequest && mCompletedRequest.compare_exchange_strong(completed, true)) {
+		if (mCompletedRequest.compare_exchange_strong(completed, true)) {
 			mSuccess = success;
 			return;
 		}
@@ -219,7 +221,7 @@ namespace l::network {
 	bool ConnectionBase::HasExpired() {
 		bool expired = false;
 		if (mOngoingRequest && mTimeout > 0) {
-			auto timeWaitingMs = static_cast<int32_t>(l::string::get_unix_epoch_ms() - mStarted) / 1000;
+			auto timeWaitingMs = (l::string::get_unix_epoch_ms() - mStarted) / 1000;
 			expired = timeWaitingMs > mTimeout;
 		}
 		if (IsWebSocket()) {
@@ -233,7 +235,7 @@ namespace l::network {
 	void ConnectionBase::SetRunningTimeout(int32_t secondsFromNow) {
 		if (mTimeout <= 0) {
 			auto elapsed = static_cast<int32_t>((l::string::get_unix_epoch_ms() - mStarted) / 1000);
-			mTimeout = elapsed + secondsFromNow;
+			mTimeout = static_cast<int32_t>(elapsed + secondsFromNow);
 		}
 	}
 
@@ -292,6 +294,11 @@ namespace l::network {
 			mWebSocketCanSendData = false;
 			LLOG(LogWarning) << "[Websocket] Failed write, no curl instance";
 			return -102;
+		}
+		if (buffer == nullptr || size == 0) {
+			mWebSocketCanSendData = false;
+			LLOG(LogWarning) << "[Websocket] Failed write, invalid buffer or size";
+			return -103;
 		}
 		size_t sentBytes = 0;
 		auto res = curl_ws_send(mCurl, buffer, size, &sentBytes, 0, CURLWS_TEXT);
