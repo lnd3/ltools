@@ -31,6 +31,15 @@ namespace l::network {
 			int32_t expectedResponseSize = 0,
 			int32_t timeOut = -1,
 			std::function<void(bool, std::string_view)> cb = nullptr);
+
+		// POST with JSON body. Registers endpoint on first use.
+		// callback receives (success, response_body).
+		bool SendJsonRequest(std::string_view interfaceName,
+			std::string_view endpointPath,
+			std::string_view jsonBody,
+			int32_t expectedResponseSize = 4096,
+			int32_t timeOut = 30,
+			std::function<void(bool, std::string_view)> cb = nullptr);
 		bool NetworkStatus(std::string_view interfaceName);
 
 		template<class T>

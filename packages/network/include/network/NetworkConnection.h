@@ -73,7 +73,9 @@ namespace l::network {
 			const std::string& query,
 			const int32_t expectedResponseSize = 0,
 			const int32_t timeOut = -1,
-			std::function<void(bool, std::string_view)> cb = nullptr);
+			std::function<void(bool, std::string_view)> cb = nullptr,
+			const std::string& postBody = "",
+			const std::vector<std::string>& postHeaders = {});
 		bool IsHandle(CURL* handle);
 		bool IsWebSocket();
 		bool IsAlive();

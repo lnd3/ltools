@@ -125,12 +125,14 @@ namespace l::network {
 	}
 
 	bool NetworkManager::PostQuery(std::string_view queryName,
-		std::string_view queryArguments, 
-		int32_t maxTries, 
-		std::string_view query, 
+		std::string_view queryArguments,
+		int32_t maxTries,
+		std::string_view query,
 		int32_t expectedResponseSize,
 		int32_t timeOut,
-		std::function<void(bool, std::string_view)> cb) {
+		std::function<void(bool, std::string_view)> cb,
+		std::string_view postBody,
+		std::vector<std::string> postHeaders) {
 		if (!mJobManager) {
 			return false;
 		}
@@ -142,6 +144,8 @@ namespace l::network {
 				cexpectedResponseSize = expectedResponseSize,
 				ctimeOut = timeOut,
 				ccallback = cb,
+				cpostBody = std::string(postBody),
+				cpostHeaders = std::move(postHeaders),
 				&cmConnectionsMutex = mConnectionsMutex,
 				&cmConnections = mConnections,
 				&cmMultiHandle = mMultiHandle,
@@ -161,7 +165,8 @@ namespace l::network {
 				auto request = it->get();
 				lock.unlock();
 
-				auto result = request->SendAndUnReserveRequest(cmMultiHandle, state, cqueryArguments, cquery, cexpectedResponseSize, ctimeOut, ccallback);
+				auto result = request->SendAndUnReserveRequest(cmMultiHandle, state, cqueryArguments, cquery,
+					cexpectedResponseSize, ctimeOut, ccallback, cpostBody, cpostHeaders);
 				if (result != l::concurrency::RunnableResult::SUCCESS) {
 					cmPostedRequests++;
 				}

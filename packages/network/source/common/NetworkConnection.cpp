@@ -67,7 +67,9 @@ namespace l::network {
 		const std::string& query,
 		int32_t expectedResponseSize,
 		int32_t timeOut,
-		std::function<void(bool, std::string_view)> cb
+		std::function<void(bool, std::string_view)> cb,
+		const std::string& postBody,
+		const std::vector<std::string>& postHeaders
 	) {
 		ASSERT(mOngoingRequest) << "[Request] Request has not been reserved for usage";
 		ASSERT(!mCompletedRequest);
@@ -134,6 +136,23 @@ namespace l::network {
 
 		curl_easy_setopt(mCurl, CURLOPT_BUFFERSIZE, mDefaultResponseSize);
 
+		// POST body support
+		struct curl_slist* headerList = nullptr;
+		if (!postBody.empty()) {
+			curl_easy_setopt(mCurl, CURLOPT_POST, 1L);
+			curl_easy_setopt(mCurl, CURLOPT_POSTFIELDS, postBody.c_str());
+			curl_easy_setopt(mCurl, CURLOPT_POSTFIELDSIZE, static_cast<long>(postBody.size()));
+			headerList = curl_slist_append(headerList, "Content-Type: application/json");
+			for (const auto& h : postHeaders) {
+				headerList = curl_slist_append(headerList, h.c_str());
+			}
+			if (headerList) {
+				curl_easy_setopt(mCurl, CURLOPT_HTTPHEADER, headerList);
+			}
+		} else {
+			curl_easy_setopt(mCurl, CURLOPT_HTTPGET, 1L);
+		}
+
 		mStarted = l::string::get_unix_epoch_ms();
 		mSuccess = true;
 
@@ -187,6 +206,10 @@ namespace l::network {
 
 		if (cb) {
 			cb(result == l::concurrency::RunnableResult::SUCCESS, mRequestQueryArgs);
+		}
+
+		if (headerList) {
+			curl_slist_free_all(headerList);
 		}
 
 		if (multiHandle != nullptr) {
