@@ -666,6 +666,17 @@ namespace l::nodegraph {
             if (id > 0) {
                 node->SetId(id);
             }
+            bool typeNameSet = false;
+            for (auto& [group, descs] : mRegisteredNodeTypes) {
+                if (typeNameSet) break;
+                for (auto& desc : descs) {
+                    if (desc.mId == typeId) {
+                        node->GetOperation()->SetTypeName(desc.mName);
+                        typeNameSet = true;
+                        break;
+                    }
+                }
+            }
         }
 
         return node == nullptr ? -1 : node->GetId();
