@@ -671,7 +671,7 @@ namespace l::nodegraph {
                 if (typeNameSet) break;
                 for (auto& desc : descs) {
                     if (desc.mId == typeId) {
-                        node->GetOperation()->SetTypeName(desc.mName);
+                        node->SetTypeName(desc.mName);
                         typeNameSet = true;
                         break;
                     }

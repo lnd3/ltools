@@ -116,6 +116,7 @@ namespace l::nodegraph {
 
         virtual std::string_view GetName() = 0;
         virtual std::string_view GetTypeName() = 0;
+        virtual void SetTypeName(std::string_view name) = 0;
 
         virtual std::string_view GetInputName(int8_t inputChannel) = 0;
         virtual std::string_view GetOutputName(int8_t outputChannel) = 0;
@@ -263,6 +264,7 @@ namespace l::nodegraph {
         virtual std::string_view GetOutputName(int8_t outputChannel);
         virtual std::string_view GetName();
         virtual std::string_view GetTypeName();
+        virtual void SetTypeName(std::string_view name) { mTypeName = name; }
         virtual float GetDefaultData(int8_t inputChannel);
 
         void              SetContext(NodeGraphContext* ctx) { mContext = ctx; }
@@ -427,6 +429,9 @@ namespace l::nodegraph {
 
         virtual std::string_view GetTypeName() override {
             return mOperation.GetTypeName();
+        }
+        virtual void SetTypeName(std::string_view name) override {
+            mOperation.SetTypeName(name);
         }
 
         virtual NodeGraphOp* GetOperation() override {
