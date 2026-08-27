@@ -38,6 +38,17 @@ As required by `bs`, packages have a certain layout: `${package_name}/[include/$
 - **`l::math::clamp(v, lo, hi)`** instead of `std::clamp`.
 - Header: `math/MathAlgorithm.h` (or included transitively via most ltools headers).
 
+### Test macros
+All `TEST_*` assertion macros require a trailing `msg` string argument:
+```cpp
+TEST_EQ(a, b, "");
+TEST_FUZZY(a, b, tolerance, "");
+TEST_TRUE(expr, "");
+TEST_FALSE(expr, "");
+```
+Pass `""` when no specific message is needed. Omitting `msg` is a compile
+error on MSVC (too few arguments). Never omit it even for one-liners.
+
 ### Node graph
 - Base class: `NodeGraphOp` in `packages/nodegraph/include/nodegraph/core/NodeGraphBase.h`
 - Cached base class: `NodeGraphOpCached` — adds `ProcessWriteCached()` and `ProcessReadCached()` for buffered processing
