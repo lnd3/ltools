@@ -60,23 +60,25 @@ namespace testing {
 
 		bool test_success = true;
 		{
-			size_t failed_tests = 0;
+			size_t total_failed = 0;
 
 			std::vector<std::string> summary;
 
 			auto& groups = get_test_groups();
 			for (auto& groupIt : groups) {
 				size_t total = groupIt.second->size();
+				size_t group_failed = 0;
 				LLOG(LogTitle) << "# " << groupIt.first;
 				for (auto& f : *groupIt.second) {
 					LLOG(LogTitle) << "## " << groupIt.first + "::" + f.first;
 					if (f.second()) {
-						failed_tests++;
+						group_failed++;
 						test_success = false;
 					}
 				}
+				total_failed += group_failed;
 				std::ostringstream msg;
-				msg << "## Test result for '" + groupIt.first + "': successful tests(" << (total - failed_tests) << " / " << (total) << ")";
+				msg << "## Test result for '" + groupIt.first + "': successful tests(" << (total - group_failed) << " / " << total << ")";
 				LLOG(LogTitle) << msg.str();
 				summary.push_back(msg.str());
 			}
@@ -99,18 +101,19 @@ namespace testing {
 
 		bool perf_success = true;
 		{
-			size_t failed_perfs = 0;
+			size_t total_failed_perfs = 0;
 
 			std::vector<std::string> summary;
 
 			auto& groups = get_perf_groups();
 			for (auto& groupIt : groups) {
 				size_t total = groupIt.second->size();
+				size_t group_failed = 0;
 				LLOG(LogTitle) << "## " << groupIt.first;
 				for (auto& f : *groupIt.second) {
 					LLOG(LogTitle) << groupIt.first + "::" + f.first;
 					if (f.second()) {
-						failed_perfs++;
+						group_failed++;
 						perf_success = false;
 					}
 
@@ -121,8 +124,9 @@ namespace testing {
 					}
 				}
 
+				total_failed_perfs += group_failed;
 				std::ostringstream msg;
-				msg << "Performance result for '" + groupIt.first + "': successful perfs(" << (total - failed_perfs) << " / " << (total) << ")";
+				msg << "Performance result for '" + groupIt.first + "': successful perfs(" << (total - group_failed) << " / " << total << ")";
 				LLOG(LogTitle) << msg.str();
 				summary.push_back(msg.str());
 			}
