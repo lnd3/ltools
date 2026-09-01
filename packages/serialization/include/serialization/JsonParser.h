@@ -124,6 +124,10 @@ namespace l::serialization {
             mParser.pos = 0;
             mParser.toknext = 0;
             mParser.toksuper = 0;
+            Clear();
+        }
+
+        void Clear() {
             for (int32_t i = 0; i < MaxTokens; i++) {
                 mTokens[i].end = 0;
                 mTokens[i].size = 0;
