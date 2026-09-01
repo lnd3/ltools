@@ -164,7 +164,8 @@ namespace l::serialization {
             else {
                 mTokenCount = ret;
             }
-            return { true, 0 };
+            int32_t consumed = (mTokenCount > 0) ? mTokens[0].end : 0;
+            return { true, consumed };
         }
 
         JsonValue GetRoot() {
