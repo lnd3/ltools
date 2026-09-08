@@ -9,6 +9,7 @@
 #include <string_view>
 #include <cassert>
 #include <cstdlib>
+#include <vector>
 
 namespace l::serialization {
 
@@ -116,6 +117,55 @@ namespace l::serialization {
         index += span;
         return v;
     }
+
+    // JsonParserDynamic — same interface as JsonParser<N> but allocates exactly
+    // as many tokens as the JSON requires via a two-pass JSMN call.
+    // Use this for large/variable-size responses where the token count is unknown.
+    class JsonParserDynamic {
+    public:
+        std::tuple<bool, int32_t> LoadJson(const char* jsondata, size_t size) {
+            mJsondata  = jsondata;
+            mTokenCount = 0;
+
+            // Pass 1: count tokens (NULL token buffer → returns needed count or error)
+            jsmn_parser p;
+            jsmn_init(&p);
+            int needed = jsmn_parse(&p, jsondata, size, nullptr, 0);
+            if (needed == JSMN_ERROR_INVAL) {
+                LLOG(LogError) << "JsonParserDynamic: invalid JSON";
+                return { false, JSMN_ERROR_INVAL };
+            }
+            if (needed == JSMN_ERROR_PART) {
+                return { false, JSMN_ERROR_PART };
+            }
+            if (needed <= 0) {
+                return { false, -4 };
+            }
+
+            // Pass 2: allocate and parse
+            mTokens.resize(static_cast<size_t>(needed));
+            jsmn_init(&mParser);
+            int ret = jsmn_parse(&mParser, jsondata, size, mTokens.data(), needed);
+            if (ret < 0) {
+                mTokens.clear();
+                LLOG(LogError) << "JsonParserDynamic: parse failed on second pass";
+                return { false, ret };
+            }
+            mTokenCount = ret;
+            int32_t consumed = (mTokenCount > 0) ? mTokens[0].end : 0;
+            return { true, consumed };
+        }
+
+        JsonValue GetRoot() {
+            return JsonValue(mJsondata, mTokens.data(), mTokenCount);
+        }
+
+    private:
+        const char* mJsondata = nullptr;
+        jsmn_parser mParser{};
+        int32_t     mTokenCount = 0;
+        std::vector<jsmntok_t> mTokens;
+    };
 
     template<int32_t MaxTokens = 1000>
     class JsonParser {
