@@ -380,23 +380,24 @@ namespace l::network {
 				return -103;
 			}
 			res = curl_ws_recv(mCurl, buffer + readTotal, recvMax, &recv, &meta);
-			readTotal += recv;
 
 			bool multiFragmentBit = false;
 			size_t recvLeft = 0;
+			bool isControlFrame = false;
 
 			if (meta) {
 				multiFragmentBit = (meta->flags & CURLWS_CONT) == CURLWS_CONT;
 				recvLeft = static_cast<size_t>(meta->bytesleft);
+				isControlFrame = (meta->flags & (CURLWS_PING | CURLWS_PONG | CURLWS_CLOSE)) != 0;
 
-				if (meta->flags & CURLWS_PONG) {
-					LLOG(LogInfo) << "[WebSocket] Received PONG: ";
-				}
-				else if (meta->flags & CURLWS_PING) {
-					LLOG(LogInfo) << "[WebSocket] Received PING: ";
-				}
-				//else if (meta->flags & CURLWS_TEXT) {
-				//}
+				if (meta->flags & CURLWS_PONG)       { LLOG(LogDebug) << "[WebSocket] Received PONG"; }
+				else if (meta->flags & CURLWS_PING)  { LLOG(LogDebug) << "[WebSocket] Received PING"; }
+				else if (meta->flags & CURLWS_CLOSE) { LLOG(LogDebug) << "[WebSocket] Received CLOSE"; }
+			}
+
+			// Only accumulate payload bytes from data frames; discard control frame payloads.
+			if (!isControlFrame) {
+				readTotal += recv;
 			}
 
 			if (res == CURLE_OK) {
