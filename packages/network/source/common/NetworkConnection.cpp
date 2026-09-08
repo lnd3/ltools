@@ -376,8 +376,9 @@ namespace l::network {
 			size_t recv = 0;
 			auto recvMax = size - readTotal;
 			if (recvMax == 0) {
+				if (readTotal > 0) return static_cast<int32_t>(readTotal); // caller's buffer full; data is valid
 				SetRunningTimeout(30);
-				return -103;
+				return -103; // no space and nothing written — shouldn't happen with correct buffer sizing
 			}
 			res = curl_ws_recv(mCurl, buffer + readTotal, recvMax, &recv, &meta);
 
