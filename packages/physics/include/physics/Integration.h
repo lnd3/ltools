@@ -139,11 +139,11 @@ namespace physics {
 		lambda *= 1.0 / forceConstant;
 		V forceLimit = static_cast<V>(1.0 / epsilon2);
 		if (lambda > forceLimit) {
-			LOG(LogInfo) << "Force limit exceeded: " << lambda;
+			LLOG(LogInfo) << "Force limit exceeded: " << lambda;
 			//lambda = forceLimit;
 		}
 		if (lambda < -forceLimit) {
-			LOG(LogInfo) << "Force limit exceeded: " << lambda;
+			LLOG(LogInfo) << "Force limit exceeded: " << lambda;
 			//lambda = -forceLimit;
 		}
 
@@ -594,7 +594,7 @@ namespace physics {
 				V dP0Sqr = dP0.sqr();
 				V dP1Sqr = dP1.sqr();
 				if (abs(dP0Sqr - dP1Sqr) > 0.00001) {
-					LOG(LogError) << "Something went wrong";
+					LLOG(LogError) << "Something went wrong";
 				}
 			}
 		}
@@ -629,7 +629,7 @@ namespace physics {
 					V dP0Sqr = dP0.sqr();
 					V dP1Sqr = dP1.sqr();
 					if (abs(dP0Sqr - dP1Sqr) > 0.01) {
-						LOG(LogError) << "Something went wrong";
+						LLOG(LogError) << "Something went wrong";
 					}
 				}
 			}

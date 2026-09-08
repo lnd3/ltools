@@ -81,7 +81,7 @@ TEST(NodeGraph, NumericIntegral) {
 	for (int i = 0; i < 30; i++) {
 		input = sinf(2.0f * i * oneRev);
 		nodeIntegral.ProcessSubGraph(1, 30);
-		//LOG(LogInfo) << nodeIntegral.Get(0);
+		//LLOG(LogInfo) << nodeIntegral.Get(0);
 	}
 
 	TEST_FUZZY(nodeIntegral.GetOutput(0), 0.00323272f, 0.0001f, "");
@@ -104,7 +104,7 @@ TEST(NodeGraph, FilterLowpass) {
 	for (int i = 0; i < 30; i++) {
 		input = sinf(2.0f * i * oneRev);
 		nodeLowpass.ProcessSubGraph(1, 30);
-		//LOG(LogInfo) << nodeLowpass.GetOutput(0);
+		//LLOG(LogInfo) << nodeLowpass.GetOutput(0);
 	}
 
 	TEST_FUZZY(nodeLowpass.GetOutput(0), -0.287209, 0.0001f, "");

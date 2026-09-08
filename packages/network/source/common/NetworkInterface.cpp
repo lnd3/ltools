@@ -60,6 +60,45 @@ namespace l::network {
 		return result;
 	}
 
+	bool NetworkInterface::SendJsonRequest(std::string_view interfaceName,
+		std::string_view endpointPath,
+		std::string_view jsonBody,
+		int32_t expectedResponseSize,
+		int32_t timeOut,
+		std::function<void(bool, std::string_view)> cb) {
+
+		auto it = mInterfaces.find(interfaceName.data());
+		if (it == mInterfaces.end()) {
+			return false;
+		}
+
+		// Register endpoint on first use (idempotent — AddEndpoint uses emplace)
+		it->second.AddEndpoint(endpointPath.data(), endpointPath);
+		auto query = it->second.GetQuery(endpointPath);
+		if (query.empty()) {
+			return false;
+		}
+
+		auto networkManager = mNetworkManager.lock();
+		if (!networkManager) {
+			return false;
+		}
+
+		// Use the endpoint path as the query name so the connection pool
+		// can be keyed per-endpoint (/exchange vs /info)
+		return networkManager->PostQuery(
+			endpointPath,   // queryName (matches pre-created connection slot)
+			"",             // queryArguments (unused for POST)
+			1,              // maxTries
+			query,          // full URL
+			expectedResponseSize,
+			timeOut,
+			cb,
+			jsonBody,
+			{}
+		);
+	}
+
 	bool NetworkInterface::NetworkStatus(std::string_view interfaceName) {
 		auto it = mInterfaces.find(interfaceName.data());
 		if (it != mInterfaces.end()) {

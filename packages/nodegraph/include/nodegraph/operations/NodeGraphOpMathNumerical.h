@@ -3,17 +3,12 @@
 
 #include "logging/LoggingAll.h"
 
-#include "hid/KeyboardPiano.h"
-#include "hid/Midi.h"
-
-#include "audio/PortAudio.h"
-#include "audio/AudioUtils.h"
-
 #include "math/MathFunc.h"
 
 #include <string>
 #include <vector>
 #include <map>
+#include <queue>
 #include <typeinfo>
 #include <type_traits>
 #include <math.h>
@@ -27,42 +22,15 @@ namespace l::nodegraph {
     class MathNumericalIntegral : public NodeGraphOp {
     public:
         MathNumericalIntegral(NodeGraphBase* node) :
-            NodeGraphOp(node, "Integral")
+            NodeGraphOp(node, "Integral1")
         {
-            AddInput("In", 0.0f, 1);
+            AddInput2("x");
             AddInput("Friction", 1.0f, 1, 0.0f, 1.0f);
-            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddOutput("Out", 0.0f, 1);
+            AddOutput2("Intgr(x)");
         }
 
         virtual ~MathNumericalIntegral() = default;
-        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input0 = inputs.at(0).GetIterator(numSamples);
-            auto friction = inputs.at(1).Get();
-            auto frictionFactor = l::math::clamp(l::math::pow(friction, 0.25f), 0.0f, 1.0f);
-            auto lodExp = inputs.at(2).Get();
-            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
-            auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
-
-            for (int32_t i = 0; i < numSamples; i++) {
-                mOutput += *input0++;
-                mOutput *= frictionFactor;
-                *output++ = mOutput;
-            }
-
-            mReadSamples += numSamples;
-
-            if (mReadSamples >= numCacheSamples) {
-                mReadSamples = 0;
-                mOutput = 0.0f;
-            }
-
-            if (isnan(mOutput)) {
-                mOutput = 0.0f;
-            }
-
-
-        }
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Reset() override {
             mOutput = 0.0f;
         }
@@ -72,43 +40,42 @@ namespace l::nodegraph {
         float mOutput = 0.0f;
     };
 
-    /*********************************************************************/
-    class MathNumericalDerivate : public NodeGraphOp {
+    class MathNumericalIntegral2 : public NodeGraphOp {
     public:
-        MathNumericalDerivate(NodeGraphBase* node) :
-            NodeGraphOp(node, "Derivate")
+        MathNumericalIntegral2(NodeGraphBase* node) :
+            NodeGraphOp(node, "Integral2")
         {
-            AddInput("In", 0.0f, 1);
-            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddOutput("Out", 0.0f, 1);
+            AddInput2("x");
+            AddInput("Friction", 1.0f, 1, 0.0f, 1.0f);
+            AddInput2("Reset Toggle");
+            AddInput("DeadZone", 1.0f, 1, 0.0f, l::math::constants::FLTMAX);
+            AddOutput2("Intgr(x)");
         }
 
-        virtual ~MathNumericalDerivate() = default;
-        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input0 = inputs.at(0).GetIterator(numSamples);
-            auto lodExp = inputs.at(1).Get();
-            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
-            auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
-
-            for (int32_t i = 0; i < numSamples; i++) {
-                float input = *input0++;
-                float value = input - mInputPrev;
-                float divisor = l::math::abs(input) + l::math::abs(mInputPrev);
-                if (divisor > 0.0f) {
-                    value = 2.0f * value / divisor;
-                }
-                mInputPrev = input;
-                *output++ = value;
-            }
-
-            mReadSamples += numSamples;
-
-            if (mReadSamples >= numCacheSamples) {
-                mReadSamples = 0;
-                mInputPrev = 0.0f;
-            }
-
+        virtual ~MathNumericalIntegral2() = default;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Reset() override {
+            mOutput = 0.0f;
         }
+    protected:
+        int32_t mReadSamples = 0;
+
+        float mOutput = 0.0f;
+        float mResetPrev = 0.0f;
+    };
+
+    /*********************************************************************/
+    class MathNumericalTemporalChange1 : public NodeGraphOp {
+    public:
+        MathNumericalTemporalChange1(NodeGraphBase* node) :
+            NodeGraphOp(node, "Change 1")
+        {
+            AddInput2("in");
+            AddOutput2("out");
+        }
+
+        virtual ~MathNumericalTemporalChange1() = default;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         int32_t mReadSamples = 0;
 
@@ -116,51 +83,17 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class MathNumericalDiffNorm : public NodeGraphOp {
+    class MathNumericalTemporalChange2 : public NodeGraphOp {
     public:
-        MathNumericalDiffNorm(NodeGraphBase* node) :
-            NodeGraphOp(node, "Difference Normalized")
+        MathNumericalTemporalChange2(NodeGraphBase* node) :
+            NodeGraphOp(node, "Change 2")
         {
-            AddInput("In", 0.0f, 1);
-            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddOutput("Out", 0.0f, 1);
+            AddInput2("in");
+            AddOutput2("out");
         }
 
-        virtual ~MathNumericalDiffNorm() = default;
-        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input0 = inputs.at(0).GetIterator(numSamples);
-            auto lodExp = inputs.at(1).Get();
-            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
-            auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
-
-            for (int32_t i = 0; i < numSamples; i++) {
-                float input = *input0++;
-                float value = mInputPrev;
-                if (mInputPrev != 0.0f) {
-                    if (input > 0.0f && mInputPrev > 0.0f) {
-                        value = input / mInputPrev;
-                        value = value - 1.0f;
-                    }
-                    else if (input < 0.0f && mInputPrev < 0.0f) {
-                        value = input / mInputPrev;
-                        value = (value - 1.0f);
-                    }
-                    else {
-                        value = 0.0f;
-                    }
-                }
-                mInputPrev = input;
-                *output++ = value;
-            }
-
-            mReadSamples += numSamples;
-
-            if (mReadSamples >= numCacheSamples) {
-                mReadSamples = 0;
-                mInputPrev = 0.0f;
-            }
-
-        }
+        virtual ~MathNumericalTemporalChange2() = default;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         int32_t mReadSamples = 0;
 
@@ -168,42 +101,258 @@ namespace l::nodegraph {
     };
 
     /*********************************************************************/
-    class MathNumericalDiff : public NodeGraphOp {
+    class MathNumericalDiff2 : public NodeGraphOp {
     public:
-        MathNumericalDiff(NodeGraphBase* node) :
-            NodeGraphOp(node, "Difference")
+        MathNumericalDiff2(NodeGraphBase* node) :
+            NodeGraphOp(node, "Difference 2")
         {
-            AddInput("In", 0.0f, 1);
-            AddInput("Lod", 0.0f, 1, 0.0f, 1.0f);
-            AddOutput("Out", 0.0f, 1);
+            AddInput2("In");
+            AddOutput2("Diff 2");
         }
 
-        virtual ~MathNumericalDiff() = default;
-        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override {
-            auto input0 = inputs.at(0).GetIterator(numSamples);
-            auto lodExp = inputs.at(1).Get();
-            auto lodFactor = l::math::pow(2.0f, l::math::round(lodExp));
-            auto output = outputs.at(0).GetIterator(numSamples, lodFactor);
-
-            for (int32_t i = 0; i < numSamples; i++) {
-                float input = *input0++;
-                float value = input - mInputPrev;
-                mInputPrev = input;
-                *output++ = value;
-            }
-
-            mReadSamples += numSamples;
-
-            if (mReadSamples >= numCacheSamples) {
-                mReadSamples = 0;
-                mInputPrev = 0.0f;
-            }
-
-        }
+        virtual ~MathNumericalDiff2() = default;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
     protected:
         int32_t mReadSamples = 0;
 
         float mInputPrev = 0.0f;
     };
 
+    /*********************************************************************/
+    class MathNumericalDiff1 : public NodeGraphOp {
+    public:
+        MathNumericalDiff1(NodeGraphBase* node) :
+            NodeGraphOp(node, "Difference 1")
+        {
+            AddInput2("In");
+            AddOutput2("Diff");
+        }
+
+        virtual ~MathNumericalDiff1() = default;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+    protected:
+        int32_t mReadSamples = 0;
+
+        float mInputPrev = 0.0f;
+    };
+
+    /*********************************************************************/
+    class MathNumericalLevelTrigger : public NodeGraphOp {
+    public:
+        MathNumericalLevelTrigger(NodeGraphBase* node) :
+            NodeGraphOp(node, "Level Trigger")
+        {
+            AddInput2("In");
+            AddInput("Max", 1.0f);
+            AddInput("Min", -1.0f);
+            AddInput("Num levels", 1.0f, 1, 1.0f, 100.0f, true, true);
+            AddInput("Max", 1.0f, 1, 0.0f, 3.0f, true, true);
+            AddInput("Min", 0.0f, 1, -3.0f, 1.0f, true, true);
+            AddOutput2("Level");
+            AddOutput2("Pulse");
+        }
+
+        virtual ~MathNumericalLevelTrigger() = default;
+        virtual void Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+    protected:
+        float mLevelPrev = 0.0f;
+    };
+
+    /*********************************************************************/
+    class MathNumericalMinMaxChannel : public NodeGraphOp {
+    public:
+        MathNumericalMinMaxChannel(NodeGraphBase* node) :
+            NodeGraphOp(node, "Minmax Channel")
+        {
+            AddInput("Max", 1.0f, 1);
+            AddInput("Min", 0.0f, 1);
+            AddInput2("In");
+            AddInput("Friction", 1.0f, 1, 0.0f, 1.0f);
+
+            AddOutput2("Range");
+            AddOutput2("Range Max");
+            AddOutput2("Range Min");
+            AddOutput2("Range Norm");
+        }
+
+        virtual ~MathNumericalMinMaxChannel() = default;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+    protected:
+        int32_t mReadSamples = 0;
+
+        float mCurRangeMax = 0.0f;
+        float mCurRangeMin = 0.0f;
+    };
+
+    /*********************************************************************/
+    class MathNumericalReconstructor1 : public NodeGraphOp {
+    public:
+        MathNumericalReconstructor1(NodeGraphBase* node) :
+            NodeGraphOp(node, "Reconstructor 1")
+        {
+            AddInput2("In");
+            AddInput("Base", 0.0f, 1);
+            AddInput("Friction1", 1.0f, 1, 0.0f, 1.0f);
+            AddInput("Friction2", 1.0f, 1, 0.0f, 1.0f);
+            AddInput("Scale1", 1.0f, 1, 0.0f, 100.0f);
+            AddInput("Scale2", 1.0f, 1, 0.0f, 100.0f);
+
+            AddOutput2("Diff");
+            AddOutput2("Diff+base");
+            AddOutput2("Intgr1");
+            AddOutput2("Intgr+base");
+            AddOutput2("Intgr2");
+            AddOutput2("Intgr2+base");
+        }
+
+        virtual ~MathNumericalReconstructor1() = default;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+    protected:
+        int32_t mReadSamples = 0;
+        float mInputPrev = 0.0f;
+        float mDiffPrev = 0.0f;
+        float mOutput1 = 0.0f;
+        float mOutput2 = 0.0f;
+    };
+
+    /*********************************************************************/
+    class MathNumericalReconstructor2 : public NodeGraphOp {
+    public:
+        MathNumericalReconstructor2(NodeGraphBase* node) :
+            NodeGraphOp(node, "Reconstructor 2")
+        {
+            AddInput2("In1");
+            AddInput2("In2");
+            AddInput("Friction1", 1.0f, 1, 0.0f, 1.0f);
+            AddInput("Friction2", 1.0f, 1, 0.0f, 1.0f);
+
+            AddOutput2("Intgr1");
+            AddOutput2("Intgr2");
+            AddOutput2("Intgr Both");
+        }
+
+        virtual ~MathNumericalReconstructor2() = default;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+    protected:
+        int32_t mReadSamples = 0;
+
+        float mInPrev1 = 0.0f;
+        float mIn1Prev1 = 0.0f;
+        float mIn2Prev1 = 0.0f;
+
+        float mInAccum = 0.0f;
+        float mIn1Accum = 0.0f;
+        float mIn2Accum = 0.0f;
+        float mInAccumPrev1 = 0.0f;
+        float mIn1AccumPrev1 = 0.0f;
+        float mIn2AccumPrev1 = 0.0f;
+    };
+
+    /*********************************************************************/
+    class MathNumericalUnitmap : public nodegraph::NodeGraphOp {
+    public:
+        MathNumericalUnitmap(nodegraph::NodeGraphBase* node) :
+            NodeGraphOp(node, "Unitmap")
+        {
+            AddInput2("In");
+            AddInput("Scale", 0.5f, 1, 0.0f, 100000.0f);
+            AddInput("Offset", 0.0f, 1, -1.0f, 1.0f);
+
+            AddOutput2("Out");
+        }
+
+        virtual ~MathNumericalUnitmap() = default;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<nodegraph::NodeGraphInput>& inputs, std::vector<nodegraph::NodeGraphOutput>& outputs) override;
+    protected:
+    };
+
+    /*********************************************************************/
+    class MathNumericalEMA : public nodegraph::NodeGraphOp {
+    public:
+        MathNumericalEMA(nodegraph::NodeGraphBase* node) :
+            NodeGraphOp(node, "EMA")
+        {
+            AddInput2("In");
+            AddInput("N", 14.0f, 1, 1.0f, 1000.0f);
+
+            AddOutput2("Out");
+        }
+
+        virtual ~MathNumericalEMA() = default;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<nodegraph::NodeGraphInput>& inputs, std::vector<nodegraph::NodeGraphOutput>& outputs) override;
+    protected:
+        int32_t mReadSamples = 0;
+
+        float mEmaAccum = 0.0f;
+    };
+
+    /*********************************************************************/
+    class MathNumericalSMA : public nodegraph::NodeGraphOp {
+    public:
+        MathNumericalSMA(nodegraph::NodeGraphBase* node) :
+            NodeGraphOp(node, "SMA")
+        {
+            AddInput2("In");
+            AddInput("N", 14.0f, 1, 1.0f, 2000.0f);
+
+            AddOutput2("Out");
+        }
+
+        virtual ~MathNumericalSMA() = default;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<nodegraph::NodeGraphInput>& inputs, std::vector<nodegraph::NodeGraphOutput>& outputs) override;
+    protected:
+        int32_t mReadSamples = 0;
+
+        float mSum = 0.0f;
+        std::deque<float> mValues;
+    };
+    /*********************************************************************/
+    class MathNumericalMeanExpRegression : public nodegraph::NodeGraphOp {
+    public:
+        MathNumericalMeanExpRegression(nodegraph::NodeGraphBase* node) :
+            NodeGraphOp(node, "Mean Regression")
+        {
+            AddInput2("In");
+            AddInput("N", 14.0f, 1, 1.0f, 1000.0f);
+            AddInput("Exp", 2.0f, 1, 0.0f, 10.0f);
+            AddInput("Distribution", 2.0f, 1, 0.0f, 10.0f);
+
+            AddOutput2("Mean");
+            AddOutput2("Mean Exp");
+        }
+
+        virtual ~MathNumericalMeanExpRegression() = default;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<nodegraph::NodeGraphInput>& inputs, std::vector<nodegraph::NodeGraphOutput>& outputs) override;
+    protected:
+        int32_t mReadSamples = 0;
+
+        std::vector<float> mValues;
+    };
+
+    /*********************************************************************/
+    class MathNumericalStdDev : public nodegraph::NodeGraphOp {
+    public:
+        MathNumericalStdDev(nodegraph::NodeGraphBase* node) :
+            NodeGraphOp(node, "Standard Deviation")
+        {
+            AddInput2("In");
+            AddInput("N", 1.0f, 1, 1.0f, 1000.0f);
+            AddInput("Band", 2.0f, 1, 0.0f, 10.0f);
+
+            AddOutput2("Ewma");
+            AddOutput2("Stddev");
+            AddOutput2("Upper");
+            AddOutput2("Lower");
+            AddOutput2("Z-score");
+        }
+
+        virtual ~MathNumericalStdDev() = default;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<nodegraph::NodeGraphInput>& inputs, std::vector<nodegraph::NodeGraphOutput>& outputs) override;
+    protected:
+        int32_t mReadSamples = 0;
+
+        float alpha = 0.0f;
+        float ema_prev = 0.0f;
+        float variance_ewma = 0.0;
+    };
 }

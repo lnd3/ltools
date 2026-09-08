@@ -15,6 +15,7 @@ namespace l::ui {
     constexpr ImVec4 darkBlue = ImVec4(17.0f / 255.0f, 26.0f / 255.0f, 37.0f / 255.0f, 1.0f); // unselected tabs
     constexpr ImVec4 mediumBlue = ImVec4(27.0f / 255.0f, 47.0f / 255.0f, 73.0f / 255.0f, 1.0f); // selected tabs and ui element background
     constexpr ImVec4 lightBlue = ImVec4(61.0f / 255.0f, 133.0f / 255.0f, 224.0f / 255.0f, 1.0f); // interactive ui elements
+    constexpr ImVec4 warmOrange = ImVec4(224.0f / 255.0f, 133.0f / 255.0f, 61.0f / 255.0f, 1.0f); // interleaved pins
     constexpr ImVec4 brightYellow = ImVec4(147.0f / 255.0f, 232.0f / 255.0f, 102.0f / 255.0f, 1.0f); // selection?
     constexpr ImVec4 pastellYellow = ImVec4(204.0f / 255.0f, 185.0f / 255.0f, 116.0f / 255.0f, 0.25f); // links?
     constexpr ImVec4 brightWhite = ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // text
@@ -247,8 +248,9 @@ namespace l::ui {
     const uint32_t UIContainer_OutputFlag = 0x00000400;
     const uint32_t UIContainer_LinkFlag = 0x00000800;
     const uint32_t UIContainer_SelectFlag = 0x00001000;
-    const uint32_t UIContainer_EditFlag = 0x00002000;
+    const uint32_t UIContainer_TouchEditFlag = 0x00002000;
     const uint32_t UIContainer_ConstantsKeyboardFlag = 0x00004000;
+    const uint32_t UIContainer_TextEditFlag = 0x00008000;
 
     class UIDraw;
 
@@ -373,7 +375,7 @@ namespace l::ui {
         void SetParent(UIContainer* parent) {mParent = parent;}
         void SetCoParent(UIContainer* coParent) {mCoParent = coParent;}
 
-        void DebugLog() { LOG(LogDebug) << "UIContainer: " << mDisplayName << ", [" << mDisplayArea.mScale << "][" << mDisplayArea.mPosition.x << ", " << mDisplayArea.mPosition.y << "][" << mDisplayArea.mSize.x << ", " << mDisplayArea.mSize.y << "]"; }
+        void DebugLog() { LLOG(LogDebug) << "UIContainer: " << mDisplayName << ", [" << mDisplayArea.mScale << "][" << mDisplayArea.mPosition.x << ", " << mDisplayArea.mPosition.y << "][" << mDisplayArea.mSize.x << ", " << mDisplayArea.mSize.y << "]"; }
     protected:
         int32_t mId = 0;
         int32_t mNodeId = -1;

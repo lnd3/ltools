@@ -22,6 +22,7 @@ namespace l::ui {
     void UIAdopt(std::unique_ptr<l::ui::UIBase>&& ui);
     void UIErase(l::ui::UIBase* ui);
     void UIErase(std::string_view name);
+    void UIDestroy();
     void UIHouseKeeping();
     UIBase* UIGet(std::string_view name);
     bool UIHas(std::string_view name);

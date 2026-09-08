@@ -56,7 +56,7 @@ namespace l::concurrency {
 	}
 
 	RunnableResult Runnable::run(const RunState&) {
-		LOG(LogInfo) << "Default run implementation";
+		LLOG(LogInfo) << "Default run implementation";
 		return RunnableResult::SUCCESS;
 	}
 	
@@ -85,7 +85,7 @@ namespace l::concurrency {
 		if (mRunState.mDestructing) {
 			return;
 		}
-		if (gDebugLogging) LOG(LogDebug) << "Executor service shutdown is imminent";
+		if (gDebugLogging) LLOG(LogDebug) << "Executor service shutdown is imminent";
 		{
 			std::lock_guard<std::mutex> lock(mRunnablesMutex);
 			mRunState.mDestructing = true;
@@ -96,12 +96,12 @@ namespace l::concurrency {
 		}
 
 		do {
-			if (gDebugLogging) LOG(LogDebug) << "Executor service notifying threads of imminent shutdown";
+			if (gDebugLogging) LLOG(LogDebug) << "Executor service notifying threads of imminent shutdown";
 			std::this_thread::sleep_for(std::chrono::milliseconds(50));
 			mCondition.notify_all();
 		} while (!mRunState.IsShutdown());
 
-		if (gDebugLogging) LOG(LogDebug) << "Executor service notified all waiting schedulers to exit immediately";
+		if (gDebugLogging) LLOG(LogDebug) << "Executor service notified all waiting schedulers to exit immediately";
 
 		for (auto& t : mPoolThreads) {
 			if (t.joinable()) {
@@ -117,18 +117,18 @@ namespace l::concurrency {
 	}
 
 	void ExecutorService::startJobs() {
-		LOG(LogDebug) << "Start jobs " << mName;
+		LLOG(LogDebug) << "Start jobs " << mName;
 		mRunState.mRunning = true;
 		mCondition.notify_all();
 	}
 
 	void ExecutorService::pauseJobs() {
-		LOG(LogDebug) << "Pause jobs " << mName;
+		LLOG(LogDebug) << "Pause jobs " << mName;
 		mRunState.mRunning = false;
 	}
 
 	void ExecutorService::clearJobs() {
-		LOG(LogDebug) << "Clear jobs " << mName;
+		LLOG(LogDebug) << "Clear jobs " << mName;
 
 		std::lock_guard<std::mutex> lock(mRunnablesMutex);
 		mRunState.mRunning = false;
@@ -138,13 +138,13 @@ namespace l::concurrency {
 	bool ExecutorService::queueJob(std::unique_ptr<Runnable> runnable) {
 		{
 			if (mRunState.mDestructing) {
-				LOG(LogWarning) << "Service is shutdown and waiting for destruction";
+				LLOG(LogWarning) << "Service is shutdown and waiting for destruction";
 				return false;
 			}
 
 			std::lock_guard<std::mutex> lock(mRunnablesMutex);
 			if (mMaxQueuedJobs > 0 && mRunnables.size() > mMaxQueuedJobs) {
-				LOG(LogWarning) << "Too many jobs!";
+				LLOG(LogWarning) << "Too many jobs!";
 				return false;
 			}
 			mRunnables.push_back(std::move(runnable));
@@ -173,16 +173,16 @@ namespace l::concurrency {
 			}
 
 			std::unique_ptr<Runnable> runnable = nullptr;
-			if (gDebugLogging) LOG(LogDebug) << "Scheduler " << id << " started";
+			if (gDebugLogging) LLOG(LogDebug) << "Scheduler " << id << " started";
 			if (!mRunState.mRunning) {
 				std::unique_lock<std::mutex> lock(mRunnablesMutex);
-				if (gDebugLogging) LOG(LogDebug) << "Scheduler " << id << " is paused";
+				if (gDebugLogging) LLOG(LogDebug) << "Scheduler " << id << " is paused";
 				mCondition.wait(lock);
 			}
 			else {
 				std::unique_lock<std::mutex> lock(mRunnablesMutex);
 				if (mRunnables.empty()) {
-					if (gDebugLogging) LOG(LogDebug) << "Scheduler " << id << " is waiting for work";
+					if (gDebugLogging) LLOG(LogDebug) << "Scheduler " << id << " is waiting for work";
 					mCondition.wait(lock);
 				}
 				else {
@@ -194,10 +194,10 @@ namespace l::concurrency {
 
 							if (gDebugLogging) {
 								if (runnable->NumTries() > 0) {
-									LOG(LogDebug) << "Scheduler " << id << " picked up requeued(" << runnable->NumTries() << ") job";
+									LLOG(LogDebug) << "Scheduler " << id << " picked up requeued(" << runnable->NumTries() << ") job";
 								}
 								else {
-									LOG(LogDebug) << "Scheduler " << id << " picked up new job";
+									LLOG(LogDebug) << "Scheduler " << id << " picked up new job";
 								}
 							}
 							break;
@@ -206,50 +206,50 @@ namespace l::concurrency {
 					lock.unlock();
 
 					if (!runnable) {
-						if (gDebugLogging) LOG(LogDebug) << "Scheduler " << id << " sleeping";
+						if (gDebugLogging) LLOG(LogDebug) << "Scheduler " << id << " sleeping";
 						std::this_thread::sleep_for(std::chrono::milliseconds(50));
 					}
 				}
 			}
 
 			if (runnable) {
-				if (gDebugLogging) LOG(LogDebug) << "Scheduler " << id << " executes task";
+				if (gDebugLogging) LLOG(LogDebug) << "Scheduler " << id << " executes task";
 				mRunState.mNumRunningJobs++;
 				RunnableResult result = runnable->run(mRunState);
 				mRunState.mNumRunningJobs--;
 				switch (result) {
 				case l::concurrency::RunnableResult::FAILURE:
-					if (gDebugLogging) LOG(LogDebug) << "Scheduler " << id << " task failed";
+					if (gDebugLogging) LLOG(LogDebug) << "Scheduler " << id << " task failed";
 					runnable.reset();
 					break;
 				case l::concurrency::RunnableResult::CANCELLED:
-					if (gDebugLogging) LOG(LogDebug) << "Scheduler " << id << " task was cancelled";
+					if (gDebugLogging) LLOG(LogDebug) << "Scheduler " << id << " task was cancelled";
 					runnable.reset();
 					break;
 				case l::concurrency::RunnableResult::SUCCESS:
-					if (gDebugLogging) LOG(LogDebug) << "Scheduler " << id << " task succeeded";
+					if (gDebugLogging) LLOG(LogDebug) << "Scheduler " << id << " task succeeded";
 					mNumCompletedJobs++;
 					runnable.reset();
 					break;
 				case l::concurrency::RunnableResult::REQUEUE_DELAYED:
 					runnable->Reschedule();
-					if (gDebugLogging) LOG(LogDebug) << "Job '" + runnable->Name() + "' could not run yet and was requeued ";
+					if (gDebugLogging) LLOG(LogDebug) << "Job '" + runnable->Name() + "' could not run yet and was requeued ";
 					queueJob(std::move(runnable));
 					break;
 				case l::concurrency::RunnableResult::REQUEUE_BACKOFF:
 					runnable->Backoff();
 					if (!runnable->Failed()) {
 
-						if (gDebugLogging) LOG(LogDebug) << "Job '" + runnable->Name() + "' was delayed and then requeued with backoff";
+						if (gDebugLogging) LLOG(LogDebug) << "Job '" + runnable->Name() + "' was delayed and then requeued with backoff";
 						queueJob(std::move(runnable));
 					}
 					else {
-						if (gDebugLogging) LOG(LogDebug) << "Job '" + runnable->Name() + "' failed and was cancelled";
+						if (gDebugLogging) LLOG(LogDebug) << "Job '" + runnable->Name() + "' failed and was cancelled";
 						runnable.reset();
 					}
 					break;
 				case l::concurrency::RunnableResult::REQUEUE_IMMEDIATE:
-					if (gDebugLogging) LOG(LogInfo) << "Scheduler " << mName << " task was requeued";
+					if (gDebugLogging) LLOG(LogInfo) << "Scheduler " << mName << " task was requeued";
 					queueJob(std::move(runnable));
 					break;
 				}
@@ -257,7 +257,7 @@ namespace l::concurrency {
 		}
 		mRunState.mNumRunningJobThreads--;
 
-		if (gDebugLogging) LOG(LogInfo) << "Scheduler " << mName << " exited";
+		if (gDebugLogging) LLOG(LogInfo) << "Scheduler " << mName << " exited";
 	}
 
 }

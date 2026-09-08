@@ -56,38 +56,40 @@ namespace testing {
 	}
 
 	bool run_tests(const char* app) {
-		LOG(LogTitle) << "Unit tests " << app;
+		LLOG(LogTitle) << "Unit tests " << app;
 
 		bool test_success = true;
 		{
-			size_t failed_tests = 0;
+			size_t total_failed = 0;
 
 			std::vector<std::string> summary;
 
 			auto& groups = get_test_groups();
 			for (auto& groupIt : groups) {
 				size_t total = groupIt.second->size();
-				LOG(LogTitle) << "# " << groupIt.first;
+				size_t group_failed = 0;
+				LLOG(LogTitle) << "# " << groupIt.first;
 				for (auto& f : *groupIt.second) {
-					LOG(LogTitle) << "## " << groupIt.first + "::" + f.first;
+					LLOG(LogTitle) << "## " << groupIt.first + "::" + f.first;
 					if (f.second()) {
-						failed_tests++;
+						group_failed++;
 						test_success = false;
 					}
 				}
+				total_failed += group_failed;
 				std::ostringstream msg;
-				msg << "## Test result for '" + groupIt.first + "': successful tests(" << (total - failed_tests) << " / " << (total) << ")";
-				LOG(LogTitle) << msg.str();
+				msg << "## Test result for '" + groupIt.first + "': successful tests(" << (total - group_failed) << " / " << total << ")";
+				LLOG(LogTitle) << msg.str();
 				summary.push_back(msg.str());
 			}
 
-			LOG(LogTitle) << "## Test summary ";
+			LLOG(LogTitle) << "## Test summary ";
 			for (auto& str : summary) {
-				LOG(LogTitle) << str;
+				LLOG(LogTitle) << str;
 			}
 
 			if (!test_success) {
-				LOG(LogTitle) << "All tests did not go through successfully..";
+				LLOG(LogTitle) << "All tests did not go through successfully..";
 			}
 		}
 
@@ -95,49 +97,81 @@ namespace testing {
 	}
 
 	bool run_perfs(const char* app) {
-		LOG(LogTitle) << "Performance tests " << app;
+		LLOG(LogTitle) << "Performance tests " << app;
 
 		bool perf_success = true;
 		{
-			size_t failed_perfs = 0;
+			size_t total_failed_perfs = 0;
 
 			std::vector<std::string> summary;
 
 			auto& groups = get_perf_groups();
 			for (auto& groupIt : groups) {
 				size_t total = groupIt.second->size();
-				LOG(LogTitle) << "## " << groupIt.first;
+				size_t group_failed = 0;
+				LLOG(LogTitle) << "## " << groupIt.first;
 				for (auto& f : *groupIt.second) {
-					LOG(LogTitle) << groupIt.first + "::" + f.first;
+					LLOG(LogTitle) << groupIt.first + "::" + f.first;
 					if (f.second()) {
-						failed_perfs++;
+						group_failed++;
 						perf_success = false;
 					}
 
 					auto& measures = get_time_measures(groupIt.first);
 
 					for (auto& result : measures) {
-						LOG(LogInfo) << groupIt.first << "::" << result.first << ": " << result.second.mSeconds << " sec.";
+						LLOG(LogInfo) << groupIt.first << "::" << result.first << ": " << result.second.mSeconds << " sec.";
 					}
 				}
 
+				total_failed_perfs += group_failed;
 				std::ostringstream msg;
-				msg << "Performance result for '" + groupIt.first + "': successful perfs(" << (total - failed_perfs) << " / " << (total) << ")";
-				LOG(LogTitle) << msg.str();
+				msg << "Performance result for '" + groupIt.first + "': successful perfs(" << (total - group_failed) << " / " << total << ")";
+				LLOG(LogTitle) << msg.str();
 				summary.push_back(msg.str());
 			}
 
-			LOG(LogTitle) << "----";
+			LLOG(LogTitle) << "----";
 			for (auto& str : summary) {
-				LOG(LogTitle) << str;
+				LLOG(LogTitle) << str;
 			}
 
 			if (!perf_success) {
-				LOG(LogTitle) << "All perfs did not go through successfully..";
+				LLOG(LogTitle) << "All perfs did not go through successfully..";
 			}
 		}
 
 		return perf_success;
 	}
+
+	void show_perfs(const char* app) {
+		LLOG(LogTitle) << "Performance tests " << app;
+
+		std::vector<std::string> summary;
+
+		auto& groups = get_perf_groups();
+		for (auto& groupIt : groups) {
+			LLOG(LogTitle) << "## " << groupIt.first;
+			for (auto& f : *groupIt.second) {
+				LLOG(LogTitle) << groupIt.first + "::" + f.first;
+				auto& measures = get_time_measures(groupIt.first);
+
+				for (auto& result : measures) {
+					LLOG(LogInfo) << groupIt.first << "::" << result.first << ": " << result.second.mSeconds << " sec.";
+				}
+			}
+
+			std::ostringstream msg;
+			msg << "Performance result for '" + groupIt.first + "'";
+			LLOG(LogTitle) << msg.str();
+			summary.push_back(msg.str());
+		}
+
+		LLOG(LogTitle) << "----";
+		for (auto& str : summary) {
+			LLOG(LogTitle) << str;
+		}
+	}
+
 }
 }

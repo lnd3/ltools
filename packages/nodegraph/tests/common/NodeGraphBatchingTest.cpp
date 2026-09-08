@@ -24,13 +24,13 @@ TEST(NodeGraphBatching, Simple) {
 
 
 	for (int32_t i = 0; i < 4; i++) {
-		LOG(LogInfo) << "batch " << i;
+		LLOG(LogInfo) << "batch " << i;
 
 		group.ProcessSubGraph(8); // 8 samples per batch
 		auto output = &group.GetOutput(0, 8);
 
 		for (int32_t j = 0; j < 8; j++) {
-			LOG(LogInfo) << "sample " << (j+(i*8)) << ": " << *output++;
+			LLOG(LogInfo) << "sample " << (j+(i*8)) << ": " << *output++;
 		}
 	}
 

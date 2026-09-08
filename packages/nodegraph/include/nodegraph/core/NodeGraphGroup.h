@@ -48,7 +48,7 @@ namespace l::nodegraph {
         }
         ~NodeGraphGroup() {
             Reset();
-            LOG(LogInfo) << "Node group destroyed";
+            //LLOG(LogInfo) << "Node group destroyed";
         }
 
         NodeGraphGroup& operator=(NodeGraphGroup&& other) noexcept {
@@ -131,9 +131,43 @@ namespace l::nodegraph {
         void ForEachInputNode(std::function<bool(NodeGraphBase*)> cb);
         void ForEachOutputNode(std::function<bool(NodeGraphBase*)> cb);
 
+        template<class T>
+        void ForEachNodeOftype(std::function<bool(NodeGraphBase*)> cb) {
+            for (auto& it : mNodes) {
+                if (it->IsOfOperation<T>()) {
+                    if (!cb(it)) {
+                        break;
+                    }
+                }
+            }
+        }
+        template<class T>
+        void ForEachInputNodeOftype(std::function<bool(NodeGraphBase*)> cb) {
+            for (auto& it : mInputNodes) {
+                if (it->IsOfOperation<T>()) {
+                    if (!cb(it)) {
+                        break;
+                    }
+                }
+            }
+        }
+        template<class T>
+        void ForEachOutputNodeOftype(std::function<bool(NodeGraphBase*)> cb) {
+            for (auto& it : mOutputNodes) {
+                if (it->IsOfOperation<T>()) {
+                    if (!cb(it)) {
+                        break;
+                    }
+                }
+            }
+        }
+
+
         void ClearProcessFlags();
         void ProcessSubGraph(int32_t numSamples, int32_t numCacheSamples = -1);
         void Tick(int32_t tickCount, float elapsed);
+
+        void SendEvent(int32_t id, int32_t cmd = 0, void* userdata = nullptr);
     protected:
         NodeFactoryBase* mNodeFactory = nullptr;
 

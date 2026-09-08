@@ -1,6 +1,7 @@
 #pragma once
 
 #include <logging/LoggingAll.h>
+#include <math/MathFixedPoint.h>
 
 #define JSMN_HEADER
 #include <various/jsmn.h>
@@ -8,6 +9,7 @@
 #include <string_view>
 #include <cassert>
 #include <cstdlib>
+#include <vector>
 
 namespace l::serialization {
 
@@ -52,6 +54,7 @@ namespace l::serialization {
         bool as_bool() const;
         double as_double() const;
         float as_float() const;
+        l::math::fp::FixedPoint as_fixed_point() const;
         int8_t as_int8() const;
         int16_t as_int16() const;
         int32_t as_int32() const;
@@ -115,6 +118,51 @@ namespace l::serialization {
         return v;
     }
 
+    // JsonParserDynamic — same interface as JsonParser<N> but grows its token
+    // buffer on demand. Uses grow-and-retry: attempt parse with current capacity,
+    // double on JSMN_ERROR_NOMEM, never guess the count upfront.
+    // The vector is reused across calls; no allocation in steady state once
+    // it has reached the high-water mark.
+    class JsonParserDynamic {
+    public:
+        std::tuple<bool, int32_t> LoadJson(const char* jsondata, size_t size) {
+            mJsondata   = jsondata;
+            mTokenCount = 0;
+
+            if (mTokens.empty()) mTokens.resize(1024);
+
+            for (;;) {
+                jsmn_init(&mParser);
+                int ret = jsmn_parse(&mParser, jsondata, size,
+                                     mTokens.data(), static_cast<unsigned int>(mTokens.size()));
+                if (ret == JSMN_ERROR_NOMEM) {
+                    mTokens.resize(mTokens.size() * 2);
+                    continue;
+                }
+                if (ret == JSMN_ERROR_PART)  return { false, JSMN_ERROR_PART };
+                if (ret == JSMN_ERROR_INVAL) {
+                    LLOG(LogError) << "JsonParserDynamic: invalid JSON";
+                    return { false, JSMN_ERROR_INVAL };
+                }
+                if (ret < 0) return { false, ret };
+
+                mTokenCount = ret;
+                int32_t consumed = (mTokenCount > 0) ? mTokens[0].end : 0;
+                return { true, consumed };
+            }
+        }
+
+        JsonValue GetRoot() {
+            return JsonValue(mJsondata, mTokens.data(), mTokenCount);
+        }
+
+    private:
+        const char* mJsondata = nullptr;
+        jsmn_parser mParser{};
+        int32_t     mTokenCount = 0;
+        std::vector<jsmntok_t> mTokens;
+    };
+
     template<int32_t MaxTokens = 1000>
     class JsonParser {
     public:
@@ -122,6 +170,10 @@ namespace l::serialization {
             mParser.pos = 0;
             mParser.toknext = 0;
             mParser.toksuper = 0;
+            Clear();
+        }
+
+        void Clear() {
             for (int32_t i = 0; i < MaxTokens; i++) {
                 mTokens[i].end = 0;
                 mTokens[i].size = 0;
@@ -146,23 +198,24 @@ namespace l::serialization {
                 mTokenCount = 0;
                 switch (ret) {
                 case JSMN_ERROR_INVAL:
-                    LOG(LogError) << "Failure to parse json value";
+                    LLOG(LogError) << "Failure to parse json value";
                     return { false, ret };
                 case JSMN_ERROR_NOMEM:
-                    LOG(LogError) << "Token buffer is to small";
+                    LLOG(LogError) << "Token buffer is to small";
                     return { false, ret };
                 case JSMN_ERROR_PART:
-                    //LOG(LogInfo) << "Json data is not completed";
+                    //LLOG(LogInfo) << "Json data is not completed";
                     return { false, ret };
                 default:
-                    LOG(LogError) << "Unknown error";
+                    LLOG(LogError) << "Unknown error";
                     return { false, -4 };
                 }
             }
             else {
                 mTokenCount = ret;
             }
-            return { true, 0 };
+            int32_t consumed = (mTokenCount > 0) ? mTokens[0].end : 0;
+            return { true, consumed };
         }
 
         JsonValue GetRoot() {

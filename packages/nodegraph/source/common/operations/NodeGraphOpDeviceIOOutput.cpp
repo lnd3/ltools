@@ -1,7 +1,6 @@
 #include "nodegraph/operations/NodeGraphOpDeviceIOOutput.h"
 
 #include "logging/Log.h"
-#include "audio/AudioUtils.h"
 
 #include "math/MathFunc.h"
 
@@ -17,6 +16,7 @@ namespace l::nodegraph {
         inputs.at(2).SetConstant(mValue);
     }
 
+#ifndef HEADLESS_BUILD
     /*********************************************************************/
     void GraphOutputSpeaker::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>&) {
         if (mAudioStream == nullptr) {
@@ -84,6 +84,7 @@ namespace l::nodegraph {
             }
         );
     }
+#endif // HEADLESS_BUILD
 
     /*********************************************************************/
     void GraphOutputPlot::Process(int32_t numSamples, int32_t, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {
@@ -112,7 +113,9 @@ namespace l::nodegraph {
 
                 mTimer = duration / 1000.0f;
 
+#ifndef HEADLESS_BUILD
                 l::audio::PCBeep(freq, duration);
+#endif
             }
             if (value < 0.5f && mTriggered) {
                 mTriggered = false;

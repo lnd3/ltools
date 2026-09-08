@@ -3,12 +3,6 @@
 
 #include "logging/LoggingAll.h"
 
-#include "hid/KeyboardPiano.h"
-#include "hid/Midi.h"
-
-#include "audio/PortAudio.h"
-#include "audio/AudioUtils.h"
-
 #include "math/MathFunc.h"
 
 #include <string>
@@ -29,8 +23,8 @@ namespace l::nodegraph {
             NodeGraphOp(node, "Flip Gate")
         {
             AddInput("In", 0.0f);
-            AddInput("Pos Max Hold", 0.0f, 1, 0.0f, l::math::constants::FLTMAX);
-            AddInput("Neg Max Hold", 0.0f, 1, 0.0f, l::math::constants::FLTMAX);
+            AddInput("Sustain Pos", 0.0f, 1, 0.0f, l::math::constants::FLTMAX);
+            AddInput("Sustain Neg", 0.0f, 1, 0.0f, l::math::constants::FLTMAX);
             AddOutput("Gate Hold", 0.0f);
             AddOutput("Gate", 0.0f);
         }
@@ -77,8 +71,8 @@ namespace l::nodegraph {
         {
             AddInput("In");
             AddInput("Weight", 1.0f);
-            AddInput("Kernel Size", 1.0f, 1, 1.0f, 5000.0f);
-            AddInput("Weight Accent", 1.0f, 1, 0.0f, 100.0f);
+            AddInput("Kernel", 1.0f, 1, 1.0f, 5000.0f);
+            AddInput("Accent", 1.0f, 1, 0.0f, 100.0f);
 
             AddOutput("Out", 0.0f);
         }

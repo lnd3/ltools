@@ -7,9 +7,9 @@ TEST(Base64, Basic) {
 
 	auto message = "test#!%¤14+,<?=";
 	auto encoded = l::serialization::base64_encode(message);
-	LOG(LogTest) << encoded;
+	LLOG(LogTest) << encoded;
 	auto decoded = l::serialization::base64_decode(encoded);
-	LOG(LogTest) << decoded;
+	LLOG(LogTest) << decoded;
 
 	TEST_TRUE(decoded == message, "");
 
@@ -24,7 +24,7 @@ TEST(Base64, RandomInput) {
 			message += std::rand() % 256;
 		}
 		auto encoded = l::serialization::base64_encode(message);
-		LOG(LogTest) << encoded;
+		LLOG(LogTest) << encoded;
 		auto decoded = l::serialization::base64_decode(encoded);
 		TEST_TRUE(decoded == message, "");
 	}

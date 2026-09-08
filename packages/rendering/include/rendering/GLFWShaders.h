@@ -65,7 +65,7 @@ namespace rendering {
                     GLsizei logLength = 0;
                     GLchar message[1024];
                     glGetShaderInfoLog(mVertexShaderId, 1024, &logLength, message);
-                    LOG(LogError) << "Failed to compile vertex shader. Error: " << message;
+                    LLOG(LogError) << "Failed to compile vertex shader. Error: " << message;
                 }
                 GL_ASSERT();
             }
@@ -79,7 +79,7 @@ namespace rendering {
                     GLsizei logLength = 0;
                     GLchar message[1024];
                     glGetShaderInfoLog(mFragmentShaderId, 1024, &logLength, message);
-                    LOG(LogError) << "Failed to compile fragment shader. Error: " << message;
+                    LLOG(LogError) << "Failed to compile fragment shader. Error: " << message;
                 }
                 GL_ASSERT();
             }
@@ -97,7 +97,7 @@ namespace rendering {
                     GLchar message[1024];
                     glGetProgramInfoLog(mId, 1024, &logLength, message);
 
-                    LOG(LogError) << "Failed to link. Error: " << message;
+                    LLOG(LogError) << "Failed to link. Error: " << message;
                 }
                 GL_ASSERT();
             }

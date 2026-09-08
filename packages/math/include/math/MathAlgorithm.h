@@ -1,7 +1,10 @@
 #pragma once
 
 #include <stdint.h>
+#include <concepts>
 #include <vector>
+#include <deque>
+#include <list>
 #include <functional>
 #include <optional>
 #include <string>
@@ -36,13 +39,13 @@ namespace l::math::algorithm {
 		d.sub(v);
 	};
 
-	template<class T>
-	uint32_t binary_search(const std::vector<T>& elements, const T& data, int32_t minIndex = 1, int32_t maxIndex = INT32_MAX) {
+	template<class T, class S, typename = std::enable_if_t<std::is_same<S, std::vector<T>>::value || std::is_same<S, std::deque<T>>::value || std::is_same<S, std::list<T>>::value>>
+	uint32_t binary_search(const S& elements, const T& data, int32_t minIndex = 1, int32_t maxIndex = INT32_MAX) {
 		uint32_t L = static_cast<uint32_t>(minIndex < 0 ? 0 : minIndex);
 		uint32_t R = static_cast<uint32_t>((maxIndex < elements.size() ? maxIndex : elements.size()) - 1);
 
 		while (L <= R) {
-			uint32_t m = static_cast<uint32_t>(floor((L + R) / 2.0));
+			uint32_t m = static_cast<uint32_t>(math::floor((L + R) / 2.0));
 			auto& e = elements.at(static_cast<size_t>(m));
 			if (e < data) {
 				L = m + 1;
@@ -57,6 +60,60 @@ namespace l::math::algorithm {
 		return 0;
 	}
 
+	template<class T, class S, typename = std::enable_if_t<std::is_same<S, std::vector<T>>::value || std::is_same<S, std::deque<T>>::value || std::is_same<S, std::list<T>>::value>>
+	int32_t binary_search_leq(const S& elements, const T& data, int32_t minIndex = 0, int32_t maxIndex = INT32_MAX) {
+		int32_t left = static_cast<int32_t>(minIndex < 0 ? 0 : minIndex);
+		int32_t right = static_cast<int32_t>((maxIndex < elements.size() ? maxIndex : elements.size()) - 1);
+		int32_t result = -1; // Default if no element is <= value
+
+		while (left <= right) {
+			int32_t mid = left + (right - left) / 2;
+
+			if (elements.at(mid) <= data) {
+				result = mid;    // Valid candidate found
+				left = mid + 1;  // Look for a better candidate to the right
+			}
+			else {
+				right = mid - 1; // Look to the left
+			}
+		}
+		return result;
+	}
+
+	template<class T, class S, typename = std::enable_if_t<std::is_same<S, std::vector<T>>::value || std::is_same<S, std::deque<T>>::value || std::is_same<S, std::list<T>>::value>>
+	int32_t binary_search_fn(const S& elements, std::function<int32_t(const T& a)> fn, bool defaultDirectionRight = true, int32_t minIndex = 0, int32_t maxIndex = INT32_MAX) {
+		int32_t left = static_cast<int32_t>(minIndex < 0 ? 0 : minIndex);
+		int32_t right = static_cast<int32_t>((maxIndex < elements.size() ? maxIndex : elements.size()) - 1);
+		int32_t result = -1; // Default if no element is <= value
+
+		while (left <= right) {
+			int32_t mid = left + (right - left) / 2;
+
+			auto direction = fn(elements.at(mid));
+			if (direction > 0) {
+				left = mid + 1;  // Look to the right
+			}
+			else if (direction < 0){
+				right = mid - 1; // Look to the left
+			}
+			else {
+				result = mid;    // Valid candidate found
+				if (defaultDirectionRight) {
+					left = mid + 1;  // Look for a better candidate to the right
+				}
+				else {
+					right = mid - 1;  // Look for a better candidate to the left
+				}
+			}
+		}
+		if (result < 0) {
+			if (left >= elements.size()) {
+				return elements.size();
+			}
+		}
+		return result;
+	}
+
 	template <class T>
 	T bisect(T a, T b, T tolerance, int iterations, std::function<T(T)> eval) {
 		int n = 0;
@@ -65,7 +122,7 @@ namespace l::math::algorithm {
 			c = (a + b) / 2.0;
 
 			T cEval = eval(c);
-			LOG(LogDebug) << "bisect iteration " << n << "(" << iterations << ") val: " << c << "(convergence: " << cEval << ")";
+			LLOG(LogDebug) << "bisect iteration " << n << "(" << iterations << ") val: " << c << "(convergence: " << cEval << ")";
 			if (cEval == 0.0 || abs(cEval) < tolerance) {
 				return c;
 			}

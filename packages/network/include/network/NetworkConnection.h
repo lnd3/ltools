@@ -73,17 +73,22 @@ namespace l::network {
 			const std::string& query,
 			const int32_t expectedResponseSize = 0,
 			const int32_t timeOut = -1,
-			std::function<void(bool, std::string_view)> cb = nullptr);
+			std::function<void(bool, std::string_view)> cb = nullptr,
+			const std::string& postBody = "",
+			const std::vector<std::string>& postHeaders = {});
 		bool IsHandle(CURL* handle);
-		bool IsWebSocket();
+		bool IsWebSocket() const;
 		bool IsAlive();
-		bool HasExpired();
+		bool HasExpired() const;
 		void SetRunningTimeout(int32_t secondsFromNow);
 		void ClearRunningTimeout();
 
+		int32_t WSKeepalive();
 		int32_t WSWrite(const char* buffer, size_t size);
 		int32_t WSRead(char* buffer, size_t size);
 		void WSClose();
+		bool WSAutoConnectEnabled();
+		void WSSetAutoConnect(bool autoReconnect);
 
 		const curl_ws_frame* GetWebSocketMeta();
 
@@ -120,6 +125,8 @@ namespace l::network {
 		bool mIsWebSocket = false;
 		bool mWebSocketCanReceiveData = false;
 		bool mWebSocketCanSendData = false;
+		bool mWebSocketAutoConnect = false;
+		std::atomic_bool mWebSocketHandshakeDone{false};
 	};
 
 	template<class T>

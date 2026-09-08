@@ -44,20 +44,20 @@ namespace process {
 				&mProcessInfo)           // Pointer to PROCESS_INFORMATION structure
 				)
 			{
-				LOG(LogError) << "Failed to create process " << filename << ", " << std::to_string(static_cast<long>(GetLastError()));
+				LLOG(LogError) << "Failed to create process " << filename << ", " << std::to_string(static_cast<long>(GetLastError()));
 				return FAILED_TO_CREATE_PROCESS;
 			}
 
 			if (!mDetach) {
-				LOG(LogInfo) << "Successfully started process " << filename << " " << mArgs;
+				LLOG(LogInfo) << "Successfully started process " << filename << " " << mArgs;
 				// Wait until child process exits.
 				DWORD waitResult = WaitForSingleObject(mProcessInfo.hProcess, INFINITE);
 				if (waitResult == WAIT_FAILED) {
-					LOG(LogError) << "Wait for process failed " + std::to_string(static_cast<long>(GetLastError()));
+					LLOG(LogError) << "Wait for process failed " + std::to_string(static_cast<long>(GetLastError()));
 					return FAILED_TO_WAIT_FOR_PROCESS;
 				}
 				else {
-					LOG(LogInfo) << "Wait ended for process " << filename;
+					LLOG(LogInfo) << "Wait ended for process " << filename;
 				}
 			}
 
@@ -84,7 +84,7 @@ namespace process {
 			return processRunner.get();
 		}
 		else {
-			LOG(LogError) << "Failed to detach process";
+			LLOG(LogError) << "Failed to detach process";
 			return FAILED_TO_DETACH_PROCESS;
 		}
 	}

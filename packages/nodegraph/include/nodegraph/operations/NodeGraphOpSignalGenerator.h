@@ -3,12 +3,6 @@
 
 #include "logging/LoggingAll.h"
 
-#include "hid/KeyboardPiano.h"
-#include "hid/Midi.h"
-
-#include "audio/PortAudio.h"
-#include "audio/AudioUtils.h"
-
 #include "math/MathFunc.h"
 
 #include <string>
@@ -253,7 +247,6 @@ namespace l::nodegraph {
         float mVolume = 0.0f;
         double mFmod = 0.0;
         double mPmod = 0.0;
-        float mReset = 0.0f;
 
         double mWave = 0.0;
         double mDeltaTime = 0.0;
@@ -263,6 +256,7 @@ namespace l::nodegraph {
         double mPhaseFmod = 0.0;
 
         float mSamplesUntilUpdate = 0.0f;
+        int32_t mReadSamples = 0;
     };
 
     /*********************************************************************/

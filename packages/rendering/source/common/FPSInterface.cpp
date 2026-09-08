@@ -69,11 +69,11 @@ namespace l {
 		}
 
 		void FPSInterface::HandleTouch(int button, int action, int mods) {
-			LOG(LogInfo) << "button:" << button << ", action:" << action << ", mods:" << mods;
+			LLOG(LogInfo) << "button:" << button << ", action:" << action << ", mods:" << mods;
 		}
 
 		void FPSInterface::HandleScroll(float x, float y) {
-			LOG(LogInfo) << "xoffset:" << x << ", yoffset:" << y;
+			LLOG(LogInfo) << "xoffset:" << x << ", yoffset:" << y;
 		}
 
 		void FPSInterface::HandleKeyPress(int key, int, int action, int) {
@@ -174,7 +174,7 @@ namespace l {
 				mTurnAngle += x * f;
 				mTiltAngle += y * f;
 				if (fabs(x) > 0.0001f && fabs(y) > 0.0001f) {
-					//LOG(LogInfo) << "Camera direction: [" << mFront[0] << "," << mFront[1] << "," << mFront[2] << "]" << "[" << mRight[0] << "," << mRight[1] << "," << mRight[2] << "]";
+					//LLOG(LogInfo) << "Camera direction: [" << mFront[0] << "," << mFront[1] << "," << mFront[2] << "]" << "[" << mRight[0] << "," << mRight[1] << "," << mRight[2] << "]";
 				}
 			}
 
@@ -252,7 +252,7 @@ namespace l {
 			mVelocity[1] += velocityDirection[1] * acceleration;
 			mVelocity[2] += velocityDirection[2] * acceleration;
 
-			//LOG(LogInfo) << "Camera velocity: [" << mPosition[0] << "," << mPosition[1] << "," << mPosition[2] << "]";
+			//LLOG(LogInfo) << "Camera velocity: [" << mPosition[0] << "," << mPosition[1] << "," << mPosition[2] << "]";
 		}
 	}
 }

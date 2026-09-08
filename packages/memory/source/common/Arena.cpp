@@ -63,13 +63,13 @@ namespace l::memory {
 // pop some bytes off the 'stack' - the way to free
 	void ArenaPop(Arena* arena, uint64_t size) {
 		if (arena->mBlocks.empty()) {
-			LOG(LogError) << "Trying to pop from an empty arena";
+			LLOG(LogError) << "Trying to pop from an empty arena";
 			return;
 		}
 
 		MemoryBlock& lastBlock = arena->mBlocks.back();
 		if (lastBlock.mSize - (reinterpret_cast<uint64_t>(lastBlock.mBase) - reinterpret_cast<uint64_t>(arena->mBlocks.back().mBase)) < size) {
-			LOG(LogError) << "Trying to pop more bytes than are available in the current block";
+			LLOG(LogError) << "Trying to pop more bytes than are available in the current block";
 			return;
 		}
 
@@ -89,13 +89,13 @@ namespace l::memory {
 	// also some useful popping helpers:
 	void ArenaSetPosBack(Arena* arena, uint64_t pos) {
 		if (arena->mBlocks.empty()) {
-			LOG(LogError) << "Trying to set position in an empty arena";
+			LLOG(LogError) << "Trying to set position in an empty arena";
 			return;
 		}
 
 		MemoryBlock& lastBlock = arena->mBlocks.back();
 		if (lastBlock.mSize - (reinterpret_cast<uint64_t>(lastBlock.mBase) - reinterpret_cast<uint64_t>(arena->mBlocks.back().mBase)) < pos) {
-			LOG(LogError) << "Trying to set position past the end of the current block";
+			LLOG(LogError) << "Trying to set position past the end of the current block";
 			return;
 		}
 

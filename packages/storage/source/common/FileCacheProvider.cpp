@@ -5,6 +5,12 @@
 
 namespace l::filecache {
 
+	bool FileCacheProvider::UnPersistData(std::string_view path) {
+		auto file = mLocation / (std::string(path) + mExtension);
+		std::filesystem::remove(file);
+		return true;
+	}
+
 	bool FileCacheProvider::PersistData(std::string_view path, const std::vector<unsigned char>& data) {
 		if (data.empty()) {
 			return false;
@@ -18,7 +24,7 @@ namespace l::filecache {
 		}
 		f.write(data);
 		f.close();
-		//LOG(LogInfo) << "Saved " << path;
+		//LLOG(LogInfo) << "Saved " << path;
 
 		return true;
 	}

@@ -37,6 +37,9 @@ namespace l::hid {
 		}
 		~KeyState() = default;
 
+		std::tuple<char, int32_t> LastKeyPressed();
+		void UpdateKeyPress(int32_t scanCode);
+
 		void UpdateKeyDown(int32_t keyCode);
 		void UpdateKeyUp(int32_t keyCode);
 		bool IsReleased(int32_t keyCode);
@@ -47,6 +50,8 @@ namespace l::hid {
 		void ForEachKeyChange(std::function<void(int32_t, bool, bool)> keyHandler);
 		void ForEachKey(std::function<void(int32_t, KeyPressState&)> keyHandler);
 	protected:
+		int32_t mLastKeyPressed = 0;
+		int32_t mLastKeyDetections = 0;
 		std::unordered_map<int32_t, KeyPressState> mActiveKeys;
 	};
 }
