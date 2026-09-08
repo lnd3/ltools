@@ -398,7 +398,7 @@ namespace l::network {
 			if (res == CURLE_OK) {
 				mWebSocketCanReceiveData = true;
 
-				if (recvMax < 10) {
+				if (recvMax == 0) {
 					// buffer full; caller must drain and call again
 					SetRunningTimeout(30);
 					return -103;
