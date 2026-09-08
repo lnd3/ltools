@@ -118,42 +118,38 @@ namespace l::serialization {
         return v;
     }
 
-    // JsonParserDynamic — same interface as JsonParser<N> but allocates exactly
-    // as many tokens as the JSON requires via a two-pass JSMN call.
-    // Use this for large/variable-size responses where the token count is unknown.
+    // JsonParserDynamic — same interface as JsonParser<N> but grows its token
+    // buffer on demand. Uses grow-and-retry: attempt parse with current capacity,
+    // double on JSMN_ERROR_NOMEM, never guess the count upfront.
+    // The vector is reused across calls; no allocation in steady state once
+    // it has reached the high-water mark.
     class JsonParserDynamic {
     public:
         std::tuple<bool, int32_t> LoadJson(const char* jsondata, size_t size) {
-            mJsondata  = jsondata;
+            mJsondata   = jsondata;
             mTokenCount = 0;
 
-            // Pass 1: count tokens (NULL token buffer → returns needed count or error)
-            jsmn_parser p;
-            jsmn_init(&p);
-            int needed = jsmn_parse(&p, jsondata, size, nullptr, 0);
-            if (needed == JSMN_ERROR_INVAL) {
-                LLOG(LogError) << "JsonParserDynamic: invalid JSON";
-                return { false, JSMN_ERROR_INVAL };
-            }
-            if (needed == JSMN_ERROR_PART) {
-                return { false, JSMN_ERROR_PART };
-            }
-            if (needed <= 0) {
-                return { false, -4 };
-            }
+            if (mTokens.empty()) mTokens.resize(1024);
 
-            // Pass 2: allocate and parse
-            mTokens.resize(static_cast<size_t>(needed));
-            jsmn_init(&mParser);
-            int ret = jsmn_parse(&mParser, jsondata, size, mTokens.data(), needed);
-            if (ret < 0) {
-                mTokens.clear();
-                LLOG(LogError) << "JsonParserDynamic: parse failed on second pass";
-                return { false, ret };
+            for (;;) {
+                jsmn_init(&mParser);
+                int ret = jsmn_parse(&mParser, jsondata, size,
+                                     mTokens.data(), static_cast<unsigned int>(mTokens.size()));
+                if (ret == JSMN_ERROR_NOMEM) {
+                    mTokens.resize(mTokens.size() * 2);
+                    continue;
+                }
+                if (ret == JSMN_ERROR_PART)  return { false, JSMN_ERROR_PART };
+                if (ret == JSMN_ERROR_INVAL) {
+                    LLOG(LogError) << "JsonParserDynamic: invalid JSON";
+                    return { false, JSMN_ERROR_INVAL };
+                }
+                if (ret < 0) return { false, ret };
+
+                mTokenCount = ret;
+                int32_t consumed = (mTokenCount > 0) ? mTokens[0].end : 0;
+                return { true, consumed };
             }
-            mTokenCount = ret;
-            int32_t consumed = (mTokenCount > 0) ? mTokens[0].end : 0;
-            return { true, consumed };
         }
 
         JsonValue GetRoot() {
