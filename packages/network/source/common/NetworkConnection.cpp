@@ -186,6 +186,7 @@ namespace l::network {
 
 		if (IsWebSocket() || multiHandle != nullptr) {
 			mWebSocketHandshakeDone = true;
+			mTimeout = -1; // disable connect-phase timeout; WS connections live until explicitly closed
 			mWebSocketCanReceiveData = true;
 			mWebSocketCanSendData = true;
 			do {
@@ -249,18 +250,12 @@ namespace l::network {
 		return false;
 	}
 
-	bool ConnectionBase::HasExpired() {
-		bool expired = false;
+	bool ConnectionBase::HasExpired() const {
 		if (mOngoingRequest && mTimeout > 0) {
 			auto timeWaitingMs = (l::string::get_unix_epoch_ms() - mStarted) / 1000;
-			expired = timeWaitingMs > mTimeout;
+			return timeWaitingMs > mTimeout;
 		}
-		if (IsWebSocket()) {
-			if (mWebSocketCanSendData && mWebSocketCanReceiveData) {
-				mTimeout = -1;
-			}
-		}
-		return expired;
+		return false;
 	}
 
 	void ConnectionBase::SetRunningTimeout(int32_t secondsFromNow) {
@@ -278,7 +273,7 @@ namespace l::network {
 
 	}
 
-	bool ConnectionBase::IsWebSocket() {
+	bool ConnectionBase::IsWebSocket() const {
 		return mIsWebSocket;
 	}
 

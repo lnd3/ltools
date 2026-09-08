@@ -77,9 +77,9 @@ namespace l::network {
 			const std::string& postBody = "",
 			const std::vector<std::string>& postHeaders = {});
 		bool IsHandle(CURL* handle);
-		bool IsWebSocket();
+		bool IsWebSocket() const;
 		bool IsAlive();
-		bool HasExpired();
+		bool HasExpired() const;
 		void SetRunningTimeout(int32_t secondsFromNow);
 		void ClearRunningTimeout();
 
