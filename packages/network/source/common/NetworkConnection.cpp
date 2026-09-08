@@ -398,19 +398,14 @@ namespace l::network {
 			if (res == CURLE_OK) {
 				mWebSocketCanReceiveData = true;
 
-				if (multiFragmentBit || recvLeft > 0) {
-					continue;
-				}
-				if (recvLeft > recvMax) {
-					// buffer is almost full
-					return static_cast<int32_t>(readTotal);
-				}
 				if (recvMax < 10) {
-					// buffer is full
+					// buffer full; caller must drain and call again
 					SetRunningTimeout(30);
 					return -103;
 				}
-				// or return for handling
+				if (multiFragmentBit || recvLeft > 0) {
+					continue;
+				}
 				return static_cast<int32_t>(readTotal);
 			}
 			else if (res == CURLE_AGAIN) {
