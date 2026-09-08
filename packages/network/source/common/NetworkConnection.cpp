@@ -166,6 +166,12 @@ namespace l::network {
 			if (curlMCode != CURLMcode::CURLM_OK) {
 				LLOG(LogError) << "[Request] Curl failure  " << std::to_string(curlMCode) << ": " << mRequestQueryArgs;
 				mSuccess = false;
+			} else {
+				// Wake the performer thread immediately so it processes this new handle
+				// instead of waiting up to 1 s in curl_multi_poll. Without this, WS
+				// connections appear "connected" (IsAlive) before curl has finished the
+				// HTTP upgrade, and the first send fails with CURLE_SEND_ERROR.
+				curl_multi_wakeup(multiHandle);
 			}
 		}
 		else {

@@ -53,7 +53,7 @@ namespace l::network {
 						} while (m != nullptr && messagesInQueue > 0);
 
 						int numfds;
-						mc = curl_multi_poll(mMultiHandle, NULL, 0, 1000, &numfds);
+						mc = curl_multi_poll(mMultiHandle, NULL, 0, 10, &numfds);
 						if (mc != CURLM_OK) {
 							LLOG(LogError) << "curl_multi_poll failed, code " << mc;
 						}
