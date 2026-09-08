@@ -126,6 +126,7 @@ namespace l::network {
 		bool mWebSocketCanReceiveData = false;
 		bool mWebSocketCanSendData = false;
 		bool mWebSocketAutoConnect = false;
+		std::atomic_bool mWebSocketHandshakeDone{false};
 	};
 
 	template<class T>

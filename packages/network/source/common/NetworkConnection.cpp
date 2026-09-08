@@ -54,6 +54,7 @@ namespace l::network {
 		bool available = false;
 		if (mCompletedRequest && mOngoingRequest.compare_exchange_strong(available, true)) {
 			mCompletedRequest = false;
+			mWebSocketHandshakeDone = false;
 			mStarted = l::string::get_unix_epoch_ms();
 			return true;
 		}
@@ -184,6 +185,7 @@ namespace l::network {
 		}
 
 		if (IsWebSocket() || multiHandle != nullptr) {
+			mWebSocketHandshakeDone = true;
 			mWebSocketCanReceiveData = true;
 			mWebSocketCanSendData = true;
 			do {
@@ -281,6 +283,9 @@ namespace l::network {
 	}
 
 	bool ConnectionBase::IsAlive() {
+		if (mIsWebSocket) {
+			return mOngoingRequest && !HasExpired() && mWebSocketHandshakeDone;
+		}
 		return mOngoingRequest && !HasExpired();
 	}
 
