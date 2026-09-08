@@ -375,6 +375,10 @@ namespace l::network {
 		while (!res) {
 			size_t recv = 0;
 			auto recvMax = size - readTotal;
+			if (recvMax == 0) {
+				SetRunningTimeout(30);
+				return -103;
+			}
 			res = curl_ws_recv(mCurl, buffer + readTotal, recvMax, &recv, &meta);
 			readTotal += recv;
 
@@ -398,11 +402,6 @@ namespace l::network {
 			if (res == CURLE_OK) {
 				mWebSocketCanReceiveData = true;
 
-				if (recvMax == 0) {
-					// buffer full; caller must drain and call again
-					SetRunningTimeout(30);
-					return -103;
-				}
 				if (multiFragmentBit || recvLeft > 0) {
 					continue;
 				}
