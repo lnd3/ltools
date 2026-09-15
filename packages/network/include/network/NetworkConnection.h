@@ -235,8 +235,9 @@ namespace l::network {
 				return mResponse.str();
 			} else if constexpr (std::is_base_of_v<std::vector<unsigned char>, T>) {
 				return std::string(reinterpret_cast<const char*>(mResponse.data()), mResponseSize);
+			} else {
+				return {};
 			}
-			return {};
 		}
 
 	protected:
