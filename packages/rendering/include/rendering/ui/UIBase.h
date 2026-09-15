@@ -13,6 +13,7 @@ namespace l::ui {
         virtual ~UIBase() = default;
 
         virtual void Open() = 0;
+        virtual void Close() {}   // default no-op; override to hide
         virtual void Show() = 0;
         virtual bool IsShowing() = 0;
         virtual void Update(double, float) {}
