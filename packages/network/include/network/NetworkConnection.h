@@ -104,6 +104,7 @@ namespace l::network {
 		virtual void SetResponseSize(int32_t expectedResponseSize) = 0;
 		virtual void SetResponseData(const char* contents, size_t size) = 0;
 		virtual l::concurrency::RunnableResult CallHandler() = 0;
+		virtual std::string GetResponseBody() const { return {}; }
 
 	protected:
 		CURL* mCurl = nullptr;
@@ -227,6 +228,15 @@ namespace l::network {
 
 		T& GetResponse() {
 			return mResponse;
+		}
+
+		std::string GetResponseBody() const override {
+			if constexpr (std::is_base_of_v<std::stringstream, T>) {
+				return mResponse.str();
+			} else if constexpr (std::is_base_of_v<std::vector<unsigned char>, T>) {
+				return std::string(reinterpret_cast<const char*>(mResponse.data()), mResponseSize);
+			}
+			return {};
 		}
 
 	protected:

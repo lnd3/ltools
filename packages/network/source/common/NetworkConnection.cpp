@@ -214,7 +214,8 @@ namespace l::network {
 		}
 
 		if (cb) {
-			cb(result == l::concurrency::RunnableResult::SUCCESS, mRequestQueryArgs);
+			std::string body = GetResponseBody();
+			cb(result == l::concurrency::RunnableResult::SUCCESS, body);
 		}
 
 		if (headerList) {
