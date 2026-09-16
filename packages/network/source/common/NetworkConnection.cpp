@@ -454,10 +454,12 @@ namespace l::network {
 		if (HasExpired()) {
 			mWebSocketCanSendData = false;
 			LLOG(LogWarning) << "[Websocket] Failed close, connection expired";
+			return;
 		}
 		if (mCurl == nullptr) {
 			mWebSocketCanSendData = false;
 			LLOG(LogWarning) << "[Websocket] Failed close, no curl instance";
+			return;
 		}
 
 		ASSERT(mOngoingRequest);
