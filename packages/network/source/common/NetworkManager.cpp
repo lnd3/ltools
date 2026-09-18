@@ -152,17 +152,21 @@ namespace l::network {
 				&cmPostedRequests = mPostedRequests
 			](const l::concurrency::RunState& state) {
 				std::unique_lock lock(cmConnectionsMutex);
-				auto it = std::find_if(cmConnections.begin(), cmConnections.end(), [&](std::unique_ptr<ConnectionBase>& request) {
-					if (cqueryName == request->GetRequestName() && request->TryReservingRequest()) {
-						return true;
-					}
-					return false;
-					});
 
-				if (it == cmConnections.end()) {
+				// First check: does a slot with this name exist at all?
+				auto nameIt = std::find_if(cmConnections.begin(), cmConnections.end(), [&](std::unique_ptr<ConnectionBase>& req) {
+					return cqueryName == req->GetRequestName();
+					});
+				if (nameIt == cmConnections.end()) {
+					// No slot registered — not a transient condition; stop retrying.
+					return l::concurrency::RunnableResult::FAILURE;
+				}
+
+				// Slot exists; try to reserve it (may be busy with a prior request).
+				if (!(*nameIt)->TryReservingRequest()) {
 					return l::concurrency::RunnableResult::REQUEUE_DELAYED;
 				}
-				auto request = it->get();
+				auto request = nameIt->get();
 				lock.unlock();
 
 				auto result = request->SendAndUnReserveRequest(cmMultiHandle, state, cqueryArguments, cquery,

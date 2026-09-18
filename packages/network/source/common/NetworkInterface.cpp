@@ -93,10 +93,20 @@ namespace l::network {
 			return false;
 		}
 
+		// Lazily register a connection slot for this endpoint on first use.
+		// PostQuery searches mConnections by name (endpointPath), so a slot must
+		// exist before the first PostQuery call or the job retries forever.
+		auto endpointKey = std::string(endpointPath);
+		if (!mJsonConnections.count(endpointKey)) {
+			mJsonConnections.insert(endpointKey);
+			networkManager->CreateRequest(
+				std::make_unique<RequestStringStream>(endpointPath, query, expectedResponseSize, nullptr, timeOut));
+		}
+
 		// Use the endpoint path as the query name so the connection pool
 		// can be keyed per-endpoint (/exchange vs /info)
 		return networkManager->PostQuery(
-			endpointPath,   // queryName (matches pre-created connection slot)
+			endpointPath,   // queryName (matches registered connection slot)
 			"",             // queryArguments (unused for POST)
 			1,              // maxTries
 			query,          // full URL

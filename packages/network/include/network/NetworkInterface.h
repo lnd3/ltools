@@ -7,6 +7,7 @@
 #include <memory>
 #include <filesystem>
 #include <map>
+#include <set>
 #include <functional>
 
 namespace l::network {
@@ -90,6 +91,7 @@ namespace l::network {
 
 		std::weak_ptr<l::network::NetworkManager> mNetworkManager;
 		std::map<std::string, HostInfo> mInterfaces;
+		std::set<std::string> mJsonConnections; // endpoint paths with a registered connection slot
 	};
 
 	std::shared_ptr<NetworkInterface> CreateNetworkInterface(std::weak_ptr<l::network::NetworkManager> networkManager);
