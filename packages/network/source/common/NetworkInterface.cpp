@@ -2,7 +2,16 @@
 
 #include "logging/String.h"
 
+#include <curl/curl.h>
 #include <memory>
+#include <thread>
+
+namespace {
+	static size_t PostOnceWriteCb(char* data, size_t size, size_t nmemb, std::string* s) {
+		s->append(data, size * nmemb);
+		return size * nmemb;
+	}
+}
 
 namespace l::network {
 
@@ -97,6 +106,34 @@ namespace l::network {
 			jsonBody,
 			{}
 		);
+	}
+
+	void NetworkInterface::PostOnce(std::string url, std::string jsonBody,
+		std::function<void(bool, std::string_view)> cb) {
+		std::thread([url = std::move(url), body = std::move(jsonBody), cb = std::move(cb)]() {
+			CURL* curl = curl_easy_init();
+			if (!curl) {
+				if (cb) cb(false, "curl_easy_init failed");
+				return;
+			}
+			std::string response;
+			struct curl_slist* headers = nullptr;
+			headers = curl_slist_append(headers, "Content-Type: application/json");
+			curl_easy_setopt(curl, CURLOPT_URL,            url.c_str());
+			curl_easy_setopt(curl, CURLOPT_POST,           1L);
+			curl_easy_setopt(curl, CURLOPT_POSTFIELDS,     body.c_str());
+			curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE,  static_cast<long>(body.size()));
+			curl_easy_setopt(curl, CURLOPT_HTTPHEADER,     headers);
+			curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,  PostOnceWriteCb);
+			curl_easy_setopt(curl, CURLOPT_WRITEDATA,      &response);
+			curl_easy_setopt(curl, CURLOPT_TIMEOUT,        30L);
+			curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+			curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+			CURLcode res = curl_easy_perform(curl);
+			curl_slist_free_all(headers);
+			curl_easy_cleanup(curl);
+			if (cb) cb(res == CURLE_OK, response);
+		}).detach();
 	}
 
 	bool NetworkInterface::NetworkStatus(std::string_view interfaceName) {
