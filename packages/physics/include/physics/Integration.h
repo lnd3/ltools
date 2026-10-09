@@ -551,9 +551,15 @@ namespace physics {
 				}
 
 
-				// move to symmetric position
-				auto p0Change = dp0Next * tMidpoint;
-				auto p1Change = dp1Next * tMidpoint;
+				// move to symmetric position. dp0Next/dp1Next were
+				// already scaled by tMidpoint above (line ~538) - this
+				// used to multiply by tMidpoint a second time here,
+				// giving tMidpoint^2 instead of tMidpoint. Fixed per
+				// superplan's T016 investigation (NBodyStabilityTests.cpp),
+				// which found and verified this against a from-scratch
+				// reimplementation before reporting it as a real bug.
+				auto p0Change = dp0Next;
+				auto p1Change = dp1Next;
 
 				auto v0dtChange = -p0Change * dt * 0.0;
 				auto v1dtChange = -p1Change * dt * 0.0;
