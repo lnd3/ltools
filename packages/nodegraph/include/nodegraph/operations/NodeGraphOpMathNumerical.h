@@ -22,15 +22,37 @@ namespace l::nodegraph {
     class MathNumericalIntegral : public NodeGraphOp {
     public:
         MathNumericalIntegral(NodeGraphBase* node) :
-            NodeGraphOp(node, "Integral")
+            NodeGraphOp(node, "Integral1")
         {
             AddInput2("x");
             AddInput("Friction", 1.0f, 1, 0.0f, 1.0f);
-            AddInput2("Reset Toggle");
             AddOutput2("Intgr(x)");
         }
 
         virtual ~MathNumericalIntegral() = default;
+        virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
+        virtual void Reset() override {
+            mOutput = 0.0f;
+        }
+    protected:
+        int32_t mReadSamples = 0;
+
+        float mOutput = 0.0f;
+    };
+
+    class MathNumericalIntegral2 : public NodeGraphOp {
+    public:
+        MathNumericalIntegral2(NodeGraphBase* node) :
+            NodeGraphOp(node, "Integral2")
+        {
+            AddInput2("x");
+            AddInput("Friction", 1.0f, 1, 0.0f, 1.0f);
+            AddInput2("Reset Toggle");
+            AddInput("DeadZone", 1.0f, 1, 0.0f, l::math::constants::FLTMAX);
+            AddOutput2("Intgr(x)");
+        }
+
+        virtual ~MathNumericalIntegral2() = default;
         virtual void Process(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) override;
         virtual void Reset() override {
             mOutput = 0.0f;

@@ -79,6 +79,16 @@ namespace l::ui {
         void SetRemoveHandler(std::function<void(int32_t)> handler) {
             mRemoveHandler = handler;
         }
+
+        bool HasSelection() const {
+            return !mSelectedContainers.empty();
+        }
+        void GetSelectedNodeIds(std::vector<int32_t>& out) const {
+            out.clear();
+            for (auto* c : mSelectedContainers) {
+                out.push_back(c->GetNodeId());
+            }
+        }
     protected:
         std::unordered_set<UIContainer*> mSelectedContainers;
         UIManager& mUIManager;

@@ -24,6 +24,7 @@
 
 #include <string>
 #include <vector>
+#include <array>
 #include <map>
 #include <typeinfo>
 #include <type_traits>
@@ -38,6 +39,17 @@ namespace l::audio { class AudioStream; }
 namespace l::hid::midi { class MidiManager; }
 
 namespace l::nodegraph {
+
+    // A logical group is a named, color-coded annotation over a set of nodes.
+    // It is pure metadata — no processing involvement, nodes remain flat in mMainNodeGraph.
+    struct NodeLogicalGroup {
+        int32_t              mId = 0;
+        std::string          mName;
+        std::array<float, 4> mColor = {0.27f, 0.53f, 1.0f, 1.0f}; // RGBA
+        std::vector<int32_t> mNodeIds;   // member node IDs
+        float mLabelX = 0.0f;            // custom label position (0 = auto)
+        float mLabelY = 0.0f;
+    };
 
     class TreeMenuNode {
     public:
@@ -124,6 +136,8 @@ namespace l::nodegraph {
 #endif
             mRegisteredNodeTypes = std::move(other.mRegisteredNodeTypes);
             mPickerRootMenu = mPickerRootMenu;
+            mLogicalGroups = std::move(other.mLogicalGroups);
+            mNextGroupId = other.mNextGroupId;
             return *this;
         }
 
@@ -184,6 +198,12 @@ namespace l::nodegraph {
         void SetMidiManager(l::hid::midi::MidiManager* midiManager);
 #endif
 
+        // Logical groups — named visual annotations over sets of nodes
+        NodeLogicalGroup&              AddLogicalGroup(std::string name);
+        void                           RemoveLogicalGroup(int32_t id);
+        NodeLogicalGroup*              GetLogicalGroup(int32_t id);
+        std::vector<NodeLogicalGroup>& GetLogicalGroups();
+
         int32_t NewNode(int32_t typeId, int32_t id = -1);
         bool RemoveNode(int32_t id);
         NodeGraphBase* GetNode(int32_t id);
@@ -228,6 +248,9 @@ namespace l::nodegraph {
         l::hid::KeyState* mKeyState = nullptr;
         l::audio::AudioStream* mAudioOutput = nullptr;
         l::hid::midi::MidiManager* mMidiManager = nullptr;
+
+        std::vector<NodeLogicalGroup> mLogicalGroups;
+        int32_t mNextGroupId = 1;
 
         std::map<std::string, std::vector<UINodeDesc>> mRegisteredNodeTypes;
         TreeMenuNode mPickerRootMenu;

@@ -42,6 +42,17 @@ namespace l::ui {
         void SetEventListener(std::function<void(const NodeEvent& event)> cb);
 
         l::nodegraph::NodeGraphSchema* GetNGSchema();
+
+        // Add a single schema node + its links to the editor UI (for incremental import)
+        void AddSchemaNodeToUI(int32_t nodeId);
+        void AddSchemaLinksToUI(int32_t nodeId);
+        // Expose current selection node IDs
+        void GetSelectedNodeIds(std::vector<int32_t>& out);
+        // Callback invoked when "Save as Module..." is chosen from the group context menu.
+        // Parameters: groupId (for identifying the group), name (module file name without extension).
+        void SetSaveGroupAsModuleCallback(std::function<void(int32_t, const std::string&)> cb) {
+            mSaveGroupAsModuleCallback = std::move(cb);
+        }
     protected:
         UIManager mUIManager;
         UIHandle mUIRoot;
@@ -61,6 +72,13 @@ namespace l::ui {
 
         std::vector<std::function<void(const NodeEvent&)>> mEventListeners;
         std::function<void(UINodeEditor&)> mOverlayContentWindow = nullptr;
+
+        int32_t mDraggingGroupId = -1;
+        int32_t mPopupHoveredGroupId = -1;
+        std::vector<int32_t> mPopupSelectedIds;
+        std::function<void(int32_t, const std::string&)> mSaveGroupAsModuleCallback;
+
+        bool UpdateGroupDrag();
 
         //l::string::string_buffer<20> mPickerSearch;
     };

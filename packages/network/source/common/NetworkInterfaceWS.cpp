@@ -103,6 +103,7 @@ namespace l::network {
 						}
 						else {
 							LLOG(LogWarning) << "Failed to write to: " << interfaceName << " : error: " << written;
+							break;  // recv buffer may be full; retry next tick
 						}
 						maxQueued--;
 					}

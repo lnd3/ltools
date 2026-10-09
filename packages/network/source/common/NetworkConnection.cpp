@@ -54,6 +54,7 @@ namespace l::network {
 		bool available = false;
 		if (mCompletedRequest && mOngoingRequest.compare_exchange_strong(available, true)) {
 			mCompletedRequest = false;
+			mWebSocketHandshakeDone = false;
 			mStarted = l::string::get_unix_epoch_ms();
 			return true;
 		}
@@ -67,7 +68,9 @@ namespace l::network {
 		const std::string& query,
 		int32_t expectedResponseSize,
 		int32_t timeOut,
-		std::function<void(bool, std::string_view)> cb
+		std::function<void(bool, std::string_view)> cb,
+		const std::string& postBody,
+		const std::vector<std::string>& postHeaders
 	) {
 		ASSERT(mOngoingRequest) << "[Request] Request has not been reserved for usage";
 		ASSERT(!mCompletedRequest);
@@ -79,9 +82,11 @@ namespace l::network {
 
 		if (!mCurl) {
 			mCurl = curl_easy_init();
-		}
-		if (!mCurl) {
-			return l::concurrency::RunnableResult::FAILURE;
+			if (!mCurl) {
+				LLOG(LogError) << "[Request] Failed to initialize curl handle";
+				mOngoingRequest = false;
+				return l::concurrency::RunnableResult::FAILURE;
+			}
 		}
 
 		Progress progress{};
@@ -132,6 +137,23 @@ namespace l::network {
 
 		curl_easy_setopt(mCurl, CURLOPT_BUFFERSIZE, mDefaultResponseSize);
 
+		// POST body support
+		struct curl_slist* headerList = nullptr;
+		if (!postBody.empty()) {
+			curl_easy_setopt(mCurl, CURLOPT_POST, 1L);
+			curl_easy_setopt(mCurl, CURLOPT_POSTFIELDS, postBody.c_str());
+			curl_easy_setopt(mCurl, CURLOPT_POSTFIELDSIZE, static_cast<long>(postBody.size()));
+			headerList = curl_slist_append(headerList, "Content-Type: application/json");
+			for (const auto& h : postHeaders) {
+				headerList = curl_slist_append(headerList, h.c_str());
+			}
+			if (headerList) {
+				curl_easy_setopt(mCurl, CURLOPT_HTTPHEADER, headerList);
+			}
+		} else {
+			curl_easy_setopt(mCurl, CURLOPT_HTTPGET, 1L);
+		}
+
 		mStarted = l::string::get_unix_epoch_ms();
 		mSuccess = true;
 
@@ -145,6 +167,12 @@ namespace l::network {
 			if (curlMCode != CURLMcode::CURLM_OK) {
 				LLOG(LogError) << "[Request] Curl failure  " << std::to_string(curlMCode) << ": " << mRequestQueryArgs;
 				mSuccess = false;
+			} else {
+				// Wake the performer thread immediately so it processes this new handle
+				// instead of waiting up to 1 s in curl_multi_poll. Without this, WS
+				// connections appear "connected" (IsAlive) before curl has finished the
+				// HTTP upgrade, and the first send fails with CURLE_SEND_ERROR.
+				curl_multi_wakeup(multiHandle);
 			}
 		}
 		else {
@@ -157,6 +185,8 @@ namespace l::network {
 		}
 
 		if (IsWebSocket() || multiHandle != nullptr) {
+			mWebSocketHandshakeDone = true;
+			mTimeout = -1; // disable connect-phase timeout; WS connections live until explicitly closed
 			mWebSocketCanReceiveData = true;
 			mWebSocketCanSendData = true;
 			do {
@@ -184,7 +214,12 @@ namespace l::network {
 		}
 
 		if (cb) {
-			cb(result == l::concurrency::RunnableResult::SUCCESS, mRequestQueryArgs);
+			std::string body = GetResponseBody();
+			cb(result == l::concurrency::RunnableResult::SUCCESS, body);
+		}
+
+		if (headerList) {
+			curl_slist_free_all(headerList);
 		}
 
 		if (multiHandle != nullptr) {
@@ -203,7 +238,7 @@ namespace l::network {
 
 	void ConnectionBase::NotifyCompleteRequest(bool success) {
 		bool completed = false;
-		if (mOngoingRequest && mCompletedRequest.compare_exchange_strong(completed, true)) {
+		if (mCompletedRequest.compare_exchange_strong(completed, true)) {
 			mSuccess = success;
 			return;
 		}
@@ -216,24 +251,18 @@ namespace l::network {
 		return false;
 	}
 
-	bool ConnectionBase::HasExpired() {
-		bool expired = false;
+	bool ConnectionBase::HasExpired() const {
 		if (mOngoingRequest && mTimeout > 0) {
-			auto timeWaitingMs = static_cast<int32_t>(l::string::get_unix_epoch_ms() - mStarted) / 1000;
-			expired = timeWaitingMs > mTimeout;
+			auto timeWaitingMs = (l::string::get_unix_epoch_ms() - mStarted) / 1000;
+			return timeWaitingMs > mTimeout;
 		}
-		if (IsWebSocket()) {
-			if (mWebSocketCanSendData && mWebSocketCanReceiveData) {
-				mTimeout = -1;
-			}
-		}
-		return expired;
+		return false;
 	}
 
 	void ConnectionBase::SetRunningTimeout(int32_t secondsFromNow) {
 		if (mTimeout <= 0) {
 			auto elapsed = static_cast<int32_t>((l::string::get_unix_epoch_ms() - mStarted) / 1000);
-			mTimeout = elapsed + secondsFromNow;
+			mTimeout = static_cast<int32_t>(elapsed + secondsFromNow);
 		}
 	}
 
@@ -245,11 +274,14 @@ namespace l::network {
 
 	}
 
-	bool ConnectionBase::IsWebSocket() {
+	bool ConnectionBase::IsWebSocket() const {
 		return mIsWebSocket;
 	}
 
 	bool ConnectionBase::IsAlive() {
+		if (mIsWebSocket) {
+			return mOngoingRequest && !HasExpired() && mWebSocketHandshakeDone;
+		}
 		return mOngoingRequest && !HasExpired();
 	}
 
@@ -292,6 +324,11 @@ namespace l::network {
 			mWebSocketCanSendData = false;
 			LLOG(LogWarning) << "[Websocket] Failed write, no curl instance";
 			return -102;
+		}
+		if (buffer == nullptr || size == 0) {
+			mWebSocketCanSendData = false;
+			LLOG(LogWarning) << "[Websocket] Failed write, invalid buffer or size";
+			return -103;
 		}
 		size_t sentBytes = 0;
 		auto res = curl_ws_send(mCurl, buffer, size, &sentBytes, 0, CURLWS_TEXT);
@@ -339,24 +376,30 @@ namespace l::network {
 		while (!res) {
 			size_t recv = 0;
 			auto recvMax = size - readTotal;
+			if (recvMax == 0) {
+				if (readTotal > 0) return static_cast<int32_t>(readTotal); // caller's buffer full; data is valid
+				SetRunningTimeout(30);
+				return -103; // no space and nothing written — shouldn't happen with correct buffer sizing
+			}
 			res = curl_ws_recv(mCurl, buffer + readTotal, recvMax, &recv, &meta);
-			readTotal += recv;
 
 			bool multiFragmentBit = false;
 			size_t recvLeft = 0;
+			bool isControlFrame = false;
 
 			if (meta) {
 				multiFragmentBit = (meta->flags & CURLWS_CONT) == CURLWS_CONT;
 				recvLeft = static_cast<size_t>(meta->bytesleft);
+				isControlFrame = (meta->flags & (CURLWS_PING | CURLWS_PONG | CURLWS_CLOSE)) != 0;
 
-				if (meta->flags & CURLWS_PONG) {
-					LLOG(LogInfo) << "[WebSocket] Received PONG: ";
-				}
-				else if (meta->flags & CURLWS_PING) {
-					LLOG(LogInfo) << "[WebSocket] Received PING: ";
-				}
-				//else if (meta->flags & CURLWS_TEXT) {
-				//}
+				if (meta->flags & CURLWS_PONG)       { LLOG(LogDebug) << "[WebSocket] Received PONG"; }
+				else if (meta->flags & CURLWS_PING)  { LLOG(LogDebug) << "[WebSocket] Received PING"; }
+				else if (meta->flags & CURLWS_CLOSE) { LLOG(LogDebug) << "[WebSocket] Received CLOSE"; }
+			}
+
+			// Only accumulate payload bytes from data frames; discard control frame payloads.
+			if (!isControlFrame) {
+				readTotal += recv;
 			}
 
 			if (res == CURLE_OK) {
@@ -365,16 +408,6 @@ namespace l::network {
 				if (multiFragmentBit || recvLeft > 0) {
 					continue;
 				}
-				if (recvLeft > recvMax) {
-					// buffer is almost full
-					return static_cast<int32_t>(readTotal);
-				}
-				if (recvMax < 10) {
-					// buffer is full
-					SetRunningTimeout(30);
-					return -103;
-				}
-				// or return for handling
 				return static_cast<int32_t>(readTotal);
 			}
 			else if (res == CURLE_AGAIN) {
@@ -421,10 +454,12 @@ namespace l::network {
 		if (HasExpired()) {
 			mWebSocketCanSendData = false;
 			LLOG(LogWarning) << "[Websocket] Failed close, connection expired";
+			return;
 		}
 		if (mCurl == nullptr) {
 			mWebSocketCanSendData = false;
 			LLOG(LogWarning) << "[Websocket] Failed close, no curl instance";
+			return;
 		}
 
 		ASSERT(mOngoingRequest);

@@ -9,6 +9,7 @@
 #include <string_view>
 #include <cassert>
 #include <cstdlib>
+#include <vector>
 
 namespace l::serialization {
 
@@ -117,6 +118,51 @@ namespace l::serialization {
         return v;
     }
 
+    // JsonParserDynamic — same interface as JsonParser<N> but grows its token
+    // buffer on demand. Uses grow-and-retry: attempt parse with current capacity,
+    // double on JSMN_ERROR_NOMEM, never guess the count upfront.
+    // The vector is reused across calls; no allocation in steady state once
+    // it has reached the high-water mark.
+    class JsonParserDynamic {
+    public:
+        std::tuple<bool, int32_t> LoadJson(const char* jsondata, size_t size) {
+            mJsondata   = jsondata;
+            mTokenCount = 0;
+
+            if (mTokens.empty()) mTokens.resize(1024);
+
+            for (;;) {
+                jsmn_init(&mParser);
+                int ret = jsmn_parse(&mParser, jsondata, size,
+                                     mTokens.data(), static_cast<unsigned int>(mTokens.size()));
+                if (ret == JSMN_ERROR_NOMEM) {
+                    mTokens.resize(mTokens.size() * 2);
+                    continue;
+                }
+                if (ret == JSMN_ERROR_PART)  return { false, JSMN_ERROR_PART };
+                if (ret == JSMN_ERROR_INVAL) {
+                    LLOG(LogError) << "JsonParserDynamic: invalid JSON";
+                    return { false, JSMN_ERROR_INVAL };
+                }
+                if (ret < 0) return { false, ret };
+
+                mTokenCount = ret;
+                int32_t consumed = (mTokenCount > 0) ? mTokens[0].end : 0;
+                return { true, consumed };
+            }
+        }
+
+        JsonValue GetRoot() {
+            return JsonValue(mJsondata, mTokens.data(), mTokenCount);
+        }
+
+    private:
+        const char* mJsondata = nullptr;
+        jsmn_parser mParser{};
+        int32_t     mTokenCount = 0;
+        std::vector<jsmntok_t> mTokens;
+    };
+
     template<int32_t MaxTokens = 1000>
     class JsonParser {
     public:
@@ -124,6 +170,10 @@ namespace l::serialization {
             mParser.pos = 0;
             mParser.toknext = 0;
             mParser.toksuper = 0;
+            Clear();
+        }
+
+        void Clear() {
             for (int32_t i = 0; i < MaxTokens; i++) {
                 mTokens[i].end = 0;
                 mTokens[i].size = 0;
@@ -164,7 +214,8 @@ namespace l::serialization {
             else {
                 mTokenCount = ret;
             }
-            return { true, 0 };
+            int32_t consumed = (mTokenCount > 0) ? mTokens[0].end : 0;
+            return { true, consumed };
         }
 
         JsonValue GetRoot() {

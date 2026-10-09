@@ -30,6 +30,25 @@
 ## Coding Patterns
 As required by `bs`, packages have a certain layout: `${package_name}/[include/${package_name}/|source/common|tests/common|]`.
 
+### Math utilities — prefer ltools over std
+- **`l::math::max2(a, b)` / `l::math::min2(a, b)`** instead of `std::max` / `std::min`.
+  These are the project-standard alternatives and avoid ambiguity issues with MSVC and
+  Windows headers that define `max`/`min` macros. Always use these in code that touches
+  ltools or TradeFlow; do not use `std::max` / `std::min`.
+- **`l::math::clamp(v, lo, hi)`** instead of `std::clamp`.
+- Header: `math/MathAlgorithm.h` (or included transitively via most ltools headers).
+
+### Test macros
+All `TEST_*` assertion macros require a trailing `msg` string argument:
+```cpp
+TEST_EQ(a, b, "");
+TEST_FUZZY(a, b, tolerance, "");
+TEST_TRUE(expr, "");
+TEST_FALSE(expr, "");
+```
+Pass `""` when no specific message is needed. Omitting `msg` is a compile
+error on MSVC (too few arguments). Never omit it even for one-liners.
+
 ### Node graph
 - Base class: `NodeGraphOp` in `packages/nodegraph/include/nodegraph/core/NodeGraphBase.h`
 - Cached base class: `NodeGraphOpCached` — adds `ProcessWriteCached()` and `ProcessReadCached()` for buffered processing

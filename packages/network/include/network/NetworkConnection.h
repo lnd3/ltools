@@ -73,11 +73,13 @@ namespace l::network {
 			const std::string& query,
 			const int32_t expectedResponseSize = 0,
 			const int32_t timeOut = -1,
-			std::function<void(bool, std::string_view)> cb = nullptr);
+			std::function<void(bool, std::string_view)> cb = nullptr,
+			const std::string& postBody = "",
+			const std::vector<std::string>& postHeaders = {});
 		bool IsHandle(CURL* handle);
-		bool IsWebSocket();
+		bool IsWebSocket() const;
 		bool IsAlive();
-		bool HasExpired();
+		bool HasExpired() const;
 		void SetRunningTimeout(int32_t secondsFromNow);
 		void ClearRunningTimeout();
 
@@ -102,6 +104,7 @@ namespace l::network {
 		virtual void SetResponseSize(int32_t expectedResponseSize) = 0;
 		virtual void SetResponseData(const char* contents, size_t size) = 0;
 		virtual l::concurrency::RunnableResult CallHandler() = 0;
+		virtual std::string GetResponseBody() const { return {}; }
 
 	protected:
 		CURL* mCurl = nullptr;
@@ -124,6 +127,7 @@ namespace l::network {
 		bool mWebSocketCanReceiveData = false;
 		bool mWebSocketCanSendData = false;
 		bool mWebSocketAutoConnect = false;
+		std::atomic_bool mWebSocketHandshakeDone{false};
 	};
 
 	template<class T>
@@ -224,6 +228,16 @@ namespace l::network {
 
 		T& GetResponse() {
 			return mResponse;
+		}
+
+		std::string GetResponseBody() const override {
+			if constexpr (std::is_base_of_v<std::stringstream, T>) {
+				return mResponse.str();
+			} else if constexpr (std::is_base_of_v<std::vector<unsigned char>, T>) {
+				return std::string(reinterpret_cast<const char*>(mResponse.data()), mResponseSize);
+			} else {
+				return {};
+			}
 		}
 
 	protected:

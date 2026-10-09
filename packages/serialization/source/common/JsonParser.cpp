@@ -135,7 +135,7 @@ namespace l::serialization {
     }
 
     JsonValue JsonValue::operator[](int index) const {
-        assert(type() == JSMN_ARRAY);
+        assert(type() & JSMN_ARRAY);
         if (index < 0 || index >= size()) return {};
 
         const jsmntok_t* current = mTokens + 1;

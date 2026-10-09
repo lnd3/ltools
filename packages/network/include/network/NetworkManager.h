@@ -40,12 +40,14 @@ namespace l::network {
 
 		bool CreateRequest(std::unique_ptr<ConnectionBase> request);
 		bool PostQuery(std::string_view queryName,
-			std::string_view queryArguments, 
-			int32_t maxTries = 3, 
+			std::string_view queryArguments,
+			int32_t maxTries = 3,
 			std::string_view query = "",
 			int32_t expectedResponseSize = 0,
 			int32_t timeOut = -1,
-			std::function<void(bool, std::string_view)> cb = nullptr);
+			std::function<void(bool, std::string_view)> cb = nullptr,
+			std::string_view postBody = "",
+			std::vector<std::string> postHeaders = {});
 
 		void WSClose(std::string_view queryName = "");
 		int32_t WSKeepalive(std::string_view queryName);

@@ -53,7 +53,7 @@ namespace l::network {
 						} while (m != nullptr && messagesInQueue > 0);
 
 						int numfds;
-						mc = curl_multi_poll(mMultiHandle, NULL, 0, 1000, &numfds);
+						mc = curl_multi_poll(mMultiHandle, NULL, 0, 10, &numfds);
 						if (mc != CURLM_OK) {
 							LLOG(LogError) << "curl_multi_poll failed, code " << mc;
 						}
@@ -125,12 +125,14 @@ namespace l::network {
 	}
 
 	bool NetworkManager::PostQuery(std::string_view queryName,
-		std::string_view queryArguments, 
-		int32_t maxTries, 
-		std::string_view query, 
+		std::string_view queryArguments,
+		int32_t maxTries,
+		std::string_view query,
 		int32_t expectedResponseSize,
 		int32_t timeOut,
-		std::function<void(bool, std::string_view)> cb) {
+		std::function<void(bool, std::string_view)> cb,
+		std::string_view postBody,
+		std::vector<std::string> postHeaders) {
 		if (!mJobManager) {
 			return false;
 		}
@@ -142,26 +144,33 @@ namespace l::network {
 				cexpectedResponseSize = expectedResponseSize,
 				ctimeOut = timeOut,
 				ccallback = cb,
+				cpostBody = std::string(postBody),
+				cpostHeaders = std::move(postHeaders),
 				&cmConnectionsMutex = mConnectionsMutex,
 				&cmConnections = mConnections,
 				&cmMultiHandle = mMultiHandle,
 				&cmPostedRequests = mPostedRequests
 			](const l::concurrency::RunState& state) {
 				std::unique_lock lock(cmConnectionsMutex);
-				auto it = std::find_if(cmConnections.begin(), cmConnections.end(), [&](std::unique_ptr<ConnectionBase>& request) {
-					if (cqueryName == request->GetRequestName() && request->TryReservingRequest()) {
-						return true;
-					}
-					return false;
-					});
 
-				if (it == cmConnections.end()) {
+				// First check: does a slot with this name exist at all?
+				auto nameIt = std::find_if(cmConnections.begin(), cmConnections.end(), [&](std::unique_ptr<ConnectionBase>& req) {
+					return cqueryName == req->GetRequestName();
+					});
+				if (nameIt == cmConnections.end()) {
+					// No slot registered — not a transient condition; stop retrying.
+					return l::concurrency::RunnableResult::FAILURE;
+				}
+
+				// Slot exists; try to reserve it (may be busy with a prior request).
+				if (!(*nameIt)->TryReservingRequest()) {
 					return l::concurrency::RunnableResult::REQUEUE_DELAYED;
 				}
-				auto request = it->get();
+				auto request = nameIt->get();
 				lock.unlock();
 
-				auto result = request->SendAndUnReserveRequest(cmMultiHandle, state, cqueryArguments, cquery, cexpectedResponseSize, ctimeOut, ccallback);
+				auto result = request->SendAndUnReserveRequest(cmMultiHandle, state, cqueryArguments, cquery,
+					cexpectedResponseSize, ctimeOut, ccallback, cpostBody, cpostHeaders);
 				if (result != l::concurrency::RunnableResult::SUCCESS) {
 					cmPostedRequests++;
 				}
