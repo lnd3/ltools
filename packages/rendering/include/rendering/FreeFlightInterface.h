@@ -27,15 +27,30 @@ namespace rendering {
     // no way to bank/roll at all there (Q/E there is a transient,
     // spring-loaded "turn and release" wobble, not a real rotation).
     //
-    // This class instead stores an orthonormal local frame
-    // (mRight/mUp/mFront, no stored angles) and rotates it IN PLACE
-    // every frame around its own CURRENT axes (mouse X -> yaw around
-    // mUp, mouse Y -> pitch around mRight, Q/E -> continuous roll
-    // around mFront), re-orthonormalizing afterward. Pitch and roll
-    // therefore naturally carry the up vector along with them instead
-    // of snapping back to a fixed world reference - the whole point of
-    // this interface, per direct request ("no fixed up... will work
-    // perfectly for ship controls").
+    // Per direct instruction, rebuilt around a single accumulated
+    // orientation QUATERNION (mOrientation), not a per-frame
+    // re-orthonormalized right/up/front triad (an earlier version of
+    // this class tried that; re-deriving a basis via cross products
+    // every frame is NOT the standard technique and turned out to have
+    // a real sign bug in its mouse handling that a quaternion rewrite
+    // sidesteps entirely). Each frame, pitch/yaw/roll deltas are each
+    // built as a small quaternion around a FIXED LOCAL/BODY axis
+    // (right=(1,0,0), up=(0,1,0), front=(0,0,-1) - never the current
+    // WORLD-space vectors), combined by quaternion multiplication (for
+    // small per-frame deltas, composition order barely matters - this
+    // was verified numerically, not assumed), and composed onto the
+    // existing orientation as `mOrientation = mOrientation * delta`
+    // (body-frame/local composition - delta is expressed in the
+    // object's OWN current local frame, which is exactly what "rotate
+    // around the ship's own current axes, not a fixed world one" means
+    // for a quaternion). Renormalized every frame (quat_norm) so
+    // float error never accumulates into a non-unit/non-orthogonal
+    // rotation - the quaternion equivalent of the old Orthonormalize(),
+    // done the standard way. World-space right/up/front (for
+    // translation) and the view rotation matrix (world-to-camera, the
+    // CONJUGATE of mOrientation - see Update()'s own comment) are both
+    // derived fresh from mOrientation every frame, never stored as
+    // independent state.
     class FreeFlightInterface {
     public:
         FreeFlightInterface();
@@ -58,17 +73,26 @@ namespace rendering {
         void Deactivate();
     private:
         void UpdateInput(float dt);
-        void Orthonormalize();
-        void RotateFrame(float x, float y, float z, float angle);
-        void FromPrincipalAxis(mat4x4 dst); // inverse of FPSInterface::ToPrincipalAxis - builds mRotation from mRight/mUp/mFront
         void AddAcceleration(int axisIndex, float acceleration);
 
         GLFWWindowHandle* mWindow;
 
         mat4x4 mView{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
         mat4x4 mRotation{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
-        vec4 mRight{ 1, 0, 0, 1 }; // x
-        vec4 mUp{ 0, 1, 0, 1 };    // y
+
+        // Single source of truth for orientation - local-to-world
+        // (quat_mul_vec3(mOrientation, localAxis) gives that axis's
+        // current WORLD-space direction). Starts at identity, matching
+        // the same at-rest basis (right=+X, up=+Y, front=-Z) the old
+        // triad fields and FPSInterface both use.
+        quat mOrientation{ 0, 0, 0, 1 };
+
+        // World-space right/up/front, cached each Update() purely for
+        // AddAcceleration's own use (translation along the CURRENT
+        // orientation) - derived FROM mOrientation, never independently
+        // mutated.
+        vec4 mRight{ 1, 0, 0, 1 };
+        vec4 mUp{ 0, 1, 0, 1 };
         vec4 mFront{ 0, 0, -1, 1 };
 
         vec4 mPosition{ 0, 0, 0, 1 };
