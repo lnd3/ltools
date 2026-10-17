@@ -171,11 +171,28 @@ namespace l {
                 // own live axes is what lets pitch naturally carry the
                 // up vector with it instead of it staying pinned to
                 // world-up.
+                //
+                // NOT negated (x*f/y*f, not -x*f/-y*f) - a real,
+                // confirmed bug, found via a direct report ("viewing
+                // was completely inverted - mouse up moves view down,
+                // mouse left was view right") and verified by directly
+                // comparing against FPSInterface::FromPolarCoords with
+                // identical mouse input in a standalone numeric
+                // simulation. FPSInterface applies -turn/-tilt to the
+                // VIEW matrix itself (world-to-camera); this function
+                // instead rotates the camera's own WORLD-SPACE basis
+                // vectors directly - the mathematical INVERSE of a view-
+                // matrix rotation, where negating the view-matrix angle
+                // does NOT correspond to negating this one (it's the
+                // opposite sign). The earlier -x*f/-y*f copied
+                // FPSInterface's own sign convention verbatim without
+                // accounting for that transpose relationship, inverting
+                // both axes.
                 if (x != 0.0f) {
-                    RotateFrame(mUp[0], mUp[1], mUp[2], -x * f);
+                    RotateFrame(mUp[0], mUp[1], mUp[2], x * f);
                 }
                 if (y != 0.0f) {
-                    RotateFrame(mRight[0], mRight[1], mRight[2], -y * f);
+                    RotateFrame(mRight[0], mRight[1], mRight[2], y * f);
                 }
             }
 
