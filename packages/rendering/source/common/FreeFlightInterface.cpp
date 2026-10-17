@@ -208,10 +208,29 @@ namespace l {
             quat_rotate(dqPitch, pitchAngle, localRight);
             quat_rotate(dqRoll, rollAngle, localFront);
 
+            // A real, confirmed bug, found via a direct report ("no
+            // view rotation from mouse movement detected"): quat_mul's
+            // own cross-product-based implementation (linmath.h) is
+            // NOT safe for an aliased output/first-input pair (a
+            // classic in-place-cross-product hazard - later component
+            // computations read operand components the earlier ones
+            // already overwrote). `quat_mul(delta, delta, dqRoll)`
+            // aliased `delta` as both destination and source - and
+            // since dqRoll is the IDENTITY quaternion whenever Q/E
+            // aren't held (the common case), this silently zeroed
+            // delta's rotational (xyz) part EVERY FRAME, discarding
+            // the yaw+pitch just computed into it the line before.
+            // Verified directly by porting quat_mul's exact step-by-
+            // step arithmetic (not just reasoning about it) and
+            // confirming a nonzero yaw+pitch delta collapses to
+            // (0,0,0,w) - the identity direction - after exactly this
+            // aliased call. Fixed with a separate, non-aliased
+            // destination for each quat_mul.
+            quat yawPitch;
+            quat_mul(yawPitch, dqYaw, dqPitch);
             quat delta;
-            quat_mul(delta, dqYaw, dqPitch);
-            quat_mul(delta, delta, dqRoll);
-            quat_norm(delta, delta);
+            quat_mul(delta, yawPitch, dqRoll);
+            quat_norm(delta, delta); // quat_norm (vec4_norm) IS alias-safe - purely component-wise, no cross-term dependency
 
             quat newOrientation;
             quat_mul(newOrientation, mOrientation, delta);
