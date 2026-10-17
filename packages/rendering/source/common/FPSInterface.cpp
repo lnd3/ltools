@@ -69,11 +69,11 @@ namespace l {
 		}
 
 		void FPSInterface::HandleTouch(int button, int action, int mods) {
-			LLOG(LogInfo) << "button:" << button << ", action:" << action << ", mods:" << mods;
+			//LLOG(LogInfo) << "button:" << button << ", action:" << action << ", mods:" << mods;
 		}
 
 		void FPSInterface::HandleScroll(float x, float y) {
-			LLOG(LogInfo) << "xoffset:" << x << ", yoffset:" << y;
+			//LLOG(LogInfo) << "xoffset:" << x << ", yoffset:" << y;
 		}
 
 		void FPSInterface::HandleKeyPress(int key, int, int action, int) {

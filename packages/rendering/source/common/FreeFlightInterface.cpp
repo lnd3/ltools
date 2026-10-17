@@ -67,11 +67,11 @@ namespace l {
         }
 
         void FreeFlightInterface::HandleTouch(int button, int action, int mods) {
-            LLOG(LogInfo) << "button:" << button << ", action:" << action << ", mods:" << mods;
+            //LLOG(LogInfo) << "button:" << button << ", action:" << action << ", mods:" << mods;
         }
 
         void FreeFlightInterface::HandleScroll(float x, float y) {
-            LLOG(LogInfo) << "xoffset:" << x << ", yoffset:" << y;
+            //LLOG(LogInfo) << "xoffset:" << x << ", yoffset:" << y;
         }
 
         void FreeFlightInterface::HandleKeyPress(int key, int, int action, int) {
