@@ -37,7 +37,7 @@ namespace rendering {
         ShaderStage mStage;
 
         void load(std::string_view code, ShaderStage stage) {
-            GLenum glStage;
+            GLenum glStage = GL_VERTEX_SHADER;
             switch (stage) {
                 case ShaderStage::Vertex: glStage = GL_VERTEX_SHADER; break;
                 case ShaderStage::TessControl: glStage = GL_TESS_CONTROL_SHADER; break;
