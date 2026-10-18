@@ -68,11 +68,11 @@ namespace l {
 			vec4_dup(position, mPosition);
 		}
 
-		void FPSInterface::HandleTouch(int button, int action, int mods) {
+		void FPSInterface::HandleTouch(int, int, int) {
 			//LLOG(LogInfo) << "button:" << button << ", action:" << action << ", mods:" << mods;
 		}
 
-		void FPSInterface::HandleScroll(float x, float y) {
+		void FPSInterface::HandleScroll(float, float) {
 			//LLOG(LogInfo) << "xoffset:" << x << ", yoffset:" << y;
 		}
 
