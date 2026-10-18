@@ -21,7 +21,7 @@ namespace win32 {
 		bool hasError = false;
 		GLenum error;
 		while((error = glGetError()) != GL_NO_ERROR) {
-			LOG(LogError) << "GL error: " << error;
+			LLOG(LogError) << "GL error: " << error;
 			hasError = true;
 		}
 		return hasError;
@@ -55,29 +55,29 @@ namespace win32 {
 
 		HDC hDC = GetDC(windowData.mHWnd);
 		if (!hDC) {
-			LOG(LogError) << "Failed to get window draw context (dc)";
+			LLOG(LogError) << "Failed to get window draw context (dc)";
 			return std::nullopt;
 		}
 
 		int format = ChoosePixelFormat(hDC, &pfd);
 		if (format == 0) {
-			LOG(LogError) << "Failed to choose pixel format";
+			LLOG(LogError) << "Failed to choose pixel format";
 			return std::nullopt;
 		}
 
 
 		if (!SetPixelFormat(hDC, format, &pfd)) {
-			LOG(LogError) << "Failed to set pixel format";
+			LLOG(LogError) << "Failed to set pixel format";
 			return std::nullopt;
 		}
 		
 		HGLRC hRC = wglCreateContext(hDC);
 		if (!wglMakeCurrent(hDC, hRC)) {
-			LOG(LogError) << "Failed to make current context";
+			LLOG(LogError) << "Failed to make current context";
 			return std::nullopt;
 		}
 
-		LOG(LogInfo) << "Available opengl version: " << glGetString(GL_VERSION);
+		LLOG(LogInfo) << "Available opengl version: " << glGetString(GL_VERSION);
 
 		glEnable(GL_BLEND);
 
@@ -96,7 +96,7 @@ namespace win32 {
 
 	void glSwapBuffers(const OpenGLData& openGLData) {
 		if (!wglSwapLayerBuffers(openGLData.mHandleDC, WGL_SWAP_MAIN_PLANE)) {
-			LOG(LogError) << "Failed to swap buffers";
+			LLOG(LogError) << "Failed to swap buffers";
 		}
 	}
 

@@ -139,11 +139,11 @@ namespace physics {
 		lambda *= 1.0 / forceConstant;
 		V forceLimit = static_cast<V>(1.0 / epsilon2);
 		if (lambda > forceLimit) {
-			LOG(LogInfo) << "Force limit exceeded: " << lambda;
+			LLOG(LogInfo) << "Force limit exceeded: " << lambda;
 			//lambda = forceLimit;
 		}
 		if (lambda < -forceLimit) {
-			LOG(LogInfo) << "Force limit exceeded: " << lambda;
+			LLOG(LogInfo) << "Force limit exceeded: " << lambda;
 			//lambda = -forceLimit;
 		}
 
@@ -551,9 +551,15 @@ namespace physics {
 				}
 
 
-				// move to symmetric position
-				auto p0Change = dp0Next * tMidpoint;
-				auto p1Change = dp1Next * tMidpoint;
+				// move to symmetric position. dp0Next/dp1Next were
+				// already scaled by tMidpoint above (line ~538) - this
+				// used to multiply by tMidpoint a second time here,
+				// giving tMidpoint^2 instead of tMidpoint. Fixed per
+				// superplan's T016 investigation (NBodyStabilityTests.cpp),
+				// which found and verified this against a from-scratch
+				// reimplementation before reporting it as a real bug.
+				auto p0Change = dp0Next;
+				auto p1Change = dp1Next;
 
 				auto v0dtChange = -p0Change * dt * 0.0;
 				auto v1dtChange = -p1Change * dt * 0.0;
@@ -594,7 +600,7 @@ namespace physics {
 				V dP0Sqr = dP0.sqr();
 				V dP1Sqr = dP1.sqr();
 				if (abs(dP0Sqr - dP1Sqr) > 0.00001) {
-					LOG(LogError) << "Something went wrong";
+					LLOG(LogError) << "Something went wrong";
 				}
 			}
 		}
@@ -629,7 +635,7 @@ namespace physics {
 					V dP0Sqr = dP0.sqr();
 					V dP1Sqr = dP1.sqr();
 					if (abs(dP0Sqr - dP1Sqr) > 0.01) {
-						LOG(LogError) << "Something went wrong";
+						LLOG(LogError) << "Something went wrong";
 					}
 				}
 			}

@@ -15,12 +15,4 @@ namespace l::filecache {
 		return blockWidth * index / numBlockEntries;
 	}
 
-	std::string GetCacheBlockName(std::string_view prefix, int32_t blockWidth, int32_t clampedPos) {
-		std::stringstream name;
-		name << prefix.data();
-		name << "_" << blockWidth;
-		name << "_" << clampedPos;
-		return name.str();
-	}
-
 }

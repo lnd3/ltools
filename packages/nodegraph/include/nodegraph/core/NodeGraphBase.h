@@ -25,6 +25,18 @@ namespace l::nodegraph {
     class NodeGraphOp;
 
     /**********************************************************************************/
+
+    // Per-evaluation context injected by the host (SchemaRunner, ProcessNGSchemas, replay)
+    // before each ProcessSubGraph pass. Nodes call HasContext()/GetContext() to read it.
+    // The host owns the lifetime; the pointer is only valid during the evaluation pass.
+    struct NodeGraphContext {
+        int32_t now          = 0;     // sub-candle timestamp (tick/bar/replay time)
+        int32_t intervalSecs = 0;     // current TF bar duration in seconds
+        bool    isBacktest   = false; // true when running inside ToolBackTester
+        int32_t subBarK      = 0;     // >0: signal nodes replay K sub-steps per bar via input interpolation
+    };
+
+    /**********************************************************************************/
     class NodeGraphBase {
     public:
         NodeGraphBase(int32_t id = -1, NodeType outputType = NodeType::Default) :
@@ -46,7 +58,7 @@ namespace l::nodegraph {
             mInputs.clear();
             mOutputs.clear();
 
-            LOG(LogInfo) << "Node graph base destroyed";
+            //LLOG(LogInfo) << "Node graph base destroyed";
         }
 
         NodeGraphBase& operator=(NodeGraphBase&& other) noexcept {
@@ -86,11 +98,16 @@ namespace l::nodegraph {
         virtual int8_t GetNumInputs();
         virtual int8_t GetNumOutputs();
 
+        void SetOutputText(int8_t inputChannel, std::string_view text);
+        void SetOutput(int8_t inputChannel, float value);
+
         virtual float& GetInput(int8_t inputChannel, int32_t minSize = 1, int32_t offset = 0);
+        virtual std::optional<const std::vector<float>> GetInputBuffer(int8_t inputChannel);
         virtual std::string_view GetInputText(int8_t inputChannel, int32_t minSize = 16);
 
         virtual float& GetOutput(int8_t outputChannel, int32_t minSize = 1, int32_t offset = 0);
-        virtual std::string_view GetOutputText(int8_t outputChannel, int32_t minSize);
+        virtual std::optional<const std::vector<float>> GetOutputBuffer(int8_t outputChannel);
+        virtual std::string_view GetOutputText(int8_t outputChannel, int32_t minSize = 16);
         virtual NodeGraphInput& GetInputOf(int8_t inputChannel);
         virtual NodeGraphOutput& GetOutputOf(int8_t outputChannel);
 
@@ -99,6 +116,7 @@ namespace l::nodegraph {
 
         virtual std::string_view GetName() = 0;
         virtual std::string_view GetTypeName() = 0;
+        virtual void SetTypeName(std::string_view name) = 0;
 
         virtual std::string_view GetInputName(int8_t inputChannel) = 0;
         virtual std::string_view GetOutputName(int8_t outputChannel) = 0;
@@ -125,10 +143,13 @@ namespace l::nodegraph {
         virtual bool IsInputDataText(int8_t) { return false; }
         virtual bool IsInputDataArray(int8_t) { return false; }
         virtual bool IsOutputDataVisible(int8_t) { return false; }
+        virtual int32_t GetInputStride(int8_t) { return 1; }
+        virtual int32_t GetOutputStride(int8_t) { return 1; }
         virtual bool IsOutputPolled(int8_t outputChannel);
         virtual void NodeHasChanged();
         bool IsOutOfDate2();
         virtual NodeType GetOutputType();
+        virtual void RecieveEvent(int32_t id, int32_t cmd, void* userdata) = 0;
 
         template<class T>
 		bool IsOfOperation() {
@@ -142,6 +163,12 @@ namespace l::nodegraph {
             }
             return nullptr;
         }
+
+        // Context forwarding — callers use node->SetContext(ctx) without touching GetOperation().
+        // Defined out-of-class (after NodeGraphOp is fully declared).
+        void              SetContext(NodeGraphContext* ctx);
+        bool              HasContext() const;
+        NodeGraphContext* GetContext() const;
 
         void ForEachInput(std::function<void(NodeGraphInput& input)> cb) {
             for (auto& in : mInputs) {
@@ -186,7 +213,7 @@ namespace l::nodegraph {
             mName(name)
         {}
         virtual ~NodeGraphOp() {
-            LOG(LogInfo) << "Node operation destroyed";
+            //LLOG(LogInfo) << "Node operation destroyed";
         }
 
         NodeGraphOp& operator=(NodeGraphOp&& other) noexcept {
@@ -218,6 +245,7 @@ namespace l::nodegraph {
         virtual void Process(int32_t, int32_t, std::vector<NodeGraphInput>&, std::vector<NodeGraphOutput>&) {};
         virtual void Tick(int32_t /*tickCount*/, float /*delta*/) {}
         virtual void InputHasChanged();
+        virtual void RecieveEvent(int32_t, int32_t, void*) {}
 
         int8_t GetNumInputs();
         int8_t GetNumOutputs();
@@ -229,20 +257,28 @@ namespace l::nodegraph {
         virtual bool IsInputDataText(int8_t channel);
         virtual bool IsInputDataArray(int8_t channel);
         virtual bool IsOutputDataVisible(int8_t channel);
+        virtual int32_t GetInputStride(int8_t channel);
+        virtual int32_t GetOutputStride(int8_t channel);
 
         virtual std::string_view GetInputName(int8_t inputChannel);
         virtual std::string_view GetOutputName(int8_t outputChannel);
         virtual std::string_view GetName();
         virtual std::string_view GetTypeName();
+        virtual void SetTypeName(std::string_view name) { mTypeName = name; }
         virtual float GetDefaultData(int8_t inputChannel);
 
+        void              SetContext(NodeGraphContext* ctx) { mContext = ctx; }
+        bool              HasContext() const                { return mContext != nullptr; }
+        NodeGraphContext* GetContext() const                { return mContext; }
 
     protected:
         virtual int32_t AddInput(std::string_view name, float defaultValue = 0.0f, int32_t minSize = 1, float boundMin = -l::math::constants::FLTMAX, float boundMax = l::math::constants::FLTMAX, bool visible = true, bool editable = true);
         virtual int32_t AddOutput(std::string_view name, float defaultValue = 0.0f, int32_t minSize = 1, bool visible = true);
         virtual int32_t AddConstant(std::string_view name, float defaultValue = 0.0f, int32_t minSize = 1, float boundMin = -l::math::constants::FLTMAX, float boundMax = l::math::constants::FLTMAX, bool visible = true, bool editable = true);
-        virtual int32_t AddInput2(std::string_view name, int32_t minSize, InputFlags flags);
-        virtual int32_t AddOutput2(std::string_view name, int32_t minSize, OutputFlags flags);
+        virtual int32_t AddInput2(std::string_view name, int32_t minSize = 1, InputFlags flags = InputFlags(false, false, false, false));
+        virtual int32_t AddOutput2(std::string_view name, int32_t minSize = 1, OutputFlags flags = OutputFlags(false, false));
+        virtual int32_t AddInputInterleaved(std::string_view name, int32_t stride, int32_t minSize = 1);
+        virtual int32_t AddOutputInterleaved(std::string_view name, int32_t stride, float defaultValue = 0.0f);
 
         NodeGraphBase* mNode = nullptr;
         std::string mName;
@@ -256,7 +292,13 @@ namespace l::nodegraph {
         int8_t mNumInputs = 0;
         int8_t mNumOutputs = 0;
         bool mInputHasChanged = false;
+        NodeGraphContext* mContext = nullptr;
     };
+
+    // NodeGraphBase context forwarding — defined here so NodeGraphOp is fully declared.
+    inline void              NodeGraphBase::SetContext(NodeGraphContext* ctx) { GetOperation()->SetContext(ctx); }
+    inline bool              NodeGraphBase::HasContext() const                { return const_cast<NodeGraphBase*>(this)->GetOperation()->HasContext(); }
+    inline NodeGraphContext* NodeGraphBase::GetContext() const                { return const_cast<NodeGraphBase*>(this)->GetOperation()->GetContext(); }
 
     class NodeGraphOpCached : public NodeGraphOp {
     public:
@@ -265,7 +307,7 @@ namespace l::nodegraph {
         {
         }
         virtual ~NodeGraphOpCached() {
-            LOG(LogInfo) << "Buffered operation destroyed";
+            //LLOG(LogInfo) << "Buffered operation destroyed";
         }
 
         NodeGraphOpCached& operator=(NodeGraphOpCached&& other) noexcept {
@@ -284,7 +326,7 @@ namespace l::nodegraph {
 
         void InputHasChanged() override {
             mInputHasChanged = true;
-            mWrittenSamples = 0;
+            //mWrittenSamples = 0;
         }
 
     protected:
@@ -308,7 +350,7 @@ namespace l::nodegraph {
             DefaultDataInit();
         }
         virtual ~NodeGraph() {
-            LOG(LogInfo) << "Node destroyed";
+            //LLOG(LogInfo) << "Node destroyed";
         }
 
         NodeGraph& operator=(NodeGraph&& other) noexcept {
@@ -346,6 +388,14 @@ namespace l::nodegraph {
             return mOperation.IsOutputDataVisible(num);
         }
 
+        virtual int32_t GetInputStride(int8_t ch) override {
+            return mOperation.GetInputStride(ch);
+        }
+
+        virtual int32_t GetOutputStride(int8_t ch) override {
+            return mOperation.GetOutputStride(ch);
+        }
+
         virtual void DefaultDataInit() override {
             NodeGraphBase::DefaultDataInit();
             mOperation.DefaultDataInit();
@@ -360,9 +410,9 @@ namespace l::nodegraph {
             if (tickCount <= mLastTickCount) {
                 return;
             }
+            mLastTickCount = tickCount;
             NodeGraphBase::Tick(tickCount, delta);
             mOperation.Tick(tickCount, delta);
-            mLastTickCount = tickCount;
         }
 
         virtual std::string_view GetInputName(int8_t inputChannel) override {
@@ -380,9 +430,19 @@ namespace l::nodegraph {
         virtual std::string_view GetTypeName() override {
             return mOperation.GetTypeName();
         }
+        virtual void SetTypeName(std::string_view name) override {
+            mOperation.SetTypeName(name);
+        }
 
         virtual NodeGraphOp* GetOperation() override {
             return &mOperation;
+        }
+
+        virtual void RecieveEvent(int32_t id, int32_t cmd, void* userdata) override {
+            auto op = GetOperation();
+            if (op) {
+                op->RecieveEvent(id, cmd, userdata);
+            }
         }
 
     protected:

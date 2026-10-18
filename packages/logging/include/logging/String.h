@@ -34,7 +34,9 @@ namespace l::string {
 	template<int32_t BUFSIZE>
 	class string_buffer {
 	public:
-		string_buffer() = default;
+		string_buffer() {
+			memset(mBuf, 0, BUFSIZE);
+		}
 		~string_buffer() = default;
 
 		void pos(int32_t p) {
@@ -42,8 +44,22 @@ namespace l::string {
 		}
 
 		void clear() {
+			mBuf[0] = 0;
 			mPos = 0;
 			cur() = 0;
+		}
+
+		bool empty() {
+			return size() == 0;
+		}
+
+		void flush() {
+			for (size_t i = 0; i < BUFSIZE; i++) {
+				if (mBuf[i] == 0) {
+					return;
+				}
+				mPos++;
+			}
 		}
 
 		size_t left() {
@@ -76,6 +92,13 @@ namespace l::string {
 			return std::string_view( &mBuf[0], size());
 		}
 
+		char* data() {
+			return &mBuf[0];
+		}
+
+		size_t capacity() {
+			return BUFSIZE - 1;
+		}
 	protected:
 		int32_t mPos = 0;
 		char mBuf[BUFSIZE];
@@ -153,29 +176,33 @@ namespace l::string {
 		struct std::tm tminfo = {};
 		convert_to_local_tm_from_utc_time(unixtime, &tminfo, false);
 		if (fullYear) {
-			buf.printf("%4d-%2d-%2d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday);
+			buf.printf("%04d-%02d-%02d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday);
 		}
 		else {
-			buf.printf("%4d-%2d-%2d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday);
+			buf.printf("%04d-%02d-%02d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday);
 		}
 	}
 
-	template<size_t BUFSIZE>
+	template<int32_t BUFSIZE>
 	void get_local_time(string_buffer<BUFSIZE>& buf, const int32_t unixtime) {
 		struct std::tm tminfo = {};
 		convert_to_local_tm_from_utc_time(unixtime, &tminfo, false);
-		buf.printf("%2d:%2d:%2d", tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
+		buf.printf("%02d:%02d:%02d", tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
 	}
 
-	template<size_t BUFSIZE>
-	void get_local_date_and_time(string_buffer<BUFSIZE>& buf, const int32_t unixtime, bool fullYear = false) {
+	template<int32_t BUFSIZE>
+	void get_local_date_and_time(string_buffer<BUFSIZE>& buf, const int32_t unixtime, bool fullYear = false, bool isFileName = false) {
 		struct std::tm tminfo = {};
-		convert_to_local_tm_from_utc_time(unixtime, &tminfo, false);
+		convert_to_local_tm_from_utc_time(unixtime, &tminfo, true);
+		auto format = "%04d-%02d-%02d %02d:%02d:%02d";
+		if (isFileName) {
+			format = "%04d-%02d-%02d_%02d%02d%02d";
+		}
 		if (fullYear) {
-			buf.printf("%4d-%2d-%2d %2d:%2d:%2d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday, tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
+			buf.printf(format, tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday, tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
 		}
 		else {
-			buf.printf("%2d-%2d-%2d %2d:%2d:%2d", tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday, tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
+			buf.printf(format, tminfo.tm_year, tminfo.tm_mon + 1, tminfo.tm_mday, tminfo.tm_hour, tminfo.tm_min, tminfo.tm_sec);
 		}
 	}
 
@@ -215,6 +242,9 @@ namespace l::string {
 	bool equal_partial(std::string_view a, std::string_view b, size_t a_offset = 0, size_t b_offset = 0);
 	int32_t equal_anywhere(std::string_view a, std::string_view b);
 
+	bool is_numeric(char c);
+	bool is_letter(char c, bool lowercase = true);
+
 	std::vector<std::wstring_view> split(std::wstring_view text, std::wstring_view delim = L" \t\n", char escapeChar = '\"');
 	std::vector<std::string_view> split(std::string_view text, std::string_view delim = " \t\n", char escapeChar = '\"');
 
@@ -222,6 +252,7 @@ namespace l::string {
 	std::wstring widen(const std::string& str);
 
 	int count_digits(int number);
+	std::tuple<int64_t, int32_t, int32_t> to_fixed_int(std::string_view s);
 
 	template<class T>
 	concept Number = requires(T a) { requires std::convertible_to<T, float> || std::convertible_to<T, uint32_t>; };
@@ -314,5 +345,78 @@ namespace l::string {
 
 	std::string hex_encode(std::string_view str);
 	std::string hex_decode(std::string_view str);
+
+	template <class I, class = std::enable_if_t<std::is_integral_v<I>>>
+	void clear_flags(I& allflags, const I flags) {
+		allflags &= ~flags;
+	}
+
+	template <class I, class = std::enable_if_t<std::is_integral_v<I>>>
+	void set_flags(I& allflags, const I flags) {
+		allflags |= flags;
+	}
+
+	template <class I, class = std::enable_if_t<std::is_integral_v<I>>>
+	bool has_flags(const I allflags, const I flags) {
+		return (allflags & flags) == flags;
+	}
+
+	template<size_t SIZE = 16>
+	void format_float(l::string::string_buffer<SIZE>& out, float value) {
+		auto onlypositive = value < 0.0f ? -value : value;
+
+		char format[7] = "%7.7f";
+
+		auto numdecimals = 0;
+
+		if (onlypositive > 100000.0) {
+			numdecimals = 0;
+		}
+		else if (onlypositive > 10000.0) {
+			numdecimals = 1;
+		}
+		else if (onlypositive > 1000.0) {
+			numdecimals = 2;
+		}
+		else if (onlypositive > 100.0) {
+			numdecimals = 3;
+		}
+		else if (onlypositive > 10.0) {
+			numdecimals = 4;
+		}
+		else if (onlypositive > 1.0) {
+			numdecimals = 5;
+		}
+		else if (onlypositive > 0.1) {
+			numdecimals = 5;
+		}
+		else if (onlypositive > 0.01) {
+			numdecimals = 6;
+		}
+		else if (onlypositive > 0.001) {
+			numdecimals = 7;
+		}
+		else if (onlypositive > 0.0001) {
+			numdecimals = 8;
+		}
+		else if (onlypositive > 0.00001) {
+			numdecimals = 8;
+		}
+		else if (onlypositive > 0.000001) {
+			numdecimals = 8;
+		}
+		else if (onlypositive > 0.0) {
+			numdecimals = numdecimals < 8 ? numdecimals : 8;
+		}
+		else {
+			numdecimals = numdecimals < 4 ? numdecimals : 4;
+		}
+
+		auto numnumbers = 9 - numdecimals;
+		format[1] = '0' + static_cast<char>(numnumbers);
+		format[3] = '0' + static_cast<char>(numdecimals);
+
+		out.printf(format, value);
+	}
 }
 

@@ -79,8 +79,20 @@ namespace l::nodegraph {
         mLastTickCount = tickCount;
     }
 
+    void NodeGraphBase::SetOutputText(int8_t outputChannel, std::string_view text) {
+        mOutputs.at(outputChannel).SetText(text);
+    }
+
+    void NodeGraphBase::SetOutput(int8_t outputChannel, float value) {
+        mOutputs.at(outputChannel).Get() = value;
+    }
+
     float& NodeGraphBase::GetInput(int8_t inputChannel, int32_t minSize, int32_t offset) {
         return mInputs.at(inputChannel).Get(minSize, offset);
+    }
+
+    std::optional<const std::vector<float>> NodeGraphBase::GetInputBuffer(int8_t inputChannel) {
+        return mInputs.at(inputChannel).GetBuffer();
     }
 
     std::string_view NodeGraphBase::GetInputText(int8_t inputChannel, int32_t minSize) {
@@ -89,6 +101,10 @@ namespace l::nodegraph {
 
     float& NodeGraphBase::GetOutput(int8_t outputChannel, int32_t minSize, int32_t offset) {
         return mOutputs.at(outputChannel).Get(minSize, offset);
+    }
+
+    std::optional<const std::vector<float>> NodeGraphBase::GetOutputBuffer(int8_t outputChannel) {
+        return mOutputs.at(outputChannel).GetBuffer();
     }
 
     std::string_view NodeGraphBase::GetOutputText(int8_t outputChannel, int32_t minSize) {
@@ -112,7 +128,7 @@ namespace l::nodegraph {
     }
 
     bool NodeGraphBase::ClearInput(int8_t inputChannel) {
-        ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
+        //ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
         if (!IsValidInOutNum(inputChannel, mInputs.size())) {
             return false;
         }
@@ -128,7 +144,7 @@ namespace l::nodegraph {
     }
 
     bool NodeGraphBase::SetInput(int8_t inputChannel, NodeGraphBase& source, int8_t sourceOutputChannel) {
-        ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
+        //ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
         if (!IsValidInOutNum(inputChannel, mInputs.size())) {
             return false;
         }
@@ -140,7 +156,7 @@ namespace l::nodegraph {
     }
 
     bool NodeGraphBase::SetInput(int8_t inputChannel, NodeGraphGroup& source, int8_t sourceChannel) {
-        ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
+        //ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
         if (!IsValidInOutNum(inputChannel, mInputs.size())) {
             return false;
         }
@@ -159,7 +175,7 @@ namespace l::nodegraph {
     }
 
     bool NodeGraphBase::SetInput(int8_t inputChannel, float initialValue, int32_t minSize) {
-        ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
+        //ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
         if (!IsValidInOutNum(inputChannel, mInputs.size())) {
             return false;
         }
@@ -176,7 +192,7 @@ namespace l::nodegraph {
     }
 
     bool NodeGraphBase::SetInput(int8_t inputChannel, float* floatPtr) {
-        ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
+        //ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
         if (!IsValidInOutNum(inputChannel, mInputs.size())) {
             return false;
         }
@@ -186,7 +202,7 @@ namespace l::nodegraph {
     }
 
     bool NodeGraphBase::SetInput(int8_t inputChannel, std::string_view text) {
-        ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
+        //ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
         if (!IsValidInOutNum(inputChannel, mInputs.size())) {
             return false;
         }
@@ -205,7 +221,7 @@ namespace l::nodegraph {
     }
 
     bool NodeGraphBase::SetInputBound(int8_t inputChannel, InputBound bound, float boundMin, float boundMax) {
-        ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
+        //ASSERT(inputChannel >= 0 && static_cast<size_t>(inputChannel) < mInputs.size());
         if (!IsValidInOutNum(inputChannel, mInputs.size())) {
             return false;
         }
@@ -422,6 +438,38 @@ namespace l::nodegraph {
         mDefaultOutStrings.push_back(std::string(name));
         mDefaultOutData.push_back({ 0.0f, minSize, flags });
         return static_cast<int32_t>(mDefaultOutData.size() - 1);
+    }
+
+    int32_t NodeGraphOp::AddInputInterleaved(std::string_view name, int32_t stride, int32_t minSize) {
+        InputFlags flags(false, false, false, false);
+        flags.mStride = stride;
+        mNumInputs++;
+        mDefaultInStrings.push_back(std::string(name));
+        mDefaultInData.push_back({ 0.0f, minSize, -l::math::constants::FLTMAX, l::math::constants::FLTMAX, flags });
+        return static_cast<int32_t>(mDefaultInData.size() - 1);
+    }
+
+    int32_t NodeGraphOp::AddOutputInterleaved(std::string_view name, int32_t stride, float defaultValue) {
+        OutputFlags flags(true, false);
+        flags.mStride = stride;
+        mNumOutputs++;
+        mDefaultOutStrings.push_back(std::string(name));
+        mDefaultOutData.push_back({ defaultValue, 1, flags });
+        return static_cast<int32_t>(mDefaultOutData.size() - 1);
+    }
+
+    int32_t NodeGraphOp::GetInputStride(int8_t channel) {
+        if (static_cast<size_t>(channel) < mDefaultInData.size()) {
+            return std::get<4>(mDefaultInData.at(channel)).mStride;
+        }
+        return 1;
+    }
+
+    int32_t NodeGraphOp::GetOutputStride(int8_t channel) {
+        if (static_cast<size_t>(channel) < mDefaultOutData.size()) {
+            return std::get<2>(mDefaultOutData.at(channel)).mStride;
+        }
+        return 1;
     }
 
     void NodeGraphOp::ProcessOperation(int32_t numSamples, int32_t numCacheSamples, std::vector<NodeGraphInput>& inputs, std::vector<NodeGraphOutput>& outputs) {

@@ -9,6 +9,9 @@ namespace l::filecache {
 	public:
 		ICacheProvider() = default;
 		virtual ~ICacheProvider() = default;
+		virtual bool UnPersistData(std::string_view) {
+			return false;
+		};
 		virtual bool PersistData(std::string_view, const std::vector<unsigned char>&) {
 			return false;
 		};

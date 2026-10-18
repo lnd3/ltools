@@ -2,7 +2,16 @@
 
 #include "logging/String.h"
 
+#include <curl/curl.h>
 #include <memory>
+#include <thread>
+
+namespace {
+	static size_t PostOnceWriteCb(char* data, size_t size, size_t nmemb, std::string* s) {
+		s->append(data, size * nmemb);
+		return size * nmemb;
+	}
+}
 
 namespace l::network {
 
@@ -58,6 +67,83 @@ namespace l::network {
 			}
 		}
 		return result;
+	}
+
+	bool NetworkInterface::SendJsonRequest(std::string_view interfaceName,
+		std::string_view endpointPath,
+		std::string_view jsonBody,
+		int32_t expectedResponseSize,
+		int32_t timeOut,
+		std::function<void(bool, std::string_view)> cb) {
+
+		auto it = mInterfaces.find(interfaceName.data());
+		if (it == mInterfaces.end()) {
+			return false;
+		}
+
+		// Register endpoint on first use (idempotent — AddEndpoint uses emplace)
+		it->second.AddEndpoint(endpointPath.data(), endpointPath);
+		auto query = it->second.GetQuery(endpointPath);
+		if (query.empty()) {
+			return false;
+		}
+
+		auto networkManager = mNetworkManager.lock();
+		if (!networkManager) {
+			return false;
+		}
+
+		// Lazily register a connection slot for this endpoint on first use.
+		// PostQuery searches mConnections by name (endpointPath), so a slot must
+		// exist before the first PostQuery call or the job retries forever.
+		auto endpointKey = std::string(endpointPath);
+		if (!mJsonConnections.count(endpointKey)) {
+			mJsonConnections.insert(endpointKey);
+			networkManager->CreateRequest(
+				std::make_unique<RequestStringStream>(endpointPath, query, expectedResponseSize, nullptr, timeOut));
+		}
+
+		// Use the endpoint path as the query name so the connection pool
+		// can be keyed per-endpoint (/exchange vs /info)
+		return networkManager->PostQuery(
+			endpointPath,   // queryName (matches registered connection slot)
+			"",             // queryArguments (unused for POST)
+			1,              // maxTries
+			query,          // full URL
+			expectedResponseSize,
+			timeOut,
+			cb,
+			jsonBody,
+			{}
+		);
+	}
+
+	void NetworkInterface::PostOnce(std::string url, std::string jsonBody,
+		std::function<void(bool, std::string_view)> cb) {
+		std::thread([url = std::move(url), body = std::move(jsonBody), cb = std::move(cb)]() {
+			CURL* curl = curl_easy_init();
+			if (!curl) {
+				if (cb) cb(false, "curl_easy_init failed");
+				return;
+			}
+			std::string response;
+			struct curl_slist* headers = nullptr;
+			headers = curl_slist_append(headers, "Content-Type: application/json");
+			curl_easy_setopt(curl, CURLOPT_URL,            url.c_str());
+			curl_easy_setopt(curl, CURLOPT_POST,           1L);
+			curl_easy_setopt(curl, CURLOPT_POSTFIELDS,     body.c_str());
+			curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE,  static_cast<long>(body.size()));
+			curl_easy_setopt(curl, CURLOPT_HTTPHEADER,     headers);
+			curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,  PostOnceWriteCb);
+			curl_easy_setopt(curl, CURLOPT_WRITEDATA,      &response);
+			curl_easy_setopt(curl, CURLOPT_TIMEOUT,        30L);
+			curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+			curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+			CURLcode res = curl_easy_perform(curl);
+			curl_slist_free_all(headers);
+			curl_easy_cleanup(curl);
+			if (cb) cb(res == CURLE_OK, response);
+		}).detach();
 	}
 
 	bool NetworkInterface::NetworkStatus(std::string_view interfaceName) {

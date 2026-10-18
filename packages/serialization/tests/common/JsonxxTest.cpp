@@ -103,7 +103,7 @@ TEST(JsonBuilder, Basic) {
 	}
 	json.End();
 
-	LOG(LogTest) << "\n" << stream.str();
+	LLOG(LogTest) << "\n" << stream.str();
 
 	std::string_view correct = "{\"a\":\"astring\",\"b\":\"bstring\",\"c\":{\"ca\":\"dastring\",\"cb\":2},\"d\":[\"dastring\",2]}";
 	TEST_TRUE(correct == stream.str(), "");

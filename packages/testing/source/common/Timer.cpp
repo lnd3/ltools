@@ -1,6 +1,7 @@
 #include <unordered_map>
 #include <map>
 
+#include "logging/Log.h"
 #include "testing/Timer.h"
 
 namespace l {
@@ -57,11 +58,27 @@ namespace testing {
 
     PerformanceTimer::PerformanceTimer(std::string_view group, std::string_view id) : mGroup(group), mId(id), mTimer([&](uint64_t nanoseconds) {
         auto& measure = get_time_measure(mGroup, mId);
-
-        measure.mSeconds += static_cast<double>(nanoseconds) / 1000000000.0;
+        auto measurement = static_cast<double>(nanoseconds) / 1000000000.0;
+        measure.mSeconds += measurement;
+        measure.mMax = measure.mMax < measurement ? measurement : measure.mMax;
+        measure.mMin = measure.mMin > measurement ? measurement : measure.mMin;
         measure.mCount++;
 
         }) {}
 
+
+    void show_measurements(const std::string& group) {
+        std::vector<std::string> summary;
+
+        LLOG(LogTitle) << "## " << group;
+        for (auto& it : get_time_measures(group)) {
+            auto& measure = it.second;
+            LLOG(LogInfo) << it.first;
+            auto mean = measure.mSeconds / static_cast<double>(measure.mCount);
+            LLOG(LogInfo) << "  mean " << mean << " sec";
+            LLOG(LogInfo) << "  min " << measure.mMin << " sec";
+            LLOG(LogInfo) << "  max " << measure.mMax << " sec";
+        }
+    }
 }
 }

@@ -32,8 +32,8 @@ TEST(NodeGraph, SerializationBasic) {
 	builder.End();
 
 	auto d = builder.GetStr();
-	LOG(LogInfo) << "Archive:";
-	LOG(LogInfo) << "\n" << d;
+	LLOG(LogInfo) << "Archive:";
+	LLOG(LogInfo) << "\n" << d;
 
 	l::serialization::JsonParser<100> parser;
 	auto [result, error] = parser.LoadJson(d.c_str(), d.size());

@@ -95,7 +95,7 @@ namespace l::concurrency {
 		Worker(Worker&&) = default;
 		Worker(const Worker&) = default;
 		virtual ~Worker() override {
-			//LOG(LogDebug) << "Destroying " << mName;
+			//LLOG(LogDebug) << "Destroying " << mName;
 		}
 
 		RunnableResult run(const RunState& state) override;

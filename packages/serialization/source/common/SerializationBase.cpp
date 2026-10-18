@@ -103,11 +103,11 @@ namespace l::serialization {
 			bool peekSuccessful = headerValidity.Peek(data);
 			if (mExpectIdentifier) {
 				if (!peekSuccessful || !headerValidity.IsIdentifierValid()) {
-					LOG(LogError) << "Expected serialization identifier: " << headerValidity.mIdentifier << " (version: " << headerValidity.mVersion << ")";
+					LLOG(LogError) << "Expected serialization identifier: " << headerValidity.mIdentifier << " (version: " << headerValidity.mVersion << ")";
 					return;
 				}
 				if (!peekSuccessful || !headerValidity.IsVersionValid(mLatestVersion)) {
-					LOG(LogError) << "Expected serialization version: " << headerValidity.mVersion << " (identifier: " << headerValidity.mIdentifier << ")";
+					LLOG(LogError) << "Expected serialization version: " << headerValidity.mVersion << " (identifier: " << headerValidity.mIdentifier << ")";
 					return;
 				}
 				mUseIdentifier = true; // if identifier is expected, we should continue using it even if user didn't not set it
@@ -120,7 +120,7 @@ namespace l::serialization {
 				mExpectIdentifier = true;
 				
 				if (!headerValidity.IsVersionValid(mLatestVersion)) {
-					LOG(LogError) << "Expected serialization version: " << headerValidity.mVersion;
+					LLOG(LogError) << "Expected serialization version: " << headerValidity.mVersion;
 					return;
 				}
 

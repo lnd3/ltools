@@ -49,8 +49,9 @@ namespace l::string {
 		init_timezone();
 #ifdef WIN32
 		long time;
-		auto res = _get_timezone(&time);
-		ASSERT(res == 0);
+		//auto res = 
+		_get_timezone(&time);
+		//ASSERT(res == 0);
 #else
 		auto time = timezone;
 #endif
@@ -61,8 +62,9 @@ namespace l::string {
 		init_timezone();
 #ifdef WIN32
 		int time;
-		auto res = _get_daylight(&time);
-		ASSERT(res == 0);
+		//auto res = 
+		_get_daylight(&time);
+		//ASSERT(res == 0);
 #else
 		auto time = daylight;
 #endif
@@ -99,8 +101,9 @@ namespace l::string {
 
 	void convert_to_tm(const time_t time, tm* timeinfo, bool adjustYearAndMonth) {
 #ifdef WIN32
-		auto res = _gmtime64_s(timeinfo, &time);
-		ASSERT(res == 0);
+		//auto res = 
+		_gmtime64_s(timeinfo, &time);
+		//ASSERT(res == 0);
 #else
 		tm* ti = gmtime(&time);
 		*timeinfo = *ti;
@@ -171,7 +174,7 @@ namespace l::string {
 		int ret = 0;
 
 		if (date.size() > 10) {
-			ASSERT(date.size() == 19);
+			//ASSERT(date.size() == 19);
 #ifdef WIN32
 			ret = sscanf_s(date.data(), "%4d-%2d-%2d %2d:%2d:%2d",
 				&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec);
@@ -182,7 +185,7 @@ namespace l::string {
 			ASSERT(ret <= 6);
 		}
 		else {
-			ASSERT(date.size() == 10);
+			//ASSERT(date.size() == 10);
 #ifdef WIN32
 			ret = sscanf_s(date.data(), "%4d-%2d-%2d",
 				&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday);
@@ -208,7 +211,7 @@ namespace l::string {
 		int ret = 0;
 		int microsec;
 
-		ASSERT(date.size() == 28);
+		//ASSERT(date.size() == 28);
 #ifdef WIN32
 		ret = sscanf_s(date.data(), "%4d-%2d-%2dT%2d:%2d:%2d.%7dZ",
 			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec, &microsec);
@@ -266,7 +269,7 @@ namespace l::string {
 	int32_t to_unix_time_local2(std::string_view dateAndTime) {
 		struct tm timeinfo = {};
 		int microsec;
-		ASSERT(dateAndTime.size() == 28);
+		//ASSERT(dateAndTime.size() == 28);
 #ifdef WIN32
 		int ret = sscanf_s(dateAndTime.data(), "%4d-%2d-%2dT%2d:%2d:%2d.%7dZ",
 			&timeinfo.tm_year, &timeinfo.tm_mon, &timeinfo.tm_mday, &timeinfo.tm_hour, &timeinfo.tm_min, &timeinfo.tm_sec, &microsec);
@@ -441,6 +444,18 @@ namespace l::string {
 		return -1;
 	}
 
+	bool is_numeric(char c) {
+		return c >= '0' && c <= '9';
+	}
+	bool is_letter(char c, bool lowercase) {
+		if (lowercase) {
+			return c >= 'a' && c <= 'z';
+		}
+		else {
+			return c >= 'A' && c <= 'Z';
+		}
+	}
+
 	std::vector<std::wstring_view> split(std::wstring_view text, std::wstring_view delim, char escapeChar) {
 		std::vector<std::wstring_view> out;
 
@@ -514,7 +529,7 @@ namespace l::string {
 		std::locale loc;
 
 		auto size = str.length();
-		EXPECT(size > 0 && size < buffer_size) << "Failed to narrow string of size " << size << " characters";
+		//EXPECT(size > 0 && size < buffer_size) << "Failed to narrow string of size " << size << " characters";
 
 		auto str_ptr = str.data();
 
@@ -529,7 +544,7 @@ namespace l::string {
 		std::locale loc("");
 
 		auto size = str.length();
-		EXPECT(size > 0 && size < buffer_size) << "Failed to widen string of size " << size << " characters";
+		//EXPECT(size > 0 && size < buffer_size) << "Failed to widen string of size " << size << " characters";
 
 		auto str_ptr = str.data();
 
@@ -545,6 +560,29 @@ namespace l::string {
 			i++;
 		} while (number != 0);
 		return i;
+	}
+
+	std::tuple<int64_t, int32_t, int32_t> to_fixed_int(std::string_view s) {
+		int64_t n = 0;
+		int32_t numDecimals = -1;
+		int32_t numDigits = -1;
+		for (char c : s) {
+			int64_t digit = static_cast<int64_t>(c - '0');
+			if (digit < 0 || digit > 9) {
+				if (c == '.') {
+					numDecimals = 0;
+				}
+				continue;
+			}
+			if (digit > 0) {
+				numDigits = 0;
+			}
+			numDecimals = numDecimals < 0 ? numDecimals : numDecimals + 1;
+			numDigits = numDigits < 0 ? numDigits : numDigits + 1;
+			n *= 10;
+			n += digit;
+		}
+		return std::tuple<int64_t, int32_t, int32_t>(n, numDecimals, numDigits);
 	}
 
 	std::string_view cut(std::string_view s, const char ch) {
@@ -623,7 +661,7 @@ namespace l::string {
 				out = 10 + (c - 97);
 			}
 			else {
-				ASSERT(false);
+				//ASSERT(false);
 				out = 0;
 			}
 			return mostSignificant ? out << 4 : out;
@@ -661,7 +699,7 @@ namespace l::string {
 				out = 10 + (c - 97);
 			}
 			else {
-				ASSERT(false);
+				//ASSERT(false);
 				out = 0;
 			}
 			return mostSignificant ? out << 4 : out;

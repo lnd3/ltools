@@ -1,5 +1,4 @@
 #include "rendering/ui/UIVisitors.h"
-#include "hid/KeyboardPiano.h"
 
 
 namespace l::ui {
@@ -245,8 +244,8 @@ namespace l::ui {
     }
 
     /***********************************************************************************/
-    bool UIEdit::Visit(UIContainer& container, const InputState& input) {
-        if (!container.HasConfigFlag(UIContainer_EditFlag)) {
+    bool UITouchEdit::Visit(UIContainer& container, const InputState& input) {
+        if (!container.HasConfigFlag(UIContainer_TouchEditFlag)) {
             return false;
         }
         if (input.mStarted && !mEditing) {
@@ -254,6 +253,7 @@ namespace l::ui {
             if (Overlap(input.GetLocalPos(), container.GetPosition(), container.GetPositionAtSize(), layoutArea)) {
                 mEditing = true;
                 mSourceContainer = &container;
+                mSourceContainer->SetNotification(UIContainer_TouchEditFlag);
             }
         }
         if (mEditing && mSourceContainer == &container) {
@@ -265,6 +265,7 @@ namespace l::ui {
             }
 
             if (input.mStopped) {
+                mSourceContainer->ClearNotification(UIContainer_TouchEditFlag);
                 mEditing = false;
                 mSourceContainer = nullptr;
             }
@@ -273,7 +274,54 @@ namespace l::ui {
         return false;
     }
 
-    void UIEdit::Reset() {
+    void UITouchEdit::Reset() {
+        if (mSourceContainer) {
+            mSourceContainer->ClearNotification(UIContainer_TouchEditFlag);
+        }
+        mEditing = false;
+        mSourceContainer = nullptr;
+    }
+
+    /***********************************************************************************/
+    bool UITextEdit::Visit(UIContainer& container, const InputState& input) {
+        if (!container.HasConfigFlag(UIContainer_TextEditFlag)) {
+            return false;
+        }
+        if (input.mStarted && !mEditing) {
+            auto& layoutArea = container.GetLayoutArea();
+            if (Overlap(input.GetLocalPos(), container.GetPosition(), container.GetPositionAtSize(), layoutArea)) {
+                mEditing = true;
+                mSourceContainer = &container;
+                mSourceContainer->SetNotification(UIContainer_TextEditFlag);
+                if (mEditHandler) {
+                    mEditHandler(container.GetNodeId(), static_cast<int8_t>(container.GetChannelId()), mEditedText, true);
+                }
+            }
+        }
+        if (mEditing && mSourceContainer == &container) {
+            if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_Backspace, true)) {
+                if (!mEditedText.empty()) {
+                    mEditedText.pop_back();
+                }
+            }
+            if (mEditHandler) {
+                mEditHandler(container.GetNodeId(), static_cast<int8_t>(container.GetChannelId()), mEditedText, false);
+            }
+            if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_Enter, false) || ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_Escape, false)) {
+                mSourceContainer->ClearNotification(UIContainer_TextEditFlag);
+                mEditing = false;
+                mSourceContainer = nullptr;
+                mEditedText.clear();
+            }
+            return mEditing;
+        }
+        return false;
+    }
+
+    void UITextEdit::Reset() {
+        if (mSourceContainer) {
+            mSourceContainer->ClearNotification(UIContainer_TextEditFlag);
+        }
         mEditing = false;
         mSourceContainer = nullptr;
     }
@@ -281,6 +329,15 @@ namespace l::ui {
     /***********************************************************************************/
     bool UIDraw::Visit(UIContainer& container, const InputState& input) {
         if (!mDebug && !container.HasConfigFlag(UIContainer_DrawFlag)) {
+            return false;
+        }
+
+        // Filter based on draw mode
+        bool isLink = container.HasConfigFlag(UIContainer_LinkFlag);
+        if (mDrawMode == UIDrawMode::LinksOnly && !isLink) {
+            return false;
+        }
+        if (mDrawMode == UIDrawMode::NoLinks && isLink) {
             return false;
         }
 
@@ -303,6 +360,24 @@ namespace l::ui {
         const char* nameEnd;
 
         auto renderType = container.GetRenderData().mType;
+
+
+        switch (container.GetRenderData().mType) {
+        case l::ui::UIRenderType::Rect:
+        case l::ui::UIRenderType::RectFilled:
+        case l::ui::UIRenderType::Texture:
+        case l::ui::UIRenderType::LinkH:
+        case l::ui::UIRenderType::NodeOutputValue:
+            if (container.HasConfigFlag(UIContainer_SelectFlag) && container.HasNotification(UIContainer_SelectFlag)) {
+                auto p1cpy = ImVec2(p1.x - 1.0f, p1.y - 1.0f);
+                auto p2cpy = ImVec2(p2.x + 1.0f, p2.y + 1.0f);
+                mDrawList->AddRect(p1cpy, p2cpy, mSelectColor, 0.0f, 0, 3.0f * container.GetScale() * layoutArea.mScale);
+            }
+            break;
+        default:
+            break;
+        }
+
         switch (renderType) {
         case l::ui::UIRenderType::Rect:
             mDrawList->AddRect(p1, p2, color, 5.0f, ImDrawFlags_RoundCornersAll, 1.0f * container.GetScale() * layoutArea.mScale);
@@ -320,10 +395,18 @@ namespace l::ui {
         case l::ui::UIRenderType::CircleFilled:
             mDrawList->AddCircleFilled(p1, pSize.x, color, 15);
             break;
-        case l::ui::UIRenderType::Polygon:
+        case l::ui::UIRenderType::Polygon: {
+            int32_t sides = static_cast<int32_t>(container.GetRenderData().mData0.x);
+            if (sides < 3) sides = 6;
+            mDrawList->AddNgon(p1, pSize.x, color, sides, 2.0f * container.GetScale() * layoutArea.mScale);
             break;
-        case l::ui::UIRenderType::PolygonFilled:
+        }
+        case l::ui::UIRenderType::PolygonFilled: {
+            int32_t sides = static_cast<int32_t>(container.GetRenderData().mData0.x);
+            if (sides < 3) sides = 6;
+            mDrawList->AddNgonFilled(p1, pSize.x, color, sides);
             break;
+        }
         case l::ui::UIRenderType::LinkH:
             if (container.HasConfigFlag(UIContainer_LinkFlag)) {
                 splineThickness = container.HasNotification(UIContainer_LinkFlag) ? 2.0f * splineThickness : splineThickness;
@@ -405,21 +488,30 @@ namespace l::ui {
         case l::ui::UIRenderType::RectFilled:
         case l::ui::UIRenderType::Texture:
         case l::ui::UIRenderType::LinkH:
-            if (container.HasConfigFlag(UIContainer_SelectFlag) && container.HasNotification(UIContainer_SelectFlag)) {
+        case l::ui::UIRenderType::NodeOutputValue:
+            if (container.HasConfigFlag(UIContainer_TouchEditFlag) && container.HasNotification(UIContainer_TouchEditFlag)) {
                 auto p1cpy = ImVec2(p1.x - 1.0f, p1.y - 1.0f);
                 auto p2cpy = ImVec2(p2.x + 1.0f, p2.y + 1.0f);
-                mDrawList->AddRect(p1cpy, p2cpy, mSelectColor, 0.0f, 0, 1.0f);
+                mDrawList->AddRect(p1cpy, p2cpy, mSelectColor, 0.0f, 0, 1.0f * container.GetScale() * layoutArea.mScale);
+            }
+            if (container.HasConfigFlag(UIContainer_TextEditFlag) && container.HasNotification(UIContainer_TextEditFlag)) {
+                auto p1cpy = ImVec2(p1.x - 1.0f, p1.y - 1.0f);
+                auto p2cpy = ImVec2(p2.x + 1.0f, p2.y + 1.0f);
+                mDrawList->AddRect(p1cpy, p2cpy, mSelectColor, 0.0f, 0, 1.0f * container.GetScale() * layoutArea.mScale);
             }
             if (container.HasConfigFlag(ui::UIContainer_ResizeFlag)) {
                 float size = 3.0f * layoutArea.mScale;
                 ImVec2 p3 = layoutArea.Transform(pLowRight, ImVec2(-size, -size));
-                ImVec2 p4 = layoutArea.Transform(pLowRight, ImVec2(size, size));
+                ImVec2 p4 = layoutArea.Transform(pLowRight, ImVec2(size - 2, size - 2));
                 if (container.HasNotification(ui::UIContainer_ResizeFlag)) {
                     float size2 = 5.0f * layoutArea.mScale;
                     p3 = layoutArea.Transform(pLowRight, ImVec2(-size2, -size2));
-                    p4 = layoutArea.Transform(pLowRight, ImVec2(size2, size2));
+                    p4 = layoutArea.Transform(pLowRight, ImVec2(size2 - 1, size2 - 1));
+                    mDrawList->AddRectFilled(p3, p4, mSelectColor);
                 }
-                mDrawList->AddRectFilled(p3, p4, color);
+                else {
+                    mDrawList->AddRectFilled(p3, p4, color);
+                }
             }
             break;
         default:
@@ -449,11 +541,11 @@ namespace l::ui {
         // * input container co-parent -> link container
         // But a link container is still owned by only one container, the output container
 
-        {
+        if (container.HasConfigFlag(UIContainer_OutputFlag)) { // output node checks
             auto& outputContainer = container;
 
             // Create a link connection and attach it at a source node
-            if (outputContainer.HasConfigFlag(UIContainer_OutputFlag) && !mDragging && input.mStarted && mLinkContainer.Get() == nullptr) {
+            if (!mDragging && input.mStarted && mLinkContainer.Get() == nullptr) {
                 ImVec2 pCenter = outputContainer.GetPosition();
                 ImVec2 size = outputContainer.GetSize();
                 auto& layoutArea = outputContainer.GetLayoutArea();
@@ -468,25 +560,27 @@ namespace l::ui {
                 }
             }
         }
-
-        {
+        else if (container.HasConfigFlag(UIContainer_LinkFlag)) {
             auto& linkContainer = container;
 
             // Detach a link connection from a destination node with an existing link connection
-            if (linkContainer.HasConfigFlag(UIContainer_LinkFlag) && !mDragging && input.mStarted && mLinkContainer.Get() == nullptr && linkContainer.GetCoParent() != nullptr) {
+            if (!mDragging && input.mStarted && mLinkContainer.Get() == nullptr && linkContainer.GetCoParent() != nullptr) {
                 ImVec2 pCenter = linkContainer.GetCoParent()->GetPosition();
                 ImVec2 size = linkContainer.GetCoParent()->GetSize();
                 ImVec2 pT = linkContainer.GetCoParent()->GetLayoutArea().Transform(pCenter);
                 if (OverlapCircle(input.mCurPos, pT, 2.0f * size.x * linkContainer.GetCoParent()->GetLayoutArea().mScale)) {
                     mLinkContainer.mContainer = &linkContainer;
                     mLinkHandler(mLinkContainer->GetCoParent()->GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), mLinkContainer->GetCoParent()->GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), false);
+                    if (linkContainer.GetCoParent()) {
+                        linkContainer.GetCoParent()->SetCoParent(nullptr);
+                    }
                     mDragging = true;
                     return true;
                 }
             }
 
             // Drag the link end
-            if (mDragging && mLinkContainer.Get() != nullptr && linkContainer.HasConfigFlag(UIContainer_LinkFlag) && mLinkContainer.Get() == &linkContainer) {
+            if (mDragging && mLinkContainer.Get() != nullptr && mLinkContainer.Get() == &linkContainer) {
                 // On the newly created link container, drag the end point along the mouse movement
                 auto& layoutArea = mLinkContainer->GetLayoutArea();
 
@@ -494,34 +588,37 @@ namespace l::ui {
                 mLinkContainer->Move(move);
             }
         }
-
-        {
+        else if (container.HasConfigFlag(UIContainer_InputFlag)) {
             auto& inputContainer = container;
 
             // Check containers with input flags, i.e. a node input channel area
-            if (mDragging && mLinkContainer.Get() != nullptr && inputContainer.HasConfigFlag(UIContainer_InputFlag)) {
+            if (mDragging && mLinkContainer.Get() != nullptr) {
                 ImVec2 pCenter = inputContainer.GetPosition();
                 ImVec2 size = inputContainer.GetSize();
                 auto& layoutArea = inputContainer.GetLayoutArea();
 
                 ImVec2 pT = layoutArea.Transform(pCenter);
 
-                // if there is overlap we connect it
+                // we're dragging, so if there is overlap we connect it
                 if (OverlapCircle(input.mCurPos, pT, 2.0f * size.x * layoutArea.mScale)) {
-                    if (mLinkHandler(inputContainer.GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), inputContainer.GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), true)) {
+                    if (mLinkContainer->GetCoParent() == nullptr && mLinkHandler(inputContainer.GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), inputContainer.GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), true)) {
                         mLinkContainer->SetNotification(UIContainer_LinkFlag);
                         mLinkContainer->SetCoParent(&inputContainer);
                         inputContainer.SetCoParent(mLinkContainer.Get());
+                        //LLOG(LogInfo) << "Connected to " << inputContainer.GetChannelId();
                     }
                     else {
+                        //LLOG(LogInfo) << "Already connected";
                         // This link is already connected (or there is another link connected already)
                     }
                 }
-                // If this link if connected to this input node channel area, we detach it because the overlap failed (we moved it away)
+                // We're dragging, so if the overlap fail and this link is connected, we detach it (we moved it away)
                 else if (mLinkContainer->GetCoParent() == &inputContainer) {
                     mLinkHandler(inputContainer.GetNodeId(), mLinkContainer->GetParent()->GetNodeId(), inputContainer.GetChannelId(), mLinkContainer->GetParent()->GetChannelId(), false);
-                    mLinkContainer->SetCoParent(nullptr);
                     mLinkContainer->ClearNotification(UIContainer_LinkFlag);
+                    mLinkContainer->SetCoParent(nullptr);
+                    inputContainer.SetCoParent(nullptr);
+                    //LLOG(LogInfo) << "Disconnected from " << inputContainer.GetChannelId();
                 }
 
                 if (input.mStopped) {

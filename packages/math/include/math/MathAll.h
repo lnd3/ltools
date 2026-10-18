@@ -5,3 +5,4 @@
 #include "math/MathConstants.h"
 #include "math/MathAlgorithm.h"
 #include "math/MathTween.h"
+#include "math/MathFixedPoint.h"

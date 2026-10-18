@@ -43,7 +43,7 @@ TEST(NetworkWebSocket, Setup) {
 
 	TEST_TRUE(read > 0, "");
 
-	LOG(LogInfo) << std::string_view(buffer, read);
+	LLOG(LogInfo) << std::string_view(buffer, read);
 
 	networkInterfaceWS->Disconnect("Websocket");
 
@@ -69,7 +69,7 @@ TEST(NetworkWebSocket, BinanceKlines) {
 		std::string_view,
 		l::network::WebSocket& ws) {
 			failed = !success;
-			LOG(LogInfo) << "Success: " << success;
+			LLOG(LogInfo) << "Success: " << success;
 
 			return success ? l::concurrency::RunnableResult::SUCCESS : l::concurrency::RunnableResult::FAILURE;
 		};
@@ -104,7 +104,7 @@ TEST(NetworkWebSocket, BinanceKlines) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 		read = networkInterfaceWS->Read("Binance", &buffer[0], 1024);
 		if (read > 0) {
-			LOG(LogInfo) << std::string_view(buffer, read);
+			LLOG(LogInfo) << std::string_view(buffer, read);
 		}
 	} while (readCount-- >= 0);
 
@@ -135,7 +135,7 @@ TEST(NetworkWebSocket, BinanceUIKlines) {
 		std::string_view queryArguments,
 		l::network::WebSocket& ws) {
 			failed = !success;
-			LOG(LogInfo) << "Success: " << success;
+			LLOG(LogInfo) << "Success: " << success;
 
 			return success ? l::concurrency::RunnableResult::SUCCESS : l::concurrency::RunnableResult::FAILURE;
 		};
@@ -172,7 +172,7 @@ TEST(NetworkWebSocket, BinanceUIKlines) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 		read = networkInterfaceWS->Read("Binance", &buffer[0], 1024);
 		if (read > 0) {
-			LOG(LogInfo) << std::string_view(buffer, read);
+			LLOG(LogInfo) << std::string_view(buffer, read);
 		}
 	} while (readCount-- >= 0);
 
@@ -184,7 +184,7 @@ TEST(NetworkWebSocket, BinanceUIKlines) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 		read = networkInterfaceWS->Read("Binance", &buffer[0], 1024);
 		if (read > 0) {
-			LOG(LogInfo) << std::string_view(buffer, read);
+			LLOG(LogInfo) << std::string_view(buffer, read);
 		}
 	} while (readCount-- >= 0);
 

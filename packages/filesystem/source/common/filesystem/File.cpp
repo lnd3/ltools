@@ -101,9 +101,17 @@ namespace filesystem {
 	}
 
 	std::time_t getTime(std::filesystem::file_time_type tp) {
-		auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(tp - std::filesystem::file_time_type::clock::now()
+#if __cpp_lib_chrono >= 201907L && defined(__cpp_lib_chrono_udls)
+		// C++20 clock_cast available (GCC 12+)
+		auto sctp = std::chrono::clock_cast<std::chrono::system_clock>(tp);
+		return std::chrono::system_clock::to_time_t(sctp);
+#else
+		// Fallback for GCC 11: slightly less accurate but compiles everywhere
+		auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+			tp - std::filesystem::file_time_type::clock::now()
 			+ std::chrono::system_clock::now());
 		return std::chrono::system_clock::to_time_t(sctp);
+#endif
 	}
 
 	std::string toString(std::time_t t, std::string format) {
@@ -238,7 +246,7 @@ namespace filesystem {
 
 	size_t File::read(char* dst, size_t count) {
 		if (!mFileStream) {
-			LOG(LogWarning) << "File not open:" << mFilePath;
+			LLOG(LogWarning) << "File not open:" << mFilePath;
 			ASSERT(mFileStream.has_value()) << "File not open:" << mFilePath;
 			return 0;
 		}
@@ -250,7 +258,7 @@ namespace filesystem {
 
 	size_t File::write(const char* src, size_t count) {
 		if (!mFileStream) {
-			LOG(LogWarning) << "File not open:" << mFilePath;
+			LLOG(LogWarning) << "File not open:" << mFilePath;
 			ASSERT(mFileStream.has_value()) << "File not open:" << mFilePath;
 			return 0;
 		}
@@ -260,7 +268,7 @@ namespace filesystem {
 
 	size_t File::read(std::vector<char>& dst) {
 		if (!mFileStream) {
-			LOG(LogWarning) << "File not open:" << mFilePath;
+			LLOG(LogWarning) << "File not open:" << mFilePath;
 			ASSERT(mFileStream.has_value()) << "File not open:" << mFilePath;
 			return 0;
 		}
@@ -274,7 +282,7 @@ namespace filesystem {
 
 	size_t File::write(const std::vector<char>& src) {
 		if (!mFileStream) {
-			LOG(LogWarning) << "File not open:" << mFilePath;
+			LLOG(LogWarning) << "File not open:" << mFilePath;
 			ASSERT(mFileStream.has_value()) << "File not open:" << mFilePath;
 			return 0;
 		}
@@ -284,7 +292,7 @@ namespace filesystem {
 
 	size_t File::read(unsigned char* dst, size_t count) {
 		if (!mFileStream) {
-			LOG(LogWarning) << "File not open:" << mFilePath;
+			LLOG(LogWarning) << "File not open:" << mFilePath;
 			ASSERT(mFileStream.has_value()) << "File not open:" << mFilePath;
 			return 0;
 		}
@@ -296,7 +304,7 @@ namespace filesystem {
 
 	size_t File::write(const unsigned char* src, size_t count) {
 		if (!mFileStream) {
-			LOG(LogWarning) << "File not open:" << mFilePath;
+			LLOG(LogWarning) << "File not open:" << mFilePath;
 			ASSERT(mFileStream.has_value()) << "File not open:" << mFilePath;
 			return 0;
 		}
@@ -306,7 +314,7 @@ namespace filesystem {
 
 	size_t File::read(std::vector<unsigned char>& dst) {
 		if (!mFileStream) {
-			LOG(LogWarning) << "File not open:" << mFilePath;
+			LLOG(LogWarning) << "File not open:" << mFilePath;
 			ASSERT(mFileStream.has_value()) << "File not open:" << mFilePath;
 			return 0;
 		}
@@ -320,7 +328,7 @@ namespace filesystem {
 
 	size_t File::write(const std::vector<unsigned char>& src) {
 		if (!mFileStream) {
-			LOG(LogWarning) << "File not open:" << mFilePath;
+			LLOG(LogWarning) << "File not open:" << mFilePath;
 			ASSERT(mFileStream.has_value()) << "File not open:" << mFilePath;
 			return 0;
 		}
@@ -330,7 +338,7 @@ namespace filesystem {
 
 	size_t File::read(std::stringstream& dst, size_t count) {
 		if (!mFileStream) {
-			LOG(LogWarning) << "File not open:" << mFilePath;
+			LLOG(LogWarning) << "File not open:" << mFilePath;
 			ASSERT(mFileStream.has_value()) << "File not open:" << mFilePath;
 			return 0;
 		}
@@ -352,7 +360,7 @@ namespace filesystem {
 
 	size_t File::write(std::stringstream& src, size_t count) {
 		if (!mFileStream) {
-			LOG(LogWarning) << "File not open:" << mFilePath;
+			LLOG(LogWarning) << "File not open:" << mFilePath;
 			ASSERT(mFileStream.has_value()) << "File not open:" << mFilePath;
 			return 0;
 		}

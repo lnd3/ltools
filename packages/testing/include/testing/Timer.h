@@ -24,6 +24,8 @@ namespace l::testing {
 
     struct TimeMeasure {
         double mSeconds = 0;
+        double mMin = 100000;
+        double mMax = 0.0f;
         uint64_t mCount = 0;
     };
 
@@ -38,6 +40,7 @@ namespace l::testing {
 
     std::map<std::string, TimeMeasure>& get_time_measures(std::string_view groupName);
     TimeMeasure& get_time_measure(std::string_view groupName, std::string_view id);
+    void show_measurements(const std::string& group);
 }
 
 #define PERF_TIMER(name) auto UNIQUE(PerfTimer) = std::make_unique<l::testing::PerformanceTimer>(l::testing::get_current_test_group(), name)

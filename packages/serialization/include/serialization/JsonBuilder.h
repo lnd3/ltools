@@ -24,11 +24,14 @@ namespace l::serialization {
         
         void BeginExternalObject(std::string_view name);
         void EndExternalObject();
-        void Begin(std::string_view name, bool array = false);
+        void Begin(std::string_view name = "", bool array = false);
+        void BeginArray(std::string_view name = "");
         void End(bool array = false);
+        void EndArray();
         void AddJson(std::string_view json);
         void AddString(std::string_view name, std::string_view data);
         void AddString(std::string_view name, std::function<void(std::stringstream& json)> dataGenerator);
+        void AddBool(std::string_view name, bool value);
 
         template<class T>
         void AddNumber(std::string_view name, T value, bool asString = false) {

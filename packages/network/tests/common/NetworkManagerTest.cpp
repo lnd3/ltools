@@ -20,7 +20,7 @@ TEST(NetworkManager, Setup) {
 		[&](bool success, std::string_view queryArguments, l::network::RequestStringStream& request) {
 			TEST_TRUE_NO_RET(success, "");
 
-			LOG(LogInfo) << "Query arguments: '" << queryArguments << "'";
+			LLOG(LogInfo) << "Query arguments: '" << queryArguments << "'";
 			file.modeWriteTrunc();
 			if (file.open()) {
 				file.write(request.GetResponse());
@@ -34,8 +34,8 @@ TEST(NetworkManager, Setup) {
 		[&](bool success, std::string_view queryArguments, l::network::RequestStringStream& request) {
 			TEST_TRUE_NO_RET(success, "");
 
-			LOG(LogInfo) << "Query arguments: '" << queryArguments << "'";
-			LOG(LogInfo) << request.GetResponse().str();
+			LLOG(LogInfo) << "Query arguments: '" << queryArguments << "'";
+			LLOG(LogInfo) << request.GetResponse().str();
 			return l::concurrency::RunnableResult::SUCCESS;
 		}
 	);
@@ -66,8 +66,8 @@ TEST(NetworkManager, Setup) {
 				[&](bool success, std::string_view queryArguments, l::network::RequestStringStream& request) {
 					TEST_TRUE_NO_RET(success, "");
 
-					LOG(LogInfo) << "Query arguments: '" << queryArguments << "'";
-					LOG(LogInfo) << request.GetResponse().str();
+					LLOG(LogInfo) << "Query arguments: '" << queryArguments << "'";
+					LLOG(LogInfo) << request.GetResponse().str();
 					return l::concurrency::RunnableResult::SUCCESS;
 				}
 			);

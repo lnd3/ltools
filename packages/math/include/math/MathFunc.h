@@ -47,12 +47,12 @@ namespace l::math {
 
 	template<class T>
 	auto min3(T val1, T val2, T val3) {
-		return val1 < val2 ? (val3 < val1 ? val3 : val1) : val2;
+		return val1 < val2 ? (val3 < val1 ? val3 : val1) : (val3 < val2 ? val3 : val2);
 	}
 
 	template<class T>
 	auto max3(T val1, T val2, T val3) {
-		return val1 > val2 ? (val1 > val3 ? val1 : val3) : val2;
+		return val1 > val2 ? (val1 > val3 ? val1 : val3) : (val1 > val2 ? val1 : val2);
 	}
 
 	template<class T>
@@ -231,6 +231,29 @@ namespace l::math {
 	}
 
 	template<class T>
+	auto trunc(T val) {
+		if constexpr (std::is_floating_point_v<T>) {
+			if constexpr (sizeof(T) == 4) {
+				return truncf(val);
+			}
+			else if constexpr (sizeof(T) == 8) {
+				return truncl(val);
+			}
+		}
+	}
+
+	template<class V, class T>
+	V trunc(T val) {
+		if constexpr (std::is_floating_point_v<T>) {
+			if constexpr (sizeof(T) == 4) {
+				return static_cast<V>(truncf(val));
+			}
+			else if constexpr (sizeof(T) == 8) {
+				return static_cast<V>(truncl(val));
+			}
+		}
+	}
+	template<class T>
 	auto log(T val) {
 		if constexpr (std::is_floating_point_v<T>) {
 			if constexpr (sizeof(T) == 4) {
@@ -240,6 +263,11 @@ namespace l::math {
 				return logl(val);
 			}
 		}
+	}
+
+	template<class T>
+	auto logx(T base, T val) {
+		return log(val) / log(base);
 	}
 
 	// Sinc curve
@@ -398,6 +426,7 @@ namespace l::math::functions {
 		return k * math::pow(x, a) * math::pow(1.0 - x, b);
 	}
 
+	// Sigmoid function maps the input to the interval [0,1] for [0,inf] input ([1] maps to [0.5]).
 	template<class T>
 	auto sigmoid(T x, T k) {
 		return static_cast<T>(static_cast<T>(1.0) / (static_cast<T>(1.0) + math::exp(-x * k)));
@@ -412,4 +441,10 @@ namespace l::math::functions {
 			return static_cast<T>(x > static_cast<T>(0.0) ? static_cast<T>(1.0) : static_cast<T>(-1.0));
 		}
 	}
+
+	template<class T>
+	float infUnit(T x, T cutoff) {
+		return 1.0 / (1.0 + math::pow(2.71828, - x * 5.0 / cutoff));
+	}
+
 }
