@@ -61,6 +61,21 @@ namespace rendering {
 
         void GetViewRotation(mat4x4 rotation);
         void GetViewPosition(vec4 position);
+        void GetOrientation(quat orientation);
+
+        // Per direct request (spacesim's PlayerMode switching needed to
+        // carry the player's actual view position/direction across a
+        // mode change instead of popping back to wherever this free
+        // camera was last left) - overwrites mPosition/mOrientation
+        // directly and zeroes mVelocity/mAcceleration (no leftover
+        // momentum from before this camera was last active). World-
+        // space mRight/mUp/mFront and mView are NOT recomputed here -
+        // they stay stale until the next Update() call, same as every
+        // other field this class only derives inside Update() - callers
+        // that need an immediately-correct GetLookAt()/GetViewRotation()
+        // before the next Update() should call Update() themselves
+        // first (e.g. with dt=0).
+        void SetViewState(const vec4 position, const quat orientation);
 
         void HandleTouch(int button, int action, int mods);
         void HandleScroll(float x, float y);

@@ -68,6 +68,11 @@ namespace l {
 			vec4_dup(position, mPosition);
 		}
 
+		void FPSInterface::SetViewPosition(const vec4 position) {
+			vec4_dup(mPosition, position);
+			mVelocity[0] = mVelocity[1] = mVelocity[2] = 0.0f;
+		}
+
 		void FPSInterface::HandleTouch(int, int, int) {
 			//LLOG(LogInfo) << "button:" << button << ", action:" << action << ", mods:" << mods;
 		}

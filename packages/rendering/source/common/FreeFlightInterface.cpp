@@ -89,6 +89,20 @@ namespace l {
             vec4_dup(position, mPosition);
         }
 
+        void FreeFlightInterface::GetOrientation(quat orientation) {
+            // quat is a plain float[4] (linmath.h's own typedef) - no
+            // separate quat_dup exists, vec4_dup works unchanged on it.
+            vec4_dup(orientation, mOrientation);
+        }
+
+        void FreeFlightInterface::SetViewState(const vec4 position, const quat orientation) {
+            vec4_dup(mPosition, position);
+            vec4_dup(mOrientation, orientation);
+            quat_norm(mOrientation, mOrientation);
+            mVelocity[0] = mVelocity[1] = mVelocity[2] = 0.0f;
+            mAcceleration[0] = mAcceleration[1] = mAcceleration[2] = 0.0f;
+        }
+
         void FreeFlightInterface::HandleTouch(int, int, int) {
             //LLOG(LogInfo) << "button:" << button << ", action:" << action << ", mods:" << mods;
         }

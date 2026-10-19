@@ -29,6 +29,22 @@ namespace rendering {
         void GetViewRotation(mat4x4 rotation);
         void GetViewPosition(vec4 position);
 
+        // Per direct request (spacesim's PlayerMode switching needed to
+        // carry the player's actual view position across a mode change
+        // instead of popping back to wherever this camera was last
+        // left) - overwrites mPosition only, zeroes mVelocity (no
+        // leftover momentum). Direction/orientation (mTurnAngle/
+        // mTiltAngle/mYawAngle) is deliberately left untouched here -
+        // unlike FreeFlightInterface's single orientation quaternion,
+        // this class's fixed-world-up polar angles don't have a cheap,
+        // exact correspondence with the other modes' own orientation
+        // representations, and position is the priority per direct
+        // instruction ("position is the most important thing... unless
+        // the scene requires something else") - direction continuity
+        // for this specific (non-free-flight) camera is a known,
+        // accepted simplification, not attempted here.
+        void SetViewPosition(const vec4 position);
+
         void HandleTouch(int button, int action, int mods);
         void HandleScroll(float x, float y);
         void HandleKeyPress(int key, int scancode, int action, int mods);
