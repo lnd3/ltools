@@ -16,6 +16,29 @@ namespace l {
             return std::make_unique<FreeFlightInterface>();
         }
 
+        void ComposeFreeOrientationDelta(quat orientation, float yawAngle, float pitchAngle, float rollAngle) {
+            vec3 localRight = { 1.0f, 0.0f, 0.0f };
+            vec3 localUp = { 0.0f, 1.0f, 0.0f };
+            vec3 localFront = { 0.0f, 0.0f, -1.0f };
+
+            quat dqYaw, dqPitch, dqRoll;
+            quat_rotate(dqYaw, yawAngle, localUp);
+            quat_rotate(dqPitch, pitchAngle, localRight);
+            quat_rotate(dqRoll, rollAngle, localFront);
+
+            // Non-aliased destination for each quat_mul - see Update()'s
+            // own comment on the real aliased-quat_mul bug this avoids.
+            quat yawPitch;
+            quat_mul(yawPitch, dqYaw, dqPitch);
+            quat delta;
+            quat_mul(delta, yawPitch, dqRoll);
+            quat_norm(delta, delta);
+
+            quat newOrientation;
+            quat_mul(newOrientation, orientation, delta);
+            quat_norm(orientation, newOrientation);
+        }
+
         FreeFlightInterface::FreeFlightInterface()
             : mWindow(nullptr)
             , mRollSpeed(1.5f)
@@ -170,10 +193,6 @@ namespace l {
             // deltas (verified numerically: max |det-1| ~1e-15 across
             // 500 combined random small-angle steps, same simulation
             // methodology that caught the previous sign bug).
-            vec3 localRight = { 1.0f, 0.0f, 0.0f };
-            vec3 localUp = { 0.0f, 1.0f, 0.0f };
-            vec3 localFront = { 0.0f, 0.0f, -1.0f };
-
             float yawAngle = 0.0f;
             float pitchAngle = 0.0f;
             if (mWindow) {
@@ -203,38 +222,17 @@ namespace l {
                 rollAngle = mRollSpeed * dt;
             }
 
-            quat dqYaw, dqPitch, dqRoll;
-            quat_rotate(dqYaw, yawAngle, localUp);
-            quat_rotate(dqPitch, pitchAngle, localRight);
-            quat_rotate(dqRoll, rollAngle, localFront);
-
-            // A real, confirmed bug, found via a direct report ("no
-            // view rotation from mouse movement detected"): quat_mul's
-            // own cross-product-based implementation (linmath.h) is
-            // NOT safe for an aliased output/first-input pair (a
-            // classic in-place-cross-product hazard - later component
-            // computations read operand components the earlier ones
-            // already overwrote). `quat_mul(delta, delta, dqRoll)`
-            // aliased `delta` as both destination and source - and
-            // since dqRoll is the IDENTITY quaternion whenever Q/E
-            // aren't held (the common case), this silently zeroed
-            // delta's rotational (xyz) part EVERY FRAME, discarding
-            // the yaw+pitch just computed into it the line before.
-            // Verified directly by porting quat_mul's exact step-by-
-            // step arithmetic (not just reasoning about it) and
-            // confirming a nonzero yaw+pitch delta collapses to
-            // (0,0,0,w) - the identity direction - after exactly this
-            // aliased call. Fixed with a separate, non-aliased
-            // destination for each quat_mul.
-            quat yawPitch;
-            quat_mul(yawPitch, dqYaw, dqPitch);
-            quat delta;
-            quat_mul(delta, yawPitch, dqRoll);
-            quat_norm(delta, delta); // quat_norm (vec4_norm) IS alias-safe - purely component-wise, no cross-term dependency
-
-            quat newOrientation;
-            quat_mul(newOrientation, mOrientation, delta);
-            quat_norm(mOrientation, newOrientation);
+            // The actual composition (delta quats around fixed LOCAL
+            // axes, composed onto mOrientation, renormalized - see the
+            // free function's own header comment for the real, once-
+            // confirmed aliased-quat_mul bug this avoids) now lives in
+            // ComposeFreeOrientationDelta, shared with any other 6DOF
+            // control scheme that wants this exact feel (e.g. spacesim's
+            // Ship/FreeFlight player modes) instead of reimplementing it.
+            vec3 localUp = { 0.0f, 1.0f, 0.0f };
+            vec3 localRight = { 1.0f, 0.0f, 0.0f };
+            vec3 localFront = { 0.0f, 0.0f, -1.0f };
+            ComposeFreeOrientationDelta(mOrientation, yawAngle, pitchAngle, rollAngle);
 
             // World-space right/up/front, re-derived fresh from
             // mOrientation every frame (never independently mutated) -

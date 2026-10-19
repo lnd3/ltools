@@ -109,5 +109,23 @@ namespace rendering {
     };
 
     std::unique_ptr<FreeFlightInterface> CreateFreeFlightInterface();
+
+    // The actual "input -> orientation" technique behind
+    // FreeFlightInterface::Update()'s free (6DOF, no-fixed-up) feel,
+    // factored out so a DIFFERENT position/movement model (e.g. a
+    // gravity-coupled flying body that must keep integrating real
+    // physics, not FreeFlightInterface's own disconnected position/
+    // velocity model) can drive its orientation through the exact same
+    // control scheme instead of reimplementing it. Composes yawAngle/
+    // pitchAngle/rollAngle (already-scaled radians for this frame - the
+    // caller does its own mouse-delta/sensitivity and Q/E-roll-speed*dt
+    // math, same as FreeFlightInterface::Update() does internally) as
+    // body-frame delta quaternions around FIXED LOCAL axes (right=
+    // (1,0,0), up=(0,1,0), front=(0,0,-1)), composed onto `orientation`
+    // as `orientation = orientation * delta` and renormalized - see
+    // FreeFlightInterface::Update()'s own comment for why this (not a
+    // per-frame re-orthonormalized triad) is the validated, bug-free
+    // technique. `orientation` is updated in place.
+    void ComposeFreeOrientationDelta(quat orientation, float yawAngle, float pitchAngle, float rollAngle);
 }
 }
