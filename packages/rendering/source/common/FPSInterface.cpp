@@ -73,6 +73,14 @@ namespace l {
 			mVelocity[0] = mVelocity[1] = mVelocity[2] = 0.0f;
 		}
 
+		void FPSInterface::ConsumePositionDelta(vec4 delta) {
+			delta[0] = mPosition[0];
+			delta[1] = mPosition[1];
+			delta[2] = mPosition[2];
+			delta[3] = 0.0f;
+			mPosition[0] = mPosition[1] = mPosition[2] = 0.0f;
+		}
+
 		void FPSInterface::HandleTouch(int, int, int) {
 			//LLOG(LogInfo) << "button:" << button << ", action:" << action << ", mods:" << mods;
 		}
