@@ -98,6 +98,19 @@ namespace l::math {
 		}
 	}
 
+	// Cube root - real for negative values too (cbrt(-8) = -2), unlike pow(val, 1/3).
+	template<class T>
+	auto cbrt(T val) {
+		if constexpr (std::is_floating_point_v<T>) {
+			if constexpr (sizeof(T) == 4) {
+				return cbrtf(val);
+			}
+			else if constexpr (sizeof(T) == 8) {
+				return ::cbrt(val);
+			}
+		}
+	}
+
 	template<class T>
 	auto pow(T val, T exp) {
 		if constexpr (std::is_floating_point_v<T>) {
