@@ -21,13 +21,31 @@
 namespace l {
 namespace rendering {
 
+    // Added alongside tessellation-control/tessellation-evaluation
+    // stage support (ShaderProgram/ShaderManager below) - replaces the
+    // old `bool fragment` (vertex/fragment only) parameter throughout
+    // this file.
+    enum class ShaderStage {
+        Vertex,
+        TessControl,
+        TessEvaluation,
+        Fragment,
+    };
+
     struct Shader {
         GLuint mId;
-        bool mFragment;
+        ShaderStage mStage;
 
-        void load(std::string_view code, bool fragment) {
-            mId = fragment ? glCreateShader(GL_FRAGMENT_SHADER) : glCreateShader(GL_VERTEX_SHADER);
-            mFragment = fragment;
+        void load(std::string_view code, ShaderStage stage) {
+            GLenum glStage = GL_VERTEX_SHADER;
+            switch (stage) {
+                case ShaderStage::Vertex: glStage = GL_VERTEX_SHADER; break;
+                case ShaderStage::TessControl: glStage = GL_TESS_CONTROL_SHADER; break;
+                case ShaderStage::TessEvaluation: glStage = GL_TESS_EVALUATION_SHADER; break;
+                case ShaderStage::Fragment: glStage = GL_FRAGMENT_SHADER; break;
+            }
+            mId = glCreateShader(glStage);
+            mStage = stage;
 
             const GLchar* codeBytes = static_cast<const GLchar*>(code.data());
             glShaderSource(mId, 1, &codeBytes, NULL);
@@ -48,10 +66,27 @@ namespace rendering {
     struct ShaderProgram {
         GLuint mId;
         GLuint mVertexShaderId;
+        // Tessellation stages, per direct request ("continue with the
+        // gpu tessellation" - Phase 0 of the scoped plan, see
+        // superplan's P014 Log). 0 doubles as "stage not present" (not
+        // a valid GL shader id) - every existing 2-stage program keeps
+        // working unchanged, since `load()` below explicitly zeroes
+        // both and `compile()`'s new blocks are gated on `!= 0`.
+        GLuint mTessControlShaderId = 0;
+        GLuint mTessEvaluationShaderId = 0;
         GLuint mFragmentShaderId;
 
         void load(const Shader& vertexShader, const Shader& fragmentShader) {
             mVertexShaderId = vertexShader.mId;
+            mTessControlShaderId = 0;
+            mTessEvaluationShaderId = 0;
+            mFragmentShaderId = fragmentShader.mId;
+        }
+
+        void loadWithTessellation(const Shader& vertexShader, const Shader& tessControlShader, const Shader& tessEvaluationShader, const Shader& fragmentShader) {
+            mVertexShaderId = vertexShader.mId;
+            mTessControlShaderId = tessControlShader.mId;
+            mTessEvaluationShaderId = tessEvaluationShader.mId;
             mFragmentShaderId = fragmentShader.mId;
         }
 
@@ -65,7 +100,37 @@ namespace rendering {
                     GLsizei logLength = 0;
                     GLchar message[1024];
                     glGetShaderInfoLog(mVertexShaderId, 1024, &logLength, message);
-                    LOG(LogError) << "Failed to compile vertex shader. Error: " << message;
+                    LLOG(LogError) << "Failed to compile vertex shader. Error: " << message;
+                }
+                GL_ASSERT();
+            }
+
+            if (mTessControlShaderId != 0)
+            {
+                glCompileShader(mTessControlShaderId);
+                GLint tessControlStatus;
+                glGetShaderiv(mTessControlShaderId, GL_COMPILE_STATUS, &tessControlStatus);
+                if (tessControlStatus != GL_TRUE)
+                {
+                    GLsizei logLength = 0;
+                    GLchar message[1024];
+                    glGetShaderInfoLog(mTessControlShaderId, 1024, &logLength, message);
+                    LLOG(LogError) << "Failed to compile tessellation control shader. Error: " << message;
+                }
+                GL_ASSERT();
+            }
+
+            if (mTessEvaluationShaderId != 0)
+            {
+                glCompileShader(mTessEvaluationShaderId);
+                GLint tessEvaluationStatus;
+                glGetShaderiv(mTessEvaluationShaderId, GL_COMPILE_STATUS, &tessEvaluationStatus);
+                if (tessEvaluationStatus != GL_TRUE)
+                {
+                    GLsizei logLength = 0;
+                    GLchar message[1024];
+                    glGetShaderInfoLog(mTessEvaluationShaderId, 1024, &logLength, message);
+                    LLOG(LogError) << "Failed to compile tessellation evaluation shader. Error: " << message;
                 }
                 GL_ASSERT();
             }
@@ -79,13 +144,15 @@ namespace rendering {
                     GLsizei logLength = 0;
                     GLchar message[1024];
                     glGetShaderInfoLog(mFragmentShaderId, 1024, &logLength, message);
-                    LOG(LogError) << "Failed to compile fragment shader. Error: " << message;
+                    LLOG(LogError) << "Failed to compile fragment shader. Error: " << message;
                 }
                 GL_ASSERT();
             }
 
             mId = glCreateProgram();
             glAttachShader(mId, mVertexShaderId);
+            if (mTessControlShaderId != 0) glAttachShader(mId, mTessControlShaderId);
+            if (mTessEvaluationShaderId != 0) glAttachShader(mId, mTessEvaluationShaderId);
             glAttachShader(mId, mFragmentShaderId);
             glLinkProgram(mId);
             {
@@ -97,11 +164,11 @@ namespace rendering {
                     GLchar message[1024];
                     glGetProgramInfoLog(mId, 1024, &logLength, message);
 
-                    LOG(LogError) << "Failed to link. Error: " << message;
+                    LLOG(LogError) << "Failed to link. Error: " << message;
                 }
                 GL_ASSERT();
             }
-            
+
             glValidateProgram(mId);
             GL_ASSERT();
         }
@@ -114,6 +181,8 @@ namespace rendering {
             glDeleteProgram(mId);
             mId = 0;
             mVertexShaderId = 0;
+            mTessControlShaderId = 0;
+            mTessEvaluationShaderId = 0;
             mFragmentShaderId = 0;
         }
 
@@ -148,9 +217,13 @@ namespace rendering {
         ShaderManager();
         ~ShaderManager();
 
-        void CreateShader(std::string_view name, std::string_view code, bool fragment);
+        void CreateShader(std::string_view name, std::string_view code, ShaderStage stage);
         void CompileShader(std::string_view name);
         void CreateProgram(std::string_view name, std::string_view vertexShader, std::string_view fragmentShader);
+        // Per direct request ("continue with the gpu tessellation") -
+        // a separate entry point rather than overloading CreateProgram,
+        // so the existing 2-stage call sites need no disambiguation.
+        void CreateTessellatedProgram(std::string_view name, std::string_view vertexShader, std::string_view tessControlShader, std::string_view tessEvaluationShader, std::string_view fragmentShader);
         void DeleteProgram(std::string_view name);
         void CompileProgram(std::string_view name);
         void UseProgram(std::string_view name);

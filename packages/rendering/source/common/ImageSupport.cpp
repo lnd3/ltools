@@ -81,14 +81,14 @@ namespace l::rendering {
 			lodepng::State state;
 			auto result = lodepng_inspect(&w, &h, &state, data.data(), data.size());
 			if (result != 0) {
-				LOG(LogError) << "Failed to load image header";
+				LLOG(LogError) << "Failed to load image header";
 				return false;
 			}
 
 			unsigned int e = lodepng::decode(pixels, w, h, data);
 			if (e != 0)
 			{
-				LOG(LogError) << "Failed loading PNG file %s";
+				LLOG(LogError) << "Failed loading PNG file %s";
 				return false;
 			}
 

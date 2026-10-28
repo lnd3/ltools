@@ -3,12 +3,6 @@
 
 #include "logging/LoggingAll.h"
 
-#include "hid/KeyboardPiano.h"
-#include "hid/Midi.h"
-
-#include "audio/PortAudio.h"
-#include "audio/AudioUtils.h"
-
 #include "math/MathFunc.h"
 
 #include <string>
@@ -135,8 +129,8 @@ namespace l::nodegraph {
             mInputManager.AddInput(InputIterationType::SAMPLED_ARRAY, AddInput("In"));
             mInputManager.AddInput(InputIterationType::SAMPLED_ARRAY, AddInput("Weight"));
 
-            AddInput("Kernel Size", 1.0f, 1, 1.0f, 5000.0f);
-            AddInput("Kernel Balance", 0.0f, 1, 0.0f, 10.0f);
+            AddInput("Kernel", 1.0f, 1, 1.0f, 5000.0f);
+            AddInput("Balance", 0.0f, 1, 0.0f, 10.0f);
             AddInput("Weight Accent", 1.0f, 1, 0.0f, 10.0f);
             AddInput("Gamma", 1.0f, 1, 0.0f, 10.0f);
 

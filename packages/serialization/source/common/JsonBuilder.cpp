@@ -88,6 +88,22 @@ namespace l::serialization {
         mNestingItemCount.back()++;
         *mJson << json;
     }
+    void JsonBuilder::BeginArray(std::string_view name) {
+        Begin(name, true);
+    }
+    void JsonBuilder::EndArray() {
+        End(true);
+    }
+    void JsonBuilder::AddBool(std::string_view name, bool value) {
+        if (mNestingItemCount.back() > 1) {
+            *mJson << ",";
+        }
+        mNestingItemCount.back()++;
+        if (!name.empty()) {
+            *mJson << "\"" << name << "\":";
+        }
+        *mJson << (value ? "true" : "false");
+    }
     void JsonBuilder::Reset() {
         mJson->str("");
         mJson->clear();

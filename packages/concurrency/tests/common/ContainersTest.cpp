@@ -100,9 +100,9 @@ TEST(Containers, Polymorphic) {
 		TEST_TRUE(meta::Type<Base>::hash_code() != meta::Type<DoubleDerived>::hash_code(), "");
 		TEST_TRUE(meta::Type<Derived>::hash_code() != meta::Type<DoubleDerived>::hash_code(), "");
 
-		LOG(LogInfo) << meta::Type<Base>::hash_code();
-		LOG(LogInfo) << meta::Type<Derived>::hash_code();
-		LOG(LogInfo) << meta::Type<DoubleDerived>::hash_code();
+		LLOG(LogInfo) << meta::Type<Base>::hash_code();
+		LLOG(LogInfo) << meta::Type<Derived>::hash_code();
+		LLOG(LogInfo) << meta::Type<DoubleDerived>::hash_code();
 	}
 
 	{

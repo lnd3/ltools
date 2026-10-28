@@ -43,12 +43,12 @@ TEST(ReflectionTest, ClassName) {
     class A {};
     class B {};
     class C {};
-    LOG(LogInfo) << l::meta::Type<A>::name();
-    LOG(LogInfo) << l::meta::Type<B>::full_name() << "\n";
-    LOG(LogInfo) << l::meta::Type<TestClassGlobal>::name() << "\n";
-    LOG(LogInfo) << l::meta::Type<A>::full_name() << "\n";
-    LOG(LogInfo) << l::meta::Type<C>::name() << "\n";
-    LOG(LogInfo) << l::meta::Type<C>::type() << "\n";
+    LLOG(LogInfo) << l::meta::Type<A>::name();
+    LLOG(LogInfo) << l::meta::Type<B>::full_name() << "\n";
+    LLOG(LogInfo) << l::meta::Type<TestClassGlobal>::name() << "\n";
+    LLOG(LogInfo) << l::meta::Type<A>::full_name() << "\n";
+    LLOG(LogInfo) << l::meta::Type<C>::name() << "\n";
+    LLOG(LogInfo) << l::meta::Type<C>::type() << "\n";
 
     return 0;
 }
@@ -103,9 +103,9 @@ TEST(ReflectionTest, Polymorphism) {
 		TEST_TRUE(l::meta::Type<Base>::hash_code() != l::meta::Type<DoubleDerived>::hash_code(), "");
 		TEST_TRUE(l::meta::Type<Derived>::hash_code() != l::meta::Type<DoubleDerived>::hash_code(), "");
 
-		LOG(LogInfo) << l::meta::Type<Base>::hash_code();
-		LOG(LogInfo) << l::meta::Type<Derived>::hash_code();
-		LOG(LogInfo) << l::meta::Type<DoubleDerived>::hash_code();
+		LLOG(LogInfo) << l::meta::Type<Base>::hash_code();
+		LLOG(LogInfo) << l::meta::Type<Derived>::hash_code();
+		LLOG(LogInfo) << l::meta::Type<DoubleDerived>::hash_code();
 	}
 
 	return 0;

@@ -7,7 +7,7 @@
 #include <vector>
 #include <unordered_map>
 
-#include "../../include/portaudio.h"
+#include <portaudio.h>
 
 namespace l::audio {
 

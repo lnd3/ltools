@@ -145,7 +145,7 @@ TEST(GridMap, StressTest) {
 		count++;
 		});
 
-	LOG(LogInfo) << "Found " << count << " pairs";
+	LLOG(LogInfo) << "Found " << count << " pairs";
 
 	TEST_TRUE(count > 500 && count < 1100, "");
 	return 0;

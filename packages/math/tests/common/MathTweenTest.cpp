@@ -15,7 +15,7 @@ TEST(MathTween, RecentWeightedAverage) {
 	TEST_FUZZY(rwa.Value(), 1.0f, 0.1f, "");
 	for (int i = 0; i < 10; i++) {
 		auto value = rwa.Next();
-		LOG(LogInfo) << "RWA: " << value;
+		LLOG(LogInfo) << "RWA: " << value;
 	}
 	TEST_FUZZY(rwa.Value(), 0.0f, 0.1f, "");
 
@@ -30,7 +30,7 @@ TEST(MathTween, DynamicTween) {
 	for (int i = 0; i < 10; i++) {
 		tween.Update();
 		auto value = tween.Next();
-		LOG(LogInfo) << "Tween: " << value;
+		LLOG(LogInfo) << "Tween: " << value;
 	}
 	TEST_FUZZY(tween.Value(), 0.0f, 0.01f, "");
 
@@ -47,7 +47,7 @@ TEST(MathTween, DynamicTweenVeryShortBatch) {
 			tween.Update(10);
 		}
 		auto value = tween.Next();
-		LOG(LogInfo) << "Tween (" << i << "): " << value;
+		LLOG(LogInfo) << "Tween (" << i << "): " << value;
 	}
 	TEST_FUZZY(tween.Value(), 0.0f, 0.01f, "");
 
@@ -64,7 +64,7 @@ TEST(MathTween, DynamicTweenShortBatch) {
 			tween.Update(10);
 		}
 		auto value = tween.Next();
-		LOG(LogInfo) << "Tween (" << i << "): " << value;
+		LLOG(LogInfo) << "Tween (" << i << "): " << value;
 	}
 	TEST_FUZZY(tween.Value(), 0.0f, 0.01f, "");
 
@@ -82,7 +82,7 @@ TEST(MathTween, DynamicTweenLongBatch) {
 			tween.Update(updateRate);
 		}
 		auto value = tween.Next();
-		LOG(LogInfo) << "Tween (" << i << "): " << value;
+		LLOG(LogInfo) << "Tween (" << i << "): " << value;
 	}
 	TEST_FUZZY(tween.Value(), 0.0f, 0.02f, "");
 

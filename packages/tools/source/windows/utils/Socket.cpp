@@ -12,11 +12,11 @@ namespace l {
 				int xsend(SOCKET s, const char *buf, size_t len, int flags) {
 					int result = send(s, (const char *)buf, (int)len, flags);
 					if (result == SOCKET_ERROR) {
-						LOG(LogWarning) << "Failed to write to socket " << s << ", error: " << WSAGetLastError();
+						LLOG(LogWarning) << "Failed to write to socket " << s << ", error: " << WSAGetLastError();
 						return result;
 					}
 					if (result == 0) {
-						LOG(LogWarning) << "Socket " << s << " closed gracefully";
+						LLOG(LogWarning) << "Socket " << s << " closed gracefully";
 						return result;
 					}
 					return result;
@@ -25,11 +25,11 @@ namespace l {
 				int xrecv(SOCKET s, char *buf, size_t len, int flags) {
 					int result = recv(s, (char *)buf, (int)len, flags);
 					if (result == SOCKET_ERROR) {
-						LOG(LogWarning) << "Failed to read from socket " << s;
+						LLOG(LogWarning) << "Failed to read from socket " << s;
 						return result;
 					}
 					if (result == 0) {
-						LOG(LogWarning) << "Socket " << s << " closed gracefully";
+						LLOG(LogWarning) << "Socket " << s << " closed gracefully";
 						return result;
 					}
 					return result;
@@ -38,7 +38,7 @@ namespace l {
 				bool xclose(SOCKET clientSocket) {
 					int result = shutdown(clientSocket, SD_SEND);
 					if (result == SOCKET_ERROR) {
-						LOG(LogError) << "Shutdown failed with error: " << WSAGetLastError();
+						LLOG(LogError) << "Shutdown failed with error: " << WSAGetLastError();
 						closesocket(clientSocket);
 						return false;
 					}
@@ -58,7 +58,7 @@ namespace l {
 
 				auto iResult = WSAStartup(version, &WSAData);
 				if (iResult != 0) {
-					LOG(LogError) << "WSAStartup failed with error: " << iResult;
+					LLOG(LogError) << "WSAStartup failed with error: " << iResult;
 				}
 				if (LOBYTE(WSAData.wVersion) == LOBYTE(version) && HIBYTE(WSAData.wVersion) == HIBYTE(version)) {
 					initialized = true;
@@ -83,10 +83,10 @@ namespace l {
 				SOCKET s = accept(mListenSocket, (SOCKADDR*)&addr, &addrlen);
 				const char *ip = inet_ntoa(addr.sin_addr);
 				if (s == INVALID_SOCKET) {
-					LOG(LogError) << "Failed connection from " << ip << ":" << addr.sin_port << ", error: " << WSAGetLastError();
+					LLOG(LogError) << "Failed connection from " << ip << ":" << addr.sin_port << ", error: " << WSAGetLastError();
 					return nullptr;
 				}
-				LOG(LogInfo) << "Accept connection from " << ip << ":" << addr.sin_port;
+				LLOG(LogInfo) << "Accept connection from " << ip << ":" << addr.sin_port;
 				return std::make_unique<WSAConnection>(s, ip, addr.sin_port);
 			}
 
@@ -124,14 +124,14 @@ namespace l {
 				// Resolve the server address and port
 				int iResult = getaddrinfo(NULL, std::to_string(port).c_str(), &hints, &result);
 				if (iResult != 0) {
-					LOG(LogError) << "getaddrinfo failed with error: " << iResult;
+					LLOG(LogError) << "getaddrinfo failed with error: " << iResult;
 					return nullptr;
 				}
 
 				// Create a SOCKET for connecting to server
 				SOCKET listenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
 				if (listenSocket == INVALID_SOCKET) {
-					LOG(LogError) << "socket failed with error: " << WSAGetLastError();
+					LLOG(LogError) << "socket failed with error: " << WSAGetLastError();
 					freeaddrinfo(result);
 					return nullptr;
 				}
@@ -139,7 +139,7 @@ namespace l {
 				// Setup the TCP listening socket
 				iResult = bind(listenSocket, result->ai_addr, (int)result->ai_addrlen);
 				if (iResult == SOCKET_ERROR) {
-					LOG(LogError) << "bind failed with error: " << WSAGetLastError();
+					LLOG(LogError) << "bind failed with error: " << WSAGetLastError();
 					freeaddrinfo(result);
 					closesocket(listenSocket);
 					return nullptr;
@@ -149,7 +149,7 @@ namespace l {
 
 				iResult = listen(listenSocket, SOMAXCONN);
 				if (iResult == SOCKET_ERROR) {
-					LOG(LogError) << "listen failed with error: " << WSAGetLastError();
+					LLOG(LogError) << "listen failed with error: " << WSAGetLastError();
 					closesocket(listenSocket);
 					return nullptr;
 				}
@@ -173,7 +173,7 @@ namespace l {
 				// Resolve the server address and port
 				iResult = getaddrinfo(host, std::to_string(port).c_str(), &hints, &result);
 				if (iResult != 0) {
-					LOG(LogError) << "getaddrinfo failed with error: " << iResult;
+					LLOG(LogError) << "getaddrinfo failed with error: " << iResult;
 					return nullptr;
 				}
 
@@ -183,7 +183,7 @@ namespace l {
 					// Create a SOCKET for connecting to server
 					connectSocket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
 					if (connectSocket == INVALID_SOCKET) {
-						LOG(LogError) << "socket failed with error: " << WSAGetLastError();
+						LLOG(LogError) << "socket failed with error: " << WSAGetLastError();
 						return nullptr;
 					}
 
@@ -200,7 +200,7 @@ namespace l {
 				freeaddrinfo(result);
 
 				if (connectSocket == INVALID_SOCKET) {
-					LOG(LogError) << "Unable to connect to server!";
+					LLOG(LogError) << "Unable to connect to server!";
 					return nullptr;
 				}
 

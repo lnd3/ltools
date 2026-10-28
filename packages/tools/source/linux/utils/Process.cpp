@@ -34,7 +34,7 @@ namespace process {
 			return processRunner.get();
 		}
 		else {
-			LOG(LogError) << "Failed to detach process";
+			LLOG(LogError) << "Failed to detach process";
 			return FAILED_TO_DETACH_PROCESS;
 		}
 	}

@@ -10,7 +10,7 @@ using namespace l;
 TEST(Vector, Data2) {
 	{
 		l::vec::Data2<double> x(5.3, 4.4);
-		LOG(LogInfo) << x.to_string();
+		LLOG(LogInfo) << x.to_string();
 
 		TEST_FUZZY(x.floor(1).x1, 5.0, EPSILON, "floor failed");
 		TEST_FUZZY(x.floor(1).x2, 4.0, EPSILON, "floor failed");
@@ -29,7 +29,7 @@ TEST(Vector, Data2) {
 	}
 	{
 		l::vec::Data2<double> x(-5.3, -4.4);
-		LOG(LogInfo) << x.to_string();
+		LLOG(LogInfo) << x.to_string();
 
 		TEST_FUZZY(x.floor(1).x1, -6.0, 0.001, "floor failed");
 		TEST_FUZZY(x.floor(1).x2, -5.0, 0.001, "floor failed");
@@ -48,7 +48,7 @@ TEST(Vector, Data2) {
 TEST(Vector, Data4) {
 	{
 		l::vec::Data4<double> x(5.3, 4.4, 5.3, 4.4);
-		LOG(LogInfo) << x.to_string();
+		LLOG(LogInfo) << x.to_string();
 
 		TEST_FUZZY(x.floor(1).x1, 5.0, EPSILON, "floor failed");
 		TEST_FUZZY(x.floor(1).x2, 4.0, EPSILON, "floor failed");
@@ -67,7 +67,7 @@ TEST(Vector, Data4) {
 	}
 	{
 		l::vec::Data4<double> x(-5.3, -4.4, -5.3, -4.4);
-		LOG(LogInfo) << x.to_string();
+		LLOG(LogInfo) << x.to_string();
 
 		TEST_FUZZY(x.floor(1).x1, -6.0, 0.001, "floor failed");
 		TEST_FUZZY(x.floor(1).x2, -5.0, 0.001, "floor failed");

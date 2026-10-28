@@ -7,9 +7,9 @@ TEST(Base16, Basic) {
 
 	auto message = "test#!%¤14+,<?=";
 	auto encoded = l::serialization::base16_encode(message);
-	LOG(LogTest) << encoded;
+	LLOG(LogTest) << encoded;
 	auto decoded = l::serialization::base16_decode(encoded);
-	LOG(LogTest) << decoded;
+	LLOG(LogTest) << decoded;
 
 	TEST_TRUE(decoded == message, "");
 
@@ -24,7 +24,7 @@ TEST(Base16, RandomInput) {
 			message += std::rand() % 256;
 		}
 		auto encoded = l::serialization::base16_encode(message);
-		LOG(LogTest) << encoded;
+		LLOG(LogTest) << encoded;
 		auto decoded = l::serialization::base16_decode(encoded);
 		TEST_TRUE(decoded == message, "");
 	}

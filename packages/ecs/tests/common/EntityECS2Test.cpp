@@ -61,7 +61,7 @@ public:
 
 	virtual void receive(class World* world, const DeleteEvent& event) override
 	{
-		LOG(LogTest) << "I received SomeEvent with value " << event.num << "!";
+		LLOG(LogTest) << "I received SomeEvent with value " << event.num << "!";
 
 		// Let's delete an entity while iterating because why not?
 		world->all([&](Entity* ent) {
@@ -69,7 +69,7 @@ public:
 				world->destroy(world->getById(event.num));
 
 			if (ent->getEntityId() == event.num)
-				LOG(LogInfo) << "Woah, we shouldn't get here!";
+				LLOG(LogInfo) << "Woah, we shouldn't get here!";
 			});
 	}
 
@@ -78,7 +78,7 @@ protected:
 };
 
 TEST(EntityECS2, Sample) {
-	LOG(LogInfo) << "EntityComponentSystem Test";
+	LLOG(LogInfo) << "EntityComponentSystem Test";
 
 	auto world = World2::createWorld();
 
@@ -98,17 +98,17 @@ TEST(EntityECS2, Sample) {
 
 	world->tick({ 0.0f, 10.f });
 
-	LOG(LogInfo) << "After tick(10) and EnableSystem(testSystem): position(" << pos->x << ", " << pos->y << "), rotation(" << rot->angle << ")";
+	LLOG(LogInfo) << "After tick(10) and EnableSystem(testSystem): position(" << pos->x << ", " << pos->y << "), rotation(" << rot->angle << ")";
 
 	int count = 0;
-	LOG(LogInfo) << "Counting entities with SomeComponent...";
+	LLOG(LogInfo) << "Counting entities with SomeComponent...";
 	// range based for loop
 	world->each2<Position, Rotation>([&](Entity* ent, ComponentHandle<Position> p, ComponentHandle<Rotation> r) {
 		++count;
-		//LOG(LogInfo) << "Found entity #" << ent->getEntityId() << ", p{" << p->x << "," << p->y << "}" << ", r{" << r->angle << "}";
+		//LLOG(LogInfo) << "Found entity #" << ent->getEntityId() << ", p{" << p->x << "," << p->y << "}" << ", r{" << r->angle << "}";
 		});
 
-	LOG(LogInfo) << count << " entities have position and rotation!";
+	LLOG(LogInfo) << count << " entities have position and rotation!";
 
 	for (int i = 0; i < 10; ++i)
 	{
@@ -117,7 +117,7 @@ TEST(EntityECS2, Sample) {
 	}
 
 	// Emitting events
-	LOG(LogInfo) << "Emit 'SomeEvent' to entity id 4";
+	LLOG(LogInfo) << "Emit 'SomeEvent' to entity id 4";
 	world->emit<DeleteEvent>({ 4 });
 
 	world->cleanup();
@@ -149,7 +149,7 @@ TEST(EntityECS2, BugMultipleEntitiesInViewCache) {
 	world->tick({ 0.0f, 10.f });
 
 	world->each2<Position, Rotation>([&](Entity* ent, ComponentHandle<Position> p, ComponentHandle<Rotation> r) {
-		LOG(LogInfo) << "Found entity #" << ent->getEntityId() << ", p{" << p->x << "," << p->y << "}" << ", r{" << r->angle << "}";
+		LLOG(LogInfo) << "Found entity #" << ent->getEntityId() << ", p{" << p->x << "," << p->y << "}" << ", r{" << r->angle << "}";
 		});
 
 	auto cache = world->getComponentCache<Position, Rotation>();
@@ -239,10 +239,10 @@ PERF_TEST(EntityECS2, EntityStressTest)
 			});
 	}
 
-	LOG(LogInfo) << count << " entities have position and rotation!";
+	LLOG(LogInfo) << count << " entities have position and rotation!";
 
 	// Emitting events
-	LOG(LogInfo) << "Emit 'SomeEvent' to entity id 4";
+	LLOG(LogInfo) << "Emit 'SomeEvent' to entity id 4";
 	world->emit<DeleteEvent>({ 5000 });
 
 	world->cleanup();

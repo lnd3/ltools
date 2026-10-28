@@ -7,6 +7,7 @@
 #include <memory>
 #include <filesystem>
 #include <map>
+#include <set>
 #include <functional>
 
 namespace l::network {
@@ -31,6 +32,24 @@ namespace l::network {
 			int32_t expectedResponseSize = 0,
 			int32_t timeOut = -1,
 			std::function<void(bool, std::string_view)> cb = nullptr);
+
+		// POST with JSON body. Registers endpoint on first use.
+		// callback receives (success, response_body).
+		bool SendJsonRequest(std::string_view interfaceName,
+			std::string_view endpointPath,
+			std::string_view jsonBody,
+			int32_t expectedResponseSize = 4096,
+			int32_t timeOut = 30,
+			std::function<void(bool, std::string_view)> cb = nullptr);
+
+		// One-shot POST that bypasses the connection pool. Spawns a detached thread
+		// per call. Use for fire-and-forget REST endpoints (e.g. exchange order placement)
+		// where a persistent connection slot is not needed. curl_global_init must already
+		// have been called (guaranteed by NetworkManager::Startup).
+		// callback receives (success, response_body).
+		void PostOnce(std::string url, std::string jsonBody,
+			std::function<void(bool, std::string_view)> cb = nullptr);
+
 		bool NetworkStatus(std::string_view interfaceName);
 
 		template<class T>
@@ -72,6 +91,7 @@ namespace l::network {
 
 		std::weak_ptr<l::network::NetworkManager> mNetworkManager;
 		std::map<std::string, HostInfo> mInterfaces;
+		std::set<std::string> mJsonConnections; // endpoint paths with a registered connection slot
 	};
 
 	std::shared_ptr<NetworkInterface> CreateNetworkInterface(std::weak_ptr<l::network::NetworkManager> networkManager);
