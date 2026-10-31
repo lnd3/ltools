@@ -11,7 +11,6 @@ set(deps
 
 set(deps_external
 	floatfann_static
-	ncnn
 	tiny_dnn_static
 )
 

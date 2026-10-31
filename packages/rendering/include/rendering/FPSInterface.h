@@ -29,6 +29,34 @@ namespace rendering {
         void GetViewRotation(mat4x4 rotation);
         void GetViewPosition(vec4 position);
 
+        // Per direct request (spacesim's PlayerMode switching needed to
+        // carry the player's actual view position across a mode change
+        // instead of popping back to wherever this camera was last
+        // left) - overwrites mPosition only, zeroes mVelocity (no
+        // leftover momentum). Direction/orientation (mTurnAngle/
+        // mTiltAngle/mYawAngle) is deliberately left untouched here -
+        // unlike FreeFlightInterface's single orientation quaternion,
+        // this class's fixed-world-up polar angles don't have a cheap,
+        // exact correspondence with the other modes' own orientation
+        // representations, and position is the priority per direct
+        // instruction ("position is the most important thing... unless
+        // the scene requires something else") - direction continuity
+        // for this specific (non-free-flight) camera is a known,
+        // accepted simplification, not attempted here.
+        void SetViewPosition(const vec4 position);
+
+        // Returns the position accumulated since the last call (or since
+        // SetViewPosition) and resets it to zero, leaving velocity,
+        // and the view angles untouched - so motion carries on
+        // smoothly. For callers that keep the camera's real position in
+        // higher precision themselves (spacesim: doubles at ~1 AU): mPosition
+        // is a float, and integrating small per-frame velocities into a
+        // large float position quantizes movement to that float's spacing.
+        // Consumed every frame, mPosition only ever holds one frame's small
+        // movement, which float represents precisely. GetLookAt()'s
+        // translation is then relative to the caller's own position.
+        void ConsumePositionDelta(vec4 delta);
+
         void HandleTouch(int button, int action, int mods);
         void HandleScroll(float x, float y);
         void HandleKeyPress(int key, int scancode, int action, int mods);
