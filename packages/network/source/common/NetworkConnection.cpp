@@ -1,14 +1,25 @@
 #include "network/NetworkConnection.h"
 
+#if !defined(_WIN32)
+#include <unistd.h>
+#endif
+
 namespace l::network {
 
+	// With CURLOPT_CLOSESOCKETFUNCTION set, curl leaves closing the socket to this callback. It only logged, so every
+	// connection leaked its socket (2026-11-03: ~5 sockets in CLOSE_WAIT per bot after 2 days; a reconnect loop leaked
+	// one per attempt until name lookups failed).
 	int CurlClientCloseSocket(void* userdata, curl_socket_t item) {
 		auto request = reinterpret_cast<ConnectionBase*>(userdata);
 		if (request != nullptr) {
 			request->NotifyClose();
 		}
 		LLOG(LogDebug) << "Socket close: " << item;
-		return 0;
+#if defined(_WIN32)
+		return closesocket(item);
+#else
+		return close(item);
+#endif
 	}
 
 	size_t CurlClientWriteHeader(char* contents, size_t size, size_t nitems, void* userdata) {
@@ -184,7 +195,9 @@ namespace l::network {
 			}
 		}
 
-		if (IsWebSocket() || multiHandle != nullptr) {
+		// A websocket counts as connected only if curl connected it: a failed connect (e.g. an unresolved host) used to
+		// set the handshake flag too and sat "connected" with no data and no timeout.
+		if ((IsWebSocket() || multiHandle != nullptr) && mSuccess) {
 			mWebSocketHandshakeDone = true;
 			mTimeout = -1; // disable connect-phase timeout; WS connections live until explicitly closed
 			mWebSocketCanReceiveData = true;
@@ -315,6 +328,10 @@ namespace l::network {
 	}
 
 	int32_t ConnectionBase::WSWrite(const char* buffer, size_t size) {
+		if (mCompletedRequest) {
+			mWebSocketCanSendData = false;
+			return -104;               // see WSRead
+		}
 		if (HasExpired()) {
 			mWebSocketCanSendData = false;
 			LLOG(LogWarning) << "[Websocket] Failed write, connection expired";
@@ -352,11 +369,15 @@ namespace l::network {
 			}
 			mWebSocketCanSendData = false;
 		}
-		SetRunningTimeout(20);
+		NotifyCompleteRequest(false);   // see WSRead
 		return -res;
 	}
 
 	int32_t ConnectionBase::WSRead(char* buffer, size_t size) {
+		if (mCompletedRequest) {
+			mWebSocketCanReceiveData = false;
+			return -104;               // ended: the job thread is releasing the curl handle
+		}
 		if (HasExpired()) {
 			mWebSocketCanReceiveData = false;
 			LLOG(LogWarning) << "[Websocket] Failed read, connection expired";
@@ -446,7 +467,10 @@ namespace l::network {
 			LLOG(LogWarning) << "[Websocket] Failed read, connection closed, error: " << res;
 		}
 		mWebSocketCanReceiveData = false;
-		SetRunningTimeout(20);
+		// The connection is gone (closed by the server, or a receive error): end the request now, as WSClose does, so
+		// IsAlive turns false within the job loop's 100 ms and the owner can reconnect. It used to stay "alive" for a
+		// 20 s running timeout (Hyperliquid closes sockets every ~3 h: ~22 s without data each time).
+		NotifyCompleteRequest(false);
 		return -res;
 	}
 
