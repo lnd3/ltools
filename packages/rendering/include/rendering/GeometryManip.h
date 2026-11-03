@@ -197,7 +197,7 @@ namespace rendering {
 			vec3_mul_cross(tmp, &normals[i], &tangent[i]);
 			float dot2 = vec3_mul_inner(tmp, &tan2[i]);
 			if (dot2 == 0) {
-				LOG(LogWarning) << "Vertex index " << i << " has an undefined bitangent handedness because:";
+				LLOG(LogWarning) << "Vertex index " << i << " has an undefined bitangent handedness because:";
 				dot2 = 1.0;
 			}
 			if (dot2 < 0) {

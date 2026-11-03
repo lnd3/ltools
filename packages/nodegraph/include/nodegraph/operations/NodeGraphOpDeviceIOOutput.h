@@ -3,11 +3,13 @@
 
 #include "logging/LoggingAll.h"
 
+#ifndef HEADLESS_BUILD
 #include "hid/KeyboardPiano.h"
 #include "hid/Midi.h"
 
 #include "audio/PortAudio.h"
 #include "audio/AudioUtils.h"
+#endif
 
 #include "math/MathFunc.h"
 
@@ -41,6 +43,7 @@ namespace l::nodegraph {
         float mValue = 0.0F;
     };
 
+#ifndef HEADLESS_BUILD
     /*********************************************************************/
     class GraphOutputSpeaker : public NodeGraphOp {
     public:
@@ -69,6 +72,7 @@ namespace l::nodegraph {
         float mRelease = 1.0f;
         l::audio::FilterRWA<float> mFilterEnvelope;
     };
+#endif // HEADLESS_BUILD
 
     /*********************************************************************/
     class GraphOutputPlot : public NodeGraphOp {

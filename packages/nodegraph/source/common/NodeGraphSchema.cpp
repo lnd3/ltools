@@ -3,6 +3,7 @@
 #include <logging/Log.h>
 #include <filesystem/File.h>
 
+#include <algorithm>
 #include <set>
 
 namespace l::nodegraph {
@@ -17,18 +18,18 @@ namespace l::nodegraph {
     }
 
     // Insert a path like "a.b.c"
-    void insertPath(TreeMenuNode& root, std::string_view path, std::string_view name, int32_t nodeId) {
+    void insertPath(TreeMenuNode& root, std::string_view path, std::string_view name, int32_t nodeId, std::string_view description) {
         TreeMenuNode* current = &root;
         for (auto part : l::string::split(path, ".")) {
             current = findOrCreateChild(*current, part);
         }
-        current->mChildren.emplace_back("", name, nodeId);
+        current->mChildren.emplace_back("", name, nodeId, description);
     }
 
     bool NodeGraphSchema::NodeGraphNewNode(int32_t typeId, int32_t nodeId) {
         auto id = NewNode(typeId, nodeId);
         if (id != nodeId) {
-            LOG(LogError) << "Failed to create node";
+            LLOG(LogError) << "Failed to create node " << nodeId << " with type " << typeId << " in schema " << mFullPath;
             return false;
         }
         return true;
@@ -38,7 +39,9 @@ namespace l::nodegraph {
         auto srcNode = GetNode(srcId);
         auto dstNode = GetNode(dstId);
         if (srcNode && dstNode && !dstNode->SetInput(dstChannel, *srcNode, srcChannel)) {
-            LOG(LogError) << "Failed to wire nodes";
+            auto srctype = srcNode->GetTypeId();
+            auto dsttype = dstNode->GetTypeId();
+            LLOG(LogError) << "Failed to wire [type,id,channel] [" << srctype << ":" << srcId << ":" << static_cast<int32_t>(srcChannel) << "] to [" << dsttype << ":" << dstId << ":" << static_cast<int32_t>(dstChannel) << "] in schema " << mFullPath;
             return false;
         }
         return true;
@@ -55,11 +58,14 @@ namespace l::nodegraph {
         mFileName.clear();
         mFullPath.clear();
         mStringId = 0;
+
+        mLogicalGroups.clear();
+        mNextGroupId = 1;
     }
 
     bool NodeGraphSchema::Load(std::filesystem::path file) {
         if (!file.has_filename() || !std::filesystem::exists(file)) {
-            LOG(LogError) << "Failed to load schema: the file does not exist";
+            LLOG(LogError) << "Failed to load schema: the file does not exist";
             return false;
         }
 
@@ -87,12 +93,12 @@ namespace l::nodegraph {
 
     bool NodeGraphSchema::Save(std::filesystem::path file, bool cloneOnly) {
         if (file.empty()) {
-            LOG(LogError) << "Failed to save schema: there is no file name or path";
+            LLOG(LogError) << "Failed to save schema: there is no file name or path. In schema " << mFullPath;
             return false;
         }
 
         if (!file.has_filename()) {
-            LOG(LogError) << "Failed to save schema: there is no file name";
+            LLOG(LogError) << "Failed to save schema: there is no file name. In schema " << mFullPath;
             return false;
         }
 
@@ -109,7 +115,7 @@ namespace l::nodegraph {
         l::filesystem::File dataFile(file);
         dataFile.modeBinary().modeWriteTrunc();
         if (dataFile.open() && dataFile.write(builder.GetStream()) > 0) {
-            LOG(LogInfo) << "Created " << file;
+            LLOG(LogInfo) << "Created " << file;
             return true;
         }
         return false;
@@ -130,11 +136,11 @@ namespace l::nodegraph {
                 }
 
                 if (mVersionMajor < kVersionMajor) {
-                    LOG(LogWarning) << "Schema major version mismatch. Performing automatic upgrade but schema should be saved.";
+                    LLOG(LogWarning) << "Schema major version mismatch. Performing automatic upgrade but schema should be saved. In schema " << mFullPath;
                     // Perform upgrade
                 }
                 else if (mVersionMinor < kVersionMinor) {
-                    LOG(LogWarning) << "Schema minor version is of old version. Schema should still work but should be resaved when suitable.";
+                    LLOG(LogWarning) << "Schema minor version is of old version. Schema should still work but should be resaved when suitable. In schema " << mFullPath;
                 }
 
                 if (nodeGraphSchema.has_key("Name")) {
@@ -153,6 +159,42 @@ namespace l::nodegraph {
                         mStringId = nodeGraphSchema.get("StringId").as_uint32();
                     }
                 }
+                if (nodeGraphSchema.has_key("LogicalGroups")) {
+                    auto groups = nodeGraphSchema.get("LogicalGroups");
+                    if (groups.has(JSMN_ARRAY)) {
+                        auto it = groups.as_array();
+                        for (; it.has_next();) {
+                            auto e = it.next();
+                            if (!e.has(JSMN_OBJECT)) continue;
+                            NodeLogicalGroup group;
+                            if (e.has_key("GroupId")) group.mId = e.get("GroupId").as_int32();
+                            if (e.has_key("Name"))    group.mName = e.get("Name").as_string();
+                            if (e.has_key("LabelX"))  group.mLabelX = e.get("LabelX").as_float();
+                            if (e.has_key("LabelY"))  group.mLabelY = e.get("LabelY").as_float();
+                            if (e.has_key("Color")) {
+                                auto colorArr = e.get("Color");
+                                if (colorArr.has(JSMN_ARRAY)) {
+                                    auto cit = colorArr.as_array();
+                                    for (int i = 0; i < 4 && cit.has_next(); i++) {
+                                        group.mColor[i] = cit.next().as_float();
+                                    }
+                                }
+                            }
+                            if (e.has_key("Nodes")) {
+                                auto nodesArr = e.get("Nodes");
+                                if (nodesArr.has(JSMN_ARRAY)) {
+                                    auto nit = nodesArr.as_array();
+                                    for (; nit.has_next();) {
+                                        group.mNodeIds.push_back(nit.next().as_int32());
+                                    }
+                                }
+                            }
+                            if (group.mId >= mNextGroupId) mNextGroupId = group.mId + 1;
+                            mLogicalGroups.push_back(std::move(group));
+                        }
+                    }
+                }
+
                 auto nodeGraphGroup = nodeGraphSchema.get("NodeGraphGroup");
 
                 return mMainNodeGraph.LoadArchiveData(nodeGraphGroup);
@@ -172,6 +214,30 @@ namespace l::nodegraph {
             jsonBuilder.AddString("FileName", mFileName);
             jsonBuilder.AddString("FullPath", mFullPath);
             jsonBuilder.AddNumber("StringId", GetStringId());
+            if (!mLogicalGroups.empty()) {
+                jsonBuilder.Begin("LogicalGroups", true);
+                for (auto& g : mLogicalGroups) {
+                    jsonBuilder.Begin("");
+                    {
+                        jsonBuilder.AddNumber("GroupId", g.mId);
+                        jsonBuilder.AddString("Name", g.mName);
+                        jsonBuilder.AddNumber("LabelX", g.mLabelX);
+                        jsonBuilder.AddNumber("LabelY", g.mLabelY);
+                        jsonBuilder.Begin("Color", true);
+                        for (float c : g.mColor) {
+                            jsonBuilder.AddNumber("", c);
+                        }
+                        jsonBuilder.End(true);
+                        jsonBuilder.Begin("Nodes", true);
+                        for (int32_t nodeId : g.mNodeIds) {
+                            jsonBuilder.AddNumber("", nodeId);
+                        }
+                        jsonBuilder.End(true);
+                    }
+                    jsonBuilder.End();
+                }
+                jsonBuilder.End(true);
+            }
             jsonBuilder.BeginExternalObject("NodeGraphGroup");
             {
                 mMainNodeGraph.GetArchiveData(jsonBuilder);
@@ -182,10 +248,37 @@ namespace l::nodegraph {
         jsonBuilder.End();
     }
 
+    NodeLogicalGroup& NodeGraphSchema::AddLogicalGroup(std::string name) {
+        NodeLogicalGroup group;
+        group.mId   = mNextGroupId++;
+        group.mName = std::move(name);
+        mLogicalGroups.push_back(std::move(group));
+        return mLogicalGroups.back();
+    }
+
+    void NodeGraphSchema::RemoveLogicalGroup(int32_t id) {
+        mLogicalGroups.erase(
+            std::remove_if(mLogicalGroups.begin(), mLogicalGroups.end(),
+                [id](const NodeLogicalGroup& g) { return g.mId == id; }),
+            mLogicalGroups.end());
+    }
+
+    NodeLogicalGroup* NodeGraphSchema::GetLogicalGroup(int32_t id) {
+        for (auto& g : mLogicalGroups) {
+            if (g.mId == id) return &g;
+        }
+        return nullptr;
+    }
+
+    std::vector<NodeLogicalGroup>& NodeGraphSchema::GetLogicalGroups() {
+        return mLogicalGroups;
+    }
+
     void NodeGraphSchema::AddCustomNodeCreator(CustomCreateFunctionType customCreator) {
         mCustomNodeCreatorListeners.emplace_back(std::move(customCreator));
     }
 
+#ifndef HEADLESS_BUILD
     void NodeGraphSchema::SetKeyState(l::hid::KeyState* keyState) {
         mKeyState = keyState;
     }
@@ -197,6 +290,7 @@ namespace l::nodegraph {
     void NodeGraphSchema::SetMidiManager(l::hid::midi::MidiManager* midiManager) {
         mMidiManager = midiManager;
     }
+#endif
 
     int32_t NodeGraphSchema::NewNode(int32_t typeId, int32_t id) {
         l::nodegraph::NodeGraphBase* node = nullptr;
@@ -221,6 +315,9 @@ namespace l::nodegraph {
             break;
         case 5:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceText>(id, NodeType::Default);
+            break;
+        case 6:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphSourceConstants2>(id, NodeType::Default);
             break;
 
             // Internal output like NG chart or debug view
@@ -275,6 +372,24 @@ namespace l::nodegraph {
         case 108:
             node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicRound>(id, NodeType::Default);
             break;
+        case 109:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicPow>(id, NodeType::Default);
+            break;
+        case 110:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicSum3>(id, NodeType::Default);
+            break;
+        case 111:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicSum5>(id, NodeType::Default);
+            break;
+        case 112:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicMinMax>(id, NodeType::Default);
+            break;
+        case 113:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicMinMax2>(id, NodeType::Default);
+            break;
+        case 114:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathAritmethicDiv>(id, NodeType::Default);
+            break;
 
             // Math logical operators
         case 120:
@@ -292,13 +407,46 @@ namespace l::nodegraph {
             node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalIntegral>(id, NodeType::Default);
             break;
         case 141:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalDerivate>(id, NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalTemporalChange1>(id, NodeType::Default);
             break;
         case 142:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalDiffNorm>(id, NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalDiff2>(id, NodeType::Default);
             break;
         case 143:
-            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalDiff>(id, NodeType::Default);
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalDiff1>(id, NodeType::Default);
+            break;
+        case 144:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalLevelTrigger>(id, NodeType::Default);
+            break;
+        case 145:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalMinMaxChannel>(id, NodeType::Default);
+            break;
+        case 146:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalReconstructor1>(id, NodeType::Default);
+            break;
+        case 147:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalReconstructor2>(id, NodeType::Default);
+            break;
+        case 148:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalUnitmap>(id, NodeType::Default);
+            break;
+        case 149:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalEMA>(id, NodeType::Default);
+            break;
+        case 150:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalTemporalChange2>(id, NodeType::Default);
+            break;
+        case 151:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalMeanExpRegression>(id, NodeType::Default);
+            break;
+        case 152:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalStdDev>(id, NodeType::Default);
+            break;
+        case 153:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalSMA>(id, NodeType::Default);
+            break;
+        case 154:
+            node = mMainNodeGraph.NewNode<l::nodegraph::MathNumericalIntegral2>(id, NodeType::Default);
             break;
 
             // Trading data io
@@ -307,6 +455,9 @@ namespace l::nodegraph {
             break;
         case 201:
             node = mMainNodeGraph.NewNode<l::nodegraph::TradingDataIOOCHLVDataIn>(id, NodeType::ExternalInput, 1);
+            break;
+        case 202:
+            node = mMainNodeGraph.NewNode<l::nodegraph::TradingDataIOChartInfo>(id, NodeType::ExternalInput);
             break;
 
             // Trading detectors
@@ -418,6 +569,7 @@ namespace l::nodegraph {
             break;
 
 
+#ifndef HEADLESS_BUILD
             // DeviceIO (midi, keyboard piano)
         case 400:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphInputKeyboardPiano>(id, NodeType::Default, mKeyState);
@@ -455,6 +607,7 @@ namespace l::nodegraph {
         case 421:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphOutputSpeaker>(id, NodeType::ExternalOutput, mAudioOutput);
             break;
+#endif // HEADLESS_BUILD
 
             // DataIO input
         case 500:
@@ -480,6 +633,15 @@ namespace l::nodegraph {
         case 604:
             node = mMainNodeGraph.NewNode<l::nodegraph::GraphUIText>(id, NodeType::ExternalInput);
             break;
+        case 605:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphUIChartMarkers>(id, NodeType::ExternalOutput);
+            break;
+        case 606:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphUIChartLine2>(id, NodeType::ExternalOutput);
+            break;
+        case 607:
+            node = mMainNodeGraph.NewNode<l::nodegraph::GraphUIChartLine3>(id, NodeType::ExternalOutput);
+            break;
 
 
 
@@ -503,6 +665,17 @@ namespace l::nodegraph {
             node->SetTypeId(typeId);
             if (id > 0) {
                 node->SetId(id);
+            }
+            bool typeNameSet = false;
+            for (auto& [group, descs] : mRegisteredNodeTypes) {
+                if (typeNameSet) break;
+                for (auto& desc : descs) {
+                    if (desc.mId == typeId) {
+                        node->SetTypeName(desc.mName);
+                        typeNameSet = true;
+                        break;
+                    }
+                }
             }
         }
 
@@ -542,9 +715,11 @@ namespace l::nodegraph {
         mMainNodeGraph.ForEachOutputNode(std::move(cb));
     }
 
-    void NodeGraphSchema::ForEachNodeType(std::function<void(std::string_view, const std::vector<UINodeDesc>&)> cb) const {
+    void NodeGraphSchema::ForEachNodeType(std::string_view search, std::function<void(std::string_view, const std::vector<UINodeDesc>&)> cb) const {
         for (auto& it : mRegisteredNodeTypes) {
-            cb(it.first, it.second);
+            if (search.empty() || l::string::equal_anywhere(it.first, search)) {
+                cb(it.first, it.second);
+            }
         }
     }
 
@@ -552,11 +727,15 @@ namespace l::nodegraph {
         return mPickerRootMenu;
     }
 
-    void NodeGraphSchema::RegisterNodeType(const std::string& typeGroup, int32_t uniqueTypeId, std::string_view typeName) {
+    void NodeGraphSchema::RegisterNodeType(const std::string& typeGroup, int32_t uniqueTypeId, std::string_view typeName, std::string_view description) {
         if (!HasNodeType(typeGroup, uniqueTypeId)) {
-            mRegisteredNodeTypes[typeGroup].push_back(UINodeDesc{ uniqueTypeId, std::string(typeName) });
+            UINodeDesc nodeInfo;
+            nodeInfo.mId = uniqueTypeId;
+            nodeInfo.mName = typeName;
+            nodeInfo.mDescription = description;
+            mRegisteredNodeTypes[typeGroup].push_back(nodeInfo);
         }
-        insertPath(mPickerRootMenu, typeGroup, typeName, uniqueTypeId);
+        insertPath(mPickerRootMenu, typeGroup, typeName, uniqueTypeId, description);
     }
 
     void NodeGraphSchema::RegisterAllOf(const std::string& typeGroup) {
@@ -567,6 +746,7 @@ namespace l::nodegraph {
             RegisterNodeType("Node Graph.Source", 3, "Value [-inf,inf]");
             RegisterNodeType("Node Graph.Source", 4, "Time");
             RegisterNodeType("Node Graph.Source", 5, "Text");
+            RegisterNodeType("Node Graph.Source", 6, "Constants");
         }
         else if (typeGroup == "Node Graph.Output") {
             RegisterNodeType("Node Graph.Output", 20, "Debug");
@@ -582,12 +762,18 @@ namespace l::nodegraph {
             RegisterNodeType("Math.Aritmethic", 100, "Add");
             RegisterNodeType("Math.Aritmethic", 101, "Sub");
             RegisterNodeType("Math.Aritmethic", 102, "Mul");
+            RegisterNodeType("Math.Aritmethic", 106, "Mul 3");
+            RegisterNodeType("Math.Aritmethic", 114, "Div", "Divides input 1 with input 2");
             RegisterNodeType("Math.Aritmethic", 103, "Neg");
             RegisterNodeType("Math.Aritmethic", 104, "Abs");
             RegisterNodeType("Math.Aritmethic", 105, "Log");
-            RegisterNodeType("Math.Aritmethic", 106, "Mul3");
+            RegisterNodeType("Math.Aritmethic", 109, "Pow");
             RegisterNodeType("Math.Aritmethic", 107, "Madd");
             RegisterNodeType("Math.Aritmethic", 108, "Round");
+            RegisterNodeType("Math.Aritmethic", 110, "Sum 3");
+            RegisterNodeType("Math.Aritmethic", 111, "Sum 5");
+            RegisterNodeType("Math.Aritmethic", 112, "Minmax 1", "Compares input with a min and a max value. Outputs values in the 1) min/max range, 2) larger or equal to min and 3) less or equal to max, respectively.");
+            RegisterNodeType("Math.Aritmethic", 113, "Minmax 2", "Compares the inputs. Outputs the 1) smaller and the 2) larger values respectively.");
         }
         else if (typeGroup == "Math.Logic") {
             RegisterNodeType("Math.Logic", 120, "And");
@@ -595,14 +781,26 @@ namespace l::nodegraph {
             RegisterNodeType("Math.Logic", 122, "Xor");
         }
         else if (typeGroup == "Math.Numerical") {
-            RegisterNodeType("Math.Numerical", 140, "Integral");
-            RegisterNodeType("Math.Numerical", 141, "Derivate");
-            RegisterNodeType("Math.Numerical", 142, "Difference Normalized");
-            RegisterNodeType("Math.Numerical", 143, "Difference");
+            RegisterNodeType("Math.Numerical", 140, "Integral 1", "Basically a temporal summation node with a EWA on the output with a cooefficient 'friction'");
+            RegisterNodeType("Math.Numerical", 154, "Integral 2", "Like Integral 1 but with reset toggle input with dead zone");
+            RegisterNodeType("Math.Numerical", 141, "Change 1", "Temporal change 1. Computes the value: (v_now - v_prev) / (abs(v_now) + abs(v_prev)).");
+            RegisterNodeType("Math.Numerical", 150, "Change 2", "Temporal change 2. Computes the value: (v_now - v_prev) / abs(v_now).");
+            RegisterNodeType("Math.Numerical", 143, "Difference 1", "Temporal difference 1. Computes the value: (v_now - v_prev).");
+            RegisterNodeType("Math.Numerical", 142, "Difference 2", "Temporal difference 2. Computes the value: (v_now / v_prev - 1)");
+            RegisterNodeType("Math.Numerical", 144, "Level Trigger", "Determines where some input is located between two extremes (min/max) in the format [0,1] ");
+            RegisterNodeType("Math.Numerical", 145, "Minmax Channel", "Computes the range between the EWA smootherd min/max inputs");
+            RegisterNodeType("Math.Numerical", 146, "Reconstructor 1", "Deconstructs the input into derivatives (change per index) and outputs the sum of through a ewa with a cooefficient of 'friction' {x1 = x0 + friction * (target - x0)}. An second output is provided which is the average of the last two outputs of that function.");
+            RegisterNodeType("Math.Numerical", 147, "Reconstructor 2", "");
+            RegisterNodeType("Math.Numerical", 148, "Unitmap", "Maps the input to [-1,1] via a sigmoid function. A scale factor can be provided that changes the shape of the mapping");
+            RegisterNodeType("Math.Numerical", 149, "EMA", "Exponential moving average [ema1=(ema0*(n-1)+input)/n]");
+            RegisterNodeType("Math.Numerical", 153, "SMA", "Simple moving average");
+            RegisterNodeType("Math.Numerical", 151, "Mean Regression", "Computes the convolution of the exponential distances and can be used as a square root of the variance for computing the mean regression or the trend/direction of the input values.");
+            RegisterNodeType("Math.Numerical", 152, "Standard Deviation", "Computes the standard deviation and variance.");
         }
         else if (typeGroup == "Trading.Data IO") {
             RegisterNodeType("Trading.Data IO", 200, "OCHLV Data In");
             RegisterNodeType("Trading.Data IO", 201, "Heikin-Ashi Data In");
+            RegisterNodeType("Trading.Data IO", 202, "Chart Info");
         }
         else if (typeGroup == "Trading.Detector") {
             RegisterNodeType("Trading.Detector", 220, "Trend");
@@ -619,7 +817,7 @@ namespace l::nodegraph {
             RegisterNodeType("Trading.Indicator", 262, "On-Balance Volume 2 (OBV2)");
             RegisterNodeType("Trading.Indicator", 263, "Gated Accumulation (GA)");
             //RegisterNodeType("Trading.Indicator", 264, "Volume Relative Strength Index (VRSI)");
-            //RegisterNodeType("Trading.Indicator", 265, "Average True Range (ATR)");
+            RegisterNodeType("Trading.Indicator", 265, "Average True Range (ATR)");
         }
         else if (typeGroup == "Signal.Generator") {
             RegisterNodeType("Signal.Generator", 300, "Sine");
@@ -670,12 +868,15 @@ namespace l::nodegraph {
         else if (typeGroup == "UI") {
             RegisterNodeType("UI", 600, "UI Checkbox");
             RegisterNodeType("UI", 601, "UI Slider");
-            RegisterNodeType("UI", 602, "UI Chart Lines");
+            RegisterNodeType("UI", 602, "UI Chart Lines 1");
+            RegisterNodeType("UI", 606, "UI Chart Lines 2");
+            RegisterNodeType("UI", 607, "UI Chart Lines 3");
             RegisterNodeType("UI", 603, "UI Candle Sticks");
             RegisterNodeType("UI", 604, "UI Text");
+            RegisterNodeType("UI", 605, "UI Chart Markers");
             }
         else {
-            LOG(LogWarning) << "Type group does not exist: " << typeGroup;
+            LLOG(LogWarning) << "Type group does not exist: " << typeGroup;
         }
     }
 

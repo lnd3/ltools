@@ -28,6 +28,7 @@ namespace l::nodegraph {
         bool mVisible = true;
         bool mEditable = true;
         bool mText = false;
+        int32_t mStride = 1;
     };
 
     class NodeGraphInput {
@@ -68,6 +69,7 @@ namespace l::nodegraph {
 
         void MinimizeBuffer(int32_t size);
         float& Get(int32_t minSize = 1, int32_t offset = 0);
+        std::optional<const std::vector<float>> GetBuffer();
         float& GetArray(int32_t minSize = 1, int32_t offset = 0);
         std::string_view GetText(int32_t minSize = 16);
         NodeGraphBase* GetInputNode();

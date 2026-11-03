@@ -24,18 +24,37 @@
 
 #include <string>
 #include <vector>
+#include <array>
 #include <map>
 #include <typeinfo>
 #include <type_traits>
 #include <memory>
 #include <filesystem>
 
+// Forward declarations so NodeGraphSchema members always have consistent layout
+// regardless of HEADLESS_BUILD. Including the full headers is guarded, but
+// pointer-to-incomplete-type is sufficient for member declarations.
+namespace l::hid { class KeyState; }
+namespace l::audio { class AudioStream; }
+namespace l::hid::midi { class MidiManager; }
+
 namespace l::nodegraph {
+
+    // A logical group is a named, color-coded annotation over a set of nodes.
+    // It is pure metadata — no processing involvement, nodes remain flat in mMainNodeGraph.
+    struct NodeLogicalGroup {
+        int32_t              mId = 0;
+        std::string          mName;
+        std::array<float, 4> mColor = {0.27f, 0.53f, 1.0f, 1.0f}; // RGBA
+        std::vector<int32_t> mNodeIds;   // member node IDs
+        float mLabelX = 0.0f;            // custom label position (0 = auto)
+        float mLabelY = 0.0f;
+    };
 
     class TreeMenuNode {
     public:
         TreeMenuNode() = default;
-        TreeMenuNode(std::string_view pathPart, std::string_view name, int32_t id) : mPathPart(pathPart), mName(name), mId(id) {}
+        TreeMenuNode(std::string_view pathPart, std::string_view name, int32_t id, std::string_view description = "") : mPathPart(pathPart), mName(name), mId(id), mDescription(description) {}
         ~TreeMenuNode() = default;
 
         std::string_view GetPathPart() const {
@@ -47,20 +66,27 @@ namespace l::nodegraph {
         int32_t GetId() const {
             return mId;
         }
+        std::string_view GetDescription() const {
+            return mDescription;
+        }
 
         std::vector<TreeMenuNode> mChildren;
         std::string mPathPart;
     protected:
         std::string mName;
         int32_t mId = 0;
+        std::string mDescription;
     };
 
     TreeMenuNode* findOrCreateChild(TreeMenuNode& node, std::string_view pathPart);
-    void insertPath(TreeMenuNode& root, std::string_view path, std::string_view name, int32_t nodeId);
+    void insertPath(TreeMenuNode& root, std::string_view path, std::string_view name, int32_t nodeId, std::string_view description);
 
     struct UINodeDesc {
         std::string_view GetName() const {
             return mName;
+        }
+        std::string_view GetDescription() const {
+            return mDescription;
         }
         int32_t GetId() const {
             return mId;
@@ -68,6 +94,7 @@ namespace l::nodegraph {
 
         int32_t mId;
         std::string mName;
+        std::string mDescription;
     };
 
     class NodeGraphSchema : public l::serialization::JsonSerializationBase, public NodeFactoryBase {
@@ -102,11 +129,15 @@ namespace l::nodegraph {
             mMainNodeGraph.SetNodeFactory(this); // must set anew since schema (this) was moved as well
             mRegisteredNodeTypes = std::move(other.mRegisteredNodeTypes);
             mCustomNodeCreatorListeners = std::move(other.mCustomNodeCreatorListeners);
+#ifndef HEADLESS_BUILD
             mKeyState = other.mKeyState;
             mAudioOutput = other.mAudioOutput;
             mMidiManager = other.mMidiManager;
+#endif
             mRegisteredNodeTypes = std::move(other.mRegisteredNodeTypes);
             mPickerRootMenu = mPickerRootMenu;
+            mLogicalGroups = std::move(other.mLogicalGroups);
+            mNextGroupId = other.mNextGroupId;
             return *this;
         }
 
@@ -161,9 +192,17 @@ namespace l::nodegraph {
         virtual void GetArchiveData(l::serialization::JsonBuilder& jsonBuilder) override;
 
         void AddCustomNodeCreator(CustomCreateFunctionType customCreator);
+#ifndef HEADLESS_BUILD
         void SetKeyState(l::hid::KeyState* keyState);
         void SetAudioOutput(l::audio::AudioStream* audioStream);
         void SetMidiManager(l::hid::midi::MidiManager* midiManager);
+#endif
+
+        // Logical groups — named visual annotations over sets of nodes
+        NodeLogicalGroup&              AddLogicalGroup(std::string name);
+        void                           RemoveLogicalGroup(int32_t id);
+        NodeLogicalGroup*              GetLogicalGroup(int32_t id);
+        std::vector<NodeLogicalGroup>& GetLogicalGroups();
 
         int32_t NewNode(int32_t typeId, int32_t id = -1);
         bool RemoveNode(int32_t id);
@@ -172,9 +211,22 @@ namespace l::nodegraph {
         void ForEachInputNode(std::function<bool(NodeGraphBase*)> cb);
         void ForEachOutputNode(std::function<bool(NodeGraphBase*)> cb);
 
+        template<class T>
+        void ForEachNodeOftype(std::function<bool(NodeGraphBase*)> cb) {
+            mMainNodeGraph.ForEachNodeOftype<T>(std::move(cb));
+        }
+        template<class T>
+        void ForEachInputNodeOftype(std::function<bool(NodeGraphBase*)> cb) {
+            mMainNodeGraph.ForEachInputNodeOftype<T>(std::move(cb));
+        }
+        template<class T>
+        void ForEachOutputNodeOftype(std::function<bool(NodeGraphBase*)> cb) {
+            mMainNodeGraph.ForEachOutputNodeOftype<T>(std::move(cb));
+        }
+
         bool HasNodeType(const std::string& typeGroup, int32_t typeId);
-        void ForEachNodeType(std::function<void(std::string_view, const std::vector<UINodeDesc>&)> cb) const;
-        void RegisterNodeType(const std::string& typeGroup, int32_t uniqueTypeId, std::string_view typeName);
+        void ForEachNodeType(std::string_view search, std::function<void(std::string_view, const std::vector<UINodeDesc>&)> cb) const;
+        void RegisterNodeType(const std::string& typeGroup, int32_t uniqueTypeId, std::string_view typeName, std::string_view description = "");
         void RegisterAllOf(const std::string& typeGroup);
         void ProcessSubGraph(int32_t numSamples, int32_t numCacheSamples = -1);
         void Tick(int32_t tickCount, float delta);
@@ -192,9 +244,13 @@ namespace l::nodegraph {
         NodeGraphGroup mMainNodeGraph;
 
         std::vector<CustomCreateFunctionType> mCustomNodeCreatorListeners;
+        // Always present for consistent struct layout across HEADLESS_BUILD configurations
         l::hid::KeyState* mKeyState = nullptr;
         l::audio::AudioStream* mAudioOutput = nullptr;
         l::hid::midi::MidiManager* mMidiManager = nullptr;
+
+        std::vector<NodeLogicalGroup> mLogicalGroups;
+        int32_t mNextGroupId = 1;
 
         std::map<std::string, std::vector<UINodeDesc>> mRegisteredNodeTypes;
         TreeMenuNode mPickerRootMenu;

@@ -1,23 +1,27 @@
 #include "rendering/ui/UINodeEditor.h"
 
+#include "rendering/ImguiSpectrum.h"
+
+#include <algorithm>
+#include <cfloat>
 #include <memory>
 
 namespace l::ui {
 
-    void depthFirstTraversal(const nodegraph::TreeMenuNode& node, std::vector<std::string>& path, std::function<void(std::string_view, int32_t)> cbMenuItem) {
+    void depthFirstTraversal(const nodegraph::TreeMenuNode& node, std::vector<std::string>& path, std::function<void(std::string_view, int32_t, std::string_view)> cbMenuItem) {
         if (node.GetPathPart().empty()) {
             for (const auto& child : node.mChildren) {
                 depthFirstTraversal(child, path, cbMenuItem);
             }
-            cbMenuItem(node.GetName(), node.GetId());
+            cbMenuItem(node.GetName(), node.GetId(), node.GetDescription());
         }
         else {
             path.emplace_back(node.GetPathPart());
-            if (ImGui::TreeNode(node.GetPathPart().data())) {
+            if (ImGui::BeginMenu(node.GetPathPart().data())) {
                 for (const auto& child : node.mChildren) {
                     depthFirstTraversal(child, path, cbMenuItem);
                 }
-                ImGui::TreePop();
+                ImGui::EndMenu();
             }
             path.pop_back();
         }
@@ -36,6 +40,52 @@ namespace l::ui {
             mUIRoot->SetLayoutSize(GetSize());
             mUIRoot->SetLayoutPosition(GetPosition());
             mUIRoot->Accept(updateVisitor, mUIInput, l::ui::UITraversalMode::BFS);
+
+            // Render logical group rects before links and nodes (furthest back)
+            auto& logicalGroups = mNGSchema->GetLogicalGroups();
+            if (!logicalGroups.empty()) {
+                ImDrawList* dl = ImGui::GetWindowDrawList();
+                float rootScale = mUIRoot->GetScale();
+                ImVec2 rootPos = mUIRoot->GetPosition();
+                ImVec2 winPos = GetPosition();
+
+                for (auto& group : logicalGroups) {
+                    if (group.mNodeIds.empty()) continue;
+                    float minX = FLT_MAX, minY = FLT_MAX, maxX = -FLT_MAX, maxY = -FLT_MAX;
+                    bool anyValid = false;
+                    for (int32_t nid : group.mNodeIds) {
+                        auto* node = mNGSchema->GetNode(nid);
+                        if (!node) continue;
+                        auto& ui = node->GetUIData();
+                        constexpr float pad = 12.0f;
+                        minX = std::min(minX, ui.x - pad);
+                        minY = std::min(minY, ui.y - pad);
+                        maxX = std::max(maxX, ui.x + ui.w + pad);
+                        maxY = std::max(maxY, ui.y + ui.h + pad);
+                        anyValid = true;
+                    }
+                    if (!anyValid) continue;
+                    auto& c = group.mColor;
+                    auto toScreen = [&](float cx, float cy) -> ImVec2 {
+                        return { winPos.x + rootPos.x + cx * rootScale,
+                                 winPos.y + rootPos.y + cy * rootScale };
+                    };
+                    ImU32 fillCol = IM_COL32(int(c[0]*255), int(c[1]*255), int(c[2]*255), 20);
+                    ImU32 lineCol = IM_COL32(int(c[0]*255), int(c[1]*255), int(c[2]*255), 180);
+                    ImVec2 pMin = toScreen(minX, minY);
+                    ImVec2 pMax = toScreen(maxX, maxY);
+                    dl->AddRectFilled(pMin, pMax, fillCol, 6.0f);
+                    dl->AddRect(pMin, pMax, lineCol, 6.0f, 0, 2.0f);
+                    float labelX = (group.mLabelX != 0.0f || group.mLabelY != 0.0f) ? group.mLabelX : minX + 4.0f;
+                    float labelY = (group.mLabelX != 0.0f || group.mLabelY != 0.0f) ? group.mLabelY : minY - 14.0f;
+                    dl->AddText(toScreen(labelX, labelY), lineCol, group.mName.c_str());
+                }
+            }
+
+            // Two-pass rendering: draw links first (behind), then nodes (in front)
+            mDrawVisitor.SetDrawMode(UIDrawMode::LinksOnly);
+            mUIRoot->Accept(mDrawVisitor, mUIInput, l::ui::UITraversalMode::BFS);
+            mDrawVisitor.SetDrawMode(UIDrawMode::NoLinks);
             mUIRoot->Accept(mDrawVisitor, mUIInput, l::ui::UITraversalMode::BFS);
 
             ImGui::PopItemWidth();
@@ -47,36 +97,149 @@ namespace l::ui {
             });
 
         SetPointerPopup([&]() {
-            ImGui::Text("Node picker");
-            ImGui::Separator();
-
             if (mNGSchema == nullptr) {
                 return;
             }
 
-            std::vector<std::string> path;
-            depthFirstTraversal(mNGSchema->GetPickerRoot(), path, [&](std::string_view menuName, int32_t menuId) {
-                if (!menuName.empty() && ImGui::MenuItem(menuName.data())) {
-                    ImVec2 p = ImVec2(mUIInput.mCurPos.x - GetPosition().x, mUIInput.mCurPos.y - GetPosition().y);
-                    p.x -= mUIRoot->GetPosition().x;
-                    p.y -= mUIRoot->GetPosition().y;
-                    p.x /= mUIRoot->GetScale();
-                    p.y /= mUIRoot->GetScale();
-                    p.x -= 3.0f;
-                    p.y -= 3.0f;
-                    auto nodeId = mNGSchema->NewNode(menuId);
-                    auto node = mNGSchema->GetNode(nodeId);
-                    if (node != nullptr) {
-                        auto uiNode = l::ui::CreateUINode(mUIManager, *node, p);
-                        mUIRoot->Add(uiNode);
+            // On popup open: capture selection and detect which group (if any) was right-clicked.
+            if (ImGui::IsWindowAppearing()) {
+                mSelectVisitor.GetSelectedNodeIds(mPopupSelectedIds);
 
-                        auto& uiData = node->GetUIData();
-                        auto position = uiNode->GetPosition();
-                        auto size = uiNode->GetSize();
-                        uiData.x = position.x;
-                        uiData.y = position.y;
-                        uiData.w = size.x;
-                        uiData.h = size.y;
+                mPopupHoveredGroupId = -1;
+                float scale  = mUIRoot->GetScale();
+                ImVec2 rPos  = mUIRoot->GetPosition();
+                ImVec2 wPos  = GetPosition();
+                float cx = (mUIInput.mCurPos.x - wPos.x - rPos.x) / scale;
+                float cy = (mUIInput.mCurPos.y - wPos.y - rPos.y) / scale;
+                for (auto& group : mNGSchema->GetLogicalGroups()) {
+                    if (group.mNodeIds.empty()) continue;
+                    float minX = FLT_MAX, minY = FLT_MAX, maxX = -FLT_MAX, maxY = -FLT_MAX;
+                    for (int32_t nid : group.mNodeIds) {
+                        auto* node = mNGSchema->GetNode(nid);
+                        if (!node) continue;
+                        auto& ui = node->GetUIData();
+                        constexpr float pad = 12.0f;
+                        minX = std::min(minX, ui.x - pad);
+                        minY = std::min(minY, ui.y - pad);
+                        maxX = std::max(maxX, ui.x + ui.w + pad);
+                        maxY = std::max(maxY, ui.y + ui.h + pad);
+                    }
+                    if (cx >= minX && cx <= maxX && cy >= minY && cy <= maxY) {
+                        mPopupHoveredGroupId = group.mId;
+                        break;
+                    }
+                }
+            }
+
+            // ── Group context menu (right-click on a group rect) ──────────────────
+            if (mPopupHoveredGroupId >= 0) {
+                auto* g = mNGSchema->GetLogicalGroup(mPopupHoveredGroupId);
+                if (!g) { mPopupHoveredGroupId = -1; return; }
+
+                ImGui::Text("%s", g->mName.c_str());
+                ImGui::Separator();
+
+                if (ImGui::BeginMenu("Rename")) {
+                    static char renameBuf[64] = "";
+                    ImGui::InputText("##grpctxname", renameBuf, sizeof(renameBuf));
+                    if (ImGui::Button("Apply") && renameBuf[0] != '\0') {
+                        g->mName = renameBuf;
+                        renameBuf[0] = '\0';
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::EndMenu();
+                }
+                if (!mPopupSelectedIds.empty()) {
+                    if (ImGui::MenuItem("Set Selection as Members")) {
+                        g->mNodeIds = mPopupSelectedIds;
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
+                if (mSaveGroupAsModuleCallback) {
+                    if (ImGui::BeginMenu("Save as Module...")) {
+                        static char modNameBuf[64] = "";
+                        if (ImGui::IsWindowAppearing() && modNameBuf[0] == '\0') {
+                            std::memcpy(modNameBuf, g->mName.c_str(), g->mName.size());
+                            modNameBuf[g->mName.size()] = '\0';
+                        }
+                        ImGui::InputText("Name##grpmodname", modNameBuf, sizeof(modNameBuf));
+                        if (ImGui::Button("Save##grpmodsave") && modNameBuf[0] != '\0') {
+                            mSaveGroupAsModuleCallback(mPopupHoveredGroupId, modNameBuf);
+                            modNameBuf[0] = '\0';
+                            ImGui::CloseCurrentPopup();
+                        }
+                        ImGui::EndMenu();
+                    }
+                }
+                ImGui::Separator();
+                if (ImGui::MenuItem("Delete Group")) {
+                    mNGSchema->RemoveLogicalGroup(mPopupHoveredGroupId);
+                    ImGui::CloseCurrentPopup();
+                }
+                return;
+            }
+
+            // ── Node picker (right-click on empty canvas) ─────────────────────────
+            ImGui::Text("Node picker");
+            ImGui::Separator();
+
+            // Create group from current selection
+            if (!mPopupSelectedIds.empty()) {
+                if (ImGui::BeginMenu("Group Selection...")) {
+                    static char groupNameBuf[64] = "";
+                    ImGui::InputText("Name##grpnew", groupNameBuf, sizeof(groupNameBuf));
+                    if (ImGui::Button("Create") && groupNameBuf[0] != '\0') {
+                        auto& grp = mNGSchema->AddLogicalGroup(groupNameBuf);
+                        grp.mNodeIds = mPopupSelectedIds;
+                        groupNameBuf[0] = '\0';
+                        mPopupSelectedIds.clear();
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::EndMenu();
+                }
+                ImGui::Separator();
+            }
+
+            std::vector<std::string> path;
+            depthFirstTraversal(mNGSchema->GetPickerRoot(), path, [&](std::string_view menuName, int32_t menuId, std::string_view description) {
+                //if (mPickerSearch.data() != 0 && !l::string::equal_partial(mPickerSearch.data(), menuName.data(), 0, 0, 20)) {
+                //    return;
+                //}
+                if (!menuName.empty()) {
+                    if (ImGui::MenuItem(menuName.data())) {
+                        ImVec2 p = ImVec2(mUIInput.mCurPos.x - GetPosition().x, mUIInput.mCurPos.y - GetPosition().y);
+                        p.x -= mUIRoot->GetPosition().x;
+                        p.y -= mUIRoot->GetPosition().y;
+                        p.x /= mUIRoot->GetScale();
+                        p.y /= mUIRoot->GetScale();
+                        p.x -= 3.0f;
+                        p.y -= 3.0f;
+                        auto nodeId = mNGSchema->NewNode(menuId);
+                        auto node = mNGSchema->GetNode(nodeId);
+                        if (node != nullptr) {
+                            auto uiNode = l::ui::CreateUINode(mUIManager, *node, p);
+                            mUIRoot->Add(uiNode);
+
+                            auto& uiData = node->GetUIData();
+                            auto position = uiNode->GetPosition();
+                            auto size = uiNode->GetSize();
+                            uiData.x = position.x;
+                            uiData.y = position.y;
+                            uiData.w = size.x;
+                            uiData.h = size.y;
+                        }
+                    }
+                    if (!description.empty() && ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip)) {
+                        ImGui::BeginTooltip();
+                        ImGui::PushTextWrapPos(350);
+                        ImGui::PushStyleColor(0, ImGui::ColorConvertU32ToFloat4(ImGui::Spectrum::GRAY900));
+                        ImGui::TextWrapped("%s", menuName.data());
+                        ImGui::PopStyleColor();
+                        ImGui::Separator();
+                        ImGui::PushStyleColor(0, ImGui::ColorConvertU32ToFloat4(ImGui::Spectrum::GRAY700));
+                        ImGui::TextWrapped("%s", description.data());
+                        ImGui::PopStyleColor();
+                        ImGui::EndTooltip();
                     }
                 }
 
@@ -182,13 +345,13 @@ namespace l::ui {
             return inputNode->ClearInput(static_cast<int8_t>(inputChannel));
             });
 
-        mEditVisitor.SetEditHandler([&](int32_t nodeId, int8_t channelId, float, float dy) {
+        mTouchEditVisitor.SetEditHandler([&](int32_t nodeId, int8_t channelId, float, float dy) {
             if (mNGSchema == nullptr) {
                 return;
             }
 
             auto node = mNGSchema->GetNode(nodeId);
-            if (node->IsInputDataEditable(channelId)) {
+            if (node->IsInputDataEditable(channelId) && !node->IsInputDataText(channelId)) {
                 float* nodeValue = nullptr;
                 if (channelId < node->GetNumInputs()) {
                     nodeValue = &node->GetInput(channelId, 1);
@@ -197,7 +360,7 @@ namespace l::ui {
                     nodeValue = &node->GetOutput(channelId, 1);
                 }
                 if (nodeValue != nullptr) {
-                    if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftShift)) {
+                    if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftAlt)) {
                         if (!ImGui::IsKeyDown(ImGuiKey::ImGuiKey_LeftCtrl)) {
                             *nodeValue -= dy / 100.0f;
                         }
@@ -223,6 +386,34 @@ namespace l::ui {
             }
             });
 
+        mTextEditVisitor.SetEditHandler([&](int32_t nodeId, int8_t channelId, std::string& text, bool noedit) {
+            if (mNGSchema == nullptr) {
+                return;
+            }
+
+            auto node = mNGSchema->GetNode(nodeId);
+            if (noedit && node->IsInputDataEditable(channelId) && node->IsInputDataText(channelId)) {
+                if (channelId < node->GetNumInputs()) {
+                    text = node->GetInputText(channelId);
+                }
+                else if (channelId < node->GetNumOutputs()) {
+                    text = node->GetOutputText(channelId);
+                }
+            }
+
+            ImGuiIO& io = ImGui::GetIO();
+            for (int i = 0; i < io.InputQueueCharacters.Size; i++) {
+                ImWchar c = io.InputQueueCharacters[i];
+                if (text.size() <= 16) {
+                    text += static_cast<char>(c);
+                }
+            }
+            if (!noedit && channelId < node->GetNumInputs()) {
+                node->SetInput(channelId, text);
+            }
+
+            });
+
         mSelectVisitor.SetDeleteHandler([&](int32_t containerId, int32_t nodeId) {
             if (mNGSchema == nullptr) {
                 return;
@@ -243,7 +434,7 @@ namespace l::ui {
             if (mNGSchema == nullptr) {
                 return;
             }
-            //LOG(LogInfo) << "Container " << containerId << " moved to " << x << ", " << y;
+            //LLOG(LogInfo) << "Container " << containerId << " moved to " << x << ", " << y;
             auto node = mNGSchema->GetNode(nodeId);
             if (node != nullptr) {
                 auto& uiData = node->GetUIData();
@@ -256,7 +447,7 @@ namespace l::ui {
             if (mNGSchema == nullptr) {
                 return;
             }
-            //LOG(LogInfo) << "Container " << containerId << " resized to " << w << ", " << h;
+            //LLOG(LogInfo) << "Container " << containerId << " resized to " << w << ", " << h;
             auto node = mNGSchema->GetNode(nodeId);
             if (node != nullptr) {
                 auto& uiData = node->GetUIData();
@@ -293,7 +484,8 @@ namespace l::ui {
         mDragVisitor.Reset();
         mMoveVisitor.Reset();
         mResizeVisitor.Reset();
-        mEditVisitor.Reset();
+        mTouchEditVisitor.Reset();
+        mTextEditVisitor.Reset();
 
         if (mUIRoot.IsValid()) {
             mUIRoot->RemoveAll();
@@ -321,13 +513,10 @@ namespace l::ui {
             if (node != nullptr) {
                 auto& uiData = node->GetUIData();
                 auto p = ImVec2(uiData.x, uiData.y);
-                //auto s = ImVec2(uiData.w, uiData.h);
-                auto uiNode = l::ui::CreateUINode(mUIManager, *node, p);
-                //if (s.x > 10.0f && s.y > 10.0f) {
-                //    uiNode->SetSize(s);
-                //}
+                auto s = ImVec2(uiData.w, uiData.h);
+                auto uiNode = l::ui::CreateUINode(mUIManager, *node, p, s);
 
-                //LOG(LogInfo) << "Replicated node type " << node->GetTypeId() << " as a ui node";
+                //LLOG(LogInfo) << "Replicated node type " << node->GetTypeId() << " as a ui node";
                 mUIRoot->Add(uiNode);
             }
 
@@ -391,13 +580,17 @@ namespace l::ui {
             if (IsHovered()) {
                 if (mUIRoot->Accept(mLinkIOVisitor, mUIInput, l::ui::UITraversalMode::DFS)) {
                 }
-                else if (mUIRoot->Accept(mEditVisitor, mUIInput, l::ui::UITraversalMode::DFS)) {
+                else if (mUIRoot->Accept(mTouchEditVisitor, mUIInput, l::ui::UITraversalMode::DFS)) {
+                }
+                else if (mUIRoot->Accept(mTextEditVisitor, mUIInput, l::ui::UITraversalMode::DFS)) {
                 }
                 else if (mUIRoot->Accept(mSelectVisitor, mUIInput, l::ui::UITraversalMode::BFS)) {
                 }
                 else if (mUIRoot->Accept(mResizeVisitor, mUIInput, l::ui::UITraversalMode::DFS)) {
                 }
                 else if (mUIRoot->Accept(mMoveVisitor, mUIInput, l::ui::UITraversalMode::DFS)) {
+                }
+                else if (UpdateGroupDrag()) {
                 }
                 else if (mUIRoot->Accept(mZoomVisitor, mUIInput, l::ui::UITraversalMode::DFS)) {
                 }
@@ -408,7 +601,118 @@ namespace l::ui {
                 mResizeVisitor.Reset();
                 mMoveVisitor.Reset();
                 mDragVisitor.Reset();
+                mDraggingGroupId = -1;
             }
         }
+    }
+
+    bool UINodeEditor::UpdateGroupDrag() {
+        if (!mNGSchema || !mUIRoot.IsValid()) return false;
+        auto& groups = mNGSchema->GetLogicalGroups();
+        if (groups.empty()) return false;
+
+        float rootScale = mUIRoot->GetScale();
+        ImVec2 rootPos  = mUIRoot->GetPosition();
+        ImVec2 winPos   = GetPosition();
+
+        // Convert screen position to canvas position
+        auto toCanvas = [&](ImVec2 sp) -> ImVec2 {
+            return { (sp.x - winPos.x - rootPos.x) / rootScale,
+                     (sp.y - winPos.y - rootPos.y) / rootScale };
+        };
+
+        // Ongoing drag: apply movement each frame, persist on release
+        if (mDraggingGroupId >= 0) {
+            ImVec2 move = DragMovement(mUIInput.mPrevPos, mUIInput.mCurPos, rootScale);
+            for (auto& group : groups) {
+                if (group.mId != mDraggingGroupId) continue;
+                for (int32_t nid : group.mNodeIds) {
+                    auto* c = mUIManager.FindNodeId(UIContainer_MoveFlag, nid);
+                    auto* node = mNGSchema->GetNode(nid);
+                    if (c) {
+                        c->Move(move);
+                        // Update UIData every frame so the group rect (which reads UIData) follows immediately
+                        if (node) {
+                            auto p = c->GetPosition();
+                            node->GetUIData().x = p.x;
+                            node->GetUIData().y = p.y;
+                        }
+                    }
+                }
+                if (group.mLabelX != 0.0f || group.mLabelY != 0.0f) {
+                    group.mLabelX += move.x;
+                    group.mLabelY += move.y;
+                }
+                break;
+            }
+            if (mUIInput.mStopped) {
+                mDraggingGroupId = -1;
+            }
+            return true;
+        }
+
+        // New press: check if it lands inside a group rect (but not on a node — mMoveVisitor already consumed node hits)
+        if (!mUIInput.mStarted) return false;
+
+        ImVec2 curCanvas = toCanvas(mUIInput.mCurPos);
+
+        for (auto& group : groups) {
+            if (group.mNodeIds.empty()) continue;
+            float minX = FLT_MAX, minY = FLT_MAX, maxX = -FLT_MAX, maxY = -FLT_MAX;
+            for (int32_t nid : group.mNodeIds) {
+                auto* node = mNGSchema->GetNode(nid);
+                if (!node) continue;
+                auto& ui = node->GetUIData();
+                constexpr float pad = 12.0f;
+                minX = std::min(minX, ui.x - pad);
+                minY = std::min(minY, ui.y - pad);
+                maxX = std::max(maxX, ui.x + ui.w + pad);
+                maxY = std::max(maxY, ui.y + ui.h + pad);
+            }
+            if (curCanvas.x >= minX && curCanvas.x <= maxX &&
+                curCanvas.y >= minY && curCanvas.y <= maxY) {
+                mDraggingGroupId = group.mId;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void UINodeEditor::AddSchemaNodeToUI(int32_t nodeId) {
+        if (!mNGSchema || !mUIRoot.IsValid()) return;
+        auto* node = mNGSchema->GetNode(nodeId);
+        if (!node) return;
+        auto& uiData = node->GetUIData();
+        auto p = ImVec2(uiData.x, uiData.y);
+        auto s = ImVec2(uiData.w, uiData.h);
+        auto uiNode = CreateUINode(mUIManager, *node, p, s);
+        mUIRoot->Add(uiNode);
+    }
+
+    void UINodeEditor::AddSchemaLinksToUI(int32_t nodeId) {
+        if (!mNGSchema || !mUIRoot.IsValid()) return;
+        auto* node = mNGSchema->GetNode(nodeId);
+        if (!node) return;
+        int inputChannel = 0;
+        node->ForEachInput([&](l::nodegraph::NodeGraphInput& input) {
+            if (input.HasInputNode()) {
+                auto* outputNode = input.GetInputNode();
+                auto outputChannel = input.GetInputSrcChannel();
+                auto linkContainer = CreateContainer(mUIManager, UIContainer_LinkFlag | UIContainer_DrawFlag, UIRenderType::LinkH);
+                linkContainer->SetColor(l::ui::pastellYellow);
+                auto* outputContainer = mUIManager.FindNodeId(UIContainer_OutputFlag, outputNode->GetId(), outputChannel);
+                auto* inputContainer = mUIManager.FindNodeId(UIContainer_InputFlag, nodeId, inputChannel);
+                if (outputContainer && inputContainer) {
+                    outputContainer->Add(linkContainer);
+                    linkContainer->SetCoParent(inputContainer);
+                    inputContainer->SetCoParent(linkContainer.Get());
+                }
+            }
+            inputChannel++;
+        });
+    }
+
+    void UINodeEditor::GetSelectedNodeIds(std::vector<int32_t>& out) {
+        mSelectVisitor.GetSelectedNodeIds(out);
     }
 }

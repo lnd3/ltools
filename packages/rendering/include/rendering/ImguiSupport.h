@@ -1,5 +1,7 @@
 #pragma once
 
+#define NOMINMAX
+
 #include "logging/LoggingAll.h"
 
 #define GLFW_INCLUDE_NONE

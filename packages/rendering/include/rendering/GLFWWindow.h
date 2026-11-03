@@ -19,6 +19,7 @@ namespace rendering {
     using KeyCB = void(GLFWwindow* window, int key, int scancode, int action, int mods);
     using MouseCB = void(GLFWwindow* window, int button, int action, int mods);
     using ScrollCB = void(GLFWwindow* window, float xoffset, float yoffset);
+    using CharsCB = void(GLFWwindow* window, unsigned int codepoint);
 
     class GLFWWindowHandle {
     public:
@@ -36,9 +37,12 @@ namespace rendering {
         GLFWwindow* get();
 
         // setup
-        void SetInput(std::function<KeyCB> keyCallback = nullptr, 
+        void SetInput(
+            std::function<KeyCB> keyCallback = nullptr, 
             std::function<MouseCB> mouseCallback = nullptr, 
-            std::function<ScrollCB> scrollCallback = nullptr);
+            std::function<ScrollCB> scrollCallback = nullptr,
+            std::function<CharsCB> charsCallback = nullptr
+            );
         void SetOpacity(float opacity);
 
         // control

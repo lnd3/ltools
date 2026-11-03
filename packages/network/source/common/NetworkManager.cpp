@@ -36,30 +36,30 @@ namespace l::network {
 								if (m->data.result != CURLE_OK) {
 									success = false;
 								}
-								bool foundHandle = false;
+								//bool foundHandle = false;
 								for (auto& it : mConnections) {
 									if (it->IsHandle(e)) {
-										foundHandle = true;
+										//foundHandle = true;
 										if (!it->IsWebSocket()) {
 											it->NotifyCompleteRequest(success);
 										}
 									}
 								}
-								ASSERT(foundHandle);
+								//ASSERT(foundHandle);
 							}
 							else if (m) {
-								LOG(LogWarning) << "Not done";
+								LLOG(LogWarning) << "Not done";
 							}
 						} while (m != nullptr && messagesInQueue > 0);
 
 						int numfds;
-						mc = curl_multi_poll(mMultiHandle, NULL, 0, 1000, &numfds);
+						mc = curl_multi_poll(mMultiHandle, NULL, 0, 10, &numfds);
 						if (mc != CURLM_OK) {
-							LOG(LogError) << "curl_multi_poll failed, code " << mc;
+							LLOG(LogError) << "curl_multi_poll failed, code " << mc;
 						}
 					}
 					else {
-						LOG(LogError) << "curl_multi_perform failed, code " << mc;
+						LLOG(LogError) << "curl_multi_perform failed, code " << mc;
 					}
 				} while (runningHandles > 0 || mJobManager.get() != nullptr || !mConnections.empty());
 				});
@@ -125,12 +125,14 @@ namespace l::network {
 	}
 
 	bool NetworkManager::PostQuery(std::string_view queryName,
-		std::string_view queryArguments, 
-		int32_t maxTries, 
-		std::string_view query, 
+		std::string_view queryArguments,
+		int32_t maxTries,
+		std::string_view query,
 		int32_t expectedResponseSize,
 		int32_t timeOut,
-		std::function<void(bool, std::string_view)> cb) {
+		std::function<void(bool, std::string_view)> cb,
+		std::string_view postBody,
+		std::vector<std::string> postHeaders) {
 		if (!mJobManager) {
 			return false;
 		}
@@ -142,26 +144,33 @@ namespace l::network {
 				cexpectedResponseSize = expectedResponseSize,
 				ctimeOut = timeOut,
 				ccallback = cb,
+				cpostBody = std::string(postBody),
+				cpostHeaders = std::move(postHeaders),
 				&cmConnectionsMutex = mConnectionsMutex,
 				&cmConnections = mConnections,
 				&cmMultiHandle = mMultiHandle,
 				&cmPostedRequests = mPostedRequests
 			](const l::concurrency::RunState& state) {
 				std::unique_lock lock(cmConnectionsMutex);
-				auto it = std::find_if(cmConnections.begin(), cmConnections.end(), [&](std::unique_ptr<ConnectionBase>& request) {
-					if (cqueryName == request->GetRequestName() && request->TryReservingRequest()) {
-						return true;
-					}
-					return false;
-					});
 
-				if (it == cmConnections.end()) {
+				// First check: does a slot with this name exist at all?
+				auto nameIt = std::find_if(cmConnections.begin(), cmConnections.end(), [&](std::unique_ptr<ConnectionBase>& req) {
+					return cqueryName == req->GetRequestName();
+					});
+				if (nameIt == cmConnections.end()) {
+					// No slot registered — not a transient condition; stop retrying.
+					return l::concurrency::RunnableResult::FAILURE;
+				}
+
+				// Slot exists; try to reserve it (may be busy with a prior request).
+				if (!(*nameIt)->TryReservingRequest()) {
 					return l::concurrency::RunnableResult::REQUEUE_DELAYED;
 				}
-				auto request = it->get();
+				auto request = nameIt->get();
 				lock.unlock();
 
-				auto result = request->SendAndUnReserveRequest(cmMultiHandle, state, cqueryArguments, cquery, cexpectedResponseSize, ctimeOut, ccallback);
+				auto result = request->SendAndUnReserveRequest(cmMultiHandle, state, cqueryArguments, cquery,
+					cexpectedResponseSize, ctimeOut, ccallback, cpostBody, cpostHeaders);
 				if (result != l::concurrency::RunnableResult::SUCCESS) {
 					cmPostedRequests++;
 				}
@@ -202,6 +211,25 @@ namespace l::network {
 		}
 	}
 
+	int32_t NetworkManager::WSKeepalive(std::string_view queryName) {
+		std::unique_lock lock(mConnectionsMutex);
+		auto it = std::find_if(mConnections.begin(), mConnections.end(), [&](std::unique_ptr<ConnectionBase>& request) {
+			if (queryName == request->GetRequestName()) {
+				return true;
+			}
+			return false;
+			});
+
+		if (it == mConnections.end()) {
+			LLOG(LogError) << "Failed to find connection: " << queryName;
+			return -201;
+		}
+		auto request = it->get();
+		lock.unlock();
+
+		return request->WSKeepalive();
+	}
+
 	int32_t NetworkManager::WSWrite(std::string_view queryName, const char* buffer, size_t size) {
 		std::unique_lock lock(mConnectionsMutex);
 		auto it = std::find_if(mConnections.begin(), mConnections.end(), [&](std::unique_ptr<ConnectionBase>& request) {
@@ -212,7 +240,7 @@ namespace l::network {
 			});
 
 		if (it == mConnections.end()) {
-			LOG(LogError) << "Failed to find connection: " << queryName;
+			LLOG(LogError) << "Failed to find connection: " << queryName;
 			return -201;
 		}
 		auto request = it->get();
@@ -231,7 +259,7 @@ namespace l::network {
 			});
 
 		if (it == mConnections.end()) {
-			LOG(LogError) << "Failed to find connection: " << queryName;
+			LLOG(LogError) << "Failed to find connection: " << queryName;
 			return -201;
 		}
 		auto request = it->get();
@@ -257,4 +285,41 @@ namespace l::network {
 
 		return request->IsAlive();
 	}
+
+	bool NetworkManager::WSAutoConnectEnabled(std::string_view queryName) {
+		std::unique_lock lock(mConnectionsMutex);
+		auto it = std::find_if(mConnections.begin(), mConnections.end(), [&](std::unique_ptr<ConnectionBase>& request) {
+			if (queryName == request->GetRequestName()) {
+				return true;
+			}
+			return false;
+			});
+
+		if (it == mConnections.end()) {
+			return false;
+		}
+		auto request = it->get();
+		lock.unlock();
+
+		return request->WSAutoConnectEnabled();
+	}
+
+	void NetworkManager::WSSetAutoConnect(std::string_view queryName, bool autoConnect) {
+		std::unique_lock lock(mConnectionsMutex);
+		auto it = std::find_if(mConnections.begin(), mConnections.end(), [&](std::unique_ptr<ConnectionBase>& request) {
+			if (queryName == request->GetRequestName()) {
+				return true;
+			}
+			return false;
+			});
+
+		if (it == mConnections.end()) {
+			return ;
+		}
+		auto request = it->get();
+		lock.unlock();
+
+		request->WSSetAutoConnect(autoConnect);
+	}
+
 }

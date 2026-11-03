@@ -79,16 +79,16 @@ bool Proc::Execute(const std::wstring& file, const std::wstring& args, bool elev
 
 	if (elevated) {
 		ShExecInfo.lpVerb = L"runas";
-		LOG(LogInfo) << "Attempt running application with elevated privileges..";
+		LLOG(LogInfo) << "Attempt running application with elevated privileges..";
 	}
 
 	if (!ShellExecuteExW(&ShExecInfo)) {
 		auto err = GetLastError();
 		if (err) {
-			LOG(LogError) << "Error executing " << file << ". Error: " << err;
+			LLOG(LogError) << "Error executing " << file << ". Error: " << err;
 		}
 		else {
-			LOG(LogError) << "Unknown error occured";
+			LLOG(LogError) << "Unknown error occured";
 		}
 		return 1;
 	}
@@ -126,16 +126,16 @@ bool Proc::Fork(std::wstring title, std::wstring& file, const std::wstring& args
 		&mProcessInfo)           // Pointer to PROCESS_INFORMATION structure
 		)
 	{
-		LOG(LogError) << "Failed to create process " << filename << ", " << std::to_string(static_cast<long>(GetLastError()));
+		LLOG(LogError) << "Failed to create process " << filename << ", " << std::to_string(static_cast<long>(GetLastError()));
 		return false;
 	}
 
-	LOG(LogInfo) << "Successfully started process '" << filename << " " << args << "'";
+	LLOG(LogInfo) << "Successfully started process '" << filename << " " << args << "'";
 	if (!detach) {
-		LOG(LogInfo) << "Waiting for process exit";
+		LLOG(LogInfo) << "Waiting for process exit";
 		DWORD waitResult = WaitForSingleObject(mProcessInfo.hProcess, INFINITE);
 		if (waitResult == WAIT_FAILED) {
-			LOG(LogError) << "Wait for process failed " + std::to_string(static_cast<long>(GetLastError()));
+			LLOG(LogError) << "Wait for process failed " + std::to_string(static_cast<long>(GetLastError()));
 			return false;
 		}
 

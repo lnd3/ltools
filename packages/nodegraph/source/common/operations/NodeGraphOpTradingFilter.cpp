@@ -1,7 +1,6 @@
 #include "nodegraph/operations/NodeGraphOpTradingFilter.h"
 
 #include "logging/Log.h"
-#include "audio/AudioUtils.h"
 
 #include "math/MathFunc.h"
 
@@ -135,7 +134,7 @@ namespace l::nodegraph {
         float width = l::math::max2(inputs.at(2).Get(), 1.0f);
         float weightAccent = l::math::clamp(inputs.at(3).Get(), 0.0f, 100.0f);
 
-        auto output = outputs.at(0).GetIterator(numSamples);
+        auto output = &outputs.at(0).Get(numSamples);
 
         int32_t widthInt = 1 + static_cast<int32_t>(width);
         int32_t bufferSize = widthInt;

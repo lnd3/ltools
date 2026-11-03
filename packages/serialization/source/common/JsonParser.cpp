@@ -2,8 +2,9 @@
 #include <various/jsmn.h>
 
 #include <serialization/JsonParser.h>
-
 #include <logging/LoggingAll.h>
+
+#include <math/MathFixedPoint.h>
 
 namespace l::serialization {
 
@@ -28,11 +29,15 @@ namespace l::serialization {
     }
 
     double JsonValue::as_double() const {
-        return std::atof(as_string().data());
+        return std::stod(as_string().data());
     }
 
     float JsonValue::as_float() const {
-        return static_cast<float>(std::atof(as_string().data()));
+        return static_cast<float>(std::stod(as_string().data()));
+    }
+
+    l::math::fp::FixedPoint JsonValue::as_fixed_point() const {
+        return l::math::fp::FixedPoint(as_string());
     }
 
     int8_t JsonValue::as_int8() const {
@@ -130,7 +135,7 @@ namespace l::serialization {
     }
 
     JsonValue JsonValue::operator[](int index) const {
-        assert(type() == JSMN_ARRAY);
+        assert(type() & JSMN_ARRAY);
         if (index < 0 || index >= size()) return {};
 
         const jsmntok_t* current = mTokens + 1;

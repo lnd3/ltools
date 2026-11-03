@@ -57,6 +57,13 @@ namespace l::nodegraph {
         return std::string_view(out);
     }
 
+    std::optional<const std::vector<float>> NodeGraphOutput::GetBuffer() {
+        if (mOutputBuf != nullptr && !mOutputBuf->empty()) {
+            return *mOutputBuf;
+        }
+        return std::nullopt;
+    }
+
     void NodeGraphOutput::SetText(std::string_view text) {
         auto p = reinterpret_cast<char*>(&Get(1 + static_cast<int32_t>(text.size())));
         memcpy(p, text.data(), text.size());

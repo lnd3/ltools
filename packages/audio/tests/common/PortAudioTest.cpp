@@ -58,7 +58,7 @@ TEST(PortAudio, Setup) {
 
 
     if (!stream->StopStream()) {
-        LOG(LogError) << "Failed to stop stream";
+        LLOG(LogError) << "Failed to stop stream";
     }
 
     manager.CloseOutStream("speaker");

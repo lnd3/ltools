@@ -95,13 +95,19 @@ namespace logging {
 #define LOG_LEVEL_ON(level) l::logging::SetLogLevelOn(l::logging::LogLevel::level, true)
 #define LOG_LEVEL_OFF(level) l::logging::SetLogLevelOn(l::logging::LogLevel::level, false)
 
-#define LOG(level) l::logging::LogMessage(__FILE__, __LINE__, l::logging::LogLevel::level)
+#define LLOG(level) l::logging::LogMessage(__FILE__, __LINE__, l::logging::LogLevel::level)
 
 #define ASSERT(condition) l::logging::LogMessage(__FILE__, __LINE__, l::logging::LogLevel::LogAssertion, condition)
 
 #define ASSERT_FUZZY(expr1, expr2, tolerance) l::logging::LogMessage(__FILE__, __LINE__, l::logging::LogLevel::LogAssertion, sqrt((expr1 - expr2)*(expr1 - expr2)) < tolerance)
 
 #define EXPECT(condition) l::logging::LogMessage(__FILE__, __LINE__, l::logging::LogLevel::LogExpection, condition)
+
+#define LASSERT(condition) l::logging::LogMessage(__FILE__, __LINE__, l::logging::LogLevel::LogAssertion, condition)
+
+#define LASSERT_FUZZY(expr1, expr2, tolerance) l::logging::LogMessage(__FILE__, __LINE__, l::logging::LogLevel::LogAssertion, sqrt((expr1 - expr2)*(expr1 - expr2)) < tolerance)
+
+#define LEXPECT(condition) l::logging::LogMessage(__FILE__, __LINE__, l::logging::LogLevel::LogExpection, condition)
 
 template<class T>
 T* require(T* ptr) {
@@ -110,5 +116,8 @@ T* require(T* ptr) {
 }
 
 #define REQUIRE(ptr) \
+	require(ptr);
+
+#define LREQUIRE(ptr) \
 	require(ptr);
 

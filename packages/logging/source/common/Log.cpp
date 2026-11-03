@@ -34,6 +34,7 @@ namespace logging {
 		localtime_r(&now, &newtime);
 #endif
 		newtime.tm_year += 1900;
+		newtime.tm_mon  += 1;
 		auto micro = static_cast<int>(micros.count() % 1000000);
 
 #ifdef __GNUC__

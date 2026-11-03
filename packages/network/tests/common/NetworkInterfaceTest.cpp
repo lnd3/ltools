@@ -39,8 +39,8 @@ TEST(NetworkInterface, Setup) {
 
 			failed = !success;
 
-			LOG(LogInfo) << "Query arguments: '" << queryArguments << "'";
-			LOG(LogInfo) << request.GetResponse().str();
+			LLOG(LogInfo) << "Query arguments: '" << queryArguments << "'";
+			LLOG(LogInfo) << request.GetResponse().str();
 			return success ? l::concurrency::RunnableResult::SUCCESS : l::concurrency::RunnableResult::FAILURE;
 		};
 

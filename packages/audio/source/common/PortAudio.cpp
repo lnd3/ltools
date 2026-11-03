@@ -73,13 +73,13 @@ namespace l::audio {
         auto maxDevices = Pa_GetDeviceCount();
         for (int32_t index = 0; index < maxDevices; index++) {
             auto deviceInfo = Pa_GetDeviceInfo(index);
-            LOG(LogInfo) << "Audio device " << index << ": " << deviceInfo->name;
+            LLOG(LogInfo) << "Audio device " << index << ": " << deviceInfo->name;
         }
 
         mInputParameters.device = Pa_GetDefaultInputDevice(); /* default input device */
         mOutputParameters.device = Pa_GetDefaultOutputDevice(); /* default output device */
         if (mOutputParameters.device == paNoDevice) {
-            LOG(LogError) << "Error: No default output device.";
+            LLOG(LogError) << "Error: No default output device.";
             return false;
         }
 
@@ -104,10 +104,10 @@ namespace l::audio {
 
             //auto inputInfo = Pa_GetDeviceInfo(mInputParameters.device);
             mInputParameters.suggestedLatency = latencyMs / 1000.0f; // inputInfo->defaultHighInputLatency;
-            LOG(LogInfo) << "Port Audio set latency ms: " << static_cast<int32_t>(latencyMs);
+            LLOG(LogInfo) << "Port Audio set latency ms: " << static_cast<int32_t>(latencyMs);
         }
         else {
-            LOG(LogInfo) << "Port Audio recommended latency ms: " << static_cast<int32_t>(defaultLatency * 1000.0f);
+            LLOG(LogInfo) << "Port Audio recommended latency ms: " << static_cast<int32_t>(defaultLatency * 1000.0f);
             mOutputParameters.suggestedLatency = defaultLatency;
         }
         mOutputParameters.hostApiSpecificStreamInfo = NULL;
@@ -149,7 +149,7 @@ namespace l::audio {
             &mAudioStreamData);
 
         if (err != paNoError) {
-            LOG(LogError) << "Failed to open stream: " << err;
+            LLOG(LogError) << "Failed to open stream: " << err;
             return false;
         }
         return true;
@@ -159,7 +159,7 @@ namespace l::audio {
     bool AudioStream::StartStream() {
         auto err = Pa_StartStream(mPaStream);
         if (err != paNoError) {
-            LOG(LogError) << "Failed to start stream: " << err;
+            LLOG(LogError) << "Failed to start stream: " << err;
             return false;
         }
 
@@ -212,7 +212,7 @@ namespace l::audio {
         }
         auto err = Pa_CloseStream(mPaStream);
         if (err != paNoError) {
-            LOG(LogError) << "Failed to close stream: " << err;
+            LLOG(LogError) << "Failed to close stream: " << err;
             return false;
         }
         return true;
@@ -237,7 +237,7 @@ namespace l::audio {
     bool AudioManager::Init() {
         auto err = Pa_Initialize();
         if (err != paNoError) {
-            LOG(LogError) << "Failed to initialize port audio.";
+            LLOG(LogError) << "Failed to initialize port audio.";
             return false;
         }
         return true;

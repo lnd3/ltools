@@ -30,7 +30,7 @@ namespace l::hid {
 		releasedPrev = released;
 
 		//if (pressedNow || releasedNow || pressed) {
-		//	LOG(LogInfo) << "pressed now: " << pressedNow << ", released now: " << releasedNow << ", pressed: " << pressed;
+		//	LLOG(LogInfo) << "pressed now: " << pressedNow << ", released now: " << releasedNow << ", pressed: " << pressed;
 		//}
 	}
 
@@ -48,6 +48,20 @@ namespace l::hid {
 
 	bool KeyPressState::IsPressedNow() {
 		return pressedNow;
+	}
+
+	std::tuple<char, int32_t> KeyState::LastKeyPressed() {
+		return { static_cast<char>(mLastKeyPressed), mLastKeyDetections };
+	}
+
+	void KeyState::UpdateKeyPress(int32_t scanCode) {
+		if (scanCode >= 32 && scanCode <= 126) {
+			if (mLastKeyPressed != scanCode) {
+				mLastKeyDetections = 0;
+			}
+			mLastKeyPressed = scanCode;
+			mLastKeyDetections++;
+		}
 	}
 
 	void KeyState::UpdateKeyDown(int32_t keyCode) {

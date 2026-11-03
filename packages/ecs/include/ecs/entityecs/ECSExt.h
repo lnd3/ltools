@@ -353,7 +353,7 @@ namespace l::ecs {
 				}
 			}
 			if (!it->second) {
-				LOG(LogError) << "ComponeneViewCache has map entry, but is missing the actual cache for types: " << types_to_string<Types...>();
+				LLOG(LogError) << "ComponeneViewCache has map entry, but is missing the actual cache for types: " << types_to_string<Types...>();
 				mComponentCacheMap.erase(it);
 				return nullptr;
 			}

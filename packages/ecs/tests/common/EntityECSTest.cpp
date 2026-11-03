@@ -98,17 +98,17 @@ public:
 
 	virtual void receive(class World* world, const Events::OnComponentRemoved<Position>& event) override
 	{
-		LOG(LogTest) << "A position component was removed!";
+		LLOG(LogTest) << "A position component was removed!";
 	}
 
 	virtual void receive(class World* world, const Events::OnComponentRemoved<Rotation>& event) override
 	{
-		LOG(LogTest) << "A rotation component was removed! ";
+		LLOG(LogTest) << "A rotation component was removed! ";
 	}
 
 	virtual void receive(class World* world, const DeleteEvent& event) override
 	{
-		LOG(LogTest) << "I received SomeEvent with value " << event.num << "!";
+		LLOG(LogTest) << "I received SomeEvent with value " << event.num << "!";
 
 		// Let's delete an entity while iterating because why not?
 		world->all([&](Entity* ent) {
@@ -116,7 +116,7 @@ public:
 				world->destroy(world->getById(event.num));
 
 			if (ent->getEntityId() == event.num)
-				LOG(LogInfo) << "Woah, we shouldn't get here!";
+				LLOG(LogInfo) << "Woah, we shouldn't get here!";
 			});
 	}
 
@@ -138,7 +138,7 @@ TEST(EntityECS, ComponentCache)
 
 TEST(EntityECS, LifeCycle)
 {
-	LOG(LogInfo) << "EntityComponentSystem Test";
+	LLOG(LogInfo) << "EntityComponentSystem Test";
 
 	auto world = World2::createWorld();
 
@@ -159,7 +159,7 @@ TEST(EntityECS, LifeCycle)
 
 TEST(EntityECS, Sample)
 {
-	LOG(LogInfo) << "EntityComponentSystem Test";
+	LLOG(LogInfo) << "EntityComponentSystem Test";
 
 	auto world = World2::createWorld();
 
@@ -169,21 +169,21 @@ TEST(EntityECS, Sample)
 	auto pos = ent->assign<Position>(0.f, 0.f);
 	auto rot = ent->assign<Rotation>(0.f);
 
-	LOG(LogInfo) << "size of an entity: " << sizeof(Entity);
-	LOG(LogInfo) << "size of Position: " << sizeof(Position);
-	LOG(LogInfo) << "size of Rotation: " << sizeof(Rotation);
+	LLOG(LogInfo) << "size of an entity: " << sizeof(Entity);
+	LLOG(LogInfo) << "size of Position: " << sizeof(Position);
+	LLOG(LogInfo) << "size of Rotation: " << sizeof(Rotation);
 
-	LOG(LogInfo) << "Initial values: position(" << pos->x << ", " << pos->y << "), rotation(" << rot->angle << ")";
+	LLOG(LogInfo) << "Initial values: position(" << pos->x << ", " << pos->y << "), rotation(" << rot->angle << ")";
 
 	world->tick({ 0.0f, 10.f });
 
-	LOG(LogInfo) << "After tick(10): position(" << pos->x << ", " << pos->y << "), rotation(" << rot->angle << ")";
+	LLOG(LogInfo) << "After tick(10): position(" << pos->x << ", " << pos->y << "), rotation(" << rot->angle << ")";
 
 	world->disableSystem(entitySystem);
 
 	world->tick({ 0.0f, 10.f });
 
-	LOG(LogInfo) << "After tick(10) and DisableSystem(testSystem): position(" << pos->x << ", " << pos->y << "), rotation(" << rot->angle << ")";
+	LLOG(LogInfo) << "After tick(10) and DisableSystem(testSystem): position(" << pos->x << ", " << pos->y << "), rotation(" << rot->angle << ")";
 
 	world->enableSystem(entitySystem);
 
@@ -193,12 +193,12 @@ TEST(EntityECS, Sample)
 	TEST_FUZZY2(pos->y, 20.0f, "");
 	TEST_FUZZY2(rot->angle, 40.0f, "");
 
-	LOG(LogInfo) << "After tick(10) and EnableSystem(testSystem): position(" << pos->x << ", " << pos->y << "), rotation(" << rot->angle << ")";
+	LLOG(LogInfo) << "After tick(10) and EnableSystem(testSystem): position(" << pos->x << ", " << pos->y << "), rotation(" << rot->angle << ")";
 
 	ent->remove<Position>();
 	ent->remove<Rotation>();
 
-	LOG(LogInfo) << "Creating more entities...";
+	LLOG(LogInfo) << "Creating more entities...";
 
 	for (int i = 0; i < 10; ++i)
 	{
@@ -207,28 +207,28 @@ TEST(EntityECS, Sample)
 	}
 
 	int count = 0;
-	LOG(LogInfo) << "Counting entities with SomeComponent...";
+	LLOG(LogInfo) << "Counting entities with SomeComponent...";
 	// range based for loop
 	for (auto ent : world->each<SomeComponent>())
 	{
 		++count;
-		LOG(LogInfo) << "Found entity #" << ent->getEntityId();
+		LLOG(LogInfo) << "Found entity #" << ent->getEntityId();
 	}
-	LOG(LogInfo) << count << " entities have SomeComponent!";
+	LLOG(LogInfo) << count << " entities have SomeComponent!";
 
 	// Emitting events
 	world->emit<DeleteEvent>({ 4 });
 
 	TEST_EQ(world->getCount(), 11, "");
 
-	LOG(LogInfo) << "We have " << world->getCount() << " entities right now.";
+	LLOG(LogInfo) << "We have " << world->getCount() << " entities right now.";
 	world->cleanup();
 
 	TEST_EQ(world->getCount(), 10, "");
 
-	LOG(LogInfo) << "After a cleanup, we have " << world->getCount() << " entities.";
+	LLOG(LogInfo) << "After a cleanup, we have " << world->getCount() << " entities.";
 
-	LOG(LogInfo) << "Destroying the world...";
+	LLOG(LogInfo) << "Destroying the world...";
 
 	world->destroyWorld();
 

@@ -11,6 +11,7 @@
 
 namespace l::audio {
 #ifdef BSYSTEM_PLATFORM_Windows
+#define NOMINMAX
 #include <Windows.h>
 	void PCBeep(int32_t freq, int32_t duration) {
 		Beep(freq, duration);

@@ -53,7 +53,7 @@ TEST(CryptoPP, verifydigest) {
 	mHmac.Update(p, message.size());
 	mHmac.Final(mSignature);
 	auto sign = l::serialization::base16_encode(mSignature, 32);
-	LOG(LogTest) << sign;
+	LLOG(LogTest) << sign;
 
 	/*
 		echo -n 'apiKey=test' | openssl dgst -hex -sha256 -hmac 'NhqPtmdSJYdKjVHjA7PZj4Mge3R5YNiP1e3UZjInClVN65XAbvqqM6A7H5fATj0j'                   
@@ -81,8 +81,8 @@ TEST(Cryptopp, x25519test) {
 
 	auto skxpemCorrectHex = l::serialization::base16_encode(l::serialization::base64_decode(skxpemCorrect));
 	auto pkxpemCorrectHex = l::serialization::base16_encode(l::serialization::base64_decode(pkxpemCorrect));
-	LOG(LogInfo) << "Secret pem key in hex: " << skxpemCorrectHex;
-	LOG(LogInfo) << "Public pem key in hex: " << pkxpemCorrectHex;
+	LLOG(LogInfo) << "Secret pem key in hex: " << skxpemCorrectHex;
+	LLOG(LogInfo) << "Public pem key in hex: " << pkxpemCorrectHex;
 
 	CryptoPP::byte privateKeyCorrect[32];
 	CryptoPP::byte publicKeyCorrect[32];
@@ -101,13 +101,13 @@ TEST(Cryptopp, x25519test) {
 
 	auto pkxString = std::string_view(reinterpret_cast<const char*>(publicKeyGen), 32);
 	auto pkxPem = crypto::To25519PemKey(pkxString, true, true);
-	LOG(LogInfo) << "Public key pem format:\n" << pkxPem;
+	LLOG(LogInfo) << "Public key pem format:\n" << pkxPem;
 
 	TEST_TRUE(pkxPem == pkxpemCorrect, "");
 
 	auto skxHex = l::serialization::base16_encode(privateKeyCorrect, 32);
 	auto pkxHex = l::serialization::base16_encode(publicKeyGen, 32);
-	LOG(LogInfo) << "Public correct key hex format:\n" << pkxHex;
+	LLOG(LogInfo) << "Public correct key hex format:\n" << pkxHex;
 
 	return 0;
 }
@@ -145,8 +145,8 @@ bool TestGeneratedKey() {
 	auto pkStr = std::string_view(reinterpret_cast<const char*>(computedPublicKeyData), 32);
 	auto skB16 = l::serialization::base16_encode(skStr);
 	auto pkB16 = l::serialization::base16_encode(pkStr);
-	LOG(LogInfo) << "generated private:" << skB16;
-	LOG(LogInfo) << "generated public:" << pkB16;
+	LLOG(LogInfo) << "generated private:" << skB16;
+	LLOG(LogInfo) << "generated public:" << pkB16;
 	TEST_FALSE(TestPublicKey(skB16, pkB16), "");
 
 	return 0;
@@ -198,7 +198,7 @@ bool TestVerifier(std::string_view publicKeyB16, std::string_view message, std::
 TEST(Cryptopp, printPemKeys) {
 	auto messageHex = "ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f";
 	auto signatureHex = "dc2a4459e7369633a52b1bf277839a00201009a3efbf3ecb69bea2186c26b58909351fc9ac90b3ecfdfbc7c66431e0303dca179c138ac17ad9bef1177331a704";
-	LOG(LogInfo) << "private key pem: " << crypto::ToPemKey("833fe62409237b9d62ec77587520911e9a759cec1d19755b7da901b96dca3d42");
+	LLOG(LogInfo) << "private key pem: " << crypto::ToPemKey("833fe62409237b9d62ec77587520911e9a759cec1d19755b7da901b96dca3d42");
 
 	return 0;
 }
@@ -211,8 +211,8 @@ TEST(Cryptopp, xed) {
 		CryptoPP::byte privateKey[32];
 		CryptoPP::byte publicKey[32];
 		xed.GenerateKeyPair(rand, privateKey, publicKey);
-		LOG(LogTest) << "private key: " << l::string::to_hex2(privateKey, 32);
-		LOG(LogTest) << "public key: " << l::string::to_hex2(publicKey, 32);
+		LLOG(LogTest) << "private key: " << l::string::to_hex2(privateKey, 32);
+		LLOG(LogTest) << "public key: " << l::string::to_hex2(publicKey, 32);
 	}
 
 	return 0;
@@ -234,10 +234,10 @@ TEST(Cryptopp, printgenerated) {
 	auto message = std::string_view("TestMessage");
 	auto len = signer.SignMessage(CryptoPP::NullRNG(), reinterpret_cast<const unsigned char*>(message.data()), message.size(), sign);
 
-	LOG(LogTest) << "private key: " << l::serialization::base16_encode(sk, 32);
-	LOG(LogTest) << "public key: " << l::serialization::base16_encode(pk, 32);
-	LOG(LogTest) << "message: " << message;
-	LOG(LogTest) << "signature: " << l::serialization::base16_encode(sign, 64);
+	LLOG(LogTest) << "private key: " << l::serialization::base16_encode(sk, 32);
+	LLOG(LogTest) << "public key: " << l::serialization::base16_encode(pk, 32);
+	LLOG(LogTest) << "message: " << message;
+	LLOG(LogTest) << "signature: " << l::serialization::base16_encode(sign, 64);
 	return 0;
 }
 
@@ -251,8 +251,8 @@ TEST(Cryptopp, test2) {
 	auto publicKeyB16 = "C5F9F54D52D5A2FB6AE692B1CCE695017C2EAD755B213D46AC6912F7B979C6CD";
 	auto messageB16 = "ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f";
 	auto signatureB16 = "e30fc92c7548d99838f520eda491e5311ed9ce9fa868e5743191abe8d7f1a45e470f10cc9d23ddc3f5c906851c8b3d974c03006b9afc5bd6263d0fd72dcf5b09";
-	LOG(LogInfo) << "private:" << privateKeyB16;
-	LOG(LogInfo) << "public:" << publicKeyB16;
+	LLOG(LogInfo) << "private:" << privateKeyB16;
+	LLOG(LogInfo) << "public:" << publicKeyB16;
 	TEST_TRUE(!TestPublicKey(privateKeyB16, publicKeyB16), "");
 	TEST_TRUE(!TestSignature(privateKeyB16, messageB16, signatureB16), "");
 	TEST_TRUE(!TestVerifier(publicKeyB16, messageB16, signatureB16), "");
@@ -265,8 +265,8 @@ TEST(Cryptopp, test3) {
 	auto publicKeyB16 = "EE8D0405408B1036B046F63923421C87AD9046CFB7FB23ED66A7DB0F6F7EDE90";
 	auto message = "TestMessage";
 	auto signatureB16 = "743D4194555C5F578F20D859A98DB1F93EB10297609EF3E2A459EE05513CA0D3DBEA5BFDECF17A3A3C9272C24A543882FBF6B717A4E35920CF71C64908C44D0F";
-	LOG(LogInfo) << "private:" << privateKeyB16;
-	LOG(LogInfo) << "public:" << publicKeyB16;
+	LLOG(LogInfo) << "private:" << privateKeyB16;
+	LLOG(LogInfo) << "public:" << publicKeyB16;
 	TEST_TRUE(!TestPublicKey(privateKeyB16, publicKeyB16), "");
 	TEST_TRUE(!TestSignature(privateKeyB16, message, signatureB16), "");
 	TEST_TRUE(!TestVerifier(publicKeyB16, message, signatureB16), "");
@@ -280,9 +280,9 @@ TEST(Cryptopp, PrintPKCS8) {
 	crypto::CryptoXED25519 crypto;
 	crypto.LoadPublicKeyHex(pk);
 
-	LOG(LogTest) << "pk: \n" << pk;
-	LOG(LogTest) << "Pem public key: \n" << crypto.GetPublicKeyPem(true);
-	LOG(LogTest) << "PKCS8 public key: \n" << crypto.GetPublicKeyPKCS8();
+	LLOG(LogTest) << "pk: \n" << pk;
+	LLOG(LogTest) << "Pem public key: \n" << crypto.GetPublicKeyPem(true);
+	LLOG(LogTest) << "PKCS8 public key: \n" << crypto.GetPublicKeyPKCS8();
 	return 0;
 }
 
@@ -313,16 +313,16 @@ TEST(Cryptopp, CryptoXED25519) {
 		crypto.LoadPrivateKeyHex(privateKeyHex);
 		TEST_TRUE(crypto.GetPrivateKeyHex() == privateKeyHex, "");
 		TEST_TRUE(crypto.GetPublicKeyHex() == publicKeyHex, "");
-		LOG(LogInfo) << "Private key        : " << crypto.GetPrivateKeyHex();
-		LOG(LogTest) << "DER0 public key hex: " << crypto.SaveDERPublicKeyHex(false);
-		LOG(LogTest) << "DER1 public key hex: " << crypto.SaveDERPublicKeyHex();
-		LOG(LogTest) << "DER0 public key b64: " << crypto.SaveDERPublicKeyB64(false);
-		LOG(LogTest) << "DER1 public key b64: \n" << crypto::ToPublicKeyFormat(crypto.SaveDERPublicKeyB64(1));
-		LOG(LogTest) << "PEM public key: \n" << crypto.GetPublicKeyPem(true);
-		LOG(LogTest) << "PKCS8 public key: \n" << crypto.GetPublicKeyPKCS8();
+		LLOG(LogInfo) << "Private key        : " << crypto.GetPrivateKeyHex();
+		LLOG(LogTest) << "DER0 public key hex: " << crypto.SaveDERPublicKeyHex(false);
+		LLOG(LogTest) << "DER1 public key hex: " << crypto.SaveDERPublicKeyHex();
+		LLOG(LogTest) << "DER0 public key b64: " << crypto.SaveDERPublicKeyB64(false);
+		LLOG(LogTest) << "DER1 public key b64: \n" << crypto::ToPublicKeyFormat(crypto.SaveDERPublicKeyB64(1));
+		LLOG(LogTest) << "PEM public key: \n" << crypto.GetPublicKeyPem(true);
+		LLOG(LogTest) << "PKCS8 public key: \n" << crypto.GetPublicKeyPKCS8();
 		crypto.AccumulateMessage(message);
 		auto signature = crypto.SignMessageB64();
-		LOG(LogTest) << "Sign: \n" << signature;
+		LLOG(LogTest) << "Sign: \n" << signature;
 
 		{
 			crypto::CryptoXED25519 cryptoV;

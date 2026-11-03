@@ -3,12 +3,14 @@
 
 #include "logging/LoggingAll.h"
 
+#ifndef HEADLESS_BUILD
 #include "hid/KeyboardPiano.h"
 #include "hid/KeyState.h"
 #include "hid/Midi.h"
 
 #include "audio/PortAudio.h"
 #include "audio/AudioUtils.h"
+#endif
 
 #include "math/MathFunc.h"
 
@@ -23,6 +25,7 @@
 
 namespace l::nodegraph {
 
+#ifndef HEADLESS_BUILD
     /*********************************************************************/
     class GraphInputKeyboardPiano : public NodeGraphOp, public l::audio::INoteProcessor {
     public:
@@ -352,6 +355,7 @@ namespace l::nodegraph {
         l::audio::FilterRWA<float> mFilterEnvelope;
     };
 
+#endif // HEADLESS_BUILD
 
 }
 

@@ -12,4 +12,7 @@ set(deps
 	hid
 )
 
-bs_generate_package(nodegraph "tier1" "${deps}" "PortAudio;various;jsonxx")
+bs_generate_package(nodegraph "tier1" "${deps}" "various;jsonxx")
+if(TARGET PortAudio)
+    target_link_libraries(nodegraph PUBLIC PortAudio)
+endif()

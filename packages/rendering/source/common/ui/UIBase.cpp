@@ -39,6 +39,11 @@ namespace l::ui {
         mUIDeleted.clear();
     }
 
+    void UIDestroy() {
+        std::lock_guard<std::mutex> lock(mUIsMutex);
+        mUIs.clear();
+    }
+
     UIBase* UIGet(std::string_view name) {
         std::lock_guard<std::mutex> lock(mUIsMutex);
         for (auto& ui : mUIs) {

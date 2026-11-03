@@ -47,7 +47,7 @@ namespace {
 					}
 				}
 				else {
-					LOG(LogError) << "Failed to locate window callback: " << l::string::narrow(className);
+					LLOG(LogError) << "Failed to locate window callback: " << l::string::narrow(className);
 				}
 			}
 		}
@@ -83,30 +83,30 @@ namespace l {
 			switch (msg)
 			{
 			case WM_ACTIVATEAPP:
-				LOG(LogDebug) << "[" << hwnd << "] WM_ACTIVATEAPP recieved [" << wp << ", " << lp << "]";
+				LLOG(LogDebug) << "[" << hwnd << "] WM_ACTIVATEAPP recieved [" << wp << ", " << lp << "]";
 				break;
 			case WM_ACTIVATE:
-				LOG(LogDebug) << "[" << hwnd << "] WM_ACTIVATE recieved [" << wp << ", " << lp << "]";
+				LLOG(LogDebug) << "[" << hwnd << "] WM_ACTIVATE recieved [" << wp << ", " << lp << "]";
 				break;
 			case WM_NCCREATE:
-				LOG(LogDebug) << "[" << hwnd << "] WM_NCCREATE recieved [" << wp << ", " << lp << "]";
+				LLOG(LogDebug) << "[" << hwnd << "] WM_NCCREATE recieved [" << wp << ", " << lp << "]";
 				break;
 			case WM_GETMINMAXINFO:
-				//LOG(LogDebug) << "[" << hwnd << "] WM_GETMINMAXINFO recieved [" << wp << ", " << lp << "]";
+				//LLOG(LogDebug) << "[" << hwnd << "] WM_GETMINMAXINFO recieved [" << wp << ", " << lp << "]";
 				break;
 			case WM_CREATE:
-				LOG(LogDebug) << "[" << hwnd << "] WM_CREATE recieved [" << wp << ", " << lp << "]";
+				LLOG(LogDebug) << "[" << hwnd << "] WM_CREATE recieved [" << wp << ", " << lp << "]";
 				break;
 			case WM_GETICON: // Called regulary to update large and small app icon
 				break;
 			case WM_CLOSE:
-				LOG(LogDebug) << "[" << hwnd << "] WM_CLOSE recieved [" << wp << ", " << lp << "]";
+				LLOG(LogDebug) << "[" << hwnd << "] WM_CLOSE recieved [" << wp << ", " << lp << "]";
 				break;
 			case WM_DESTROY:
-				LOG(LogDebug) << "[" << hwnd << "] WM_DESTROY recieved [" << wp << ", " << lp << "]";
+				LLOG(LogDebug) << "[" << hwnd << "] WM_DESTROY recieved [" << wp << ", " << lp << "]";
 				break;
 			case WM_NCDESTROY:
-				LOG(LogDebug) << "[" << hwnd << "] WM_NCDESTROY recieved [" << wp << ", " << lp << "]";
+				LLOG(LogDebug) << "[" << hwnd << "] WM_NCDESTROY recieved [" << wp << ", " << lp << "]";
 				EraseWindowCallback(hwnd);
 			}
 			return DefWindowProcW(hwnd, msg, wp, lp);
@@ -141,13 +141,13 @@ namespace l {
 					return std::make_optional<WindowData>(name, std::move(wndClassEx), hWnd);
 				}
 				else {
-					LOG(LogError) << "Failed to create window, error " << GetLastError();
+					LLOG(LogError) << "Failed to create window, error " << GetLastError();
 				}
 			}
 			else {
-				LOG(LogError) << "Failed to register window class. Error: " << GetLastError();
+				LLOG(LogError) << "Failed to register window class. Error: " << GetLastError();
 			}
-			LOG(LogError) << "See https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes for more info";
+			LLOG(LogError) << "See https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes for more info";
 			return std::nullopt;
 		}
 

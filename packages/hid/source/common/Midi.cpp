@@ -14,28 +14,28 @@ namespace l::hid::midi {
 		void HandleMidiData(uint32_t msg, uint32_t deviceId, uint32_t deviceOutId, uint32_t param1, uint32_t param2) {
 			switch (msg) {
 			case MIM_OPEN:
-				//LOG(LogInfo) << "MIM_OPEN";
+				//LLOG(LogInfo) << "MIM_OPEN";
 				return;
 			case MIM_CLOSE:
-				//LOG(LogInfo) << "MIM_CLOSE";
+				//LLOG(LogInfo) << "MIM_CLOSE";
 				return;
 			case MIM_LONGDATA:
-				LOG(LogInfo) << "Long data: " << msg << " " << deviceId << " " << param1 << " " << param2;
+				LLOG(LogInfo) << "Long data: " << msg << " " << deviceId << " " << param1 << " " << param2;
 				return;
 			case MIM_ERROR:
-				LOG(LogInfo) << "Error: " << msg << " " << deviceId << " " << param1 << " " << param2;
+				LLOG(LogInfo) << "Error: " << msg << " " << deviceId << " " << param1 << " " << param2;
 				return;
 			case MIM_LONGERROR:
-				LOG(LogInfo) << "Long error: " << msg << " " << deviceId << " " << param1 << " " << param2;
+				LLOG(LogInfo) << "Long error: " << msg << " " << deviceId << " " << param1 << " " << param2;
 				return;
 			case MIM_MOREDATA:
-				LOG(LogInfo) << "More data: " << msg << " " << deviceId << " " << param1 << " " << param2;
+				LLOG(LogInfo) << "More data: " << msg << " " << deviceId << " " << param1 << " " << param2;
 				return;
 			case MIM_DATA:
-				//LOG(LogInfo) << "Data: " << msg << " " << deviceId << " " << param1 << " " << param2;
+				//LLOG(LogInfo) << "Data: " << msg << " " << deviceId << " " << param1 << " " << param2;
 				break;
 			default:
-				LOG(LogInfo) << "default";
+				LLOG(LogInfo) << "default";
 				break;
 			}
 

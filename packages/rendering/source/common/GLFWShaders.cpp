@@ -25,10 +25,10 @@ namespace l {
             mShaders.clear();
         }
 
-        void ShaderManager::CreateShader(std::string_view name, std::string_view code, bool fragment) {
+        void ShaderManager::CreateShader(std::string_view name, std::string_view code, ShaderStage stage) {
             if (!code.empty()) {
                 Shader shader;
-                shader.load(code, fragment);
+                shader.load(code, stage);
                 mShaders.emplace(name, std::move(shader));
             }
             else {
@@ -59,6 +59,34 @@ namespace l {
                 return;
             }
             program.load(itVertex->second, itFragment->second);
+
+            mShaderPrograms.emplace(name, std::move(program));
+        }
+
+        void ShaderManager::CreateTessellatedProgram(std::string_view name, std::string_view vertexShader, std::string_view tessControlShader, std::string_view tessEvaluationShader, std::string_view fragmentShader) {
+            ShaderProgram program;
+
+            auto itVertex = mShaders.find(vertexShader.data());
+            if (itVertex == mShaders.end()) {
+                ASSERT(false) << "Failed to find vertex shader '" << vertexShader << "'";
+                return;
+            }
+            auto itTessControl = mShaders.find(tessControlShader.data());
+            if (itTessControl == mShaders.end()) {
+                ASSERT(false) << "Failed to find tessellation control shader '" << tessControlShader << "'";
+                return;
+            }
+            auto itTessEvaluation = mShaders.find(tessEvaluationShader.data());
+            if (itTessEvaluation == mShaders.end()) {
+                ASSERT(false) << "Failed to find tessellation evaluation shader '" << tessEvaluationShader << "'";
+                return;
+            }
+            auto itFragment = mShaders.find(fragmentShader.data());
+            if (itFragment == mShaders.end()) {
+                ASSERT(false) << "Failed to find fragment shader '" << fragmentShader << "'";
+                return;
+            }
+            program.loadWithTessellation(itVertex->second, itTessControl->second, itTessEvaluation->second, itFragment->second);
 
             mShaderPrograms.emplace(name, std::move(program));
         }

@@ -89,7 +89,7 @@ namespace l {
 
 			// If the import failed, report it
 			if (nullptr == scene) {
-				LOG(LogError) << importer.GetErrorString();
+				LLOG(LogError) << importer.GetErrorString();
 				return false;
 			}
 
@@ -107,7 +107,7 @@ namespace l {
 
 			LoadColladaAsset(file, [](const ColladaData& colladaData) {
 				for (auto& geometry : colladaData.mGeometryNodes) {
-					LOG(LogInfo) << "Model '" << geometry.mName << "' was successfully loaded.";
+					LLOG(LogInfo) << "Model '" << geometry.mName << "' was successfully loaded.";
 				}
 
 				});
@@ -316,15 +316,15 @@ namespace l {
 
 				// Calculate handedness
 				if (dot2 == 0) {
-					LOG(LogWarning) << "Vertex index " << i << " has an undefined bitangent handedness because:";
+					LLOG(LogWarning) << "Vertex index " << i << " has an undefined bitangent handedness because:";
 					if (l::vec::IsZeroVector<float>(vertices.subspan(index0, 3))) {
-						LOG(LogError) << "  Normal is zero";
+						LLOG(LogError) << "  Normal is zero";
 					}
 					if (l::vec::IsZeroVector(vertices.subspan(index1, 3))) {
-						LOG(LogWarning) << "  Tangent is zero";
+						LLOG(LogWarning) << "  Tangent is zero";
 					}
 					if (l::vec::IsZeroVector(std::span(tan2.begin() + 3 * i, 3))) {
-						LOG(LogWarning) << "  Bitangent is zero";
+						LLOG(LogWarning) << "  Bitangent is zero";
 					}
 				}
 				if (dot2 < 0) {
