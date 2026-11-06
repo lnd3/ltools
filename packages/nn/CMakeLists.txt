@@ -54,8 +54,9 @@ endif()
 
 if(WIN32)
 	# fann.h includes <windows.h>, whose min/max macros break std::max/std::min in tiny-dnn (and our sources)
-	# when the unity build compiles the FANN sources first.
-	target_compile_definitions(nn PRIVATE NOMINMAX)
+	# when the unity build compiles the FANN sources first. PUBLIC: nn's headers include tiny-dnn, and every
+	# target linking nn had NOMINMAX from ncnn (its PUBLIC definition) until ncnn was dropped (d983e4c).
+	target_compile_definitions(nn PUBLIC NOMINMAX)
 	target_compile_definitions(nn_test PRIVATE NOMINMAX)
 endif()
 
