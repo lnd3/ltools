@@ -52,6 +52,13 @@ if(TARGET libtorch_wrapper)
 	endif()
 endif()
 
+if(WIN32)
+	# fann.h includes <windows.h>, whose min/max macros break std::max/std::min in tiny-dnn (and our sources)
+	# when the unity build compiles the FANN sources first.
+	target_compile_definitions(nn PRIVATE NOMINMAX)
+	target_compile_definitions(nn_test PRIVATE NOMINMAX)
+endif()
+
 if(MSVC)
 	target_compile_options(nn PRIVATE /WX- /bigobj)
 	target_compile_options(nn_test PRIVATE /WX- /bigobj)
